@@ -1,0 +1,15 @@
+:host {
+  display: flex;
+  flex-direction: column;
+}
+
+table {
+  td {
+    //min-width: 20%;
+    text-align: center
+  }
+
+  th:first-child, td:first-child {
+    text-align: left;
+  }
+}

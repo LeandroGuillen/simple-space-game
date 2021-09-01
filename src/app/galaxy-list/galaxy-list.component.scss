@@ -1,0 +1,10 @@
+table {
+  td {
+    min-width: 10%;
+    text-align: center
+  }
+
+  th:first-child, td:first-child {
+    text-align: left;
+  }
+}

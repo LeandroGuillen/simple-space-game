@@ -1,0 +1,24 @@
+<button (click)="goBack()" mat-raised-button>BACK</button>
+
+<div *ngIf="!star">
+  <mat-icon aria-hidden="false" aria-label="Example home icon">home</mat-icon>
+  <p>404 STAR NOT FOUND</p>
+</div>
+
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Mineral Class</th>
+    <th>Size</th>
+    <th>Gravity</th>
+  </tr>
+
+  <tr *ngFor="let p of star.planets">
+    <td><a routerLink="/planets/{{p.name}}">{{p.name}}</a></td>
+    <td>{{p.mineral_class}}</td>
+    <td>{{p.size}}</td>
+    <td>{{p.gravity}}</td>
+  </tr>
+</table>
+
+<pre>{{ star | json}}</pre>
