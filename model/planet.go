@@ -28,6 +28,9 @@ const (
 )
 
 type Planet struct {
+	Id         int `json:"id"`
+	ParentStar int `json:"parent_star"`
+
 	// physical characteristics
 	MineralClass PlanetMineral `json:"mineral_class"`
 	Size         PlanetSize    `json:"size"`

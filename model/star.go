@@ -12,6 +12,7 @@ const (
 )
 
 type Star struct {
+	Id      int       `json:"id"`
 	Name    string    `json:"name"`
 	Planets []Planet  `json:"planets"`
 	Color   StarColor `json:"color"`

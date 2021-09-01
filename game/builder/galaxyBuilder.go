@@ -13,7 +13,8 @@ func NewGalaxy(numStars int) Galaxy {
 	var starNames = make(map[string]int)
 
 	for i := 0; i < numStars; i++ {
-		star := newRandomStar()
+		star := newRandomStar(i)
+		star.Id = i
 
 		// assign random name, adding numbers if necessary
 		randomName := data.GetRandomStarName()
@@ -40,11 +41,15 @@ func NewGalaxy(numStars int) Galaxy {
 	return galaxy
 }
 
-func newRandomStar() Star {
+func newRandomStar(parentStarId int) Star {
 	var numPlanets = rand.Intn(5) + 1
 	var planets []Planet
 	for i := 0; i < numPlanets; i++ {
-		planets = append(planets, newRandomPlanet())
+		planet := newRandomPlanet()
+		planet.Id = i
+		planet.ParentStar = parentStarId
+
+		planets = append(planets, planet)
 	}
 
 	var color = StarColor(rand.Intn(int(StarColorMax)))
