@@ -9,6 +9,7 @@ export function mapGalaxy(g: BEGalaxy): Galaxy {
 
 function mapStar(s: BEStar): Star {
   return {
+    id: s.id,
     name: s.name,
     planets: s.planets.map((p, i) => mapPlanet(s.name, i, p)),
     color: s.color,
@@ -20,6 +21,8 @@ function mapStar(s: BEStar): Star {
 
 function mapPlanet(starName: string, idx: number, p: BEPlanet): Planet {
   return {
+    id: p.id,
+    parentStar: p.parent_star,
     name: `${starName} ${romanNumber(idx + 1)}`,
     mineral_class: p.mineral_class,
     size: p.size,

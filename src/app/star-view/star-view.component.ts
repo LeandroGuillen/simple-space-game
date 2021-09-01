@@ -23,8 +23,8 @@ export class StarViewComponent implements OnInit {
   ngOnInit() {
 
     this.route.params.pipe(
-      map(params => params['name']),
-      switchMap(name => this.gameService.getStarByName(name))
+      map(params => parseInt(params['star_id'])),
+      switchMap(id => this.gameService.getStarById(id))
     ).subscribe(star => {
       this.star = star;
     });

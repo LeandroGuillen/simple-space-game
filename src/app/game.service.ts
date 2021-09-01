@@ -36,28 +36,26 @@ export class GameService {
       .pipe(shareReplay(1))
   }
 
-  getStarByName(name: string): Observable<Star> {
+  getStarById(id: number): Observable<Star> {
     return this.currentGalaxyUpdates.pipe(
       take(1),
       map(galaxy => {
-        const star = galaxy.stars.find(star => star.name === name);
+        const star = galaxy.stars.find(star => star.id === id);
         if (star === undefined) {
-          throw new Error(`star with name '${name}' was not found`)
+          throw new Error(`star with id '${id}' was not found`)
         }
         return star;
       })
     )
   }
 
-  getPlanetByName(name: string): Observable<Planet> {
-    const starName = name.split(' ')[0];
-
-    return this.getStarByName(starName).pipe(
+  getPlanetById(planetId: number, starId: number): Observable<Planet> {
+    return this.getStarById(starId).pipe(
       take(1),
       map(star => {
-        const planet = star.planets.find(star => star.name === name);
+        const planet = star.planets.find(star => star.id === planetId);
         if (planet === undefined) {
-          throw new Error(`planet with name '${name}' was not found`)
+          throw new Error(`planet with id '${planetId}' was not found`)
         }
         return planet;
       })

@@ -5,8 +5,8 @@ import {StarViewComponent} from "./star-view/star-view.component";
 import {PlanetViewComponent} from "./planet-view/planet-view.component";
 
 const routes: Routes = [
-  {path: 'stars/:name', component: StarViewComponent},
-  {path: 'planets/:name', component: PlanetViewComponent},
+  {path: 'stars/:star_id', component: StarViewComponent},
+  {path: 'stars/:star_id/planets/:planet_id', component: PlanetViewComponent},
   {path: '**', component: GalaxyListComponent},
 ];
 

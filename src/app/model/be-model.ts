@@ -3,6 +3,7 @@ export type BEGalaxy = {
 };
 
 export type BEStar = {
+  id: number;
   name: string;
   planets: BEPlanet[];
   color: number;
@@ -11,6 +12,8 @@ export type BEStar = {
 };
 
 export type BEPlanet = {
+  id: number;
+  parent_star: number;
   mineral_class: number;
   size: number;
   gravity: number;

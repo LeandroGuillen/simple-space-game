@@ -14,7 +14,7 @@
   </tr>
 
   <tr *ngFor="let p of star.planets">
-    <td><a routerLink="/planets/{{p.name}}">{{p.name}}</a></td>
+    <td><a routerLink="/stars/{{p.parentStar}}/planets/{{p.id}}">{{p.name}} p.parentStar:{{p.parentStar}}</a></td>
     <td>{{p.mineral_class}}</td>
     <td>{{p.size}}</td>
     <td>{{p.gravity}}</td>

@@ -14,7 +14,7 @@
   </tr>
 
   <tr *ngFor="let s of (galaxy | async)?.stars">
-    <td><a routerLink="/stars/{{s.name}}">{{s.name}}</a></td>
+    <td><a routerLink="/stars/{{s.id}}">{{s.name}}</a></td>
     <td>({{s.x}}, {{s.y}})</td>
     <td>{{s.color}}</td>
     <td>{{s.planets.length}}</td>

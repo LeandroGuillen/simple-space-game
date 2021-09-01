@@ -3,6 +3,7 @@ export type Galaxy = {
 };
 
 export type Star = {
+  id: number;
   name: string;
   planets: Planet[];
   color: number;
@@ -20,6 +21,8 @@ export enum PlanetSize { SMALL, MEDIUM, LARGE}
 export enum PlanetGravity { LOW, NORMAL, HIGH}
 
 export type Planet = {
+  id: number;
+  parentStar: number;
   name: string;
   mineral_class: PlanetMineral;
   size: PlanetSize;
