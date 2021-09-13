@@ -3,11 +3,13 @@ import {RouterModule, Routes} from '@angular/router';
 import {GalaxyListComponent} from "./galaxy-list/galaxy-list.component";
 import {StarViewComponent} from "./star-view/star-view.component";
 import {PlanetViewComponent} from "./planet-view/planet-view.component";
+import {HomePageComponent} from "./home-page/home-page.component";
 
 const routes: Routes = [
+  {path: 'home', component: HomePageComponent},
   {path: 'stars/:star_id', component: StarViewComponent},
   {path: 'stars/:star_id/planets/:planet_id', component: PlanetViewComponent},
-  {path: '**', component: GalaxyListComponent},
+  {path: 'galaxy', component: GalaxyListComponent},
 ];
 
 @NgModule({

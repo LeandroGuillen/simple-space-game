@@ -1,26 +1,47 @@
 import {Injectable} from "@angular/core";
 import {BehaviorSubject, Observable} from "rxjs";
 import {HttpClient} from "@angular/common/http";
-import {filter, map, shareReplay, take} from "rxjs/operators";
+import {filter, map, shareReplay, take, tap} from "rxjs/operators";
 import {Galaxy, Planet, Star} from "./model/model";
 import {mapGalaxy} from "./model/mapper";
 import {BEGalaxy} from "./model/be-model";
 
 @Injectable({providedIn: "root"})
 export class GameService {
-  private static readonly HOST = 'http://localhost:8080'
-
   private _galaxy = new BehaviorSubject<Galaxy>({} as Galaxy);
+  private _host: string;
 
   constructor(private readonly http: HttpClient) {
+    this._host = window.localStorage.getItem('currentServerHost') || '';
+  }
+
+
+  set host(host: string) {
+    if (!host.startsWith('http')) {
+      this._host = 'http://'+host;
+    }
+    this._host = host;
   }
 
   get currentGalaxyUpdates(): Observable<Galaxy> {
     return this._galaxy.asObservable().pipe(filter(g => !!g.stars));
   }
 
+  establishConnection(): Observable<boolean> {
+    return this.http.get<{ ok: boolean }>(`${this._host}/status`).pipe(
+      map(res => {
+        if (res.ok) {
+          window.localStorage.setItem('currentServerHost', this._host);
+          return true;
+        }
+        window.localStorage.setItem('currentServerHost', '');
+        return false;
+      })
+    )
+  }
+
   createGalaxy(numStars: number): Observable<Galaxy | undefined> {
-    return this.http.post<BEGalaxy>(`${GameService.HOST}/galaxy`, {numStars}).pipe(
+    return this.http.post<BEGalaxy>(`${this._host}/galaxy`, {numStars}).pipe(
       map(g => {
         const mappedGalaxy = mapGalaxy(g);
         this._galaxy.next(mappedGalaxy);
@@ -31,12 +52,12 @@ export class GameService {
   }
 
   createRandomGalaxy(): Observable<Galaxy> {
-    return this.http.post<Galaxy>(`${GameService.HOST}/randomGalaxy`, {})
+    return this.http.post<Galaxy>(`${this._host}/randomGalaxy`, {})
       .pipe(shareReplay(1))
   }
 
   getCurrentGalaxy(): Observable<Galaxy> {
-    return this.http.get<BEGalaxy>(`${GameService.HOST}/galaxy`).pipe(
+    return this.http.get<BEGalaxy>(`${this._host}/galaxy`).pipe(
       map(g => {
         const mappedGalaxy = mapGalaxy(g);
         this._galaxy.next(mappedGalaxy);
@@ -73,7 +94,7 @@ export class GameService {
 
 
   colonize(ownerID: number, planetID: number): Observable<boolean> {
-    const url = `${GameService.HOST}/action/${ownerID}/colonize/${planetID}`
+    const url = `${this._host}/action/${ownerID}/colonize/${planetID}`
     return this.http.get<BEGalaxy>(url).pipe(map(g => true))
   }
 }

@@ -26,4 +26,5 @@ export class GalaxyListComponent implements OnInit {
     const numStars = this.form.value.numStars;
     this.gameService.createGalaxy(numStars).subscribe()
   }
+
 }

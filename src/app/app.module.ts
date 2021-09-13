@@ -10,13 +10,15 @@ import {GalaxyListComponent} from "./galaxy-list/galaxy-list.component";
 import {StarViewComponent} from "./star-view/star-view.component";
 import {PlanetViewComponent} from "./planet-view/planet-view.component";
 import {ReactiveFormsModule} from "@angular/forms";
+import {HomePageComponent} from "./home-page/home-page.component";
 
 @NgModule({
   declarations: [
     AppComponent,
     GalaxyListComponent,
     StarViewComponent,
-    PlanetViewComponent
+    PlanetViewComponent,
+    HomePageComponent
   ],
   imports: [
     BrowserModule,
