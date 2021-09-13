@@ -3,7 +3,8 @@ package model
 type PlanetMineral uint64
 
 const (
-	PlanetMineralPoor PlanetMineral = iota
+	PlanetMineralInvalid PlanetMineral = iota
+	PlanetMineralPoor
 	PlanetMineralAbundant
 	PlanetMineralRich
 	PlanetMineralMax
@@ -12,7 +13,8 @@ const (
 type PlanetSize uint64
 
 const (
-	PlanetSizeSmall PlanetSize = iota + 1
+	PlanetSizeInvalid PlanetSize = iota
+	PlanetSizeSmall
 	PlanetSizeMedium
 	PlanetSizeLarge
 	PlanetSizeMax
@@ -21,22 +23,23 @@ const (
 type PlanetGravity uint64
 
 const (
-	PlanetGravityLow PlanetGravity = iota
+	PlanetGravityInvalid PlanetGravity = iota
+	PlanetGravityLow
 	PlanetGravityNormal
 	PlanetGravityHigh
 	PlanetGravityMax
 )
 
 type Planet struct {
-	Id         int `json:"id"`
-	ParentStar int `json:"parent_star"`
+	ID         uint `json:"id"`
+	ParentStar uint `json:"parent_star"`
 
 	// physical characteristics
 	MineralClass PlanetMineral `json:"mineral_class"`
 	Size         PlanetSize    `json:"size"`
 	Gravity      PlanetGravity `json:"gravity"`
 
-	Owner uint64 `json:"owner"`
+	Owner uint `json:"owner"`
 
 	// colony output
 	Money    int64 `json:"money"`

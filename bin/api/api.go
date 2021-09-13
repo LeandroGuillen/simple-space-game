@@ -39,7 +39,10 @@ func NewAPI() *API {
 
 	r.GET("/status", controller.Status)
 	r.POST("/galaxy", controller.NewGalaxy)
+	r.GET("/galaxy", controller.GetGalaxy)
 	r.POST("/randomGalaxy", controller.NewRandomGalaxy)
+
+	r.GET("/action/:owner/colonize/:planet", controller.ColonizePlanet)
 
 	return &API{
 		router: r,

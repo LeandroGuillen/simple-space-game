@@ -11,7 +11,7 @@ import (
 )
 
 type NewGalaxyRequest struct {
-	NumStars int
+	NumStars uint
 }
 
 type NewRandomGalaxyRequest struct{}
@@ -23,13 +23,16 @@ func NewGalaxy(c *gin.Context) {
 	if rawGame, exists := c.Get("game"); exists {
 		g := rawGame.(*game.Game)
 		galaxy := g.NewGalaxy(req.NumStars)
+		g.Galaxy = galaxy
+		g.Players = []game.Player{
+			{ID: 1},
+		}
 		c.JSON(http.StatusOK, galaxy)
 	} else {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "ay ay ay!",
 		})
 	}
-
 }
 
 func NewRandomGalaxy(c *gin.Context) {
@@ -39,8 +42,19 @@ func NewRandomGalaxy(c *gin.Context) {
 	// new galaxy parameters
 	var stdDev float64 = 2
 	var mean float64 = 6
-	n := int(math.Abs(math.Floor(rand.NormFloat64()*stdDev + mean)))
+	n := uint(math.Abs(math.Floor(rand.NormFloat64()*stdDev + mean)))
 	galaxy := builder.NewGalaxy(n)
 
 	c.JSON(http.StatusOK, galaxy)
+}
+
+func GetGalaxy(c *gin.Context) {
+	if rawGame, exists := c.Get("game"); exists {
+		g := rawGame.(*game.Game)
+		c.JSON(http.StatusOK, g.Galaxy)
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "galaxy does not exist, you must create it first",
+		})
+	}
 }

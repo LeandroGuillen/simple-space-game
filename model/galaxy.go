@@ -3,7 +3,7 @@ package model
 import "fmt"
 
 type Galaxy struct {
-	Stars []Star `json:"stars"`
+	Stars []*Star `json:"stars"`
 }
 
 func (g *Galaxy) String() string {
