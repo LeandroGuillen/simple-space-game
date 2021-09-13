@@ -8,17 +8,24 @@
 <table>
   <tr>
     <th>Name</th>
+    <th>Owned by</th>
     <th>Mineral Class</th>
     <th>Size</th>
     <th>Gravity</th>
+    <th>Actions</th>
   </tr>
 
   <tr *ngFor="let p of star.planets">
-    <td><a routerLink="/stars/{{p.parentStar}}/planets/{{p.id}}">{{p.name}} p.parentStar:{{p.parentStar}}</a></td>
+    <td *ngIf="p.owner !== 0"><a routerLink="/stars/{{p.parent_star}}/planets/{{p.id}}">{{p.name}}</a></td>
+    <td *ngIf="p.owner === 0">{{p.name}}</td>
+    <td>{{p.owner === 0 ? '' : p.owner}}</td>
     <td>{{p.mineral_class}}</td>
     <td>{{p.size}}</td>
     <td>{{p.gravity}}</td>
+    <td>
+      <button *ngIf="p.owner === 0" (click)="colonize(p.id)" mat-stroked-button>colonize</button>
+    </td>
   </tr>
 </table>
 
-<pre>{{ star | json}}</pre>
+<!--<pre>{{ star | json}}</pre>-->

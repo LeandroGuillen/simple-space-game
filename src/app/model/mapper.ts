@@ -22,7 +22,7 @@ function mapStar(s: BEStar): Star {
 function mapPlanet(starName: string, idx: number, p: BEPlanet): Planet {
   return {
     id: p.id,
-    parentStar: p.parent_star,
+    parent_star: p.parent_star,
     name: `${starName} ${romanNumber(idx + 1)}`,
     mineral_class: p.mineral_class,
     size: p.size,
@@ -42,8 +42,8 @@ function mapPlanet(starName: string, idx: number, p: BEPlanet): Planet {
     marines: p.marines,
     armor: p.armor,
     current_project: p.current_project,
-    build_list: p.build_list,
-    buildings: p.buildings,
+    build_list: p.build_list || [],
+    buildings: p.buildings || [],
   }
 }
 

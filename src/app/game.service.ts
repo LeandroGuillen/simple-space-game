@@ -20,20 +20,29 @@ export class GameService {
   }
 
   createGalaxy(numStars: number): Observable<Galaxy | undefined> {
-    return this.http.post<BEGalaxy>(`${GameService.HOST}/galaxy`, {numStars})
-      .pipe(
-        map(g => {
-          const mappedGalaxy = mapGalaxy(g);
-          this._galaxy.next(mappedGalaxy);
-          return mappedGalaxy;
-        }),
-        shareReplay(1),
-      )
+    return this.http.post<BEGalaxy>(`${GameService.HOST}/galaxy`, {numStars}).pipe(
+      map(g => {
+        const mappedGalaxy = mapGalaxy(g);
+        this._galaxy.next(mappedGalaxy);
+        return mappedGalaxy;
+      }),
+      shareReplay(1),
+    )
   }
 
-  getRandomGalaxy(): Observable<Galaxy> {
+  createRandomGalaxy(): Observable<Galaxy> {
     return this.http.post<Galaxy>(`${GameService.HOST}/randomGalaxy`, {})
       .pipe(shareReplay(1))
+  }
+
+  getCurrentGalaxy(): Observable<Galaxy> {
+    return this.http.get<BEGalaxy>(`${GameService.HOST}/galaxy`).pipe(
+      map(g => {
+        const mappedGalaxy = mapGalaxy(g);
+        this._galaxy.next(mappedGalaxy);
+        return mappedGalaxy;
+      })
+    )
   }
 
   getStarById(id: number): Observable<Star> {
@@ -60,5 +69,11 @@ export class GameService {
         return planet;
       })
     )
+  }
+
+
+  colonize(ownerID: number, planetID: number): Observable<boolean> {
+    const url = `${GameService.HOST}/action/${ownerID}/colonize/${planetID}`
+    return this.http.get<BEGalaxy>(url).pipe(map(g => true))
   }
 }

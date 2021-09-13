@@ -14,15 +14,15 @@ export type Star = {
   numPlanets: number;
 };
 
-export enum PlanetMineral { POOR, ABUNDANT, RICH}
+export enum PlanetSize { INVALID, SMALL, MEDIUM, LARGE}
 
-export enum PlanetSize { SMALL, MEDIUM, LARGE}
+export enum PlanetGravity { INVALID, LOW, NORMAL, HIGH}
 
-export enum PlanetGravity { LOW, NORMAL, HIGH}
+export enum PlanetMineral { INVALID, POOR, ABUNDANT, RICH}
 
 export type Planet = {
   id: number;
-  parentStar: number;
+  parent_star: number;
   name: string;
   mineral_class: PlanetMineral;
   size: PlanetSize;

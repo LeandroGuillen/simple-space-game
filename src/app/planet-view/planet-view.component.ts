@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {Planet} from "../model/model";
+import {Planet, PlanetGravity, PlanetMineral, PlanetSize} from "../model/model";
 import {GameService} from "../game.service";
 import {ActivatedRoute} from "@angular/router";
 import {Location} from "@angular/common";
@@ -14,6 +14,10 @@ export class PlanetViewComponent implements OnInit {
 
   planet!: Planet;
 
+  size!: string;
+  gravity!: string;
+  mineral_class!: string;
+
   constructor(
     private readonly gameService: GameService,
     private readonly route: ActivatedRoute,
@@ -25,12 +29,54 @@ export class PlanetViewComponent implements OnInit {
     this.route.params.pipe(
       map(params => [parseInt(params['planet_id']), parseInt(params['star_id'])]),
       switchMap(([planetId, starId]) => this.gameService.getPlanetById(planetId, starId))
-    ).subscribe(star => {
-      this.planet = star;
+    ).subscribe(planet => {
+      this.planet = planet;
+      this.size = PlanetViewComponent.getSizeString(planet.size);
+      this.gravity = PlanetViewComponent.getGravityString(planet.gravity);
+      this.mineral_class = PlanetViewComponent.getMineralClassString(planet.mineral_class);
     });
   }
 
   goBack() {
     this.location.back();
+  }
+
+  private static getSizeString(ps: PlanetSize): string {
+    switch (ps) {
+      case 1:
+        return 'Small';
+      case 2:
+        return 'Medium';
+      case 3:
+        return 'Large';
+      default:
+        return  'Invalid!'
+    }
+  }
+
+  private static getGravityString(ps: PlanetGravity): string {
+    switch (ps) {
+      case 1:
+        return 'Low';
+      case 2:
+        return 'Normal';
+      case 3:
+        return 'High';
+      default:
+        return  'Invalid!'
+    }
+  }
+
+  private static getMineralClassString(ps: PlanetMineral): string {
+    switch (ps) {
+      case 1:
+        return 'Poor';
+      case 2:
+        return 'Abundant';
+      case 3:
+        return 'Rich';
+      default:
+        return  'Invalid!'
+    }
   }
 }

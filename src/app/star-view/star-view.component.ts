@@ -21,7 +21,6 @@ export class StarViewComponent implements OnInit {
   }
 
   ngOnInit() {
-
     this.route.params.pipe(
       map(params => parseInt(params['star_id'])),
       switchMap(id => this.gameService.getStarById(id))
@@ -32,6 +31,18 @@ export class StarViewComponent implements OnInit {
 
   goBack() {
     this.location.back();
+  }
+
+  colonize(planetID: number) {
+    this.gameService.colonize(1, planetID).subscribe(ok => {
+      if (ok) {
+        const planet = this.star.planets.find(p => p.id === planetID);
+        if (!planet) {
+          return;
+        }
+        planet.owner = 1;
+      }
+    });
   }
 
 }

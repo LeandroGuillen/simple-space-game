@@ -5,7 +5,7 @@
   <input formControlName="numStars" matInput type="number">
 </form>
 
-<table>
+<table *ngIf="galaxy">
   <tr>
     <th>Name</th>
     <th>Position</th>
@@ -13,7 +13,7 @@
     <th>Number of Planets</th>
   </tr>
 
-  <tr *ngFor="let s of (galaxy | async)?.stars">
+  <tr *ngFor="let s of galaxy?.stars">
     <td><a routerLink="/stars/{{s.id}}">{{s.name}}</a></td>
     <td>({{s.x}}, {{s.y}})</td>
     <td>{{s.color}}</td>

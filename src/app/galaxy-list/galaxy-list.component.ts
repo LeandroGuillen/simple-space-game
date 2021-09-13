@@ -1,7 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {GameService} from "../game.service";
 import {Galaxy} from "../model/model";
-import {Observable} from "rxjs";
 import {FormControl, FormGroup} from "@angular/forms";
 
 @Component({
@@ -10,7 +9,7 @@ import {FormControl, FormGroup} from "@angular/forms";
   styleUrls: ['./galaxy-list.component.scss']
 })
 export class GalaxyListComponent implements OnInit {
-  galaxy!: Observable<Galaxy>;
+  galaxy!: Galaxy;
   form = new FormGroup({
     numStars: new FormControl(3),
   });
@@ -20,7 +19,7 @@ export class GalaxyListComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.galaxy = this.gameService.currentGalaxyUpdates;
+    this.gameService.currentGalaxyUpdates.subscribe(g => this.galaxy = g);
   }
 
   newGame() {
