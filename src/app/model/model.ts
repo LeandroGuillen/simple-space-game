@@ -14,7 +14,7 @@ export type Star = {
   numPlanets: number;
 };
 
-export enum PlanetSize { INVALID, SMALL, MEDIUM, LARGE}
+export enum PlanetSize { INVALID, TINY, SMALL, MEDIUM, LARGE, HUGE}
 
 export enum PlanetGravity { INVALID, LOW, NORMAL, HIGH}
 

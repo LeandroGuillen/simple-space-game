@@ -1,12 +1,5 @@
-<form [formGroup]="form">
-  <mat-form-field appearance="fill">
-    <mat-label>How many stars?</mat-label>
-    <input formControlName="numStars" matInput type="number">
-  </mat-form-field>
-
-  <button (click)="newGame()" color="primary" mat-raised-button>New Game</button>
-  <button mat-raised-button routerLink="/home">Back to server list</button>
-</form>
+<button (click)="openNewGameDialog()" color="primary" mat-raised-button>New Game</button>
+<button mat-raised-button routerLink="/home">Back to server list</button>
 
 <table *ngIf="galaxy">
   <tr>

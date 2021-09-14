@@ -2,6 +2,8 @@ import {Component, OnInit} from '@angular/core';
 import {GameService} from "../game.service";
 import {Galaxy} from "../model/model";
 import {FormControl, FormGroup} from "@angular/forms";
+import {MatDialog} from "@angular/material/dialog";
+import {NewGameDialogComponent} from "./new-game-dialog/new-game-dialog.component";
 
 @Component({
   selector: 'crn-galaxy-list',
@@ -15,16 +17,18 @@ export class GalaxyListComponent implements OnInit {
   });
 
 
-  constructor(private readonly gameService: GameService) {
+  constructor(private readonly gameService: GameService, public readonly dialog: MatDialog) {
   }
 
   ngOnInit() {
     this.gameService.currentGalaxyUpdates.subscribe(g => this.galaxy = g);
   }
 
-  newGame() {
-    const numStars = this.form.value.numStars;
-    this.gameService.createGalaxy(numStars).subscribe()
+
+  openNewGameDialog(): void {
+    this.dialog.open(NewGameDialogComponent).afterClosed().subscribe(numStars => {
+      this.gameService.createGalaxy(numStars).subscribe()
+    });
   }
 
 }
