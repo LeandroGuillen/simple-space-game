@@ -14,9 +14,11 @@ type PlanetSize uint64
 
 const (
 	PlanetSizeInvalid PlanetSize = iota
+	PlanetSizeTiny
 	PlanetSizeSmall
 	PlanetSizeMedium
 	PlanetSizeLarge
+	PlanetSizeHuge
 	PlanetSizeMax
 )
 
