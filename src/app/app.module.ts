@@ -11,6 +11,7 @@ import {StarViewComponent} from "./star-view/star-view.component";
 import {PlanetViewComponent} from "./planet-view/planet-view.component";
 import {ReactiveFormsModule} from "@angular/forms";
 import {HomePageComponent} from "./home-page/home-page.component";
+import {PlanetIconComponent} from "./planet-view/planet-icon/planet-icon.component";
 
 @NgModule({
   declarations: [
@@ -18,7 +19,8 @@ import {HomePageComponent} from "./home-page/home-page.component";
     GalaxyListComponent,
     StarViewComponent,
     PlanetViewComponent,
-    HomePageComponent
+    HomePageComponent,
+    PlanetIconComponent
   ],
   imports: [
     BrowserModule,
