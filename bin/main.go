@@ -1,7 +1,7 @@
 package main
 
 import (
-	"corion/bin/api"
+	"corion/bin/server"
 	"math/rand"
 	"time"
 )
@@ -9,6 +9,6 @@ import (
 func main() {
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	myAPI := api.NewAPI()
-	myAPI.Start()
+	srv := server.NewServer()
+	srv.Start()
 }
