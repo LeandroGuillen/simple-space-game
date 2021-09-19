@@ -73,7 +73,7 @@ export class HomePageComponent implements OnInit {
     this.gameService.establishConnection().subscribe(ok => {
       if (ok) {
         console.log('connection ok');
-        this.route.navigate(['galaxy']);
+        this.route.navigate(['game']);
       } else {
         console.log('connection failed');
       }

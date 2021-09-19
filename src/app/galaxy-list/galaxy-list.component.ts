@@ -1,9 +1,10 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {GameService} from "../game.service";
 import {Galaxy} from "../model/model";
-import {FormControl, FormGroup} from "@angular/forms";
 import {MatDialog} from "@angular/material/dialog";
-import {NewGameDialogComponent} from "./new-game-dialog/new-game-dialog.component";
+import {catchError} from "rxjs/operators";
+import {of, Subscription} from "rxjs";
+import {MatSnackBar} from "@angular/material/snack-bar";
 
 @Component({
   selector: 'crn-galaxy-list',
@@ -12,23 +13,25 @@ import {NewGameDialogComponent} from "./new-game-dialog/new-game-dialog.componen
 })
 export class GalaxyListComponent implements OnInit {
   galaxy!: Galaxy;
-  form = new FormGroup({
-    numStars: new FormControl(3),
-  });
 
-
-  constructor(private readonly gameService: GameService, public readonly dialog: MatDialog) {
+  constructor(private readonly gameService: GameService,
+              private readonly dialog: MatDialog,
+              private readonly snackBar: MatSnackBar) {
   }
 
   ngOnInit() {
-    this.gameService.currentGalaxyUpdates.subscribe(g => this.galaxy = g);
-  }
-
-
-  openNewGameDialog(): void {
-    this.dialog.open(NewGameDialogComponent).afterClosed().subscribe(numStars => {
-      this.gameService.createGalaxy(numStars).subscribe()
+    this.gameService.currentGalaxyUpdates.pipe(
+      catchError(response => {
+        console.error(response.error.message)
+        this.gameService.clearCurrentGame()
+        return of(null);
+      }),
+    ).subscribe(g => {
+      if (g) {
+        this.galaxy = g;
+      } else {
+        this.snackBar.open('cannot find current game', '', {duration: 5000});
+      }
     });
   }
-
 }

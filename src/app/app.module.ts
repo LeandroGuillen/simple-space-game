@@ -13,6 +13,7 @@ import {ReactiveFormsModule} from "@angular/forms";
 import {HomePageComponent} from "./home-page/home-page.component";
 import {PlanetIconComponent} from "./planet-view/planet-icon/planet-icon.component";
 import {NewGameDialogComponent} from "./galaxy-list/new-game-dialog/new-game-dialog.component";
+import { GamePageComponent } from './game-page/game-page.component';
 
 @NgModule({
   declarations: [
@@ -22,7 +23,8 @@ import {NewGameDialogComponent} from "./galaxy-list/new-game-dialog/new-game-dia
     PlanetViewComponent,
     HomePageComponent,
     PlanetIconComponent,
-    NewGameDialogComponent
+    NewGameDialogComponent,
+    GamePageComponent
   ],
   imports: [
     BrowserModule,

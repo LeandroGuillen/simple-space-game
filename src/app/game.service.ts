@@ -1,30 +1,39 @@
 import {Injectable} from "@angular/core";
-import {BehaviorSubject, Observable} from "rxjs";
+import {BehaviorSubject, merge, Observable} from "rxjs";
 import {HttpClient} from "@angular/common/http";
-import {filter, map, shareReplay, take, tap} from "rxjs/operators";
+import {filter, map, take, takeLast} from "rxjs/operators";
 import {Galaxy, Planet, Star} from "./model/model";
 import {mapGalaxy} from "./model/mapper";
 import {BEGalaxy} from "./model/be-model";
+import {createUrlResolverWithoutPackagePrefix} from "@angular/compiler";
 
 @Injectable({providedIn: "root"})
 export class GameService {
   private _galaxy = new BehaviorSubject<Galaxy>({} as Galaxy);
-  private _host: string;
+  private currentGameID: string;
 
   constructor(private readonly http: HttpClient) {
     this._host = window.localStorage.getItem('currentServerHost') || '';
+    this.currentGameID = window.localStorage.getItem('currentGameID') || '';
   }
 
+  private _host: string;
 
   set host(host: string) {
     if (!host.startsWith('http')) {
-      this._host = 'http://'+host;
+      this._host = 'http://' + host;
     }
     this._host = host;
   }
 
   get currentGalaxyUpdates(): Observable<Galaxy> {
-    return this._galaxy.asObservable().pipe(filter(g => !!g.stars));
+    const galaxyWatcher = this._galaxy.asObservable().pipe(filter(g => !!g.stars))
+    if (this.currentGameID !== '') {
+      const currentGalaxy = this.getCurrentGalaxy(this.currentGameID)
+      // return merge(galaxyWatcher, currentGalaxy)//.pipe(takeLast(1));
+      return currentGalaxy;
+    }
+    return galaxyWatcher;
   }
 
   establishConnection(): Observable<boolean> {
@@ -40,30 +49,23 @@ export class GameService {
     )
   }
 
-  createGalaxy(numStars: number): Observable<Galaxy | undefined> {
-    return this.http.post<BEGalaxy>(`${this._host}/galaxy`, {numStars}).pipe(
+  getCurrentGalaxy(gameID: string): Observable<Galaxy> {
+    return this.http.get<BEGalaxy>(`${this._host}/galaxy/${gameID}`).pipe(
       map(g => {
         const mappedGalaxy = mapGalaxy(g);
         this._galaxy.next(mappedGalaxy);
         return mappedGalaxy;
-      }),
-      shareReplay(1),
-    )
+      }))
   }
 
-  createRandomGalaxy(): Observable<Galaxy> {
-    return this.http.post<Galaxy>(`${this._host}/randomGalaxy`, {})
-      .pipe(shareReplay(1))
+  clearCurrentGame(): void {
+    this.currentGameID = '';
+    window.localStorage.removeItem('currentGameID');
   }
 
-  getCurrentGalaxy(): Observable<Galaxy> {
-    return this.http.get<BEGalaxy>(`${this._host}/galaxy`).pipe(
-      map(g => {
-        const mappedGalaxy = mapGalaxy(g);
-        this._galaxy.next(mappedGalaxy);
-        return mappedGalaxy;
-      })
-    )
+  setCurrentGame(gameID: string) {
+    this.currentGameID = gameID;
+    window.localStorage.setItem('currentGameID', gameID);
   }
 
   getStarById(id: number): Observable<Star> {
@@ -92,9 +94,8 @@ export class GameService {
     )
   }
 
-
   colonize(ownerID: number, planetID: number): Observable<boolean> {
     const url = `${this._host}/action/${ownerID}/colonize/${planetID}`
-    return this.http.get<BEGalaxy>(url).pipe(map(g => true))
+    return this.http.post<BEGalaxy>(url, {game_id: this.currentGameID}).pipe(map(g => true))
   }
 }

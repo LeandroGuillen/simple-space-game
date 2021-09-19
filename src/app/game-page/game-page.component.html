@@ -1,0 +1,16 @@
+<button (click)="openNewGameDialog()" color="primary" mat-raised-button>New Game</button>
+<button mat-raised-button routerLink="/home">Back to server list</button>
+
+<h2>Game List on this server</h2>
+<mat-list>
+  <mat-list-item *ngFor="let game of gameList">
+    <h3 matLine>
+      {{game.game_id}}}
+    </h3>
+    <span matLine><mat-icon>star</mat-icon>{{game.num_stars}}</span>
+
+    <button (click)="startGame(game.game_id)" color="accent" mat-mini-fab>
+      <mat-icon>play_arrow</mat-icon>
+    </button>
+  </mat-list-item>
+</mat-list>

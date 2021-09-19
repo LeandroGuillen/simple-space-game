@@ -2,15 +2,52 @@
 <div mat-dialog-content>
 
   <form [formGroup]="form">
-    <mat-form-field appearance="fill">
-      <mat-label>How many stars?</mat-label>
-      <input formControlName="numStars" matInput type="number">
-    </mat-form-field>
 
-    <!--    <button (click)="newGame()" color="primary" mat-raised-button>New Game</button>-->
-    <!--    <button mat-raised-button routerLink="/home">Back to server list</button>-->
+    <div class="col">
+      <mat-form-field appearance="fill">
+        <mat-label>How many stars?</mat-label>
+        <input formControlName="numStars" matInput type="number">
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Player Name</mat-label>
+        <input disabled matInput type="text">
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Race</mat-label>
+        <input disabled matInput type="text">
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Tech level</mat-label>
+        <input disabled matInput type="text">
+      </mat-form-field>
+
+    </div>
+    <div class="col">
+      <mat-form-field appearance="fill">
+        <mat-label>Galaxy size</mat-label>
+        <input disabled matInput type="text">
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Galaxy age</mat-label>
+        <input disabled matInput type="text">
+      </mat-form-field>
+
+      <mat-form-field appearance="fill">
+        <mat-label>Players</mat-label>
+        <input disabled matInput type="text">
+      </mat-form-field>
+
+      <mat-slide-toggle disabled>Tactical combat</mat-slide-toggle>
+      <mat-slide-toggle disabled>Random events</mat-slide-toggle>
+      <mat-slide-toggle disabled>Antarans attack</mat-slide-toggle>
+    </div>
   </form>
 </div>
+
 <div mat-dialog-actions>
   <button [mat-dialog-close]="form.value.numStars" cdkFocusInitial mat-raised-button>New Game</button>
   <button (click)="onNoClick()" mat-button>Cancel</button>
