@@ -20,8 +20,6 @@ export class PlanetIconComponent implements OnInit {
     const g = Math.floor(Math.random() * 256);
     const b = Math.floor(Math.random() * 256);
     this.fillColor = `rgb(${r}, ${g}, ${b})`;
-
-
   }
 
 

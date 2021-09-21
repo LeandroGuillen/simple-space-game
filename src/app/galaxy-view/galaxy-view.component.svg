@@ -1,0 +1,31 @@
+<svg
+  viewBox="0 0 700 400"
+  xmlns="http://www.w3.org/2000/svg">
+
+  <filter id="blur">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="1.7"/>
+  </filter>
+
+  <rect height="100%" rx="5" width="100%"/>
+
+  <g (click)="clicked(star)"
+     *ngFor="let star of galaxy.stars"
+     [attr.transform]="'translate('+star.x+' '+star.y+')'"
+  >
+    <circle [attr.fill]="colors[star.color]" [attr.r]="5"
+            filter="url(#blur)"/>
+    <circle [attr.fill]="colors[star.color]" [attr.r]="3"/>
+    <circle [attr.fill]="'white'" [attr.r]="2"/>
+
+    <circle [attr.r]="6" class="hovering-star" fill-opacity="0" stroke="darkgoldenrod" stroke-opacity="0"
+            stroke-width="2"/>
+
+    <text [attr.transform]="'translate(-10 15)'"
+          class="text"
+    >
+      {{star.name}}
+    </text>
+  </g>
+
+
+</svg>

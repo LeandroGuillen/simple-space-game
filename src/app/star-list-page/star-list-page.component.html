@@ -1,5 +1,4 @@
-<button mat-raised-button routerLink="/game">Back to game list</button>
-
+<crn-galaxy-view *ngIf="galaxy" [galaxy]="galaxy"></crn-galaxy-view>
 <table *ngIf="galaxy">
   <tr>
     <th>Name</th>

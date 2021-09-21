@@ -15,6 +15,7 @@ import {PlanetIconComponent} from "./planet-view/planet-icon/planet-icon.compone
 import {NewGameDialogComponent} from "./game-page/new-game-dialog/new-game-dialog.component";
 import {GamePageComponent} from './game-page/game-page.component';
 import {ColoniesPageComponent} from './colonies-page/colonies-page.component';
+import {GalaxyViewComponent} from './galaxy-view/galaxy-view.component';
 
 @NgModule({
   declarations: [
@@ -26,7 +27,8 @@ import {ColoniesPageComponent} from './colonies-page/colonies-page.component';
     PlanetIconComponent,
     NewGameDialogComponent,
     GamePageComponent,
-    ColoniesPageComponent
+    ColoniesPageComponent,
+    GalaxyViewComponent,
   ],
   imports: [
     BrowserModule,
