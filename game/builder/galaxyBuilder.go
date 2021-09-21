@@ -9,7 +9,8 @@ import (
 
 func NewGalaxy(numStars uint) Galaxy {
 	var stars []*Star
-	var size int64 = 100
+	var galaxyWidth int64 = 700
+	var galaxyHeight int64 = 400
 	var starNames = make(map[string]int)
 	var planetIDCounter uint = 1
 
@@ -30,8 +31,8 @@ func NewGalaxy(numStars uint) Galaxy {
 		planetIDCounter += numPlanets
 
 		// assign random position on map
-		star.X = rand.Int63() % size
-		star.Y = rand.Int63() % size
+		star.X = rand.Int63() % galaxyWidth
+		star.Y = rand.Int63() % galaxyHeight
 
 		stars = append(stars, star)
 	}
