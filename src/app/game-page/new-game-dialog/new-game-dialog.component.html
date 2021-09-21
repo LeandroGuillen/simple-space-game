@@ -5,13 +5,8 @@
 
     <div class="col">
       <mat-form-field appearance="fill">
-        <mat-label>How many stars?</mat-label>
-        <input formControlName="numStars" matInput type="number">
-      </mat-form-field>
-
-      <mat-form-field appearance="fill">
-        <mat-label>Player Name</mat-label>
-        <input disabled matInput type="text">
+        <mat-label>Player name</mat-label>
+        <input formControlName="playerName" matInput required type="text">
       </mat-form-field>
 
       <mat-form-field appearance="fill">
@@ -23,12 +18,16 @@
         <mat-label>Tech level</mat-label>
         <input disabled matInput type="text">
       </mat-form-field>
-
     </div>
+
     <div class="col">
       <mat-form-field appearance="fill">
         <mat-label>Galaxy size</mat-label>
-        <input disabled matInput type="text">
+        <mat-select formControlName="numStars" required>
+          <mat-option *ngFor="let gs of galaxySizes" [disabled]="gs.disabled" [value]="gs.value">
+            {{gs.label}}
+          </mat-option>
+        </mat-select>
       </mat-form-field>
 
       <mat-form-field appearance="fill">
@@ -37,7 +36,7 @@
       </mat-form-field>
 
       <mat-form-field appearance="fill">
-        <mat-label>Players</mat-label>
+        <mat-label>Number of AI players</mat-label>
         <input disabled matInput type="text">
       </mat-form-field>
 
@@ -49,6 +48,6 @@
 </div>
 
 <div mat-dialog-actions>
-  <button [mat-dialog-close]="form.value.numStars" cdkFocusInitial mat-raised-button>New Game</button>
-  <button (click)="onNoClick()" mat-button>Cancel</button>
+  <button (click)="newGame()" mat-raised-button>New Game</button>
+  <button (click)="cancel()" mat-button>Cancel</button>
 </div>

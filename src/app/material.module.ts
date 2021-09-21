@@ -8,12 +8,24 @@ import {MatDialogModule} from "@angular/material/dialog";
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import {MatSnackBarModule} from "@angular/material/snack-bar";
 import {MatToolbarModule} from "@angular/material/toolbar";
-import {MatSliderModule} from "@angular/material/slider";
 import {MatSlideToggleModule} from "@angular/material/slide-toggle";
 import {MatSortModule} from "@angular/material/sort";
+import {MatSelectModule} from "@angular/material/select";
 
 const moduleList = [
-  MatListModule, MatTableModule, MatButtonModule, MatIconModule, MatInputModule, MatDialogModule, MatCheckboxModule, MatSnackBarModule, MatListModule, MatToolbarModule, MatSlideToggleModule, MatSortModule
+  MatListModule,
+  MatTableModule,
+  MatButtonModule,
+  MatIconModule,
+  MatInputModule,
+  MatDialogModule,
+  MatCheckboxModule,
+  MatSnackBarModule,
+  MatListModule,
+  MatToolbarModule,
+  MatSlideToggleModule,
+  MatSortModule,
+  MatSelectModule
 ]
 
 @NgModule({

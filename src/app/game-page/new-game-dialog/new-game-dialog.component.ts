@@ -1,6 +1,6 @@
 import {Component} from '@angular/core';
 import {MatDialogRef} from "@angular/material/dialog";
-import {FormControl, FormGroup} from "@angular/forms";
+import {FormBuilder, FormGroup} from "@angular/forms";
 
 export interface DialogData {
   animal: string;
@@ -13,15 +13,43 @@ export interface DialogData {
   styleUrls: ['./new-game-dialog.component.scss']
 })
 export class NewGameDialogComponent {
-  form = new FormGroup({
-    numStars: new FormControl(3),
-  });
+  form: FormGroup;
 
-  constructor(public readonly dialogRef: MatDialogRef<NewGameDialogComponent>) {
+  galaxySizes = [
+    {
+      value: 3,
+      label: 'Small',
+    },
+    {
+      value: 10,
+      label: 'Medium',
+      disabled: true,
+    },
+    {
+      value: 50,
+      label: 'Large',
+      disabled: true,
+    }
+  ];
+
+  constructor(fb: FormBuilder,
+              public readonly dialogRef: MatDialogRef<NewGameDialogComponent>
+  ) {
+    this.form = fb.group({
+      numStars: this.galaxySizes[0].value,
+      playerName: 'Augustus'
+    });
   }
 
-  onNoClick(): void {
+  cancel(): void {
     this.dialogRef.close();
+  }
+
+  newGame(): void {
+    if (this.form.invalid) {
+      return;
+    }
+    this.dialogRef.close(this.form.value.numStars);
   }
 
 }
