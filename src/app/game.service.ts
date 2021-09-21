@@ -1,11 +1,10 @@
 import {Injectable} from "@angular/core";
-import {BehaviorSubject, merge, Observable} from "rxjs";
+import {BehaviorSubject, Observable} from "rxjs";
 import {HttpClient} from "@angular/common/http";
-import {filter, map, take, takeLast} from "rxjs/operators";
+import {filter, map, take} from "rxjs/operators";
 import {Galaxy, Planet, Star} from "./model/model";
 import {mapGalaxy} from "./model/mapper";
 import {BEGalaxy} from "./model/be-model";
-import {createUrlResolverWithoutPackagePrefix} from "@angular/compiler";
 
 @Injectable({providedIn: "root"})
 export class GameService {
@@ -29,9 +28,7 @@ export class GameService {
   get currentGalaxyUpdates(): Observable<Galaxy> {
     const galaxyWatcher = this._galaxy.asObservable().pipe(filter(g => !!g.stars))
     if (this.currentGameID !== '') {
-      const currentGalaxy = this.getCurrentGalaxy(this.currentGameID)
-      // return merge(galaxyWatcher, currentGalaxy)//.pipe(takeLast(1));
-      return currentGalaxy;
+      return this.getCurrentGalaxy(this.currentGameID);
     }
     return galaxyWatcher;
   }
@@ -81,15 +78,17 @@ export class GameService {
     )
   }
 
-  getPlanetById(planetId: number, starId: number): Observable<Planet> {
-    return this.getStarById(starId).pipe(
-      take(1),
-      map(star => {
-        const planet = star.planets.find(star => star.id === planetId);
-        if (planet === undefined) {
-          throw new Error(`planet with id '${planetId}' was not found`)
+
+  getPlanetById(planetId: number): Observable<Planet | undefined> {
+    return this.currentGalaxyUpdates.pipe(
+      map(galaxy => {
+        for (let star of galaxy.stars) {
+          const planet = star.planets.find(p => p.id === planetId);
+          if (planet !== undefined) {
+            return planet;
+          }
         }
-        return planet;
+        return undefined;
       })
     )
   }

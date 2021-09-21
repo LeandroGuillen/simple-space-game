@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { GalaxyListComponent } from './galaxy-list.component';
+import { StarListPageComponent } from './star-list-page.component';
 
-describe('GalaxyListComponent', () => {
-  let component: GalaxyListComponent;
-  let fixture: ComponentFixture<GalaxyListComponent>;
+describe('StarListPageComponent', () => {
+  let component: StarListPageComponent;
+  let fixture: ComponentFixture<StarListPageComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ GalaxyListComponent ]
+      declarations: [ StarListPageComponent ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(GalaxyListComponent);
+    fixture = TestBed.createComponent(StarListPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

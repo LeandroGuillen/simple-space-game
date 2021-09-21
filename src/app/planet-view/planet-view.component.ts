@@ -69,9 +69,13 @@ export class PlanetViewComponent implements OnInit {
 
   ngOnInit() {
     this.route.params.pipe(
-      map(params => [parseInt(params['planet_id']), parseInt(params['star_id'])]),
-      switchMap(([planetId, starId]) => this.gameService.getPlanetById(planetId, starId))
+      map(params => parseInt(params['planet_id'])),
+      switchMap(planetId => this.gameService.getPlanetById(planetId))
     ).subscribe(planet => {
+      if (!planet) {
+        // planet not found, deal with it
+        return;
+      }
       this.planet = planet;
       this.size = PlanetViewComponent.getSizeString(planet.size);
       this.gravity = PlanetViewComponent.getGravityString(planet.gravity);

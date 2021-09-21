@@ -11,7 +11,7 @@ function mapStar(s: BEStar): Star {
   return {
     id: s.id,
     name: s.name,
-    planets: s.planets.map((p, i) => mapPlanet(s.name, i, p)),
+    planets: s.planets.map((p, i) => mapPlanet(p)),
     color: s.color,
     x: s.x,
     y: s.y,
@@ -19,11 +19,11 @@ function mapStar(s: BEStar): Star {
   }
 }
 
-function mapPlanet(starName: string, idx: number, p: BEPlanet): Planet {
+export function mapPlanet(p: BEPlanet): Planet {
   return {
     id: p.id,
     parent_star: p.parent_star,
-    name: `${starName} ${romanNumber(idx + 1)}`,
+    name: p.name,
     mineral_class: p.mineral_class,
     size: p.size,
     gravity: p.gravity,
@@ -44,22 +44,5 @@ function mapPlanet(starName: string, idx: number, p: BEPlanet): Planet {
     current_project: p.current_project,
     build_list: p.build_list || [],
     buildings: p.buildings || [],
-  }
-}
-
-function romanNumber(n: number): string {
-  switch(n) {
-    case 0: return '';
-    case 1: return 'I';
-    case 2: return 'II';
-    case 3: return 'III';
-    case 4: return 'IV';
-    case 5: return 'V';
-    case 6: return 'VI';
-    case 7: return 'VII';
-    case 8: return 'VIII';
-    case 9: return 'IX';
-    case 10: return 'X';
-    default: return '?'
   }
 }

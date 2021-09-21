@@ -6,25 +6,27 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {AppRoutingModule} from './app-routing.module';
 import {AppComponent} from './app.component';
 import {MaterialModule} from './material.module';
-import {GalaxyListComponent} from "./galaxy-list/galaxy-list.component";
+import {StarListPageComponent} from "./star-list-page/star-list-page.component";
 import {StarViewComponent} from "./star-view/star-view.component";
 import {PlanetViewComponent} from "./planet-view/planet-view.component";
 import {ReactiveFormsModule} from "@angular/forms";
 import {HomePageComponent} from "./home-page/home-page.component";
 import {PlanetIconComponent} from "./planet-view/planet-icon/planet-icon.component";
-import {NewGameDialogComponent} from "./galaxy-list/new-game-dialog/new-game-dialog.component";
-import { GamePageComponent } from './game-page/game-page.component';
+import {NewGameDialogComponent} from "./game-page/new-game-dialog/new-game-dialog.component";
+import {GamePageComponent} from './game-page/game-page.component';
+import {ColoniesPageComponent} from './colonies-page/colonies-page.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    GalaxyListComponent,
+    StarListPageComponent,
     StarViewComponent,
     PlanetViewComponent,
     HomePageComponent,
     PlanetIconComponent,
     NewGameDialogComponent,
-    GamePageComponent
+    GamePageComponent,
+    ColoniesPageComponent
   ],
   imports: [
     BrowserModule,

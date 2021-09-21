@@ -1,17 +1,17 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {GameService} from "../game.service";
 import {Galaxy} from "../model/model";
 import {MatDialog} from "@angular/material/dialog";
 import {catchError} from "rxjs/operators";
-import {of, Subscription} from "rxjs";
+import {of} from "rxjs";
 import {MatSnackBar} from "@angular/material/snack-bar";
 
 @Component({
   selector: 'crn-galaxy-list',
-  templateUrl: './galaxy-list.component.html',
-  styleUrls: ['./galaxy-list.component.scss']
+  templateUrl: './star-list-page.component.html',
+  styleUrls: ['./star-list-page.component.scss']
 })
-export class GalaxyListComponent implements OnInit {
+export class StarListPageComponent implements OnInit {
   galaxy!: Galaxy;
 
   constructor(private readonly gameService: GameService,

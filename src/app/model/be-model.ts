@@ -13,6 +13,7 @@ export type BEStar = {
 
 export type BEPlanet = {
   id: number;
+  name: string;
   parent_star: number;
   mineral_class: number;
   size: number;

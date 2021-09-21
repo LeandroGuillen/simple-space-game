@@ -1,6 +1,6 @@
 <button (click)="goBack()" mat-raised-button>BACK</button>
 
-<section>
+<section *ngIf="planet">
   <div class="planet-info">
     <h2>{{planet.name}}</h2>
 

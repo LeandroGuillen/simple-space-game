@@ -1,0 +1,35 @@
+<table [dataSource]="dataSource" class="mat-elevation-z8" mat-table matSort>
+
+  <ng-container matColumnDef="id">
+    <th *matHeaderCellDef mat-header-cell mat-sort-header>ID</th>
+    <td *matCellDef="let element" mat-cell>{{element.id}}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="name">
+    <th *matHeaderCellDef mat-header-cell mat-sort-header>Name</th>
+    <td *matCellDef="let element" mat-cell>{{element.name}}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="farmers">
+    <th *matHeaderCellDef mat-header-cell mat-sort-header>Farmers</th>
+    <td *matCellDef="let element" mat-cell>{{element.farmers}}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="workers">
+    <th *matHeaderCellDef mat-header-cell mat-sort-header>Workers</th>
+    <td *matCellDef="let element" mat-cell>{{element.workers}}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="scientists">
+    <th *matHeaderCellDef mat-header-cell mat-sort-header>Scientists</th>
+    <td *matCellDef="let element" mat-cell>{{element.scientists}}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="current_project">
+    <th *matHeaderCellDef mat-header-cell mat-sort-header>Building</th>
+    <td *matCellDef="let element" mat-cell>{{element.current_project}}</td>
+  </ng-container>
+
+  <tr *matHeaderRowDef="displayedColumns" mat-header-row></tr>
+  <tr *matRowDef="let row; columns: displayedColumns;" mat-row></tr>
+</table>

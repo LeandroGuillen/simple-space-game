@@ -3,7 +3,7 @@ import {MatDialog} from "@angular/material/dialog";
 import {MatSnackBar} from "@angular/material/snack-bar";
 import {GameListResponseItem, GamePageService} from "./game-page.service";
 import {Router} from "@angular/router";
-import {NewGameDialogComponent} from "../galaxy-list/new-game-dialog/new-game-dialog.component";
+import {NewGameDialogComponent} from "./new-game-dialog/new-game-dialog.component";
 import {catchError, filter, switchMap} from "rxjs/operators";
 import {of} from "rxjs";
 import {GameService} from "../game.service";
@@ -48,7 +48,7 @@ export class GamePageComponent implements OnInit {
 
   startGame(gameID: string) {
     this.gameService.setCurrentGame(gameID);
-    this.route.navigate(['galaxy']);
+    this.route.navigate(['stars']);
   }
 
 }
