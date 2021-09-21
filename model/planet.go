@@ -33,8 +33,9 @@ const (
 )
 
 type Planet struct {
-	ID         uint `json:"id"`
-	ParentStar uint `json:"parent_star"`
+	ID         uint   `json:"id"`
+	ParentStar uint   `json:"parent_star"`
+	Name       string `json:"name"`
 
 	// physical characteristics
 	MineralClass PlanetMineral `json:"mineral_class"`

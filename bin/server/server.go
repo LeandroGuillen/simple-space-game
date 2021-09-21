@@ -45,6 +45,8 @@ func NewServer() *Server {
 	r.GET("/galaxy/:gameID", GetGalaxy)
 	r.POST("/randomGalaxy", NewRandomGalaxy)
 
+	r.POST("/colonies", GetColonyList)
+
 	r.POST("/action/:owner/colonize/:planet", ColonizePlanet)
 
 	server.router = r

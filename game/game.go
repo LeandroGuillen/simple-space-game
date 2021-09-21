@@ -32,21 +32,6 @@ func (g *Game) NewRandomGalaxy() Galaxy {
 	return galaxy
 }
 
-func (g *Game) ColonizePlanet(ownerID, planetID uint) error {
-	if _, err := g.getPlayer(ownerID); err != nil {
-		return err
-	}
-
-	planet, err := g.getPlanet(planetID)
-	if err != nil {
-		return err
-	}
-
-	planet.Owner = ownerID
-
-	return nil
-}
-
 func (g *Game) getPlayer(ID uint) (*Player, error) {
 	for _, player := range g.Players {
 		if player.ID == ID {
