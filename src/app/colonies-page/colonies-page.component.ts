@@ -3,26 +3,10 @@ import {MatTableDataSource} from "@angular/material/table";
 import {MatSort} from "@angular/material/sort";
 import {ColoniesPageService} from "./colonies-page.service";
 import {Planet} from "../model/model";
-
-export interface PeriodicElement {
-  name: string;
-  position: number;
-  weight: number;
-  symbol: string;
-}
-
-const ELEMENT_DATA: PeriodicElement[] = [
-  {position: 1, name: 'Hydrogen', weight: 1.0079, symbol: 'H'},
-  {position: 2, name: 'Helium', weight: 4.0026, symbol: 'He'},
-  {position: 3, name: 'Lithium', weight: 6.941, symbol: 'Li'},
-  {position: 4, name: 'Beryllium', weight: 9.0122, symbol: 'Be'},
-  {position: 5, name: 'Boron', weight: 10.811, symbol: 'B'},
-  {position: 6, name: 'Carbon', weight: 12.0107, symbol: 'C'},
-  {position: 7, name: 'Nitrogen', weight: 14.0067, symbol: 'N'},
-  {position: 8, name: 'Oxygen', weight: 15.9994, symbol: 'O'},
-  {position: 9, name: 'Fluorine', weight: 18.9984, symbol: 'F'},
-  {position: 10, name: 'Neon', weight: 20.1797, symbol: 'Ne'},
-];
+import {catchError, switchMap, tap} from "rxjs/operators";
+import {of} from "rxjs";
+import {MatDialog} from "@angular/material/dialog";
+import {ChangeBuildingDialogComponent} from "./change-building-dialog/change-building-dialog.component";
 
 const planetData: Planet[] = []
 
@@ -39,7 +23,8 @@ export class ColoniesPageComponent implements AfterViewInit, OnInit {
 
   @ViewChild(MatSort) sort!: MatSort;
 
-  constructor(private readonly coloniesPageService: ColoniesPageService) {
+  constructor(private readonly coloniesPageService: ColoniesPageService,
+              private readonly dialog: MatDialog,) {
   }
 
   ngOnInit() {
@@ -54,4 +39,22 @@ export class ColoniesPageComponent implements AfterViewInit, OnInit {
     this.dataSource.sort = this.sort;
   }
 
+  changeBuilding(planet: Planet) {
+    const oldProject = planet.current_project;
+    this.dialog.open(ChangeBuildingDialogComponent).afterClosed().pipe(
+      tap(buildingId => {
+        planet.current_project = buildingId
+      }),
+      switchMap(buildingId => this.coloniesPageService.changeBuilding(planet.id, buildingId)),
+      catchError(err => {
+        // undo local change
+        planet.current_project = oldProject
+        console.log('error:', err)
+        return of(false)
+      })
+    ).
+    subscribe(response => {
+      console.log(response)
+    });
+  }
 }

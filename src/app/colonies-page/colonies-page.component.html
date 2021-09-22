@@ -7,7 +7,9 @@
 
   <ng-container matColumnDef="name">
     <th *matHeaderCellDef mat-header-cell mat-sort-header>Name</th>
-    <td *matCellDef="let element" mat-cell>{{element.name}}</td>
+    <td *matCellDef="let element" mat-cell>
+      <a routerLink="/stars/{{element.parent_star}}/planets/{{element.id}}">{{element.name}}</a>
+    </td>
   </ng-container>
 
   <ng-container matColumnDef="farmers">
@@ -27,7 +29,12 @@
 
   <ng-container matColumnDef="current_project">
     <th *matHeaderCellDef mat-header-cell mat-sort-header>Building</th>
-    <td *matCellDef="let element" mat-cell>{{element.current_project}}</td>
+    <td *matCellDef="let element" mat-cell>
+      {{element.current_project}}
+      <button (click)="changeBuilding(element)" mat-icon-button>
+        <mat-icon>room_preferences</mat-icon>
+      </button>
+    </td>
   </ng-container>
 
   <tr *matHeaderRowDef="displayedColumns" mat-header-row></tr>

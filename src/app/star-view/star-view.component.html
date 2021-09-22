@@ -23,9 +23,7 @@
     <td>{{p.size}}</td>
     <td>{{p.gravity}}</td>
     <td>
-      <button *ngIf="p.owner === 0" (click)="colonize(p.id)" mat-stroked-button>colonize</button>
+      <button (click)="colonize(p.id)" *ngIf="p.owner === 0" mat-stroked-button>colonize</button>
     </td>
   </tr>
 </table>
-
-<!--<pre>{{ star | json}}</pre>-->

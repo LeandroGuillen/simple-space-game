@@ -32,7 +32,7 @@ export type BEPlanet = {
   scientists: number;
   marines: number;
   armor: number;
-  current_project: string;
+  current_project: number;
   build_list: string[];
   buildings: string[];
 };

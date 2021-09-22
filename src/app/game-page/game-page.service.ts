@@ -11,28 +11,34 @@ type GameListResponse = {
   game_list: GameListResponseItem[];
 }
 
+export type NewGameRequest = {
+  num_stars: number;
+  player_name: string;
+}
+type NewGameResponse = {
+  ok: boolean;
+  gameID: string
+}
+
 @Injectable({providedIn: "root"})
 export class GamePageService {
 
-  private currentGameID: string;
   private _host: string;
 
   constructor(private readonly http: HttpClient) {
     this._host = window.localStorage.getItem('currentServerHost') || '';
-    this.currentGameID = window.localStorage.getItem('currentGameID') || '';
   }
 
   getGameList(): Observable<GameListResponseItem[]> {
     return this.http.get<GameListResponse>(`${this._host}/games`).pipe(
-      map(res => res.game_list.sort((a, b)=>{
+      map(res => res.game_list.sort((a, b) => {
         return a.game_id.localeCompare(b.game_id)
       })),
     );
   }
 
-
-  newGame(numStars: number): Observable<string> {
-    return this.http.post<{ ok: boolean, gameID: string }>(`${this._host}/games`, {numStars}).pipe(
+  newGame(newGameRequest: NewGameRequest): Observable<string> {
+    return this.http.post<NewGameResponse>(`${this._host}/games`, newGameRequest).pipe(
       switchMap(response => {
         if (!response.ok) {
           return throwError('could not create game');

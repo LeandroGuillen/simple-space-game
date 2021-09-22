@@ -4,7 +4,7 @@ import {MatSnackBar} from "@angular/material/snack-bar";
 import {GameListResponseItem, GamePageService} from "./game-page.service";
 import {Router} from "@angular/router";
 import {NewGameDialogComponent} from "./new-game-dialog/new-game-dialog.component";
-import {catchError, filter, switchMap, tap} from "rxjs/operators";
+import {catchError, switchMap} from "rxjs/operators";
 import {of} from "rxjs";
 import {GameService} from "../game.service";
 
@@ -25,15 +25,13 @@ export class GamePageComponent implements OnInit {
 
   ngOnInit() {
     this.gamePageService.getGameList().subscribe(gameList => {
-      this.gameList = gameList;
+      this.gameList = gameList
     });
   }
 
   openNewGameDialog(): void {
     this.dialog.open(NewGameDialogComponent).afterClosed().pipe(
-      tap(a => console.log(1, a)),
-      filter(numStars => !!numStars),
-      switchMap(numStars => this.gamePageService.newGame(numStars)),
+      switchMap(newGameRequest => this.gamePageService.newGame(newGameRequest)),
       switchMap(gameID => this.gameService.getCurrentGalaxy(gameID)),
       switchMap(() => this.gamePageService.getGameList()),
       catchError(err => {

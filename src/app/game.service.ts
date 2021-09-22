@@ -9,11 +9,18 @@ import {BEGalaxy} from "./model/be-model";
 @Injectable({providedIn: "root"})
 export class GameService {
   private _galaxy = new BehaviorSubject<Galaxy>({} as Galaxy);
-  private currentGameID: string;
+  private _galaxyIDSub = new BehaviorSubject('');
 
   constructor(private readonly http: HttpClient) {
     this._host = window.localStorage.getItem('currentServerHost') || '';
-    this.currentGameID = window.localStorage.getItem('currentGameID') || '';
+    this._currentGameID = window.localStorage.getItem('currentGameID') || '';
+    this._galaxyIDSub.next(this._currentGameID);
+  }
+
+  private _currentGameID: string;
+
+  get currentGameID(): Observable<string> {
+    return this._galaxyIDSub.asObservable();
   }
 
   private _host: string;
@@ -27,8 +34,8 @@ export class GameService {
 
   get currentGalaxyUpdates(): Observable<Galaxy> {
     const galaxyWatcher = this._galaxy.asObservable().pipe(filter(g => !!g.stars))
-    if (this.currentGameID !== '') {
-      return this.getCurrentGalaxy(this.currentGameID);
+    if (this._currentGameID !== '') {
+      return this.getCurrentGalaxy(this._currentGameID);
     }
     return galaxyWatcher;
   }
@@ -56,12 +63,13 @@ export class GameService {
   }
 
   clearCurrentGame(): void {
-    this.currentGameID = '';
+    this._currentGameID = '';
     window.localStorage.removeItem('currentGameID');
   }
 
   setCurrentGame(gameID: string) {
-    this.currentGameID = gameID;
+    this._currentGameID = gameID;
+    this._galaxyIDSub.next(gameID);
     window.localStorage.setItem('currentGameID', gameID);
   }
 
@@ -95,6 +103,6 @@ export class GameService {
 
   colonize(ownerID: number, planetID: number): Observable<boolean> {
     const url = `${this._host}/action/${ownerID}/colonize/${planetID}`
-    return this.http.post<BEGalaxy>(url, {game_id: this.currentGameID}).pipe(map(g => true))
+    return this.http.post<BEGalaxy>(url, {game_id: this._currentGameID}).pipe(map(() => true))
   }
 }

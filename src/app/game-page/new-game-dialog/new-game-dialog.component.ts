@@ -1,6 +1,7 @@
 import {Component} from '@angular/core';
 import {MatDialogRef} from "@angular/material/dialog";
 import {FormBuilder, FormGroup} from "@angular/forms";
+import {NewGameRequest} from "../game-page.service";
 
 export interface DialogData {
   animal: string;
@@ -49,7 +50,12 @@ export class NewGameDialogComponent {
     if (this.form.invalid) {
       return;
     }
-    this.dialogRef.close(this.form.value.numStars);
+    const form = this.form.value;
+    const newGameRequest: NewGameRequest = {
+      num_stars: form.numStars,
+      player_name: form.playerName,
+    }
+    this.dialogRef.close(newGameRequest);
   }
 
 }

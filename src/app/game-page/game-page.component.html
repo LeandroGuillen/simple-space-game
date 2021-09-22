@@ -6,9 +6,10 @@
     <h3 matLine>
       {{game.game_id}}
     </h3>
-    <span matLine><mat-icon>star</mat-icon>
-      {{game.num_stars}}</span>
-
+    <span matLine>
+      <mat-icon>star</mat-icon>
+      {{game.num_stars}}
+    </span>
     <button (click)="startGame(game.game_id)" color="accent" mat-mini-fab>
       <mat-icon>play_arrow</mat-icon>
     </button>
