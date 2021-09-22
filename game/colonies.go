@@ -13,6 +13,8 @@ func (g *Game) ColonizePlanet(ownerID, planetID uint) error {
 	}
 
 	planet.Owner = ownerID
+	planet.CurrentPop = 1
+	planet.Workers = 1
 
 	return nil
 }
@@ -32,4 +34,18 @@ func (g *Game) GetColonyList(playerID uint) ([]*model.Planet, error) {
 		}
 	}
 	return colonyList, nil
+}
+
+func (g *Game) BuildOnPlanet(planetID, ownerID, buildingID uint) error {
+	if _, err := g.getPlayer(ownerID); err != nil {
+		return err
+	}
+
+	p, err := g.getPlanet(planetID)
+	if err != nil {
+		return err
+	}
+
+	p.CurrentProject = buildingID
+	return nil
 }

@@ -41,11 +41,10 @@ func NewServer() *Server {
 	r.POST("/games", NewGame)
 	r.GET("/games", GetGameList)
 
-	r.POST("/galaxy", NewGalaxy)
 	r.GET("/galaxy/:gameID", GetGalaxy)
-	r.POST("/randomGalaxy", NewRandomGalaxy)
 
 	r.POST("/colonies", GetColonyList)
+	r.POST("/colonies/build", BuildOnPlanet)
 
 	r.POST("/action/:owner/colonize/:planet", ColonizePlanet)
 

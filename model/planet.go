@@ -62,7 +62,7 @@ type Planet struct {
 	Marines int64 `json:"marines"`
 	Armor   int64 `json:"armor"`
 
-	CurrentProject string   `json:"current_project"`
+	CurrentProject uint     `json:"current_project"`
 	BuildList      []string `json:"build_list"`
 	Buildings      []string `json:"buildings"`
 }

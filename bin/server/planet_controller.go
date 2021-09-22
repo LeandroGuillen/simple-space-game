@@ -9,15 +9,19 @@ import (
 )
 
 type ColonizePlanetRequest struct {
-	//OwnerID  uint   `uri:"owner" binding:"required" json:"owner_id"`
-	//PlanetID uint   `uri:"planet" binding:"required" json:"planet_id"`
-	GameID string `uri:"gameID" binding:"required" json:"game_id"`
+	GameID string `binding:"required" json:"game_id"`
 }
 
-//r.POST("/action/:owner/colonize/:planet", ColonizePlanet)
+type BuildOnPlanetRequest struct {
+	GameID     string `binding:"required" json:"game_id"`
+	OwnerID    uint   `binding:"required" json:"owner_id"`
+	PlanetID   uint   `binding:"required" json:"planet_id"`
+	BuildingID uint   `binding:"required" json:"building_id"`
+}
+
 func ColonizePlanet(c *gin.Context) {
-	var request ColonizePlanetRequest
-	if err := c.Bind(&request); err != nil {
+	var req ColonizePlanetRequest
+	if err := c.Bind(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err})
 		return
 	}
@@ -41,10 +45,10 @@ func ColonizePlanet(c *gin.Context) {
 	}
 
 	s := rawServer.(*Server)
-	g, gameFound := s.GameList[request.GameID]
+	g, gameFound := s.GameList[req.GameID]
 	if !gameFound {
 		c.JSON(http.StatusNotFound, gin.H{
-			"message": fmt.Sprintf("game with id %s was not found", request.GameID),
+			"message": fmt.Sprintf("game with id %s was not found", req.GameID),
 		})
 		return
 	}
@@ -54,5 +58,35 @@ func ColonizePlanet(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{})
+	c.JSON(http.StatusOK, gin.H{"ok": true})
+}
+
+func BuildOnPlanet(c *gin.Context) {
+	var req BuildOnPlanetRequest
+	if err := c.Bind(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err})
+		return
+	}
+
+	rawServer, serverExists := c.Get("server")
+	if !serverExists {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "server object was not created"})
+		return
+	}
+
+	s := rawServer.(*Server)
+	g, gameFound := s.GameList[req.GameID]
+	if !gameFound {
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": fmt.Sprintf("game with id %s was not found", req.GameID),
+		})
+		return
+	}
+
+	if err := g.BuildOnPlanet(req.PlanetID, req.OwnerID, req.BuildingID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"ok": true})
 }

@@ -5,11 +5,11 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type NewGameRequest struct {
-	NumStars uint
+	NumStars   uint   `json:"num_stars,omitempty"`
+	PlayerName string `json:"player_name,omitempty"`
 }
 
 type GameListResponse struct {
@@ -33,18 +33,11 @@ func NewGame(c *gin.Context) {
 		return
 	}
 
+	g := game.New(req.PlayerName, req.NumStars)
 	server := rawServer.(*Server)
+	server.GameList[g.ID] = g
 
-	g := &game.Game{
-		Players: []game.Player{
-			{ID: 1},
-		},
-	}
-	g.Galaxy = g.NewGalaxy(req.NumStars)
-	gameID := uuid.New().String()
-	server.GameList[gameID] = g
-
-	c.JSON(http.StatusOK, gin.H{"ok": true, "gameID": gameID})
+	c.JSON(http.StatusOK, gin.H{"ok": true, "gameID": g.ID})
 }
 
 func GetGameList(c *gin.Context) {
@@ -59,10 +52,10 @@ func GetGameList(c *gin.Context) {
 	s := rawServer.(*Server)
 
 	var gameList = make([]GameListResponseItem, 0)
-	for gameID, game := range s.GameList {
+	for gameID, g := range s.GameList {
 		gameList = append(gameList, GameListResponseItem{
 			GameID:   gameID,
-			NumStars: len(game.Stars),
+			NumStars: len(g.Stars),
 		})
 	}
 

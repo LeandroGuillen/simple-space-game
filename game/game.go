@@ -7,20 +7,43 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+
+	"github.com/google/uuid"
 )
 
 type Player struct {
-	ID uint `json:"id"`
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
+
+	Race string `json:"race"`
+
+	Treasury       int64   `json:"treasury"`
+	TaxRate        float64 `json:"tax_rate"`
+	ResearchPoints uint    `json:"research_points"`
+
+	Fleets         []uint `json:"fleets"`
+	Freighters     uint   `json:"freighters"`
+	FreightersUsed uint   `json:"freighters_used"`
 }
 
 type Game struct {
 	Galaxy  `json:"galaxy"`
 	Players []Player `json:"players"`
+	ID      string   `json:"id"`
 }
 
-func (g *Game) NewGalaxy(numStars uint) Galaxy {
-	galaxy := builder.NewGalaxy(numStars)
-	return galaxy
+func New(playerName string, numStars uint) *Game {
+	g := &Game{
+		Players: []Player{
+			{ID: 1, Name: playerName},
+		},
+		Galaxy: builder.NewGalaxy(numStars),
+		ID:     uuid.New().String(),
+	}
+
+	_ = g.ColonizePlanet(1, 1)
+
+	return g
 }
 
 func (g *Game) NewRandomGalaxy() Galaxy {
