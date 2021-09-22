@@ -16,6 +16,8 @@ import {NewGameDialogComponent} from "./game-page/new-game-dialog/new-game-dialo
 import {GamePageComponent} from './game-page/game-page.component';
 import {ColoniesPageComponent} from './colonies-page/colonies-page.component';
 import {GalaxyViewComponent} from './galaxy-view/galaxy-view.component';
+import { TopBarComponent } from './top-bar/top-bar.component';
+import {ChangeBuildingDialogComponent} from "./colonies-page/change-building-dialog/change-building-dialog.component";
 
 @NgModule({
   declarations: [
@@ -29,6 +31,8 @@ import {GalaxyViewComponent} from './galaxy-view/galaxy-view.component';
     GamePageComponent,
     ColoniesPageComponent,
     GalaxyViewComponent,
+    TopBarComponent,
+    ChangeBuildingDialogComponent
   ],
   imports: [
     BrowserModule,
