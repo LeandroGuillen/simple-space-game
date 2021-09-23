@@ -10,10 +10,10 @@ type Server = {
 
 @Component({
   selector: 'crn-home-page',
-  templateUrl: './home-page.component.html',
-  styleUrls: ['./home-page.component.scss']
+  templateUrl: './server-page.component.html',
+  styleUrls: ['./server-page.component.scss']
 })
-export class HomePageComponent implements OnInit {
+export class ServerPageComponent implements OnInit {
   form!: FormGroup;
 
   rememberedServers: Server[] = [];
@@ -45,7 +45,7 @@ export class HomePageComponent implements OnInit {
     });
 
     // read local environment for possible servers
-    this.rememberedServers = HomePageComponent.getRememberedServers();
+    this.rememberedServers = ServerPageComponent.getRememberedServers();
   }
 
   addServer() {
@@ -82,13 +82,13 @@ export class HomePageComponent implements OnInit {
 
   removeServer(s: Server) {
     const updatedServerList = this.rememberedServers.filter(server => server.name !== s.name);
-    HomePageComponent.setRememberedServers(updatedServerList);
-    this.rememberedServers = HomePageComponent.getRememberedServers();
+    ServerPageComponent.setRememberedServers(updatedServerList);
+    this.rememberedServers = ServerPageComponent.getRememberedServers();
   }
 
   private addRememberedServer(s: Server) {
     this.rememberedServers.unshift(s);
-    HomePageComponent.setRememberedServers(this.rememberedServers);
+    ServerPageComponent.setRememberedServers(this.rememberedServers);
   }
 
   private serverNameValidator(control: AbstractControl) {

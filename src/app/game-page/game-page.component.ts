@@ -32,7 +32,7 @@ export class GamePageComponent implements OnInit {
   openNewGameDialog(): void {
     this.dialog.open(NewGameDialogComponent).afterClosed().pipe(
       switchMap(newGameRequest => this.gamePageService.newGame(newGameRequest)),
-      switchMap(gameID => this.gameService.getCurrentGalaxy(gameID)),
+      switchMap(() => this.gameService.getCurrentGalaxy()),
       switchMap(() => this.gamePageService.getGameList()),
       catchError(err => {
         console.log('error:', err)

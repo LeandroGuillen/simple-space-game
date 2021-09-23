@@ -1,20 +1,25 @@
-<mat-toolbar>
-  <button mat-icon-button>
+<mat-toolbar color="primary">
+  <button [matMenuTriggerFor]="menu" mat-icon-button>
     <mat-icon>menu</mat-icon>
   </button>
+
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item routerLink="/server">Server management...</button>
+    <button mat-menu-item routerLink="/game">Game management...</button>
+  </mat-menu>
+
   <span>Master of Rigel</span>
   <span class="spacer"></span>
-  <button mat-button routerLink="/home">SERVER</button>
-  <button mat-button routerLink="/game">GAME</button>
-  <button mat-button routerLink="/stars">GALAXY</button>
+  <button mat-button routerLink="/stars">STARS</button>
   <button mat-button routerLink="/colonies">COLONIES</button>
+
   <span class="spacer"></span>
+
   <span>{{gameID | async}}</span>
-  <button mat-icon-button>
-    <mat-icon>favorite</mat-icon>
-  </button>
-  <button mat-icon-button>
-    <mat-icon>share</mat-icon>
-  </button>
-  <button color="primary" mat-flat-button>TURN</button>
+</mat-toolbar>
+
+<mat-toolbar>
+  <span class="spacer"></span>
+  <span>Treasury: {{treasury}}</span>
+  <button (click)="turn()" color="primary" mat-flat-button>TURN</button>
 </mat-toolbar>

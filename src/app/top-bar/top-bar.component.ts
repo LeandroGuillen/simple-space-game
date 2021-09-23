@@ -11,6 +11,8 @@ import {map} from "rxjs/operators";
 export class TopBarComponent implements OnInit {
   gameID!: Observable<string>;
 
+  treasury!: number;
+
   constructor(private readonly gameService: GameService) {
   }
 
@@ -18,4 +20,13 @@ export class TopBarComponent implements OnInit {
     this.gameID = this.gameService.currentGameID.pipe(map(id => id.substring(0, 8)));
   }
 
+  turn() {
+    this.gameService.turn().subscribe(res => {
+      if (!res.ok) {
+        return;
+      }
+      const player = res.game.players[0];
+      this.treasury = player.treasury;
+    });
+  }
 }

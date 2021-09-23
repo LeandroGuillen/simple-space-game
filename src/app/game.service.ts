@@ -1,8 +1,8 @@
 import {Injectable} from "@angular/core";
 import {BehaviorSubject, Observable} from "rxjs";
 import {HttpClient} from "@angular/common/http";
-import {filter, map, take} from "rxjs/operators";
-import {Galaxy, Planet, Star} from "./model/model";
+import {filter, map, switchMap, take} from "rxjs/operators";
+import {Galaxy, Game, Planet, Star} from "./model/model";
 import {mapGalaxy} from "./model/mapper";
 import {BEGalaxy} from "./model/be-model";
 
@@ -35,7 +35,7 @@ export class GameService {
   get currentGalaxyUpdates(): Observable<Galaxy> {
     const galaxyWatcher = this._galaxy.asObservable().pipe(filter(g => !!g.stars))
     if (this._currentGameID !== '') {
-      return this.getCurrentGalaxy(this._currentGameID);
+      return this.getCurrentGalaxy();
     }
     return galaxyWatcher;
   }
@@ -53,8 +53,11 @@ export class GameService {
     )
   }
 
-  getCurrentGalaxy(gameID: string): Observable<Galaxy> {
-    return this.http.get<BEGalaxy>(`${this._host}/galaxy/${gameID}`).pipe(
+  getCurrentGalaxy(): Observable<Galaxy> {
+    return this.currentGameID.pipe(
+      switchMap(gameID => {
+        return this.http.get<BEGalaxy>(`${this._host}/galaxy/${gameID}`);
+      }),
       map(g => {
         const mappedGalaxy = mapGalaxy(g);
         this._galaxy.next(mappedGalaxy);
@@ -64,6 +67,7 @@ export class GameService {
 
   clearCurrentGame(): void {
     this._currentGameID = '';
+    this._galaxyIDSub.next('');
     window.localStorage.removeItem('currentGameID');
   }
 
@@ -104,5 +108,16 @@ export class GameService {
   colonize(ownerID: number, planetID: number): Observable<boolean> {
     const url = `${this._host}/action/${ownerID}/colonize/${planetID}`
     return this.http.post<BEGalaxy>(url, {game_id: this._currentGameID}).pipe(map(() => true))
+  }
+
+  turn() {
+    return this.currentGameID.pipe(
+      switchMap(gameID => {
+        return this.http.post<{ ok: boolean, game: Game }>(`${this._host}/turn`, {
+          game_id: gameID,
+          player_id: 1
+        })
+      })
+    )
   }
 }

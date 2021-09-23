@@ -1,3 +1,24 @@
+export type Player = {
+  id: number;
+  name: string;
+
+  race: string;
+
+  treasury: number;
+  taxRate: number;
+  researchPoints: number;
+
+  fleets: number[];
+  freighters: number;
+  freightersUsed: number;
+}
+
+export type Game = {
+  galaxy: Galaxy;
+  players: Player[];
+  id: string;
+}
+
 export type Galaxy = {
   stars: Star[];
 };

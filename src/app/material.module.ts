@@ -11,6 +11,7 @@ import {MatToolbarModule} from "@angular/material/toolbar";
 import {MatSlideToggleModule} from "@angular/material/slide-toggle";
 import {MatSortModule} from "@angular/material/sort";
 import {MatSelectModule} from "@angular/material/select";
+import {MatMenuModule} from "@angular/material/menu";
 
 const moduleList = [
   MatListModule,
@@ -25,7 +26,8 @@ const moduleList = [
   MatToolbarModule,
   MatSlideToggleModule,
   MatSortModule,
-  MatSelectModule
+  MatSelectModule,
+  MatMenuModule
 ]
 
 @NgModule({

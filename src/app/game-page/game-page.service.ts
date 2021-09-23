@@ -2,6 +2,7 @@ import {Injectable} from "@angular/core";
 import {Observable, of, throwError} from "rxjs";
 import {HttpClient} from "@angular/common/http";
 import {map, switchMap} from "rxjs/operators";
+import {GameService} from "../game.service";
 
 export type GameListResponseItem = {
   game_id: string;
@@ -25,7 +26,8 @@ export class GamePageService {
 
   private _host: string;
 
-  constructor(private readonly http: HttpClient) {
+  constructor(private readonly http: HttpClient,
+              private readonly gameService: GameService) {
     this._host = window.localStorage.getItem('currentServerHost') || '';
   }
 
@@ -43,7 +45,7 @@ export class GamePageService {
         if (!response.ok) {
           return throwError('could not create game');
         }
-        window.localStorage.setItem('currentGameID', response.gameID)
+        this.gameService.setCurrentGame(response.gameID);
         return of(response.gameID);
       })
     )
