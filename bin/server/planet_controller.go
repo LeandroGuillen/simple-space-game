@@ -22,7 +22,7 @@ type BuildOnPlanetRequest struct {
 func ColonizePlanet(c *gin.Context) {
 	var req ColonizePlanetRequest
 	if err := c.Bind(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
@@ -54,7 +54,7 @@ func ColonizePlanet(c *gin.Context) {
 	}
 
 	if err := g.ColonizePlanet(uint(ownerID), uint(planetID)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": err})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
@@ -64,7 +64,7 @@ func ColonizePlanet(c *gin.Context) {
 func BuildOnPlanet(c *gin.Context) {
 	var req BuildOnPlanetRequest
 	if err := c.Bind(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
@@ -84,7 +84,7 @@ func BuildOnPlanet(c *gin.Context) {
 	}
 
 	if err := g.BuildOnPlanet(req.PlanetID, req.OwnerID, req.BuildingID); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 

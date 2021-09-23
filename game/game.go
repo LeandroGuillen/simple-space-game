@@ -28,13 +28,13 @@ type Player struct {
 
 type Game struct {
 	Galaxy  `json:"galaxy"`
-	Players []Player `json:"players"`
-	ID      string   `json:"id"`
+	Players []*Player `json:"players"`
+	ID      string    `json:"id"`
 }
 
 func New(playerName string, numStars uint) *Game {
 	g := &Game{
-		Players: []Player{
+		Players: []*Player{
 			{ID: 1, Name: playerName},
 		},
 		Galaxy: builder.NewGalaxy(numStars),
@@ -55,10 +55,21 @@ func (g *Game) NewRandomGalaxy() Galaxy {
 	return galaxy
 }
 
+func (g *Game) Turn(playerID uint) error {
+	player, err := g.getPlayer(playerID)
+	if err != nil {
+		return err
+	}
+
+	player.Treasury += 2
+
+	return nil
+}
+
 func (g *Game) getPlayer(ID uint) (*Player, error) {
 	for _, player := range g.Players {
 		if player.ID == ID {
-			return &player, nil
+			return player, nil
 		}
 	}
 	return nil, errors.New(fmt.Sprintf("player with ID %d not found", ID))

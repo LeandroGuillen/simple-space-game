@@ -24,7 +24,7 @@ type GetColonyListRequest struct {
 func GetGalaxy(c *gin.Context) {
 	var req GetGalaxyRequest
 	if err := c.BindUri(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -51,7 +51,7 @@ func GetGalaxy(c *gin.Context) {
 func GetColonyList(c *gin.Context) {
 	var req GetColonyListRequest
 	if err := c.Bind(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -74,7 +74,7 @@ func GetColonyList(c *gin.Context) {
 
 	colonyList, err := g.GetColonyList(req.PlayerID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 

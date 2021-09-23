@@ -45,6 +45,7 @@ func NewServer() *Server {
 
 	r.POST("/colonies", GetColonyList)
 	r.POST("/colonies/build", BuildOnPlanet)
+	r.POST("/turn", Turn)
 
 	r.POST("/action/:owner/colonize/:planet", ColonizePlanet)
 
