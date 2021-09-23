@@ -35,11 +35,11 @@ export type Star = {
   numPlanets: number;
 };
 
-export enum PlanetSize { INVALID, TINY, SMALL, MEDIUM, LARGE, HUGE}
+export enum PlanetSize { INVALID, TINY, SMALL, MEDIUM, LARGE, HUGE }
 
-export enum PlanetGravity { INVALID, LOW, NORMAL, HIGH}
+export enum PlanetGravity { INVALID, LOW, NORMAL, HIGH }
 
-export enum PlanetMineral { INVALID, POOR, ABUNDANT, RICH}
+export enum PlanetMineral { INVALID, POOR, ABUNDANT, RICH }
 
 export type Planet = {
   id: number;
@@ -66,3 +66,13 @@ export type Planet = {
   build_list: string[];
   buildings: string[];
 };
+
+export function emptyGame(): Game {
+  return {
+    id: '',
+    players: [],
+    galaxy: {
+      stars: []
+    },
+  }
+}

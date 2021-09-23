@@ -1,12 +1,7 @@
 import {Component} from '@angular/core';
 import {MatDialogRef} from "@angular/material/dialog";
 import {FormBuilder, FormGroup} from "@angular/forms";
-import {NewGameRequest} from "../game-page.service";
-
-export interface DialogData {
-  animal: string;
-  name: string;
-}
+import {NewGameRequest} from "../../store/actions";
 
 @Component({
   selector: 'crn-new-game-dialog',

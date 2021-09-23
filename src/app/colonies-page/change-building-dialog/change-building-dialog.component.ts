@@ -1,6 +1,6 @@
-import {Component} from '@angular/core';
-import {MatDialogRef} from "@angular/material/dialog";
-import {FormBuilder, FormGroup} from "@angular/forms";
+import { Component } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { MatDialogRef } from '@angular/material/dialog';
 
 export interface DialogData {
   animal: string;
@@ -10,7 +10,7 @@ export interface DialogData {
 @Component({
   selector: 'crn-change-building-dialog',
   templateUrl: './change-building-dialog.component.html',
-  styleUrls: ['./change-building-dialog.component.scss']
+  styleUrls: [ './change-building-dialog.component.scss' ]
 })
 export class ChangeBuildingDialogComponent {
   form: FormGroup;
@@ -21,7 +21,7 @@ export class ChangeBuildingDialogComponent {
   ];
 
   constructor(fb: FormBuilder,
-              public readonly dialogRef: MatDialogRef<ChangeBuildingDialogComponent>
+    public readonly dialogRef: MatDialogRef<ChangeBuildingDialogComponent>
   ) {
     this.form = fb.group({
       selectedBuilding: '',
@@ -32,7 +32,7 @@ export class ChangeBuildingDialogComponent {
     if (this.form.invalid) {
       return;
     }
-    this.dialogRef.close(this.form.value.selectedBuilding);
+    this.dialogRef.close(this.form.value.selectedBuilding as number);
   }
 
   cancel(): void {

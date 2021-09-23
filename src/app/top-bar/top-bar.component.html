@@ -20,6 +20,6 @@
 
 <mat-toolbar>
   <span class="spacer"></span>
-  <span>Treasury: {{treasury}}</span>
+  <span>Treasury: {{treasury | async}}</span>
   <button (click)="turn()" color="primary" mat-flat-button>TURN</button>
 </mat-toolbar>

@@ -1,27 +1,48 @@
-import {Injectable} from "@angular/core";
-import {BehaviorSubject, Observable} from "rxjs";
-import {HttpClient} from "@angular/common/http";
-import {filter, map, switchMap, take} from "rxjs/operators";
-import {Galaxy, Game, Planet, Star} from "./model/model";
-import {mapGalaxy} from "./model/mapper";
-import {BEGalaxy} from "./model/be-model";
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { Observable, of, throwError } from 'rxjs';
+import { filter, map, switchMap } from 'rxjs/operators';
 
-@Injectable({providedIn: "root"})
+import { BEPlanet } from './model/be-model';
+import { mapGalaxy, mapPlanet } from './model/mapper';
+import { Game, Planet } from './model/model';
+import { NewGameRequest } from './store/actions';
+import { AppState } from './store/reducers';
+import { selectCurrentGameID } from './store/selectors';
+
+type NewGameResponse = {
+  ok: boolean;
+  gameID: string
+}
+
+export type GameListResponseItem = {
+  game_id: string;
+  num_stars: number;
+}
+export type GameListResponse = {
+  game_list: GameListResponseItem[];
+}
+
+@Injectable({ providedIn: "root" })
 export class GameService {
-  private _galaxy = new BehaviorSubject<Galaxy>({} as Galaxy);
-  private _galaxyIDSub = new BehaviorSubject('');
+  private currentGameID: string;
 
-  constructor(private readonly http: HttpClient) {
+  constructor(private readonly http: HttpClient,
+    private readonly store: Store<AppState>) {
     this._host = window.localStorage.getItem('currentServerHost') || '';
-    this._currentGameID = window.localStorage.getItem('currentGameID') || '';
-    this._galaxyIDSub.next(this._currentGameID);
+    this.currentGameID = window.localStorage.getItem('currentGameID') || '';
+
+    this.store.select(selectCurrentGameID).subscribe(gameID => {
+      if (gameID) {
+        window.localStorage.setItem('currentGameID', gameID);
+      } else {
+        this.currentGameID = window.localStorage.getItem('currentGameID') || '';
+      }
+      this.currentGameID = gameID;
+    })
   }
 
-  private _currentGameID: string;
-
-  get currentGameID(): Observable<string> {
-    return this._galaxyIDSub.asObservable();
-  }
 
   private _host: string;
 
@@ -30,14 +51,6 @@ export class GameService {
       this._host = 'http://' + host;
     }
     this._host = host;
-  }
-
-  get currentGalaxyUpdates(): Observable<Galaxy> {
-    const galaxyWatcher = this._galaxy.asObservable().pipe(filter(g => !!g.stars))
-    if (this._currentGameID !== '') {
-      return this.getCurrentGalaxy();
-    }
-    return galaxyWatcher;
   }
 
   establishConnection(): Observable<boolean> {
@@ -53,71 +66,63 @@ export class GameService {
     )
   }
 
-  getCurrentGalaxy(): Observable<Galaxy> {
-    return this.currentGameID.pipe(
-      switchMap(gameID => {
-        return this.http.get<BEGalaxy>(`${this._host}/galaxy/${gameID}`);
-      }),
+  getGalaxy(gameID: string): Observable<Game> {
+    return this.http.get<Game>(`${this._host}/games/${gameID}`).pipe(
       map(g => {
-        const mappedGalaxy = mapGalaxy(g);
-        this._galaxy.next(mappedGalaxy);
-        return mappedGalaxy;
+        g.galaxy = mapGalaxy(g.galaxy);
+        window.localStorage.setItem('currentGameID', gameID);
+        return g;
       }))
   }
 
-  clearCurrentGame(): void {
-    this._currentGameID = '';
-    this._galaxyIDSub.next('');
-    window.localStorage.removeItem('currentGameID');
-  }
-
-  setCurrentGame(gameID: string) {
-    this._currentGameID = gameID;
-    this._galaxyIDSub.next(gameID);
-    window.localStorage.setItem('currentGameID', gameID);
-  }
-
-  getStarById(id: number): Observable<Star> {
-    return this.currentGalaxyUpdates.pipe(
-      take(1),
-      map(galaxy => {
-        const star = galaxy.stars.find(star => star.id === id);
-        if (star === undefined) {
-          throw new Error(`star with id '${id}' was not found`)
-        }
-        return star;
-      })
-    )
-  }
-
-
-  getPlanetById(planetId: number): Observable<Planet | undefined> {
-    return this.currentGalaxyUpdates.pipe(
-      map(galaxy => {
-        for (let star of galaxy.stars) {
-          const planet = star.planets.find(p => p.id === planetId);
-          if (planet !== undefined) {
-            return planet;
-          }
-        }
-        return undefined;
-      })
-    )
-  }
-
-  colonize(ownerID: number, planetID: number): Observable<boolean> {
+  colonize(ownerID: number, planetID: number): Observable<Game> {
     const url = `${this._host}/action/${ownerID}/colonize/${planetID}`
-    return this.http.post<BEGalaxy>(url, {game_id: this._currentGameID}).pipe(map(() => true))
+    return this.http.post<Game>(url, { game_id: this.currentGameID });
   }
 
-  turn() {
-    return this.currentGameID.pipe(
-      switchMap(gameID => {
-        return this.http.post<{ ok: boolean, game: Game }>(`${this._host}/turn`, {
-          game_id: gameID,
-          player_id: 1
-        })
+  turn(): Observable<Game> {
+    return this.http.post<{ ok: boolean, game: Game }>(`${this._host}/turn`, {
+      game_id: this.currentGameID,
+      player_id: 1
+    }).pipe(map(res => res.game));
+  }
+
+  newGame(newGameRequest: NewGameRequest): Observable<string> {
+    return this.http.post<NewGameResponse>(`${this._host}/games`, newGameRequest).pipe(
+      switchMap(res => {
+        if (!res.ok) {
+          return throwError('could not create game');
+        }
+        return of(res.gameID);
       })
     )
+  }
+
+  getGameList(): Observable<GameListResponseItem[]> {
+    return this.http.get<GameListResponse>(`${this._host}/games`).pipe(
+      map(res => res.game_list.sort((a, b) => {
+        return a.game_id.localeCompare(b.game_id)
+      })),
+    );
+  }
+
+  getColonyList(): Observable<Planet[]> {
+    const getColonyListRequest = {
+      game_id: this.currentGameID,
+      player_id: 1,
+    }
+    return this.http.post<BEPlanet[]>(`${this._host}/colonies`, getColonyListRequest)
+      .pipe(map(planets => planets.map(mapPlanet)))
+  }
+
+  changeBuilding(planetID: number, buildingID: number): Observable<{ planetID: number, buildingID: number }> {
+    const changeBuildingRequest = {
+      game_id: this.currentGameID,
+      owner_id: 1,
+      planet_id: planetID,
+      building_id: buildingID,
+    }
+    return this.http.post<{ ok: boolean }>(`${this._host}/colonies/build`, changeBuildingRequest)
+      .pipe(filter(res => res.ok), map(() => ({ planetID, buildingID })))
   }
 }

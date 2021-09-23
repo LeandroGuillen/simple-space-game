@@ -1,25 +1,26 @@
-import {Component, OnInit} from '@angular/core';
-import {Planet, PlanetGravity, PlanetMineral, PlanetSize} from "../model/model";
-import {GameService} from "../game.service";
-import {ActivatedRoute} from "@angular/router";
-import {Location} from "@angular/common";
-import {map, switchMap} from "rxjs/operators";
+import { Location } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { Store } from '@ngrx/store';
+import { map, switchMap } from 'rxjs/operators';
+
+import { Planet, PlanetGravity, PlanetMineral, PlanetSize } from '../model/model';
+import { AppState } from '../store/reducers';
+import { selectPlanet } from '../store/selectors';
 
 @Component({
   selector: 'crn-planet-view',
   templateUrl: './planet-view.component.html',
-  styleUrls: ['./planet-view.component.scss']
+  styleUrls: [ './planet-view.component.scss' ]
 })
 export class PlanetViewComponent implements OnInit {
-
   planet!: Planet;
-
   size!: string;
   gravity!: string;
   mineral_class!: string;
 
   constructor(
-    private readonly gameService: GameService,
+    private readonly store: Store<AppState>,
     private readonly route: ActivatedRoute,
     private readonly location: Location) {
   }
@@ -69,18 +70,18 @@ export class PlanetViewComponent implements OnInit {
 
   ngOnInit() {
     this.route.params.pipe(
-      map(params => parseInt(params['planet_id'])),
-      switchMap(planetId => this.gameService.getPlanetById(planetId))
+      map(params => parseInt(params[ 'planet_id' ])),
+      switchMap(id => this.store.select(selectPlanet(id)))
     ).subscribe(planet => {
       if (!planet) {
-        // planet not found, deal with it
         return;
       }
       this.planet = planet;
-      this.size = PlanetViewComponent.getSizeString(planet.size);
+      this.size = PlanetViewComponent.getSizeString(planet.size)
       this.gravity = PlanetViewComponent.getGravityString(planet.gravity);
       this.mineral_class = PlanetViewComponent.getMineralClassString(planet.mineral_class);
-    });
+    })
+
   }
 
   goBack() {

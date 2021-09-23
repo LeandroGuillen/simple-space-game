@@ -2,7 +2,7 @@
 
 <h2>Game List on this server</h2>
 <mat-list>
-  <mat-list-item *ngFor="let game of gameList">
+  <mat-list-item *ngFor="let game of (gameList | async)">
     <h3 matLine>
       {{game.game_id}}
     </h3>
