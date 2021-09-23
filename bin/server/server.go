@@ -40,8 +40,7 @@ func NewServer() *Server {
 	r.GET("/status", Status)
 	r.POST("/games", NewGame)
 	r.GET("/games", GetGameList)
-
-	r.GET("/galaxy/:gameID", GetGalaxy)
+	r.GET("/games/:gameID", GetGame)
 
 	r.POST("/colonies", GetColonyList)
 	r.POST("/colonies/build", BuildOnPlanet)

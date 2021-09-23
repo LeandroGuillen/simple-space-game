@@ -2,6 +2,7 @@ package server
 
 import (
 	"corion/game"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -60,4 +61,35 @@ func GetGameList(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"game_list": gameList})
+}
+
+type GetGalaxyRequest struct {
+	GameID string `uri:"gameID" binding:"required" json:"game_id"`
+}
+
+func GetGame(c *gin.Context) {
+	var req GetGalaxyRequest
+	if err := c.BindUri(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	rawServer, exists := c.Get("server")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "server object was not created",
+		})
+		return
+	}
+
+	s := rawServer.(*Server)
+	g, gameFound := s.GameList[req.GameID]
+	if !gameFound {
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": fmt.Sprintf("game with id %s was not found", req.GameID),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, g)
 }

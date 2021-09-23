@@ -58,7 +58,7 @@ func ColonizePlanet(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"ok": true})
+	c.JSON(http.StatusOK, gin.H{"game": g})
 }
 
 func BuildOnPlanet(c *gin.Context) {
