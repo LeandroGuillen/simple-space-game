@@ -1,12 +1,13 @@
-import {Component} from '@angular/core';
-import {MatDialogRef} from "@angular/material/dialog";
-import {FormBuilder, FormGroup} from "@angular/forms";
-import {NewGameRequest} from "../../store/actions";
+import { Component } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { MatDialogRef } from '@angular/material/dialog';
+
+import { NewGameRequest } from '../../../store/actions';
 
 @Component({
   selector: 'crn-new-game-dialog',
   templateUrl: './new-game-dialog.component.html',
-  styleUrls: ['./new-game-dialog.component.scss']
+  styleUrls: [ './new-game-dialog.component.scss' ]
 })
 export class NewGameDialogComponent {
   form: FormGroup;
@@ -29,10 +30,10 @@ export class NewGameDialogComponent {
   ];
 
   constructor(fb: FormBuilder,
-              public readonly dialogRef: MatDialogRef<NewGameDialogComponent>
+    public readonly dialogRef: MatDialogRef<NewGameDialogComponent>
   ) {
     this.form = fb.group({
-      numStars: this.galaxySizes[0].value,
+      numStars: this.galaxySizes[ 0 ].value,
       playerName: 'Augustus'
     });
   }

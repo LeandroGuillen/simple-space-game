@@ -4,10 +4,10 @@ import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { map, switchMap } from 'rxjs/operators';
 
-import { GameService } from '../game.service';
-import { Star } from '../model/model';
-import { AppState } from '../store/reducers';
-import { selectStar } from '../store/selectors';
+import { GameService } from '../../game.service';
+import { Star } from '../../model/model';
+import { AppState } from '../../store/reducers';
+import { selectStar } from '../../store/selectors';
 
 @Component({
   selector: 'crn-star-view',

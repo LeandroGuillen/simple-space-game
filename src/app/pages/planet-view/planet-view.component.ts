@@ -4,9 +4,9 @@ import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { map, switchMap } from 'rxjs/operators';
 
-import { Planet, PlanetGravity, PlanetMineral, PlanetSize } from '../model/model';
-import { AppState } from '../store/reducers';
-import { selectPlanet } from '../store/selectors';
+import { Planet, PlanetGravity, PlanetMineral, PlanetSize } from '../../model/model';
+import { AppState } from '../../store/reducers';
+import { selectPlanet } from '../../store/selectors';
 
 @Component({
   selector: 'crn-planet-view',

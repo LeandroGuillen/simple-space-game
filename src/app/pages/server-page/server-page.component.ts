@@ -1,7 +1,8 @@
-import {Component, OnInit} from '@angular/core';
-import {AbstractControl, FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {Router} from "@angular/router";
-import {GameService} from "../game.service";
+import { Component, OnInit } from '@angular/core';
+import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+
+import { GameService } from '../../game.service';
 
 type Server = {
   name: string;
@@ -11,7 +12,7 @@ type Server = {
 @Component({
   selector: 'crn-home-page',
   templateUrl: './server-page.component.html',
-  styleUrls: ['./server-page.component.scss']
+  styleUrls: [ './server-page.component.scss' ]
 })
 export class ServerPageComponent implements OnInit {
   form!: FormGroup;
@@ -40,8 +41,8 @@ export class ServerPageComponent implements OnInit {
   ngOnInit(): void {
     // initialize form
     this.form = this.fb.group({
-      serverName: ['', [Validators.required, this.serverNameValidator.bind(this)]],
-      serverAddress: ['', Validators.required],
+      serverName: [ '', [ Validators.required, this.serverNameValidator.bind(this) ] ],
+      serverAddress: [ '', Validators.required ],
     });
 
     // read local environment for possible servers
@@ -73,7 +74,7 @@ export class ServerPageComponent implements OnInit {
     this.gameService.establishConnection().subscribe(ok => {
       if (ok) {
         console.log('connection ok');
-        this.route.navigate(['game']);
+        this.route.navigate([ 'game' ]);
       } else {
         console.log('connection failed');
       }
@@ -96,7 +97,7 @@ export class ServerPageComponent implements OnInit {
 
     const exists = !!this.rememberedServers.find(s => s.name === name);
     if (exists) {
-      return {duplicateServerName: true};
+      return { duplicateServerName: true };
     }
 
     return null;

@@ -7,20 +7,23 @@ import { EffectsModule } from '@ngrx/effects';
 import { StoreModule } from '@ngrx/store';
 
 import { AppComponent } from './app.component';
+import { GalaxyViewComponent } from './galaxy-view/galaxy-view.component';
+import { MaterialModule } from './material.module';
 import {
   ChangeBuildingDialogComponent,
-} from './colonies-page/change-building-dialog/change-building-dialog.component';
-import { ColoniesPageComponent } from './colonies-page/colonies-page.component';
-import { GalaxyViewComponent } from './galaxy-view/galaxy-view.component';
-import { GamePageComponent } from './game-page/game-page.component';
-import { NewGameDialogComponent } from './game-page/new-game-dialog/new-game-dialog.component';
-import { MaterialModule } from './material.module';
-import { PlanetIconComponent } from './planet-view/planet-icon/planet-icon.component';
-import { PlanetViewComponent } from './planet-view/planet-view.component';
+} from './pages/colonies-page/change-building-dialog/change-building-dialog.component';
+import { ColoniesPageComponent } from './pages/colonies-page/colonies-page.component';
+import { GamePageComponent } from './pages/game-page/game-page.component';
+import {
+  NewGameDialogComponent,
+} from './pages/game-page/new-game-dialog/new-game-dialog.component';
+import { PlanetIconComponent } from './pages/planet-view/planet-icon/planet-icon.component';
+import { PlanetViewComponent } from './pages/planet-view/planet-view.component';
+import { ServerPageComponent } from './pages/server-page/server-page.component';
+import { StarListPageComponent } from './pages/star-list-page/star-list-page.component';
+import { StarViewComponent } from './pages/star-view/star-view.component';
 import { RoutingModule } from './routing.module';
-import { ServerPageComponent } from './server-page/server-page.component';
-import { StarListPageComponent } from './star-list-page/star-list-page.component';
-import { StarViewComponent } from './star-view/star-view.component';
+import { StarIconComponent } from './star-icon/star-icon.component';
 import { GameEffects } from './store/effects';
 import { gameReducer } from './store/reducers';
 import { TopBarComponent } from './top-bar/top-bar.component';
@@ -39,6 +42,7 @@ import { TopBarComponent } from './top-bar/top-bar.component';
     GalaxyViewComponent,
     TopBarComponent,
     ChangeBuildingDialogComponent,
+    StarIconComponent
   ],
   imports: [
     BrowserModule,

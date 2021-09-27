@@ -1,0 +1,36 @@
+<crn-galaxy-view *ngIf="galaxy" [galaxy]="galaxy"></crn-galaxy-view>
+
+<table [dataSource]="dataSource" class="mat-elevation-z8" mat-table matSort>
+  <ng-container matColumnDef="id">
+    <th *matHeaderCellDef mat-header-cell mat-sort-header>ID</th>
+    <td *matCellDef="let star" mat-cell>{{star.id}}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="name">
+    <th *matHeaderCellDef mat-header-cell mat-sort-header>Name</th>
+    <td *matCellDef="let star" mat-cell>
+
+      <a routerLink="/stars/{{star.id}}">{{star.name}}</a>
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="position">
+    <th *matHeaderCellDef mat-header-cell mat-sort-header>Position</th>
+    <td *matCellDef="let star" mat-cell>({{star.x}}, {{star.y}})</td>
+  </ng-container>
+
+  <ng-container matColumnDef="color">
+    <th *matHeaderCellDef mat-header-cell mat-sort-header>Color</th>
+    <td *matCellDef="let star" mat-cell>
+      <crn-star-icon [color]="star.color"></crn-star-icon>
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="numPlanets">
+    <th *matHeaderCellDef mat-header-cell mat-sort-header>Number of Planets</th>
+    <td *matCellDef="let star" mat-cell>{{star.planets.length}}</td>
+  </ng-container>
+
+  <tr *matHeaderRowDef="displayedColumns" mat-header-row></tr>
+  <tr *matRowDef="let row; columns: displayedColumns;" mat-row></tr>
+</table>

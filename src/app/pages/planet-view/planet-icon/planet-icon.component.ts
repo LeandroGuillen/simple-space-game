@@ -1,10 +1,11 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {Planet} from "../../model/model";
+import { Component, Input, OnInit } from '@angular/core';
+
+import { Planet } from '../../../model/model';
 
 @Component({
   selector: 'crn-planet-icon',
   templateUrl: './planet-icon.component.svg',
-  styleUrls: ['./planet-icon.component.scss']
+  styleUrls: [ './planet-icon.component.scss' ]
 })
 export class PlanetIconComponent implements OnInit {
   fillColor = 'rgb(255, 0, 0)';
