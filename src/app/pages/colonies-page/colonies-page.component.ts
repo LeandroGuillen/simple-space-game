@@ -20,7 +20,7 @@ const planetData: Planet[] = []
   styleUrls: [ './colonies-page.component.scss' ]
 })
 export class ColoniesPageComponent implements AfterViewInit, OnInit {
-  displayedColumns: (keyof Planet)[] = [ 'id', 'name', 'farmers', 'workers', 'scientists', 'current_project' ];
+  displayedColumns: (keyof Planet | 'actions')[] = [ 'id', 'name', 'farmers', 'workers', 'scientists', 'current_project', 'actions' ];
   dataSource = new MatTableDataSource(planetData);
 
   colonyList!: Planet[];
