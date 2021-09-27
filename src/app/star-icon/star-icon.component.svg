@@ -1,6 +1,4 @@
-<svg
-
-  xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg">
 
   <filter id="blur">
     <feGaussianBlur in="SourceGraphic" stdDeviation="1.7"/>

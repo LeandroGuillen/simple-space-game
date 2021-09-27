@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { Store } from '@ngrx/store';
@@ -19,13 +20,27 @@ export class StarListPageComponent implements OnInit {
   dataSource = new MatTableDataSource(starData);
 
   galaxy!: Galaxy;
+  form!: FormGroup;
+  showTable!: boolean;
 
   @ViewChild(MatSort) sort!: MatSort;
 
-  constructor(private readonly store: Store<AppState>) {
+  constructor(private readonly store: Store<AppState>,
+    private readonly fb: FormBuilder) {
   }
 
   ngOnInit() {
+    const showAsTable = this.getShowAsTable();
+    this.showTable = showAsTable;
+    this.form = this.fb.group({
+      asTable: showAsTable
+    });
+
+    this.form.controls.asTable.valueChanges.subscribe(show => {
+      this.setShowAsTable(show);
+      this.showTable = show;
+    });
+
     this.store.select(selectGalaxy).subscribe(galaxy => {
       if (!galaxy) {
         return;
@@ -38,5 +53,14 @@ export class StarListPageComponent implements OnInit {
 
   ngAfterViewInit() {
     this.dataSource.sort = this.sort;
+  }
+
+  private getShowAsTable(): boolean {
+    const show = window.localStorage.getItem('STAR-LIST-showAsTable') === 'true' || false;
+    return show;
+  }
+
+  private setShowAsTable(show: boolean) {
+    window.localStorage.setItem('STAR-LIST-showAsTable', show + '');
   }
 }
