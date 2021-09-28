@@ -4,8 +4,7 @@
   </button>
 
   <mat-menu #menu="matMenu">
-    <button mat-menu-item routerLink="/server">Server management...</button>
-    <button mat-menu-item routerLink="/game">Game management...</button>
+    <button mat-menu-item routerLink="/server">Servers...</button>
   </mat-menu>
 
   <span>Master of Rigel</span>
@@ -15,7 +14,8 @@
 
   <span class="spacer"></span>
 
-  <span>{{gameID | async}}</span>
+  <span><small>current game:</small> {{gameID | async}}</span>
+  <button mat-button routerLink="/game">CHANGE</button>
 </mat-toolbar>
 
 <mat-toolbar>

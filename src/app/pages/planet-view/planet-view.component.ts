@@ -1,23 +1,26 @@
 import { Location } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
+import { Subscription } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 
 import { Planet, PlanetGravity, PlanetMineral, PlanetSize } from '../../model/model';
 import { AppState } from '../../store/reducers';
-import { selectPlanet } from '../../store/selectors';
+import { getCurrentRouteState, selectPlanet } from '../../store/selectors';
 
 @Component({
   selector: 'crn-planet-view',
   templateUrl: './planet-view.component.html',
   styleUrls: [ './planet-view.component.scss' ]
 })
-export class PlanetViewComponent implements OnInit {
+export class PlanetViewComponent implements OnInit, OnDestroy {
   planet!: Planet;
   size!: string;
   gravity!: string;
   mineral_class!: string;
+
+  sub!: Subscription;
 
   constructor(
     private readonly store: Store<AppState>,
@@ -69,9 +72,9 @@ export class PlanetViewComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.route.params.pipe(
-      map(params => parseInt(params[ 'planet_id' ])),
-      switchMap(id => this.store.select(selectPlanet(id)))
+    this.sub = this.store.select(getCurrentRouteState).pipe(
+      map(route => parseInt((route as any).params.planet_id)),
+      switchMap(starID => this.store.select(selectPlanet(starID)))
     ).subscribe(planet => {
       if (!planet) {
         return;
@@ -81,7 +84,10 @@ export class PlanetViewComponent implements OnInit {
       this.gravity = PlanetViewComponent.getGravityString(planet.gravity);
       this.mineral_class = PlanetViewComponent.getMineralClassString(planet.mineral_class);
     })
+  }
 
+  ngOnDestroy() {
+    this.sub.unsubscribe();
   }
 
   goBack() {

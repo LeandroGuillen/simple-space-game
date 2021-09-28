@@ -77,7 +77,8 @@ export class GameService {
 
   colonize(ownerID: number, planetID: number): Observable<Game> {
     const url = `${this._host}/action/${ownerID}/colonize/${planetID}`
-    return this.http.post<Game>(url, { game_id: this.currentGameID });
+    return this.http.post<{ game: Game }>(url, { game_id: this.currentGameID })
+      .pipe(map(({ game }) => game));
   }
 
   turn(): Observable<Game> {

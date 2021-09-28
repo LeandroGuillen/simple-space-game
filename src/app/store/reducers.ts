@@ -1,9 +1,11 @@
+import * as fromRouter from '@ngrx/router-store';
 import { createReducer, on } from '@ngrx/store';
 
 import { GameListResponseItem } from '../game.service';
 import { emptyGame, Game } from '../model/model';
 import {
   changeBuildingOK,
+  colonizeOK,
   getGameListOK,
   newGameOK,
   startGame,
@@ -13,6 +15,7 @@ import {
 
 export type AppState = {
 	game: GameState;
+	router: fromRouter.RouterReducerState;
 }
 
 export type GameState = {
@@ -33,7 +36,14 @@ export const gameReducer = createReducer(
 	on(getGameListOK, (state, { game_list }) => ({ ...state, gameList: game_list })),
 	on(startGame, (state, { gameID }) => ({ ...state, currentGameID: gameID })),
 	on(turnOK, (state, { game }) => ({ ...state, currentGame: game })),
-	on(updateGame, (state, { game }) => ({ ...state, currentGame: game })),
+	on(updateGame, (state, { game }) => {
+		const newGame = JSON.parse(JSON.stringify(game)) as Game;
+		return {
+			...state,
+			currentGameID: newGame.id,
+			currentGame: { ...newGame }
+		}
+	}),
 	on(changeBuildingOK, (state, foo) => {
 		const game = state.currentGame;
 		const stars = game.galaxy.stars.map(star => {
@@ -59,4 +69,11 @@ export const gameReducer = createReducer(
 			}
 		}
 	}),
+	on(colonizeOK, (state, { game }) => ({
+		...state, currentGame: {
+			galaxy: game.galaxy,
+			id: game.id,
+			players: game.players
+		}
+	})),
 );

@@ -55,7 +55,7 @@ export class GameEffects {
   colonize$ = createEffect(() => this.actions$.pipe(
     ofType(actions.colonizeRequest),
     mergeMap(({ planetID, playerID }) => this.gameService.colonize(playerID, planetID).pipe(
-      map(game => actions.updateGame({ game })),
+      map(game => actions.colonizeOK({ game })),
       catchError(() => EMPTY)
     ))
   ));

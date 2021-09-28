@@ -4,9 +4,9 @@ import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import { startGame, turnRequest } from '../store/actions';
-import { AppState } from '../store/reducers';
-import { selectCurrentGameID, selectPlayerTreasury } from '../store/selectors';
+import { startGame, turnRequest } from '../../store/actions';
+import { AppState } from '../../store/reducers';
+import { selectCurrentGameID, selectPlayerTreasury } from '../../store/selectors';
 
 @Component({
   selector: 'crn-top-bar',

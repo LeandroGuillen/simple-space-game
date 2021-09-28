@@ -4,10 +4,15 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { EffectsModule } from '@ngrx/effects';
+import { routerReducer, StoreRouterConnectingModule } from '@ngrx/router-store';
 import { StoreModule } from '@ngrx/store';
+import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 
+import { environment } from '../environments/environment';
 import { AppComponent } from './app.component';
-import { GalaxyViewComponent } from './galaxy-view/galaxy-view.component';
+import { GalaxyViewComponent } from './components/galaxy-view/galaxy-view.component';
+import { StarIconComponent } from './components/star-icon/star-icon.component';
+import { TopBarComponent } from './components/top-bar/top-bar.component';
 import { MaterialModule } from './material.module';
 import {
   ChangeBuildingDialogComponent,
@@ -23,10 +28,9 @@ import { ServerPageComponent } from './pages/server-page/server-page.component';
 import { StarListPageComponent } from './pages/star-list-page/star-list-page.component';
 import { StarViewComponent } from './pages/star-view/star-view.component';
 import { RoutingModule } from './routing.module';
-import { StarIconComponent } from './star-icon/star-icon.component';
 import { GameEffects } from './store/effects';
+import { CustomSerializer } from './store/reducer-router';
 import { gameReducer } from './store/reducers';
-import { TopBarComponent } from './top-bar/top-bar.component';
 
 @NgModule({
   declarations: [
@@ -52,8 +56,10 @@ import { TopBarComponent } from './top-bar/top-bar.component';
     BrowserAnimationsModule,
     MaterialModule,
     ReactiveFormsModule,
-    StoreModule.forRoot({ game: gameReducer }),
-    EffectsModule.forRoot([ GameEffects ])
+    StoreModule.forRoot({ game: gameReducer, router: routerReducer }),
+    EffectsModule.forRoot([ GameEffects ]),
+    StoreDevtoolsModule.instrument({ maxAge: 25, logOnly: environment.production }),
+    StoreRouterConnectingModule.forRoot({ serializer: CustomSerializer }),
   ],
   providers: [],
   bootstrap: [ AppComponent ]

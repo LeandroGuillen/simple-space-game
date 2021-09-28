@@ -27,7 +27,7 @@ export const startGame = createAction('[Game Page] Start game',
   props<{ gameID: string }>()
 );
 
-export const updateGame = createAction('[Game API] Get game',
+export const updateGame = createAction('[Game API] Updated game',
   props<{ game: Game }>());
 
 export const updateGameList = createAction('[Game Page] Update game list');
@@ -47,5 +47,7 @@ export const changeBuildingOK = createAction('[Colonies Page] Change building OK
 
 export const colonizeRequest = createAction('[Star View] Colonize request',
   props<{ planetID: number; playerID: number }>());
+export const colonizeOK = createAction('[Star View] Colonize ok',
+  props<{ game: Game }>());
 
 

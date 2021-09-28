@@ -1,40 +1,43 @@
 import { Location } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
+import { Subscription } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 
-import { GameService } from '../../game.service';
 import { Star } from '../../model/model';
+import { colonizeRequest } from '../../store/actions';
 import { AppState } from '../../store/reducers';
-import { selectStar } from '../../store/selectors';
+import { getCurrentRouteState, selectStar } from '../../store/selectors';
 
 @Component({
   selector: 'crn-star-view',
   templateUrl: './star-view.component.html',
   styleUrls: [ './star-view.component.scss' ]
 })
-export class StarViewComponent implements OnInit {
-
+export class StarViewComponent implements OnInit, OnDestroy {
   star!: Star;
+
+  sub!: Subscription;
 
   constructor(
     private readonly store: Store<AppState>,
-    private readonly gameService: GameService,
-    private readonly route: ActivatedRoute,
     private readonly location: Location) {
   }
 
   ngOnInit() {
-    this.route.params.pipe(
-      map(params => parseInt(params[ 'star_id' ])),
-      switchMap(id => this.store.select(selectStar(id)))
+    this.sub = this.store.select(getCurrentRouteState).pipe(
+      map(route => parseInt((route as any).params.star_id)),
+      switchMap(starID => this.store.select(selectStar(starID)))
     ).subscribe(star => {
-      if (!star) {
+      if (star === undefined) {
         return;
       }
       this.star = star;
-    });
+    })
+  }
+
+  ngOnDestroy() {
+    this.sub.unsubscribe();
   }
 
   goBack() {
@@ -42,15 +45,7 @@ export class StarViewComponent implements OnInit {
   }
 
   colonize(planetID: number) {
-    this.gameService.colonize(1, planetID).subscribe(ok => {
-      if (ok) {
-        const planet = this.star.planets.find(p => p.id === planetID);
-        if (!planet) {
-          return;
-        }
-        planet.owner = 1;
-      }
-    });
+    this.store.dispatch(colonizeRequest({ planetID, playerID: 1 }));
   }
 
 }

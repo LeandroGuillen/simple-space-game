@@ -1,10 +1,5 @@
 <button (click)="goBack()" mat-raised-button>BACK</button>
 
-<div *ngIf="!star">
-  <mat-icon aria-hidden="false" aria-label="Example home icon">home</mat-icon>
-  <p>404 STAR NOT FOUND</p>
-</div>
-
 <table *ngIf="star && star.planets">
   <tr>
     <th>Name</th>

@@ -1,11 +1,12 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {Galaxy, Star} from "../model/model";
-import {Router} from "@angular/router";
+import { Component, Input, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+
+import { Galaxy, Star } from '../../model/model';
 
 @Component({
   selector: 'crn-galaxy-view',
   templateUrl: './galaxy-view.component.svg',
-  styleUrls: ['./galaxy-view.component.scss']
+  styleUrls: [ './galaxy-view.component.scss' ]
 })
 export class GalaxyViewComponent implements OnInit {
   @Input() galaxy!: Galaxy;
@@ -25,7 +26,7 @@ export class GalaxyViewComponent implements OnInit {
   }
 
   clicked(star: Star) {
-    this.router.navigate([`stars/${star.id}`])
+    this.router.navigate([ `stars/${star.id}` ])
   }
 
 }

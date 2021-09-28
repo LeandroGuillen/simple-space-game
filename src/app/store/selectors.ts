@@ -1,3 +1,4 @@
+import * as fromRouter from '@ngrx/router-store';
 import { createSelector } from '@ngrx/store';
 
 import { AppState } from './reducers';
@@ -23,9 +24,15 @@ export const selectStar = (starID: number) => (state: AppState) =>
 	selectAllStars(state)?.find(star => star.id === starID)
 
 // planets
-export const selectAllPlanets = (state: AppState) =>
-	selectAllStars(state)?.map(star => star.planets)
+export const selectAllPlanets = (state: AppState) => {
+	const stars = selectAllStars(state);
+	if (!stars || !stars.length) {
+		return [];
+	}
+	return stars.map(star => star.planets)
 		.reduce((planets, newPlanets) => [ ...planets, ...newPlanets ])
+}
+
 export const selectPlanet = (planetID: number) => (state: AppState) =>
 	selectAllPlanets(state)?.find(planet => planet.id === planetID)
 
@@ -39,4 +46,14 @@ export const selectColonies = createSelector(
 		}).reduce((planets, newPlanets) => [ ...planets, ...newPlanets ])
 	}
 )
+
+
+
+export const getRouterState = (state: AppState) => state.router;
+
+export const getCurrentRouteState = createSelector(
+	getRouterState,
+	(router: fromRouter.RouterReducerState) => router.state
+);
+
 
