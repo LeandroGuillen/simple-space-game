@@ -10,9 +10,7 @@ import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 
 import { environment } from '../environments/environment';
 import { AppComponent } from './app.component';
-import { GalaxyViewComponent } from './components/galaxy-view/galaxy-view.component';
-import { StarIconComponent } from './components/star-icon/star-icon.component';
-import { TopBarComponent } from './components/top-bar/top-bar.component';
+import { ComponentsModule } from './components/components.module';
 import { MaterialModule } from './material.module';
 import {
   ChangeBuildingDialogComponent,
@@ -43,12 +41,10 @@ import { gameReducer } from './store/reducers';
     NewGameDialogComponent,
     GamePageComponent,
     ColoniesPageComponent,
-    GalaxyViewComponent,
-    TopBarComponent,
     ChangeBuildingDialogComponent,
-    StarIconComponent
   ],
   imports: [
+    // angular
     BrowserModule,
     BrowserAnimationsModule,
     RoutingModule,
@@ -56,10 +52,13 @@ import { gameReducer } from './store/reducers';
     BrowserAnimationsModule,
     MaterialModule,
     ReactiveFormsModule,
+    // ngrx
     StoreModule.forRoot({ game: gameReducer, router: routerReducer }),
     EffectsModule.forRoot([ GameEffects ]),
     StoreDevtoolsModule.instrument({ maxAge: 25, logOnly: environment.production }),
     StoreRouterConnectingModule.forRoot({ serializer: CustomSerializer }),
+    // other
+    ComponentsModule
   ],
   providers: [],
   bootstrap: [ AppComponent ]

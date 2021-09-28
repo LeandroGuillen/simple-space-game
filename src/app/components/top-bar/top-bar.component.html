@@ -19,7 +19,7 @@
 </mat-toolbar>
 
 <mat-toolbar>
+  <crn-kpi icon="savings" [value]="treasury | async"></crn-kpi>
   <span class="spacer"></span>
-  <span>Treasury: {{treasury | async}}</span>
   <button (click)="turn()" color="primary" mat-flat-button>TURN</button>
 </mat-toolbar>
