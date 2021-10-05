@@ -6,10 +6,28 @@
 table {
   td {
     //min-width: 20%;
-    text-align: center
+    text-align: center;
   }
 
-  th:first-child, td:first-child {
+  th:first-child,
+  td:first-child {
     text-align: left;
   }
+}
+
+button {
+  margin-bottom: 2rem;
+}
+
+section {
+  display: flex;
+  // width: 50%;
+}
+
+.planet-list {
+  width: 50%;
+}
+
+.planet-card {
+  width: 50%;
 }

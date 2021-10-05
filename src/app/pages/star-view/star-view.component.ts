@@ -4,7 +4,7 @@ import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 
-import { Star } from '../../model/model';
+import { Planet, Star } from '../../model/model';
 import { colonizeRequest } from '../../store/actions';
 import { AppState } from '../../store/reducers';
 import { getCurrentRouteState, selectStar } from '../../store/selectors';
@@ -16,8 +16,12 @@ import { getCurrentRouteState, selectStar } from '../../store/selectors';
 })
 export class StarViewComponent implements OnInit, OnDestroy {
   star!: Star;
+  planets: Planet[] = [];
+  selectedPlanetID = -1;
+  selectedPlanet!: Planet;
 
   sub!: Subscription;
+
 
   constructor(
     private readonly store: Store<AppState>,
@@ -33,6 +37,7 @@ export class StarViewComponent implements OnInit, OnDestroy {
         return;
       }
       this.star = star;
+      this.planets = star.planets;
     })
   }
 
@@ -46,6 +51,11 @@ export class StarViewComponent implements OnInit, OnDestroy {
 
   colonize(planetID: number) {
     this.store.dispatch(colonizeRequest({ planetID, playerID: 1 }));
+  }
+
+  clicked(p: Planet) {
+    this.selectedPlanetID = p.id;
+    this.selectedPlanet = p;
   }
 
 }

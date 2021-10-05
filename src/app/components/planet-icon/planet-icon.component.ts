@@ -1,19 +1,25 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
 
-import { Planet } from '../../../model/model';
+import { Planet } from '../../model/model';
 
 @Component({
   selector: 'crn-planet-icon',
   templateUrl: './planet-icon.component.svg',
   styleUrls: [ './planet-icon.component.scss' ]
 })
-export class PlanetIconComponent implements OnInit {
+export class PlanetIconComponent {
   fillColor = 'rgb(255, 0, 0)';
   radius: number = 5;
 
-  @Input() planet!: Planet;
+  private _planet!: Planet;
 
-  constructor() {
+  @Input() set planet(value: Planet) {
+    this._planet = value;
+    this.radius = (this.planet.size + 1) * 10
+  }
+
+  get planet(): Planet {
+    return this._planet;
   }
 
   changeColor() {
@@ -22,10 +28,4 @@ export class PlanetIconComponent implements OnInit {
     const b = Math.floor(Math.random() * 256);
     this.fillColor = `rgb(${r}, ${g}, ${b})`;
   }
-
-
-  ngOnInit(): void {
-    this.radius = (this.planet.size + 1) * 10
-  }
-
 }

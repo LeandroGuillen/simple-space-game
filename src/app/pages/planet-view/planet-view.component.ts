@@ -1,13 +1,13 @@
 import { Location } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 
-import { Planet, PlanetGravity, PlanetMineral, PlanetSize } from '../../model/model';
+import { Planet } from '../../model/model';
 import { AppState } from '../../store/reducers';
 import { getCurrentRouteState, selectPlanet } from '../../store/selectors';
+import { StringService } from '../../string.service';
 
 @Component({
   selector: 'crn-planet-view',
@@ -24,52 +24,10 @@ export class PlanetViewComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly store: Store<AppState>,
-    private readonly route: ActivatedRoute,
+    private readonly strings: StringService,
     private readonly location: Location) {
   }
 
-  private static getSizeString(ps: PlanetSize): string {
-    switch (ps) {
-      case 1:
-        return 'Tiny';
-      case 2:
-        return 'Small';
-      case 3:
-        return 'Medium';
-      case 4:
-        return 'Large';
-      case 5:
-        return 'Huge';
-      default:
-        return 'Invalid!'
-    }
-  }
-
-  private static getGravityString(ps: PlanetGravity): string {
-    switch (ps) {
-      case 1:
-        return 'Low';
-      case 2:
-        return 'Normal';
-      case 3:
-        return 'High';
-      default:
-        return 'Invalid!'
-    }
-  }
-
-  private static getMineralClassString(ps: PlanetMineral): string {
-    switch (ps) {
-      case 1:
-        return 'Poor';
-      case 2:
-        return 'Abundant';
-      case 3:
-        return 'Rich';
-      default:
-        return 'Invalid!'
-    }
-  }
 
   ngOnInit() {
     this.sub = this.store.select(getCurrentRouteState).pipe(
@@ -80,9 +38,9 @@ export class PlanetViewComponent implements OnInit, OnDestroy {
         return;
       }
       this.planet = planet;
-      this.size = PlanetViewComponent.getSizeString(planet.size)
-      this.gravity = PlanetViewComponent.getGravityString(planet.gravity);
-      this.mineral_class = PlanetViewComponent.getMineralClassString(planet.mineral_class);
+      this.size = this.strings.getSize(planet.size)
+      this.gravity = this.strings.getGravity(planet.gravity);
+      this.mineral_class = this.strings.getMineralClass(planet.mineral_class);
     })
   }
 

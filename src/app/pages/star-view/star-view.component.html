@@ -1,6 +1,17 @@
 <button (click)="goBack()" mat-raised-button>BACK</button>
 
-<table *ngIf="star && star.planets">
+<section>
+  <div class="planet-list">
+    <crn-rich-select *ngFor="let p of planets" [planet]="p" (click)="clicked(p)" [selected]="p.id === selectedPlanetID">
+    </crn-rich-select>
+  </div>
+
+  <div class="planet-card">
+    <crn-planet-mini-view *ngIf="selectedPlanet" [planet]=selectedPlanet></crn-planet-mini-view>
+  </div>
+</section>
+
+<!-- <table *ngIf="star && star.planets">
   <tr>
     <th>Name</th>
     <th>Owned by</th>
@@ -21,4 +32,4 @@
       <button (click)="colonize(p.id)" *ngIf="p.owner === 0" mat-stroked-button>colonize</button>
     </td>
   </tr>
-</table>
+</table> -->

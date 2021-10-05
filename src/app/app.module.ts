@@ -20,7 +20,6 @@ import { GamePageComponent } from './pages/game-page/game-page.component';
 import {
   NewGameDialogComponent,
 } from './pages/game-page/new-game-dialog/new-game-dialog.component';
-import { PlanetIconComponent } from './pages/planet-view/planet-icon/planet-icon.component';
 import { PlanetViewComponent } from './pages/planet-view/planet-view.component';
 import { ServerPageComponent } from './pages/server-page/server-page.component';
 import { StarListPageComponent } from './pages/star-list-page/star-list-page.component';
@@ -37,7 +36,6 @@ import { gameReducer } from './store/reducers';
     StarViewComponent,
     PlanetViewComponent,
     ServerPageComponent,
-    PlanetIconComponent,
     NewGameDialogComponent,
     GamePageComponent,
     ColoniesPageComponent,

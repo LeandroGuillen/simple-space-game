@@ -1,3 +1,0 @@
-<svg>
-  <circle (click)="changeColor()" [attr.fill]="fillColor" [attr.r]="radius" [attr.cx]="radius" [attr.cy]="radius"/>
-</svg>
