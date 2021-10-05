@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import { Planet, PlanetGravity, PlanetMineral, PlanetSize } from './model/model';
+import { Planet, PlanetEnvironment, PlanetGravity, PlanetMineral, PlanetSize } from './model/model';
 
 @Injectable({ providedIn: "root" })
 export class StringService {
@@ -10,7 +10,20 @@ export class StringService {
     const mineralClass = this.getMineralClass(p.mineral_class);
     const size = this.getSize(p.size);
     const gravity = this.getGravity(p.gravity);
-    return `${mineralClass} ${size} planet, ${gravity}-G`
+    const env = this.getEnvironment(p.environment);
+
+    let desc = '';
+    if (p.mineral_class !== PlanetMineral.ABUNDANT) {
+      desc += mineralClass;
+    }
+    if (p.size !== PlanetSize.MEDIUM) {
+      desc += ' ' + size;
+    }
+    desc += ' ' + env + ' planet';
+    if (p.gravity !== PlanetGravity.NORMAL) {
+      desc += `, ${gravity}-G`;
+    }
+    return desc;
   }
 
   getSize(ps: PlanetSize): string {
@@ -51,6 +64,25 @@ export class StringService {
         return 'Abundant';
       case 3:
         return 'Rich';
+      default:
+        return 'Invalid!'
+    }
+  }
+
+  getEnvironment(env: PlanetEnvironment): string {
+    switch (env) {
+      case 1: return 'GasGiant';
+      case 2: return 'AsteroidBelt';
+      case 3: return 'Toxic';
+      case 4: return 'Radiated';
+      case 5: return 'Barren';
+      case 6: return 'Desert';
+      case 7: return 'Arid';
+      case 8: return 'Tundra';
+      case 9: return 'Swamp';
+      case 10: return 'Ocean';
+      case 11: return 'Terran';
+      case 12: return 'Gaia';
       default:
         return 'Invalid!'
     }

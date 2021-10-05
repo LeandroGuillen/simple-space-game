@@ -1,5 +1,8 @@
-// :host {
-//   display: flex;
-//   flex-direction: row;
-//   justify-content: space-between;
-// }
+.icon-row {
+  display: flex;
+  flex-direction: row;
+
+  crn-planet-icon {
+    width: 20%;
+  }
+}

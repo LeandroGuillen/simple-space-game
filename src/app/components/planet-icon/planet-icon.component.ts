@@ -13,9 +13,14 @@ export class PlanetIconComponent {
 
   private _planet!: Planet;
 
-  @Input() set planet(value: Planet) {
-    this._planet = value;
-    this.radius = (this.planet.size + 1) * 10
+  @Input() set planet(p: Planet) {
+    this._planet = p;
+    this.radius = (this.planet.size + 2) * 8;
+
+    const r = Math.floor(Math.random() * 256);
+    const g = Math.floor(Math.random() * 256);
+    const b = Math.floor(Math.random() * 256);
+    this.fillColor = `rgb(${r}, ${g}, ${b})`;
   }
 
   get planet(): Planet {

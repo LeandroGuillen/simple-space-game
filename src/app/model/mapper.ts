@@ -1,5 +1,5 @@
-import {Galaxy, Planet, Star} from "./model";
-import {BEGalaxy, BEPlanet, BEStar} from "./be-model";
+import { BEGalaxy, BEPlanet, BEStar } from './be-model';
+import { Galaxy, Planet, Star } from './model';
 
 export function mapGalaxy(g: BEGalaxy): Galaxy {
   return {
@@ -27,6 +27,7 @@ export function mapPlanet(p: BEPlanet): Planet {
     mineral_class: p.mineral_class,
     size: p.size,
     gravity: p.gravity,
+    environment: p.environment,
     owner: p.owner,
     money: p.money,
     food: p.food,

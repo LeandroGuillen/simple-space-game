@@ -18,6 +18,7 @@ export type BEPlanet = {
   mineral_class: number;
   size: number;
   gravity: number;
+  environment: number;
   owner: number;
   money: number;
   food: number;

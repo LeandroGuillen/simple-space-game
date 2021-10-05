@@ -41,6 +41,22 @@ export enum PlanetGravity { INVALID, LOW, NORMAL, HIGH }
 
 export enum PlanetMineral { INVALID, POOR, ABUNDANT, RICH }
 
+export enum PlanetEnvironment {
+  INVALID,
+  GASGIANT,
+  ASTEROIDBELT,
+  TOXIC,
+  RADIATED,
+  BARREN,
+  DESERT,
+  ARID,
+  TUNDRA,
+  SWAMP,
+  OCEAN,
+  TERRAN,
+  GAIA,
+}
+
 export type Planet = {
   id: number;
   parent_star: number;
@@ -48,6 +64,7 @@ export type Planet = {
   mineral_class: PlanetMineral;
   size: PlanetSize;
   gravity: PlanetGravity;
+  environment: PlanetEnvironment;
   owner: number;
   money: number;
   food: number;
