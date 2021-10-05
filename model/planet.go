@@ -32,15 +32,67 @@ const (
 	PlanetGravityMax
 )
 
+type PlanetEnvironment uint64
+
+const (
+	PlanetEnvironmentInvalid PlanetEnvironment = iota
+	PlanetEnvironmentGasGiant
+	PlanetEnvironmentAsteroidBelt
+	PlanetEnvironmentToxic
+	PlanetEnvironmentRadiated
+	PlanetEnvironmentBarren
+	PlanetEnvironmentDesert
+	PlanetEnvironmentArid
+	PlanetEnvironmentTundra
+	PlanetEnvironmentSwamp
+	PlanetEnvironmentOcean
+	PlanetEnvironmentTerran
+	PlanetEnvironmentGaia
+	//PlanetEnvironmentIceGiant
+	//PlanetEnvironmentIce
+	//PlanetEnvironmentInferno
+	//PlanetEnvironmentVolcanic
+	//PlanetEnvironmentTropical
+	//PlanetEnvironmentGrassland
+	//PlanetEnvironmentBrownDwarf
+	// see https://astronomical.fandom.com/wiki/List_of_planet_types for more
+	PlanetEnvironmentMax
+	// terraforming transitions
+	// ========================
+	// - Planet Construction
+	// GasGiant -> Barren
+	// AsteroidBelt -> Barren
+	// - Requires Weather Controller
+	// Toxic -> Barren
+	// - Requires Radiation Shield
+	// Radiated -> Barren
+	// - Normal Terraforming
+	// Barren -> Desert OR Tundra
+	// Desert -> Arid
+	// Tundra -> Swamp
+	// Arid OR Swamp -> Terran
+	// Ocean -> Terran
+	// Terran -> Gaia
+	// - Extra
+	// GasGiant -> Barren OR Volcanic
+	// AsteroidBelt -> Barren OR Ice OR Volcanic
+	// IceGiant -> Ice
+	// Ice -> Ocean
+	// Volcanic -> Inferno -> Barren
+	// Arid -> Grassland -> Terran
+	// Swamp -> Tropical -> Terran
+)
+
 type Planet struct {
 	ID         uint   `json:"id"`
 	ParentStar uint   `json:"parent_star"`
 	Name       string `json:"name"`
 
 	// physical characteristics
-	MineralClass PlanetMineral `json:"mineral_class"`
-	Size         PlanetSize    `json:"size"`
-	Gravity      PlanetGravity `json:"gravity"`
+	MineralClass PlanetMineral     `json:"mineral_class"`
+	Size         PlanetSize        `json:"size"`
+	Gravity      PlanetGravity     `json:"gravity"`
+	Environment  PlanetEnvironment `json:"environment"`
 
 	Owner uint `json:"owner"`
 
