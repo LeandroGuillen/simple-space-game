@@ -1,7 +1,7 @@
 package main
 
 import (
-	"corion/bin/server"
+	"corion/bin/http-server/server"
 	"math/rand"
 	"time"
 )

@@ -41,7 +41,7 @@ func New(playerName string, numStars uint) *Game {
 		ID:     uuid.New().String(),
 	}
 
-	_ = g.ColonizePlanet(1, 1)
+	_ = g.CreateCapitalPlanet(1, 1)
 
 	return g
 }

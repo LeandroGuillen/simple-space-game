@@ -2,6 +2,34 @@ package game
 
 import "corion/model"
 
+func (g *Game) CreateCapitalPlanet(ownerID, planetID uint) error {
+	if _, err := g.getPlayer(ownerID); err != nil {
+		return err
+	}
+
+	planet, err := g.getPlanet(planetID)
+	if err != nil {
+		return err
+	}
+
+	// default capital terran world
+	planet.Environment = model.PlanetEnvironmentTerran
+	planet.Size = model.PlanetSizeMedium
+	planet.MaxPop = model.CalculatePlanetMaxPop(model.PlanetSizeMedium, model.PlanetEnvironmentTerran)
+	planet.MineralClass = model.PlanetMineralAbundant
+	planet.Gravity = model.PlanetGravityNormal
+
+	planet.Owner = ownerID
+	planet.CurrentPop = 8
+	planet.Workers = 3
+	planet.Farmers = 2
+	planet.Scientists = 3
+
+	planet.Buildings = []string{"capitol"}
+
+	return nil
+}
+
 func (g *Game) ColonizePlanet(ownerID, planetID uint) error {
 	if _, err := g.getPlayer(ownerID); err != nil {
 		return err
