@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 
 import { Planet } from '../../model/model';
-import { StringService } from '../../string.service';
+import { StringService } from '../../services/string.service';
 
 @Component({
   selector: 'crn-planet-mini-view',

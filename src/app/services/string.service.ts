@@ -1,6 +1,12 @@
 import { Injectable } from '@angular/core';
 
-import { Planet, PlanetEnvironment, PlanetGravity, PlanetMineral, PlanetSize } from './model/model';
+import {
+  Planet,
+  PlanetEnvironment,
+  PlanetGravity,
+  PlanetMineral,
+  PlanetSize,
+} from '../model/model';
 
 @Injectable({ providedIn: "root" })
 export class StringService {

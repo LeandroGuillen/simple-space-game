@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { GameService } from '../../game.service';
+import { GameService } from '../../services/game.service';
 
 type Server = {
   name: string;

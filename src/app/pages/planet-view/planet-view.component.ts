@@ -5,9 +5,9 @@ import { Subscription } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 
 import { Planet } from '../../model/model';
+import { StringService } from '../../services/string.service';
 import { AppState } from '../../store/reducers';
 import { getCurrentRouteState, selectPlanet } from '../../store/selectors';
-import { StringService } from '../../string.service';
 
 @Component({
   selector: 'crn-planet-view',

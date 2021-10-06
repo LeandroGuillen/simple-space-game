@@ -1,8 +1,8 @@
 import * as fromRouter from '@ngrx/router-store';
 import { createReducer, on } from '@ngrx/store';
 
-import { GameListResponseItem } from '../game.service';
 import { emptyGame, Game } from '../model/model';
+import { GameListResponseItem } from '../services/game.service';
 import {
   changeBuildingOK,
   colonizeOK,

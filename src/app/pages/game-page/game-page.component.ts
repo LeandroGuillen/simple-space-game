@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 
-import { GameListResponseItem } from '../../game.service';
+import { GameListResponseItem } from '../../services/game.service';
 import * as Actions from '../../store/actions';
 import { AppState } from '../../store/reducers';
 import { selectCurrentGameID, selectGameList } from '../../store/selectors';

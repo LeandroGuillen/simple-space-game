@@ -1,7 +1,8 @@
 import { createAction, props } from '@ngrx/store';
 
-import { GameListResponseItem } from '../game.service';
 import { Game } from '../model/model';
+import { GameListResponseItem } from '../services/game.service';
+
 
 export type NewGameRequest = {
   num_stars: number;

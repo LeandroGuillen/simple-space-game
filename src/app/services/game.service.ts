@@ -4,12 +4,12 @@ import { Store } from '@ngrx/store';
 import { Observable, of, throwError } from 'rxjs';
 import { filter, map, switchMap } from 'rxjs/operators';
 
-import { BEPlanet } from './model/be-model';
-import { mapGalaxy, mapPlanet } from './model/mapper';
-import { Game, Planet } from './model/model';
-import { NewGameRequest } from './store/actions';
-import { AppState } from './store/reducers';
-import { selectCurrentGameID } from './store/selectors';
+import { BEPlanet } from '../model/be-model';
+import { mapGalaxy, mapPlanet } from '../model/mapper';
+import { Game, Planet } from '../model/model';
+import { NewGameRequest } from '../store/actions';
+import { AppState } from '../store/reducers';
+import { selectCurrentGameID } from '../store/selectors';
 
 type NewGameResponse = {
   ok: boolean;

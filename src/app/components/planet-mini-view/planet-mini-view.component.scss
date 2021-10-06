@@ -2,7 +2,14 @@
   display: flex;
   flex-direction: row;
 
-  crn-planet-icon {
-    width: 20%;
+  .icon {
+    width: 10rem;
+  }
+}
+
+.data-panel {
+  display: flex;
+  > * {
+    margin-left: 2rem;
   }
 }

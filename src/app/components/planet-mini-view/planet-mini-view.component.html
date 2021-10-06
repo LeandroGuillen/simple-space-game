@@ -10,16 +10,28 @@
 
 	<mat-card-content>
 		<div class="icon-row">
-			<crn-planet-icon [planet]="planet"></crn-planet-icon>
-			<div class="data-panel">
-				<p>Population: {{planet.current_pop}}/{{planet.max_pop}} (+{{planet.pop_growth}})</p>
-				<p>Population: {{planet.current_pop}}/{{planet.max_pop}} (+{{planet.pop_growth}})</p>
-				<p>Population: {{planet.current_pop}}/{{planet.max_pop}} (+{{planet.pop_growth}})</p>
-				<p>Population: {{planet.current_pop}}/{{planet.max_pop}} (+{{planet.pop_growth}})</p>
-				<p>Population: {{planet.current_pop}}/{{planet.max_pop}} (+{{planet.pop_growth}})</p>
-				<p>Population: {{planet.current_pop}}/{{planet.max_pop}} (+{{planet.pop_growth}})</p>
-				<p>Population: {{planet.current_pop}}/{{planet.max_pop}} (+{{planet.pop_growth}})</p>
+			<crn-planet-icon class="icon" [planet]="planet"></crn-planet-icon>
+			<div class="data-panel" *ngIf="planet.owner !== 0">
+				<div class="population-control">
+					<p>Population: {{planet.current_pop}}/{{planet.max_pop}} (+{{planet.pop_growth}})</p>
+					<p>Farmers: {{planet.farmers}}</p>
+					<p>Workers: {{planet.workers}}</p>
+					<p>Scientists: {{planet.scientists}}</p>
+				</div>
+				<div class="colony-output">
+					<p>Morale: {{planet.morale}}</p>
+					<p>Money: {{planet.money}}</p>
+					<p>Food: {{planet.food}}</p>
+					<p>Industry: {{planet.industry}}</p>
+					<p>Research: {{planet.research}}</p>
+				</div>
 			</div>
+			<div class="data-panel" *ngIf="planet.owner === 0">
+				<p>Max population: {{planet.max_pop}} </p>
+			</div>
+		</div>
+		<div>
+			<pre>{{ planet | json}}</pre>
 		</div>
 
 	</mat-card-content>

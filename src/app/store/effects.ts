@@ -3,7 +3,7 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { EMPTY } from 'rxjs';
 import { catchError, map, mergeMap, switchMap } from 'rxjs/operators';
 
-import { GameService } from '../game.service';
+import { GameService } from '../services/game.service';
 import * as actions from './actions';
 
 

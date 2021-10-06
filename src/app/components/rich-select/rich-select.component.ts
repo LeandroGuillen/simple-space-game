@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 
 import { Planet } from '../../model/model';
-import { StringService } from '../../string.service';
+import { StringService } from '../../services/string.service';
 
 @Component({
   selector: 'crn-rich-select',
