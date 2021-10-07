@@ -25,12 +25,24 @@
 					<p>Industry: {{planet.industry}}</p>
 					<p>Research: {{planet.research}}</p>
 				</div>
+				<div class="actions">
+					<button (click)="changeBuilding(planet)" mat-icon-button>
+						<mat-icon>room_preferences</mat-icon>
+					</button>
+				</div>
 			</div>
 			<div class="data-panel" *ngIf="planet.owner === 0">
 				<p>Max population: {{planet.max_pop}} </p>
 			</div>
 		</div>
 		<div>
+			<mat-chip-list class="example-chip" cdkDropList cdkDropListOrientation="horizontal"
+				(cdkDropListDropped)="drop($event)">
+				<mat-chip cdkDrag *ngFor="let building of planet.buildings">
+					{{building}}
+				</mat-chip>
+			</mat-chip-list>
+
 			<pre>{{ planet | json}}</pre>
 		</div>
 
