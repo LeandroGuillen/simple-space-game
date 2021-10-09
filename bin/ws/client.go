@@ -1,7 +1,3 @@
-// Copyright 2013 The Gorilla WebSocket Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package main
 
 import (
@@ -16,11 +12,9 @@ var upgrader = websocket.Upgrader{}
 
 // Client is a middleman between the websocket connection and the hub.
 type Client struct {
-	hub *Hub
-	// The websocket connection.
+	hub    *Hub
 	socket *websocket.Conn
-	// Buffered channel of outbound messages.
-	send chan gin.H
+	send   chan gin.H
 }
 
 func (c *Client) read() {

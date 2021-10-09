@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/corion.iml" filepath="$PROJECT_DIR$/.idea/corion.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/ssg.iml" filepath="$PROJECT_DIR$/.idea/ssg.iml" />
     </modules>
   </component>
 </project>
