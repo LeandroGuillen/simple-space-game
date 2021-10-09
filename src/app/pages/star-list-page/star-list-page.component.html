@@ -4,7 +4,7 @@
   </mat-slide-toggle>
 </div>
 
-<crn-galaxy-view *ngIf="galaxy && !showTable" [galaxy]="galaxy"></crn-galaxy-view>
+<ssg-galaxy-view *ngIf="galaxy && !showTable" [galaxy]="galaxy"></ssg-galaxy-view>
 
 <table *ngIf="showTable" [dataSource]="dataSource" class="mat-elevation-z8" mat-table matSort>
   <ng-container matColumnDef="id">
@@ -28,7 +28,7 @@
   <ng-container matColumnDef="color">
     <th *matHeaderCellDef mat-header-cell mat-sort-header>Color</th>
     <td *matCellDef="let star" mat-cell>
-      <crn-star-icon [color]="star.color"></crn-star-icon>
+      <ssg-star-icon [color]="star.color"></ssg-star-icon>
     </td>
   </ng-container>
 

@@ -4,7 +4,7 @@ import { Planet } from '../../model/model';
 import { ColorService } from '../../services/color.service';
 
 @Component({
-  selector: 'crn-planet-icon',
+  selector: 'ssg-planet-icon',
   templateUrl: './planet-icon.component.svg',
   styleUrls: [ './planet-icon.component.scss' ]
 })

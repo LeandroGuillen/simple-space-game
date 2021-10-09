@@ -10,7 +10,7 @@ import { AppState } from '../../store/reducers';
 import { getCurrentRouteState, selectPlanet } from '../../store/selectors';
 
 @Component({
-  selector: 'crn-planet-view',
+  selector: 'ssg-planet-view',
   templateUrl: './planet-view.component.html',
   styleUrls: [ './planet-view.component.scss' ]
 })

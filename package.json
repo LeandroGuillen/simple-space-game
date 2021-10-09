@@ -1,5 +1,5 @@
 {
-  "name": "corion-web",
+  "name": "ssg-web",
   "version": "0.2.2",
   "scripts": {
     "ng": "ng",

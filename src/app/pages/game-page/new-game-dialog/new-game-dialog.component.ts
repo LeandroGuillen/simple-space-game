@@ -5,7 +5,7 @@ import { MatDialogRef } from '@angular/material/dialog';
 import { NewGameRequest } from '../../../store/actions';
 
 @Component({
-  selector: 'crn-new-game-dialog',
+  selector: 'ssg-new-game-dialog',
   templateUrl: './new-game-dialog.component.html',
   styleUrls: [ './new-game-dialog.component.scss' ]
 })

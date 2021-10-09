@@ -11,7 +11,7 @@ import { selectCurrentGameID, selectGameList } from '../../store/selectors';
 import { NewGameDialogComponent } from './new-game-dialog/new-game-dialog.component';
 
 @Component({
-  selector: 'crn-game-page',
+  selector: 'ssg-game-page',
   templateUrl: './game-page.component.html',
   styleUrls: [ './game-page.component.scss' ]
 })

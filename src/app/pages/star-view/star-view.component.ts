@@ -10,7 +10,7 @@ import { AppState } from '../../store/reducers';
 import { getCurrentRouteState, selectStar } from '../../store/selectors';
 
 @Component({
-  selector: 'crn-star-view',
+  selector: 'ssg-star-view',
   templateUrl: './star-view.component.html',
   styleUrls: [ './star-view.component.scss' ]
 })

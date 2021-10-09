@@ -10,7 +10,7 @@
 
 	<mat-card-content>
 		<div class="icon-row">
-			<crn-planet-icon class="icon" [planet]="planet"></crn-planet-icon>
+			<ssg-planet-icon class="icon" [planet]="planet"></ssg-planet-icon>
 			<div class="data-panel" *ngIf="planet.owner !== 0">
 				<div class="population-control">
 					<p>Population: {{planet.current_pop}}/{{planet.max_pop}} (+{{planet.pop_growth}})</p>

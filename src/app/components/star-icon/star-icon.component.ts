@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 
 @Component({
-  selector: 'crn-star-icon',
+  selector: 'ssg-star-icon',
   templateUrl: './star-icon.component.svg',
   styleUrls: [ './star-icon.component.scss' ]
 })

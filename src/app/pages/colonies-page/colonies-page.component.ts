@@ -15,7 +15,7 @@ import {
 const planetData: Planet[] = []
 
 @Component({
-  selector: 'crn-colonies-page',
+  selector: 'ssg-colonies-page',
   templateUrl: './colonies-page.component.html',
   styleUrls: [ './colonies-page.component.scss' ]
 })

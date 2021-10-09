@@ -9,7 +9,7 @@ import { AppState } from '../../store/reducers';
 import { selectCurrentGameID, selectPlayerTreasury } from '../../store/selectors';
 
 @Component({
-  selector: 'crn-top-bar',
+  selector: 'ssg-top-bar',
   templateUrl: './top-bar.component.html',
   styleUrls: [ './top-bar.component.scss' ]
 })

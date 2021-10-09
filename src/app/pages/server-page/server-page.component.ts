@@ -10,7 +10,7 @@ type Server = {
 }
 
 @Component({
-  selector: 'crn-home-page',
+  selector: 'ssg-home-page',
   templateUrl: './server-page.component.html',
   styleUrls: [ './server-page.component.scss' ]
 })

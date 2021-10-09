@@ -4,7 +4,7 @@ import { Planet } from '../../model/model';
 import { StringService } from '../../services/string.service';
 
 @Component({
-  selector: 'crn-rich-select',
+  selector: 'ssg-rich-select',
   templateUrl: './rich-select.component.html',
   styleUrls: [ './rich-select.component.scss' ]
 })

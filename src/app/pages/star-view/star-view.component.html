@@ -2,12 +2,12 @@
 
 <section>
   <div class="planet-list">
-    <crn-rich-select *ngFor="let p of planets" [planet]="p" (click)="clicked(p)" [selected]="p.id === selectedPlanetID">
-    </crn-rich-select>
+    <ssg-rich-select *ngFor="let p of planets" [planet]="p" (click)="clicked(p)" [selected]="p.id === selectedPlanetID">
+    </ssg-rich-select>
   </div>
 
   <div class="planet-card">
-    <crn-planet-mini-view *ngIf="selectedPlanet" [planet]=selectedPlanet></crn-planet-mini-view>
+    <ssg-planet-mini-view *ngIf="selectedPlanet" [planet]=selectedPlanet></ssg-planet-mini-view>
   </div>
 </section>
 

@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 
 @Component({
-  selector: 'crn-kpi',
+  selector: 'ssg-kpi',
   templateUrl: './kpi.component.html',
   styleUrls: [ './kpi.component.scss' ]
 })

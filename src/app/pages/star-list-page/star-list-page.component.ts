@@ -11,7 +11,7 @@ import { selectGalaxy } from '../../store/selectors';
 const starData: Star[] = [];
 
 @Component({
-  selector: 'crn-galaxy-list',
+  selector: 'ssg-galaxy-list',
   templateUrl: './star-list-page.component.html',
   styleUrls: [ './star-list-page.component.scss' ]
 })

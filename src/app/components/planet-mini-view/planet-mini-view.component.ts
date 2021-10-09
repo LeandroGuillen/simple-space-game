@@ -12,7 +12,7 @@ import { changeBuildingRequest } from '../../store/actions';
 import { AppState } from '../../store/reducers';
 
 @Component({
-  selector: 'crn-planet-mini-view',
+  selector: 'ssg-planet-mini-view',
   templateUrl: './planet-mini-view.component.html',
   styleUrls: [ './planet-mini-view.component.scss' ]
 })

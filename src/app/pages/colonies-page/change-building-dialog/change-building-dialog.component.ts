@@ -8,7 +8,7 @@ export interface DialogData {
 }
 
 @Component({
-  selector: 'crn-change-building-dialog',
+  selector: 'ssg-change-building-dialog',
   templateUrl: './change-building-dialog.component.html',
   styleUrls: [ './change-building-dialog.component.scss' ]
 })

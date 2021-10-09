@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { Galaxy, Star } from '../../model/model';
 
 @Component({
-  selector: 'crn-galaxy-view',
+  selector: 'ssg-galaxy-view',
   templateUrl: './galaxy-view.component.svg',
   styleUrls: [ './galaxy-view.component.scss' ]
 })

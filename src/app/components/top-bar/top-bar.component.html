@@ -7,7 +7,7 @@
     <button mat-menu-item routerLink="/server">Servers...</button>
   </mat-menu>
 
-  <span>Master of Rigel</span>
+  <span>Simple Space Game</span>
   <span class="spacer"></span>
   <button mat-button routerLink="/stars">STARS</button>
   <button mat-button routerLink="/colonies">COLONIES</button>
@@ -19,7 +19,7 @@
 </mat-toolbar>
 
 <mat-toolbar>
-  <crn-kpi icon="savings" [value]="treasury | async"></crn-kpi>
+  <ssg-kpi icon="savings" [value]="treasury | async"></ssg-kpi>
   <span class="spacer"></span>
   <button (click)="turn()" color="primary" mat-flat-button>TURN</button>
 </mat-toolbar>
