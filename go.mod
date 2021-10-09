@@ -1,4 +1,4 @@
-module corion
+module ssg
 
 go 1.16
 

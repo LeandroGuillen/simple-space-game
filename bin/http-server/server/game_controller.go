@@ -1,9 +1,9 @@
 package server
 
 import (
-	"corion/game"
 	"fmt"
 	"net/http"
+	"ssg/game"
 
 	"github.com/gin-gonic/gin"
 )

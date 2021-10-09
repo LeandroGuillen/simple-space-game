@@ -1,8 +1,8 @@
 package server
 
 import (
-	"corion/game"
 	"log"
+	"ssg/game"
 	"time"
 
 	"github.com/gin-contrib/cors"

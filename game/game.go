@@ -1,12 +1,12 @@
 package game
 
 import (
-	"corion/game/builder"
-	. "corion/model"
 	"errors"
 	"fmt"
 	"math"
 	"math/rand"
+	"ssg/game/builder"
+	. "ssg/model"
 
 	"github.com/google/uuid"
 )

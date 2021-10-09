@@ -1,8 +1,8 @@
 package builder
 
 import (
-	. "corion/model"
 	"math/rand"
+	. "ssg/model"
 )
 
 func newRandomPlanet() *Planet {

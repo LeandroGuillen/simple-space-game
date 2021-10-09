@@ -1,6 +1,6 @@
 package game
 
-import "corion/model"
+import "ssg/model"
 
 func (g *Game) CreateCapitalPlanet(ownerID, planetID uint) error {
 	if _, err := g.getPlayer(ownerID); err != nil {

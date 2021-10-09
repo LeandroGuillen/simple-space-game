@@ -1,10 +1,10 @@
 package builder
 
 import (
-	"corion/data"
-	. "corion/model"
 	"fmt"
 	"math/rand"
+	"ssg/data"
+	. "ssg/model"
 )
 
 func NewGalaxy(numStars uint) Galaxy {
