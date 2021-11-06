@@ -5,16 +5,16 @@ import (
 	. "ssg/model"
 )
 
-func newRandomPlanet() *Planet {
+func NewRandomPlanet() *Planet {
 	var mineralClass = PlanetMineral(rand.Intn(int(PlanetMineralMax)-1) + 1)
 	var size = PlanetSize(rand.Intn(int(PlanetSizeMax)-1) + 1)
 	var gravity = PlanetGravity(rand.Intn(int(PlanetGravityMax)-1) + 1)
 	var environment = PlanetEnvironment(rand.Intn(int(PlanetEnvironmentMax)-1) + 1)
 
-	return newPlanet(mineralClass, size, gravity, environment)
+	return NewPlanet(mineralClass, size, gravity, environment)
 }
 
-func newPlanet(mineralClass PlanetMineral, size PlanetSize, gravity PlanetGravity, env PlanetEnvironment) *Planet {
+func NewPlanet(mineralClass PlanetMineral, size PlanetSize, gravity PlanetGravity, env PlanetEnvironment) *Planet {
 	planet := &Planet{
 		MineralClass: mineralClass,
 		Size:         size,
@@ -24,4 +24,8 @@ func newPlanet(mineralClass PlanetMineral, size PlanetSize, gravity PlanetGravit
 	}
 
 	return planet
+}
+
+func NewAverageTerranPlanet() *Planet {
+	return NewPlanet(PlanetMineralAbundant, PlanetSizeMedium, PlanetGravityNormal, PlanetEnvironmentTerran)
 }

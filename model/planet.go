@@ -1,5 +1,6 @@
 package model
 
+//go:generate stringer -type=PlanetMineral
 type PlanetMineral uint64
 
 const (
@@ -10,6 +11,7 @@ const (
 	PlanetMineralMax
 )
 
+//go:generate stringer -type=PlanetSize
 type PlanetSize uint64
 
 const (
@@ -22,6 +24,7 @@ const (
 	PlanetSizeMax
 )
 
+//go:generate stringer -type=PlanetGravity
 type PlanetGravity uint64
 
 const (
@@ -32,6 +35,7 @@ const (
 	PlanetGravityMax
 )
 
+//go:generate stringer -type=PlanetEnvironment
 type PlanetEnvironment uint64
 
 const (
@@ -104,12 +108,13 @@ type Planet struct {
 	Morale   int64 `json:"morale"`
 
 	// population
-	CurrentPop int64 `json:"current_pop"`
-	PopGrowth  int64 `json:"pop_growth"`
-	MaxPop     int64 `json:"max_pop"`
-	Farmers    int64 `json:"farmers"`
-	Workers    int64 `json:"workers"`
-	Scientists int64 `json:"scientists"`
+	CurrentPop       int64 `json:"current_pop"`
+	CurrentPopMillis int64 `json:"current_pop_millis"`
+	PopGrowth        int64 `json:"pop_growth"`
+	MaxPop           int64 `json:"max_pop"`
+	Farmers          int64 `json:"farmers"`
+	Workers          int64 `json:"workers"`
+	Scientists       int64 `json:"scientists"`
 
 	Marines int64 `json:"marines"`
 	Armor   int64 `json:"armor"`

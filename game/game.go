@@ -27,18 +27,20 @@ type Player struct {
 }
 
 type Game struct {
-	Galaxy  `json:"galaxy"`
-	Players []*Player `json:"players"`
-	ID      string    `json:"id"`
+	Galaxy      `json:"galaxy"`
+	Players     []*Player `json:"players"`
+	ID          string    `json:"id"`
+	CurrentTurn uint64    `json:"current_turn"`
 }
 
 func New(playerName string, numStars uint) *Game {
 	g := &Game{
+		Galaxy: builder.NewGalaxy(numStars),
 		Players: []*Player{
 			{ID: 1, Name: playerName},
 		},
-		Galaxy: builder.NewGalaxy(numStars),
-		ID:     uuid.New().String(),
+		ID:          uuid.New().String(),
+		CurrentTurn: 0,
 	}
 
 	_ = g.CreateCapitalPlanet(1, 1)
@@ -62,7 +64,26 @@ func (g *Game) Turn(playerID uint) error {
 	}
 
 	player.Treasury += 2
+	for _, star := range g.Stars {
+		for _, planet := range star.Planets {
+			if !IsColonized(planet) {
+				continue
+			}
+			// should the colony population grow or shrink?
+			planet.CurrentPopMillis += planet.PopGrowth
+			expectedPopulation := int64(math.Floor(float64(planet.CurrentPopMillis) / 1000))
+			if expectedPopulation < planet.CurrentPop {
+				// somebody died
+				RemovePopulation(planet, 1)
+			} else if expectedPopulation > planet.CurrentPop {
+				// somebody was born
+				_ = AddPopulation(planet, 1)
+			}
+			planet.CurrentPop = expectedPopulation
+		}
+	}
 
+	g.CurrentTurn++
 	return nil
 }
 

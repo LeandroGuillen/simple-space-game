@@ -1,6 +1,10 @@
 package game
 
-import "ssg/model"
+import (
+	"errors"
+	"math/rand"
+	"ssg/model"
+)
 
 func (g *Game) CreateCapitalPlanet(ownerID, planetID uint) error {
 	if _, err := g.getPlayer(ownerID); err != nil {
@@ -21,6 +25,8 @@ func (g *Game) CreateCapitalPlanet(ownerID, planetID uint) error {
 
 	planet.Owner = ownerID
 	planet.CurrentPop = 8
+	planet.CurrentPopMillis = 8000
+	planet.PopGrowth = 50
 	planet.Workers = 3
 	planet.Farmers = 2
 	planet.Scientists = 3
@@ -40,11 +46,17 @@ func (g *Game) ColonizePlanet(ownerID, planetID uint) error {
 		return err
 	}
 
-	planet.Owner = ownerID
-	planet.CurrentPop = 1
-	planet.Workers = 1
+	ColonizePlanet2(ownerID, planet)
 
 	return nil
+}
+
+func ColonizePlanet2(ownerID uint, planet *model.Planet) {
+	planet.Owner = ownerID
+	planet.CurrentPop = 1
+	planet.CurrentPopMillis = 1000
+	planet.PopGrowth = 50
+	planet.Workers = 1
 }
 
 // GetColonyList returns a list of planets that have a colony owned by given player
@@ -76,4 +88,50 @@ func (g *Game) BuildOnPlanet(planetID, ownerID, buildingID uint) error {
 
 	p.CurrentProject = buildingID
 	return nil
+}
+
+func IsColonized(p *model.Planet) bool {
+	return p.CurrentPop > 0
+}
+
+func AddPopulation(p *model.Planet, pop int64) error {
+	if p.CurrentPop >= p.MaxPop {
+		return errors.New("max population reached, cannot add more")
+	}
+	// put one more where most people are
+	if p.Farmers >= p.Workers && p.Farmers >= p.Scientists {
+		p.Farmers += pop
+	} else if p.Workers >= p.Farmers && p.Workers >= p.Scientists {
+		p.Workers += pop
+	} else {
+		p.Scientists += pop
+	}
+	return nil
+}
+
+func RemovePopulation(p *model.Planet, pop int64) {
+	if p.CurrentPop <= 0 {
+		return
+	}
+	found := false
+	for !found {
+		popGroup := rand.Intn(3)
+		switch popGroup {
+		case 0:
+			if p.Farmers > 0 {
+				p.Farmers--
+				found = true
+			}
+		case 1:
+			if p.Workers > 0 {
+				p.Workers--
+				found = true
+			}
+		case 2:
+			if p.Scientists > 0 {
+				p.Scientists--
+				found = true
+			}
+		}
+	}
 }
