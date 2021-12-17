@@ -97,31 +97,73 @@ func TestFireOn(t *testing.T) {
 	}
 }
 
-func TestFireOn_RandomResults(t *testing.T) {
+func TestFireOn_MultipleWeapons(t *testing.T) {
 	// seed=12,
 	// 7 hits, 3 misses
 	// expected total damage=4*7
-	rand.Seed(12)
-	expectedDamage := int64(28)
-	s1 := combat.NewEmptyShip("S1",
-		combat.HullSize{"BS_1", 250, 20, 5, 50, 7, 15, 8},
-	)
-	s2 := combat.NewEmptyShip("S2",
-		combat.HullSize{"BS_1", 250, 20, 5, 50, 7, 15, 8},
-	)
-	s1.Weapons = []combat.Beam{
-		{"Laser I", 1, 4},
-		{"Laser I", 1, 4},
-		{"Laser I", 1, 4},
-		{"Laser I", 1, 4},
-		{"Laser I", 1, 4},
-		{"Laser I", 1, 4},
-		{"Laser I", 1, 4},
-		{"Laser I", 1, 4},
-		{"Laser I", 1, 4},
-		{"Laser I", 1, 4},
+
+	testCases := []struct {
+		title          string
+		attacker       combat.Ship
+		defender       combat.Ship
+		beamDamage     int64
+		numBeamWeapons int
+		attack         int64
+		defense        int64
+		expectedDamage int64
+	}{
+		{
+			"30 attack 120 defense ~1%",
+			combat.NewEmptyBattleShip("S1"),
+			combat.NewEmptyBattleShip("S2"),
+			1, 100,
+			30, 120,
+			1,
+		},
+		{
+			"30 attack 60 defense ~25%",
+			combat.NewEmptyBattleShip("S1"),
+			combat.NewEmptyBattleShip("S2"),
+			1, 100,
+			30, 60,
+			24,
+		},
+		{
+			"same attack and defense ~50%",
+			combat.NewEmptyBattleShip("S1"),
+			combat.NewEmptyBattleShip("S2"),
+			1, 100,
+			30, 30,
+			49,
+		},
+		{
+			"60 attack 30 defense ~70%",
+			combat.NewEmptyBattleShip("S1"),
+			combat.NewEmptyBattleShip("S2"),
+			1, 100,
+			60, 30,
+			72,
+		},
+		{
+			"120 attack 30 defense ~99%",
+			combat.NewEmptyBattleShip("S1"),
+			combat.NewEmptyBattleShip("S2"),
+			1, 100,
+			120, 30,
+			98,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%s", tc.title), func(t *testing.T) {
+			rand.Seed(12)
+			s1 := combat.NewEmptyBattleShip("S1")
+			s2 := combat.NewEmptyBattleShip("S2")
+			s1.BeamAttack = tc.attack
+			s2.BeamDefense = tc.defense
+			s1.Weapons = combat.NewMultipleBasicBeams(tc.numBeamWeapons, tc.beamDamage)
+			damageDone := combat.FireOn(&s1, &s2, 5)
+			assert.Equal(t, tc.expectedDamage, damageDone)
+		})
 	}
 
-	damageDone := combat.FireOn(&s1, &s2, 5)
-	assert.Equal(t, expectedDamage, damageDone)
 }

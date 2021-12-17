@@ -44,18 +44,21 @@ type Ship struct {
 	MissileEvasion int64
 }
 
-func (ss ShipStatus) String() string {
-	return fmt.Sprintf("Armor: %d/%d - Hull %d/%d",
-		ss.CurrentArmorHP, ss.MaxArmorHP,
-		ss.CurrentStructureHP, ss.MaxStructureHP,
-	)
-}
+//func (ss ShipStatus) String() string {
+//	return fmt.Sprintf("Armor: %d/%d - Hull %d/%d",
+//		ss.CurrentArmorHP, ss.MaxArmorHP,
+//		ss.CurrentStructureHP, ss.MaxStructureHP,
+//	)
+//}
 
 func (s Ship) String() string {
-	return fmt.Sprintf("[%s %s] %v",
+	return fmt.Sprintf("[%s %s] Armor: %d/%d - Hull %d/%d",
 		s.HullSize.Name,
 		s.Name,
-		s.ShipStatus,
+		s.ShipStatus.CurrentArmorHP,
+		s.ShipStatus.MaxArmorHP,
+		s.ShipStatus.CurrentStructureHP,
+		s.ShipStatus.MaxStructureHP,
 	)
 }
 
@@ -65,7 +68,6 @@ func NewShipDesign(name string, weapons []Beam, specialSystems []SpecialSystem, 
 
 func NewEmptyBattleShip(name string) Ship {
 	return NewEmptyShip(name, HullSize{"BS_1", 250, 20, 5, 50, 7, 15, 8})
-
 }
 
 func NewEmptyShip(name string, hull HullSize) Ship {
