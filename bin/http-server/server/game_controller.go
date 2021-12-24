@@ -56,7 +56,7 @@ func GetGameList(c *gin.Context) {
 	for gameID, g := range s.GameList {
 		gameList = append(gameList, GameListResponseItem{
 			GameID:   gameID,
-			NumStars: len(g.Stars),
+			NumStars: len(g.Galaxy.Stars),
 		})
 	}
 

@@ -9,6 +9,6 @@ import (
 func main() {
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	srv := server.NewServer()
-	srv.Start()
+	newServer := server.NewServer()
+	newServer.Start()
 }

@@ -1,7 +1,7 @@
 package game
 
 import (
-	"errors"
+	"math"
 	"math/rand"
 	"ssg/model"
 )
@@ -66,7 +66,7 @@ func (g *Game) GetColonyList(playerID uint) ([]*model.Planet, error) {
 	}
 
 	colonyList := make([]*model.Planet, 0)
-	for _, star := range g.Stars {
+	for _, star := range g.Galaxy.Stars {
 		for _, planet := range star.Planets {
 			if planet.Owner == playerID {
 				colonyList = append(colonyList, planet)
@@ -94,10 +94,25 @@ func IsColonized(p *model.Planet) bool {
 	return p.CurrentPop > 0
 }
 
-func AddPopulation(p *model.Planet, pop int64) error {
-	if p.CurrentPop >= p.MaxPop {
-		return errors.New("max population reached, cannot add more")
+func getNewPopulation(planet *model.Planet) {
+	// should the colony population grow or shrink?
+	planet.CurrentPopMillis += planet.PopGrowth
+	expectedPopulation := int64(math.Floor(float64(planet.CurrentPopMillis) / 1000))
+	if expectedPopulation < planet.CurrentPop {
+		// somebody died
+		removePopulation(planet)
+	} else if expectedPopulation >= planet.MaxPop {
+		// cannot fit more people on this planet
+		expectedPopulation = planet.MaxPop
+		planet.CurrentPopMillis = planet.MaxPop * 1000
+	} else if expectedPopulation > planet.CurrentPop {
+		// somebody was born
+		addPopulation(planet, 1)
 	}
+	planet.CurrentPop = expectedPopulation
+}
+
+func addPopulation(p *model.Planet, pop int64) {
 	// put one more where most people are
 	if p.Farmers >= p.Workers && p.Farmers >= p.Scientists {
 		p.Farmers += pop
@@ -106,10 +121,9 @@ func AddPopulation(p *model.Planet, pop int64) error {
 	} else {
 		p.Scientists += pop
 	}
-	return nil
 }
 
-func RemovePopulation(p *model.Planet, pop int64) {
+func removePopulation(p *model.Planet) {
 	if p.CurrentPop <= 0 {
 		return
 	}
