@@ -54,9 +54,9 @@ func TestGame_Turn_PopGrowth(t *testing.T) {
 }
 
 func TestGame_Turn_PopGrowthStarvation(t *testing.T) {
+	g := game.New("test_player", 0)
 	testPlanet := builder.NewAverageTerranPlanet()
 	testStar := builder.NewStar(1, "star_name", StarColorYellow, []*Planet{testPlanet})
-	g := game.New("test_player", 0)
 	g.Galaxy.Stars = append(g.Galaxy.Stars, testStar)
 
 	game.ColonizePlanet2(1, testPlanet)

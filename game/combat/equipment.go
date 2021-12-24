@@ -27,11 +27,6 @@ type Armor struct {
 	GroundTroopStrength int64
 }
 
-type Computer struct {
-	Name            string
-	BeamAttackBonus int64
-}
-
 type FuelCell struct {
 	Name     string
 	Autonomy int64 // in parsecs

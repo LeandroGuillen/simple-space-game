@@ -1,5 +1,7 @@
 package combat
 
+import "ssg/game/combat/computers"
+
 var HullSizes = []HullSize{
 	{"Frigate", 25, 4, 10, 4, 1, 2, 1},
 	{"Destroyer", 60, 8, 8, 10, 2, 5, 2},
@@ -27,7 +29,7 @@ var Armors = []Armor{
 	{"Xentronium", 10, 40},
 }
 
-var Computers = []Computer{
+var Computers = []computers.Computer{
 	{"Electronic", 30},
 	{"Optronic", 60},
 	{"Positronic", 90},

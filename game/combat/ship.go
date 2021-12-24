@@ -2,54 +2,20 @@ package combat
 
 import (
 	"fmt"
-	"math"
 	"math/rand"
+	"ssg/game/combat/weapons"
 )
 
 //https://gamefaqs.gamespot.com/pc/197873-master-of-orion-ii-battle-at-antares/faqs/16743
-
-type ShipDesign struct {
-	Name           string
-	Weapons        []Beam
-	SpecialSystems []SpecialSystem
-	BaseSpace      int64
-	HullSize
-	Drive
-	Armor
-	Computer
-	FuelCell
-	Shield
-}
-
-type ShipStatus struct {
-	// hitpoints
-	CurrentArmorHP     int64
-	CurrentStructureHP int64
-	MaxArmorHP         int64
-	MaxStructureHP     int64
-
-	// equipment hitpoints
-	CurrentComputerHP int64
-	CurrentDriveHP    int64
-	CurrentShieldHP   int64
-}
 
 type Ship struct {
 	Name string
 	ShipDesign
 	ShipStatus
 	SpaceAvailable int64
-	BeamAttack     int64
 	BeamDefense    int64
 	MissileEvasion int64
 }
-
-//func (ss ShipStatus) String() string {
-//	return fmt.Sprintf("Armor: %d/%d - Hull %d/%d",
-//		ss.CurrentArmorHP, ss.MaxArmorHP,
-//		ss.CurrentStructureHP, ss.MaxStructureHP,
-//	)
-//}
 
 func (s Ship) String() string {
 	return fmt.Sprintf("[%s %s] Armor: %d/%d - Hull %d/%d",
@@ -62,10 +28,6 @@ func (s Ship) String() string {
 	)
 }
 
-func NewShipDesign(name string, weapons []Beam, specialSystems []SpecialSystem, hull HullSize, drive Drive, armor Armor, computer Computer, fuelCell FuelCell, shield Shield) ShipDesign {
-	return ShipDesign{name, weapons, specialSystems, 10, hull, drive, armor, computer, fuelCell, shield}
-}
-
 func NewEmptyBattleShip(name string) Ship {
 	return NewEmptyShip(name, HullSize{"BS_1", 250, 20, 5, 50, 7, 15, 8})
 }
@@ -73,7 +35,7 @@ func NewEmptyBattleShip(name string) Ship {
 func NewEmptyShip(name string, hull HullSize) Ship {
 	basicDesign := NewShipDesign(
 		name,
-		[]Beam{},
+		[]weapons.Weapon{},
 		[]SpecialSystem{},
 		hull,
 		Drives[0],
@@ -100,70 +62,32 @@ func NewShip(name string, d ShipDesign) Ship {
 			CurrentShieldHP:    d.ShieldHP,
 		},
 		SpaceAvailable: d.BaseSpace,
-		BeamAttack:     d.Computer.BeamAttackBonus,
 		BeamDefense:    d.BaseSpeed * 5,
 		MissileEvasion: 0,
 	}
 }
 
-func FireOn(attacker, defender *Ship, distance int64) int64 {
-	// Chance to hit
-	// =============
-	// https://gamefaqs.gamespot.com/pc/197873-master-of-orion-ii-battle-at-antares/faqs/16743
-	// Section 2
+func (s *Ship) EquipWeapon(w weapons.Weapon) bool {
+	s.Weapons = append(s.Weapons, w)
+	return true
+}
 
-	// Percent chance to hit = 100/(1 + 2^E)
-	// where E = -(BA - BD)/16
-	// BA = Beam Attack
-	// BD = Beam Defense
-	BA := attacker.BeamAttack
-	BD := defender.BeamDefense
-	E := -float64(BA-BD) / 16
-	chanceToHit := 1 / (1 + math.Pow(2, E))
-	//fmt.Printf("--> BA:%d BD:%d (%.2f)\n", BA, BD, 100*chanceToHit)
+func (s *Ship) EquipWeapons(weapons []weapons.Weapon) bool {
+	for _, weapon := range weapons {
+		s.EquipWeapon(weapon)
+	}
+	return true
+}
 
-	totalDamage := int64(0)
+func (attacker *Ship) FireOn(defender *Ship, distance int64) (totalDamage int64) {
+	// TODO attackBonus could be >0
+	chanceToHit := attacker.Computer.GetChanceToHit(defender.BeamDefense, 0, distance)
+
 	for _, beam := range attacker.Weapons {
 		roll := rand.Float64()
-
 		if roll <= chanceToHit {
-			//fmt.Printf("[%d %s] HIT, damage: %d (rolled: %.2f)\n", i, beam.Name, beam.MaxDamage, 100*roll)
-			totalDamage += beam.MaxDamage
-		} else {
-			//fmt.Printf("[%d %s] MISS (rolled: %.2f)\n", i, beam.Name, 100*roll)
+			totalDamage += beam.GetDamage(distance)
 		}
-	}
-
-	// -----------------------
-	// apply range dissipation
-	// -----------------------
-	//	Ranges       Multiplier
-	//	------       ----------
-	//	0 to 2          1
-	//	3 to 5          0.9
-	//	6 to 8          0.8
-	//	9 to 11         0.7
-	//	12 to 14        0.6
-	//	15 to 17        0.5
-	//	18 to 20        0.4
-	//	21 to 23        0.35
-	dissipation := map[int64]float64{
-		0: 1, 1: 1, 2: 1,
-		3: 0.9, 4: 0.9, 5: 0.9,
-		6: 0.8, 7: 0.8, 8: 0.8,
-		9: 0.7, 10: 0.7, 11: 0.7,
-		12: 0.6, 13: 0.6, 14: 0.6,
-		15: 0.5, 16: 0.5, 17: 0.5,
-		18: 0.4, 19: 0.4, 20: 0.4,
-		21: 0.35, 22: 0.35, 23: 0.35,
-	}
-	actualDisipation, ok := dissipation[distance]
-	if ok {
-		rangedDamage := actualDisipation * float64(totalDamage)
-		totalDamage = int64(math.Round(rangedDamage))
-	} else if distance > 23 {
-		// TODO this depends on weapon
-		totalDamage = 0
 	}
 
 	// ------------------------------

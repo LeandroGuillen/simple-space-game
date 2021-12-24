@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"math/rand"
 	"ssg/game/combat"
+	"ssg/game/combat/weapons"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFireOn(t *testing.T) {
+func TestFireOn_Damage(t *testing.T) {
 	testCases := []struct {
 		title             string
 		beamDamage        int64
@@ -62,14 +63,12 @@ func TestFireOn(t *testing.T) {
 			rand.Seed(12)
 			s1 := combat.NewEmptyBattleShip("S1")
 			s2 := combat.NewEmptyBattleShip("S2")
-			s1.BeamAttack = tc.attack
+			s1.Computer.BeamAttackBonus = tc.attack
 			s2.BeamDefense = tc.defense
 			s2.CurrentArmorHP = tc.armor
 			s2.CurrentStructureHP = tc.structure
-			s1.Weapons = []combat.Beam{
-				{"Test Laser I", 1, tc.beamDamage},
-			}
-			_ = combat.FireOn(&s1, &s2, 0)
+			s1.EquipWeapon(weapons.NewBasicBeam(tc.beamDamage))
+			_ = s1.FireOn(&s2, 0)
 			assert.Equal(t, tc.expectedArmor, s2.CurrentArmorHP)
 			assert.Equal(t, tc.expectedStructure, s2.CurrentStructureHP)
 		})
@@ -77,10 +76,6 @@ func TestFireOn(t *testing.T) {
 }
 
 func TestFireOn_MultipleWeapons(t *testing.T) {
-	// seed=12,
-	// 7 hits, 3 misses
-	// expected total damage=4*7
-
 	testCases := []struct {
 		title          string
 		beamDamage     int64
@@ -125,10 +120,10 @@ func TestFireOn_MultipleWeapons(t *testing.T) {
 			rand.Seed(12)
 			s1 := combat.NewEmptyBattleShip("S1")
 			s2 := combat.NewEmptyBattleShip("S2")
-			s1.BeamAttack = tc.attack
+			s1.Computer.BeamAttackBonus = tc.attack
 			s2.BeamDefense = tc.defense
-			s1.Weapons = combat.NewMultipleBasicBeams(tc.numBeamWeapons, tc.beamDamage)
-			damageDone := combat.FireOn(&s1, &s2, 0)
+			s1.EquipWeapons(weapons.NewMultipleBasicBeams(tc.numBeamWeapons, tc.beamDamage))
+			damageDone := s1.FireOn(&s2, 0)
 			assert.Equal(t, tc.expectedDamage, damageDone)
 		})
 	}
@@ -158,10 +153,10 @@ func TestFireOn_Distance(t *testing.T) {
 			rand.Seed(1)
 			s1 := combat.NewEmptyBattleShip("S1")
 			s2 := combat.NewEmptyBattleShip("S2")
-			s1.BeamAttack = 100
+			s1.Computer.BeamAttackBonus = 1000
 			s2.BeamDefense = 0
-			s1.Weapons = []combat.Beam{combat.NewBasicBeam(tc.damage)}
-			damageDone := combat.FireOn(&s1, &s2, tc.distance)
+			s1.EquipWeapon(weapons.NewBasicBeam(tc.damage))
+			damageDone := s1.FireOn(&s2, tc.distance)
 			assert.Equal(t, tc.expectedDamage, damageDone)
 		})
 	}
