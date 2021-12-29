@@ -3,40 +3,27 @@ package game
 import (
 	"errors"
 	"fmt"
-	"math"
-	"math/rand"
 	"ssg/game/builder"
-	"ssg/model"
+	"ssg/game/model"
 
 	"github.com/google/uuid"
 )
 
-type Player struct {
-	ID   uint   `json:"id"`
-	Name string `json:"name"`
-
-	Race string `json:"race"`
-
-	Treasury       int64   `json:"treasury"`
-	TaxRate        float64 `json:"tax_rate"`
-	ResearchPoints uint    `json:"research_points"`
-
-	Fleets         []uint `json:"fleets"`
-	Freighters     uint   `json:"freighters"`
-	FreightersUsed uint   `json:"freighters_used"`
+type Turnable interface {
+	Turn()
 }
 
 type Game struct {
-	Galaxy      model.Galaxy `json:"galaxy"`
-	Players     []*Player    `json:"players"`
-	ID          string       `json:"id"`
-	CurrentTurn uint64       `json:"current_turn"`
+	Galaxy      model.Galaxy    `json:"galaxy"`
+	Players     []*model.Player `json:"players"`
+	ID          string          `json:"id"`
+	CurrentTurn uint64          `json:"current_turn"`
 }
 
-func New(playerName string, numStars uint) *Game {
+func NewGame(playerName string, numStars uint) *Game {
 	g := &Game{
 		Galaxy: builder.NewGalaxy(numStars),
-		Players: []*Player{
+		Players: []*model.Player{
 			{ID: 1, Name: playerName},
 		},
 		ID:          uuid.New().String(),
@@ -48,15 +35,6 @@ func New(playerName string, numStars uint) *Game {
 	return g
 }
 
-func (g *Game) NewRandomGalaxy() model.Galaxy {
-	// new galaxy parameters
-	var stdDev float64 = 2
-	var mean float64 = 6
-	n := uint(math.Abs(math.Floor(rand.NormFloat64()*stdDev + mean)))
-	galaxy := builder.NewGalaxy(n)
-	return galaxy
-}
-
 func (g *Game) Turn(playerID uint) error {
 	player, err := g.getPlayer(playerID)
 	if err != nil {
@@ -64,20 +42,20 @@ func (g *Game) Turn(playerID uint) error {
 	}
 
 	player.Treasury += 2
-	for _, star := range g.Galaxy.Stars {
-		for _, planet := range star.Planets {
-			if !IsColonized(planet) {
-				continue
-			}
-			getNewPopulation(planet)
-		}
+
+	colonyList, err := g.GetColonyList(playerID)
+	if err != nil {
+		return err
+	}
+	for _, colony := range colonyList {
+		colony.Turn()
 	}
 
 	g.CurrentTurn++
 	return nil
 }
 
-func (g *Game) getPlayer(ID uint) (*Player, error) {
+func (g *Game) getPlayer(ID uint) (*model.Player, error) {
 	for _, player := range g.Players {
 		if player.ID == ID {
 			return player, nil
@@ -95,4 +73,77 @@ func (g *Game) getPlanet(ID uint) (*model.Planet, error) {
 		}
 	}
 	return nil, errors.New(fmt.Sprintf("planet with ID %d not found", ID))
+}
+
+func (g *Game) CreateCapitalPlanet(ownerID, planetID uint) error {
+	if _, err := g.getPlayer(ownerID); err != nil {
+		return err
+	}
+
+	planet, err := g.getPlanet(planetID)
+	if err != nil {
+		return err
+	}
+
+	// default capital terran world
+	planet.Environment = model.PlanetEnvironmentTerran
+	planet.Size = model.PlanetSizeMedium
+	planet.MineralClass = model.PlanetMineralAbundant
+	planet.Gravity = model.PlanetGravityNormal
+
+	planet.Owner = ownerID
+	planet.Population = 8000
+	planet.Workers = 3
+	planet.Farmers = 2
+	planet.Scientists = 3
+
+	planet.Buildings = []string{"capitol"}
+
+	return nil
+}
+
+func (g *Game) ColonizePlanet(ownerID, planetID uint) error {
+	if _, err := g.getPlayer(ownerID); err != nil {
+		return err
+	}
+
+	planet, err := g.getPlanet(planetID)
+	if err != nil {
+		return err
+	}
+
+	planet.Colonize(ownerID)
+
+	return nil
+}
+
+// GetColonyList returns a list of planets that have a colony owned by given player.
+func (g *Game) GetColonyList(playerID uint) ([]*model.Planet, error) {
+	if _, err := g.getPlayer(playerID); err != nil {
+		return nil, err
+	}
+
+	colonyList := make([]*model.Planet, 0)
+	for _, star := range g.Galaxy.Stars {
+		for _, planet := range star.Planets {
+			if planet.Owner == playerID {
+				colonyList = append(colonyList, planet)
+			}
+		}
+	}
+	return colonyList, nil
+}
+
+func (g *Game) BuildOnPlanet(planetID, ownerID, buildingID uint) error {
+	if _, err := g.getPlayer(ownerID); err != nil {
+		return err
+	}
+
+	p, err := g.getPlanet(planetID)
+	if err != nil {
+		return err
+	}
+
+	p.CurrentProject = buildingID
+	return nil
 }

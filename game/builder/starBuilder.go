@@ -3,13 +3,12 @@ package builder
 import (
 	"fmt"
 	"math/rand"
-
-	. "ssg/model"
+	"ssg/game/model"
 )
 
-func NewRandomStar(starId, planetIDCounter uint, starName string) (*Star, uint) {
+func NewRandomStar(starId, planetIDCounter uint, starName string) (*model.Star, uint) {
 	var numPlanets = uint(rand.Intn(5) + 1)
-	var planets []*Planet
+	var planets []*model.Planet
 	for i := uint(0); i < numPlanets; i++ {
 		planet := NewRandomPlanet()
 		planet.ID = planetIDCounter
@@ -20,14 +19,14 @@ func NewRandomStar(starId, planetIDCounter uint, starName string) (*Star, uint) 
 		planets = append(planets, planet)
 	}
 
-	var color = StarColor(rand.Intn(int(StarColorMax)))
+	var color = model.StarColor(rand.Intn(int(model.StarColorMax)))
 
 	star := NewStar(starId, starName, color, planets)
 	return star, numPlanets
 }
 
-func NewStar(starId uint, starName string, color StarColor, planets []*Planet) *Star {
-	star := &Star{
+func NewStar(starId uint, starName string, color model.StarColor, planets []*model.Planet) *model.Star {
+	star := &model.Star{
 		ID:      starId,
 		Name:    starName,
 		Color:   color,

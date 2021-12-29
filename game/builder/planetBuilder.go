@@ -2,30 +2,39 @@ package builder
 
 import (
 	"math/rand"
-	. "ssg/model"
+	"ssg/game/model"
 )
 
-func NewRandomPlanet() *Planet {
-	var mineralClass = PlanetMineral(rand.Intn(int(PlanetMineralMax)-1) + 1)
-	var size = PlanetSize(rand.Intn(int(PlanetSizeMax)-1) + 1)
-	var gravity = PlanetGravity(rand.Intn(int(PlanetGravityMax)-1) + 1)
-	var environment = PlanetEnvironment(rand.Intn(int(PlanetEnvironmentMax)-1) + 1)
-
-	return NewPlanet(mineralClass, size, gravity, environment)
-}
-
-func NewPlanet(mineralClass PlanetMineral, size PlanetSize, gravity PlanetGravity, env PlanetEnvironment) *Planet {
-	planet := &Planet{
+func NewPlanet(
+	mineralClass model.PlanetMineral,
+	size model.PlanetSize,
+	gravity model.PlanetGravity,
+	env model.PlanetEnvironment,
+) *model.Planet {
+	planet := &model.Planet{
 		MineralClass: mineralClass,
 		Size:         size,
 		Gravity:      gravity,
 		Environment:  env,
-		MaxPop:       int64(size * 5),
 	}
 
 	return planet
 }
 
-func NewAverageTerranPlanet() *Planet {
-	return NewPlanet(PlanetMineralAbundant, PlanetSizeMedium, PlanetGravityNormal, PlanetEnvironmentTerran)
+func NewRandomPlanet() *model.Planet {
+	var mineralClass = model.PlanetMineral(rand.Intn(int(model.PlanetMineralMax)-1) + 1)
+	var size = model.PlanetSize(rand.Intn(int(model.PlanetSizeMax)-1) + 1)
+	var gravity = model.PlanetGravity(rand.Intn(int(model.PlanetGravityMax)-1) + 1)
+	var environment = model.PlanetEnvironment(rand.Intn(int(model.PlanetEnvironmentMax)-1) + 1)
+
+	return NewPlanet(mineralClass, size, gravity, environment)
+}
+
+func NewAverageTerranPlanet() *model.Planet {
+	return NewPlanet(
+		model.PlanetMineralAbundant,
+		model.PlanetSizeMedium,
+		model.PlanetGravityNormal,
+		model.PlanetEnvironmentTerran,
+	)
 }

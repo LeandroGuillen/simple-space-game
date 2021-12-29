@@ -2,13 +2,14 @@ package builder
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"ssg/data"
-	. "ssg/model"
+	"ssg/game/model"
 )
 
-func NewGalaxy(numStars uint) Galaxy {
-	var stars []*Star
+func NewGalaxy(numStars uint) model.Galaxy {
+	var stars []*model.Star
 	var galaxyWidth int64 = 700
 	var galaxyHeight int64 = 400
 	var starNames = make(map[string]int)
@@ -35,17 +36,26 @@ func NewGalaxy(numStars uint) Galaxy {
 		stars = append(stars, star)
 	}
 
-	galaxy := Galaxy{
+	galaxy := model.Galaxy{
 		Stars: stars,
 	}
 
 	return galaxy
 }
 
-func NewEmptyGalaxy() Galaxy {
-	galaxy := Galaxy{
-		Stars: []*Star{},
+func NewEmptyGalaxy() model.Galaxy {
+	galaxy := model.Galaxy{
+		Stars: []*model.Star{},
 	}
 
+	return galaxy
+}
+
+func NewRandomGalaxy() model.Galaxy {
+	// new galaxy parameters
+	var stdDev float64 = 2
+	var mean float64 = 6
+	n := uint(math.Abs(math.Floor(rand.NormFloat64()*stdDev + mean)))
+	galaxy := NewGalaxy(n)
 	return galaxy
 }

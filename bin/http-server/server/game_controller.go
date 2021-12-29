@@ -34,7 +34,7 @@ func NewGame(c *gin.Context) {
 		return
 	}
 
-	g := game.New(req.PlayerName, req.NumStars)
+	g := game.NewGame(req.PlayerName, req.NumStars)
 	server := rawServer.(*Server)
 	server.GameList[g.ID] = g
 
