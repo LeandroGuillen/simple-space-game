@@ -2,24 +2,24 @@
 
 package model
 
-import (
-	"strconv"
-)
+import "strconv"
 
 func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
 	_ = x[PlanetMineralInvalid-0]
-	_ = x[PlanetMineralPoor-1]
-	_ = x[PlanetMineralAbundant-2]
-	_ = x[PlanetMineralRich-3]
-	_ = x[PlanetMineralMax-4]
+	_ = x[PlanetMineralUltraPoor-1]
+	_ = x[PlanetMineralPoor-2]
+	_ = x[PlanetMineralAbundant-3]
+	_ = x[PlanetMineralRich-4]
+	_ = x[PlanetMineralUltraRich-5]
+	_ = x[PlanetMineralMax-6]
 }
 
-const _PlanetMineral_name = "PlanetMineralInvalidPlanetMineralPoorPlanetMineralAbundantPlanetMineralRichPlanetMineralMax"
+const _PlanetMineral_name = "PlanetMineralInvalidPlanetMineralUltraPoorPlanetMineralPoorPlanetMineralAbundantPlanetMineralRichPlanetMineralUltraRichPlanetMineralMax"
 
-var _PlanetMineral_index = [...]uint8{0, 20, 37, 58, 75, 91}
+var _PlanetMineral_index = [...]uint8{0, 20, 42, 59, 80, 97, 119, 135}
 
 func (i PlanetMineral) String() string {
 	if i >= PlanetMineral(len(_PlanetMineral_index)-1) {

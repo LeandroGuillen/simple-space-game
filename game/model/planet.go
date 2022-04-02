@@ -26,9 +26,10 @@ type Planet struct {
 	Marines int64 `json:"marines"`
 	Armored int64 `json:"armor"`
 
-	CurrentProject uint     `json:"current_project"`
-	BuildQueue     []string `json:"build_queue"`
-	Buildings      []string `json:"buildings"`
+	CurrentProject Project   `json:"current_project"`
+	BuildQueue     []Project `json:"build_queue"`
+	Buildings      []Project `json:"buildings"`
+	industryStack  int64
 }
 
 func (p *Planet) GetID() uint {
@@ -39,6 +40,11 @@ func (p *Planet) GetName() string {
 }
 func (p *Planet) GetOwner() uint {
 	return p.Owner
+}
+func (p *Planet) Colonize(ownerID uint) {
+	p.Owner = ownerID
+	p.Population = 1000
+	p.Workers = 1
 }
 func (p *Planet) CurrentPop() int64 {
 	return int64(math.Floor(float64(p.Population) / 1000))
@@ -67,46 +73,6 @@ func (p *Planet) Morale() int64 {
 	// TODO should take into account tech, race traits, leaders, etc.
 	return 0
 }
-func (p *Planet) NumFarmers() int64 {
-	return p.Farmers
-}
-func (p *Planet) Food() int64 {
-	// TODO should take into account planet environment and other factors
-	return p.NumFarmers() * 3
-}
-func (p *Planet) NumWorkers() int64 {
-	return p.Workers
-}
-func (p *Planet) Industry() int64 {
-	// TODO should take into account planet minerals and other factors
-	return p.NumWorkers() * 3
-}
-func (p *Planet) NumScientists() int64 {
-	return p.Scientists
-}
-func (p *Planet) Research() int64 {
-	// TODO should take into account buildings, gravity and other factors
-	return p.NumScientists() * 3
-}
-func (p *Planet) NumMarines() int64 {
-	return p.Marines
-}
-func (p *Planet) NumArmored() int64 {
-	return p.Armored
-}
-func (p *Planet) Build(project uint) {
-	p.CurrentProject = project
-}
-func (p *Planet) GetCurrentProject() uint {
-	return p.CurrentProject
-}
-func (p *Planet) GetBuildQueue() []string {
-	return p.BuildQueue
-}
-func (p *Planet) GetBuildings() []string {
-	return p.Buildings
-}
-
 func (p *Planet) increasePopulation() {
 	// put one more where most people are
 	if p.NumFarmers() >= p.NumWorkers() && p.NumFarmers() >= p.NumScientists() {
@@ -117,7 +83,6 @@ func (p *Planet) increasePopulation() {
 		p.Scientists++
 	}
 }
-
 func (p *Planet) decreasePopulation() {
 	if p.Population <= 0 {
 		return
@@ -144,7 +109,6 @@ func (p *Planet) decreasePopulation() {
 		}
 	}
 }
-
 func (p *Planet) UpdatePopulation() {
 	// should the colony population grow or shrink?
 	//p.Population += p.PopGrowth()
@@ -162,13 +126,69 @@ func (p *Planet) UpdatePopulation() {
 	}
 	p.Population = expectedPopulation
 }
-
-func (p *Planet) Colonize(ownerID uint) {
-	p.Owner = ownerID
-	p.Population = 1000
-	p.Workers = 1
+func (p *Planet) NumFarmers() int64 {
+	return p.Farmers
 }
+func (p *Planet) Food() int64 {
+	// TODO should take into account planet environment and other factors
+	return p.NumFarmers() * 3
+}
+func (p *Planet) NumWorkers() int64 {
+	return p.Workers
+}
+func (p *Planet) Industry() int64 {
+	// TODO add Buildings, morale, tech, racial traits, etc. to this industry effort
+	return p.NumWorkers() * IndustryPerMineralClass(p.MineralClass)
+}
+func (p *Planet) UpdateProduction() {
+	// workers labor
+	industry := p.Industry()
+	// apply labor to current project
+	p.industryStack += industry
 
+	if p.CurrentProject == nil {
+		return
+	}
+
+	if p.industryStack >= p.CurrentProject.GetCost() {
+		// finished project
+		p.AddBuilding(p.CurrentProject)
+		p.industryStack -= p.CurrentProject.GetCost()
+		p.CurrentProject = nil
+	}
+}
+func (p *Planet) Income() int64 {
+	return p.CurrentPop()
+}
+func (p *Planet) Build(project Project) {
+	p.CurrentProject = project
+}
+func (p *Planet) AddBuilding(project Project) {
+	p.Buildings = append(p.Buildings, project)
+}
+func (p *Planet) GetCurrentProject() Project {
+	return p.CurrentProject
+}
+func (p *Planet) GetBuildQueue() []Project {
+	return p.BuildQueue
+}
+func (p *Planet) GetBuildings() []Project {
+	return p.Buildings
+}
+func (p *Planet) NumScientists() int64 {
+	return p.Scientists
+}
+func (p *Planet) Research() int64 {
+	// TODO should take into account Buildings, gravity and other factors
+	return p.NumScientists() * 3
+}
+func (p *Planet) NumMarines() int64 {
+	return p.Marines
+}
+func (p *Planet) NumArmored() int64 {
+	return p.Armored
+}
 func (p *Planet) Turn() {
 	p.UpdatePopulation()
+	p.UpdateProduction()
 }

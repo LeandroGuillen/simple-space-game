@@ -3,6 +3,7 @@ package game
 import (
 	"errors"
 	"fmt"
+	"ssg/data"
 	"ssg/game/builder"
 	"ssg/game/model"
 
@@ -97,7 +98,7 @@ func (g *Game) CreateCapitalPlanet(ownerID, planetID uint) error {
 	planet.Farmers = 2
 	planet.Scientists = 3
 
-	planet.Buildings = []string{"capitol"}
+	planet.AddBuilding(data.Buildings[0])
 
 	return nil
 }
@@ -144,6 +145,8 @@ func (g *Game) BuildOnPlanet(planetID, ownerID, buildingID uint) error {
 		return err
 	}
 
-	p.CurrentProject = buildingID
+	// get building from its ID
+	b := data.Buildings[buildingID]
+	p.Build(b)
 	return nil
 }

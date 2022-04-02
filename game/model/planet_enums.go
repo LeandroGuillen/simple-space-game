@@ -5,11 +5,30 @@ type PlanetMineral uint64
 
 const (
 	PlanetMineralInvalid PlanetMineral = iota
+	PlanetMineralUltraPoor
 	PlanetMineralPoor
 	PlanetMineralAbundant
 	PlanetMineralRich
+	PlanetMineralUltraRich
 	PlanetMineralMax
 )
+
+func IndustryPerMineralClass(p PlanetMineral) int64 {
+	switch p {
+	case PlanetMineralUltraPoor:
+		return 1
+	case PlanetMineralPoor:
+		return 2
+	case PlanetMineralAbundant:
+		return 3
+	case PlanetMineralRich:
+		return 5
+	case PlanetMineralUltraRich:
+		return 8
+	default:
+		return 0
+	}
+}
 
 //go:generate stringer -type=PlanetSize
 type PlanetSize uint64
