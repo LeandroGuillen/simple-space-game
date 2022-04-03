@@ -65,11 +65,15 @@ export class StringService {
   getMineralClass(ps: PlanetMineral): string {
     switch (ps) {
       case 1:
-        return 'Poor';
+        return 'Ultra Poor';
       case 2:
-        return 'Abundant';
+        return 'Poor';
       case 3:
+        return 'Abundant';
+      case 4:
         return 'Rich';
+      case 5:
+        return 'Ultra Rich';
       default:
         return 'Invalid!'
     }
