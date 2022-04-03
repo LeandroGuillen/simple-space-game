@@ -21,6 +21,9 @@ import {
   NewGameDialogComponent,
 } from './pages/game-page/new-game-dialog/new-game-dialog.component';
 import { PlanetViewComponent } from './pages/planet-view/planet-view.component';
+import {
+  NewServerDialogComponent,
+} from './pages/server-page/new-server-dialog/new-server-dialog.component';
 import { ServerPageComponent } from './pages/server-page/server-page.component';
 import { StarListPageComponent } from './pages/star-list-page/star-list-page.component';
 import { StarViewComponent } from './pages/star-view/star-view.component';
@@ -37,6 +40,7 @@ import { gameReducer } from './store/reducers';
     PlanetViewComponent,
     ServerPageComponent,
     NewGameDialogComponent,
+    NewServerDialogComponent,
     GamePageComponent,
     ColoniesPageComponent,
     ChangeBuildingDialogComponent,

@@ -1,44 +1,26 @@
-<form [formGroup]="form">
-  <mat-form-field appearance="fill">
-    <mat-label>Server name</mat-label>
-    <input formControlName="serverName" matInput>
+<button (click)="openNewServerDialog()" color="primary" mat-mini-fab>
+  <mat-icon>add</mat-icon>
+</button>
 
-    <mat-error *ngIf="form.controls.serverName.hasError('duplicateServerName')">
-      Server with that name already exists!
-    </mat-error>
-    <mat-error *ngIf="form.controls.serverName.hasError('required')">
-      This field is required
-    </mat-error>
-  </mat-form-field>
-
-  <mat-form-field appearance="fill">
-    <mat-label>Server address</mat-label>
-    <input formControlName="serverAddress" matInput>
-
-    <mat-error *ngIf="form.controls.serverAddress.hasError('required')">
-      This field is required
-    </mat-error>
-  </mat-form-field>
-
-  <button (click)="addServer()" color="primary" mat-raised-button>Add</button>
-</form>
-
-<h2 *ngIf="rememberedServers.length">Server List</h2>
+<h2>Server List</h2>
+<small *ngIf="!numServers">There are no servers, add one to get started.</small>
 <mat-list>
-  <mat-list-item *ngFor="let s of rememberedServers">
-    <h3 matLine>
-      <button (click)="connect(s)" color="primary" mat-mini-fab>
-        <mat-icon>cable</mat-icon>
-      </button>
-      {{s.name}}
-    </h3>
+  <mat-list-item *ngFor="let s of servers | async">
+    <h3 matLine>{{s.name}}</h3>
     <p matLine>
-      <span> {{s.address}} </span>
+      <span>{{s.url}} </span>
+      <strong>({{s.id.split('-')[0]}})</strong>
     </p>
 
-
-    <button (click)="removeServer(s)" color="accent" mat-mini-fab>
-      <mat-icon>delete</mat-icon>
-    </button>
+    <div class="item-buttons">
+      <button (click)="connect(s)" color="primary" mat-mini-fab>
+        <mat-icon>play_arrow</mat-icon>
+      </button>
+      <button (click)="removeServer(s)" color="accent" mat-mini-fab>
+        <mat-icon>delete</mat-icon>
+      </button>
+    </div>
+    <mat-divider></mat-divider>
   </mat-list-item>
+
 </mat-list>

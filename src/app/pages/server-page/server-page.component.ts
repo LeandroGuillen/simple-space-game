@@ -1,77 +1,44 @@
 import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
+import { Observable } from 'rxjs';
+import { filter, tap } from 'rxjs/operators';
 
-import { GameService } from '../../services/game.service';
+import { NewServerDialogComponent } from './new-server-dialog/new-server-dialog.component';
+import { Server, ServerManagerService } from './server-manager.service';
 
-type Server = {
-  name: string;
-  address: string;
-}
 
 @Component({
-  selector: 'ssg-home-page',
+  selector: 'ssg-server-page',
   templateUrl: './server-page.component.html',
   styleUrls: [ './server-page.component.scss' ]
 })
 export class ServerPageComponent implements OnInit {
-  form!: FormGroup;
-
-  rememberedServers: Server[] = [];
+  servers!: Observable<Server[]>;
+  numServers = 0;
 
   constructor(
-    private readonly fb: FormBuilder,
-    private readonly gameService: GameService,
-    private readonly route: Router) {
-  }
-
-  private static getRememberedServers(): Server[] {
-    const servers = window.localStorage.getItem('rememberedServers');
-    if (!servers) {
-      return [];
-    }
-
-    return JSON.parse(servers);
-  }
-
-  private static setRememberedServers(servers: Server[]) {
-    window.localStorage.setItem('rememberedServers', JSON.stringify(servers));
-  }
+    private readonly route: Router,
+    private readonly dialog: MatDialog,
+    private readonly serverManager: ServerManagerService
+  ) { }
 
   ngOnInit(): void {
-    // initialize form
-    this.form = this.fb.group({
-      serverName: [ '', [ Validators.required, this.serverNameValidator.bind(this) ] ],
-      serverAddress: [ '', Validators.required ],
-    });
-
-    // read local environment for possible servers
-    this.rememberedServers = ServerPageComponent.getRememberedServers();
+    this.servers = this.serverManager.getServerList().pipe(tap(servers => {
+      this.numServers = servers.length;
+    }));
   }
 
-  addServer() {
-    this.form.markAsDirty();
-    if (this.form.invalid) {
-      return;
-    }
-
-    // add to servers to remember
-    const server: Server = {
-      name: this.form.value.serverName,
-      address: this.form.value.serverAddress
-    }
-
-    this.addRememberedServer(server);
-
-    this.form.updateValueAndValidity();
+  openNewServerDialog(): void {
+    this.dialog.open(NewServerDialogComponent).afterClosed()
+      .pipe(filter(newServer => !!newServer))
+      .subscribe(newServer => {
+        this.serverManager.addServer(newServer.name, newServer.url);
+      });
   }
 
   connect(server: Server) {
-    // try to connect
-    console.log('trying', server.address);
-
-    this.gameService.host = server.address;
-    this.gameService.establishConnection().subscribe(ok => {
+    this.serverManager.connectTo(server).subscribe(ok => {
       if (ok) {
         console.log('connection ok');
         this.route.navigate([ 'game' ]);
@@ -81,25 +48,8 @@ export class ServerPageComponent implements OnInit {
     })
   }
 
-  removeServer(s: Server) {
-    const updatedServerList = this.rememberedServers.filter(server => server.name !== s.name);
-    ServerPageComponent.setRememberedServers(updatedServerList);
-    this.rememberedServers = ServerPageComponent.getRememberedServers();
+  removeServer(server: Server) {
+    this.serverManager.removeServer(server);
   }
 
-  private addRememberedServer(s: Server) {
-    this.rememberedServers.unshift(s);
-    ServerPageComponent.setRememberedServers(this.rememberedServers);
-  }
-
-  private serverNameValidator(control: AbstractControl) {
-    const name = control.value;
-
-    const exists = !!this.rememberedServers.find(s => s.name === name);
-    if (exists) {
-      return { duplicateServerName: true };
-    }
-
-    return null;
-  }
 }

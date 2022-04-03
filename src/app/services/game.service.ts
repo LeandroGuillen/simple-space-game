@@ -13,7 +13,7 @@ import { selectCurrentGameID } from '../store/selectors';
 
 type NewGameResponse = {
   ok: boolean;
-  gameID: string
+  gameID: string;
 }
 
 export type GameListResponseItem = {
@@ -27,10 +27,11 @@ export type GameListResponse = {
 @Injectable({ providedIn: "root" })
 export class GameService {
   private currentGameID: string;
+  #host: string;
 
   constructor(private readonly http: HttpClient,
     private readonly store: Store<AppState>) {
-    this._host = window.localStorage.getItem('currentServerHost') || '';
+    this.#host = window.localStorage.getItem('currentServerHost') || '';
     this.currentGameID = window.localStorage.getItem('currentGameID') || '';
 
     this.store.select(selectCurrentGameID).subscribe(gameID => {
@@ -43,21 +44,16 @@ export class GameService {
     })
   }
 
-
-  private _host: string;
-
-  set host(host: string) {
+  establishConnection(host: string): Observable<boolean> {
     if (!host.startsWith('http')) {
-      this._host = 'http://' + host;
+      this.#host = 'http://' + host;
     }
-    this._host = host;
-  }
-
-  establishConnection(): Observable<boolean> {
-    return this.http.get<{ ok: boolean }>(`${this._host}/status`).pipe(
+    this.#host = host;
+    console.log('trying', host);
+    return this.http.get<{ ok: boolean }>(`${this.#host}/status`).pipe(
       map(res => {
         if (res.ok) {
-          window.localStorage.setItem('currentServerHost', this._host);
+          window.localStorage.setItem('currentServerHost', this.#host);
           return true;
         }
         window.localStorage.setItem('currentServerHost', '');
@@ -67,7 +63,7 @@ export class GameService {
   }
 
   getGalaxy(gameID: string): Observable<Game> {
-    return this.http.get<Game>(`${this._host}/games/${gameID}`).pipe(
+    return this.http.get<Game>(`${this.#host}/games/${gameID}`).pipe(
       map(g => {
         g.galaxy = mapGalaxy(g.galaxy);
         window.localStorage.setItem('currentGameID', gameID);
@@ -76,20 +72,20 @@ export class GameService {
   }
 
   colonize(ownerID: number, planetID: number): Observable<Game> {
-    const url = `${this._host}/action/${ownerID}/colonize/${planetID}`
+    const url = `${this.#host}/action/${ownerID}/colonize/${planetID}`
     return this.http.post<{ game: Game }>(url, { game_id: this.currentGameID })
       .pipe(map(({ game }) => game));
   }
 
   turn(): Observable<Game> {
-    return this.http.post<{ ok: boolean, game: Game }>(`${this._host}/turn`, {
+    return this.http.post<{ ok: boolean, game: Game }>(`${this.#host}/turn`, {
       game_id: this.currentGameID,
       player_id: 1
     }).pipe(map(res => res.game));
   }
 
   newGame(newGameRequest: NewGameRequest): Observable<string> {
-    return this.http.post<NewGameResponse>(`${this._host}/games`, newGameRequest).pipe(
+    return this.http.post<NewGameResponse>(`${this.#host}/games`, newGameRequest).pipe(
       switchMap(res => {
         if (!res.ok) {
           return throwError('could not create game');
@@ -100,7 +96,7 @@ export class GameService {
   }
 
   getGameList(): Observable<GameListResponseItem[]> {
-    return this.http.get<GameListResponse>(`${this._host}/games`).pipe(
+    return this.http.get<GameListResponse>(`${this.#host}/games`).pipe(
       map(res => res.game_list.sort((a, b) => {
         return a.game_id.localeCompare(b.game_id)
       })),
@@ -112,7 +108,7 @@ export class GameService {
       game_id: this.currentGameID,
       player_id: 1,
     }
-    return this.http.post<BEPlanet[]>(`${this._host}/colonies`, getColonyListRequest)
+    return this.http.post<BEPlanet[]>(`${this.#host}/colonies`, getColonyListRequest)
       .pipe(map(planets => planets.map(mapPlanet)))
   }
 
@@ -123,7 +119,7 @@ export class GameService {
       planet_id: planetID,
       building_id: buildingID,
     }
-    return this.http.post<{ ok: boolean }>(`${this._host}/colonies/build`, changeBuildingRequest)
+    return this.http.post<{ ok: boolean }>(`${this.#host}/colonies/build`, changeBuildingRequest)
       .pipe(filter(res => res.ok), map(() => ({ planetID, buildingID })))
   }
 }
