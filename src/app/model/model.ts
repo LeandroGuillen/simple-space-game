@@ -100,3 +100,17 @@ export function emptyGame(): Game {
     },
   }
 }
+
+export type Server = {
+  id: string;
+  name: string;
+  url: string;
+}
+
+export function emptyServer(): Server {
+  return {
+    id: '',
+    name: '',
+    url: '',
+  }
+}

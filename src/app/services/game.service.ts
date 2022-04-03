@@ -1,12 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { filter, map, switchMap } from 'rxjs/operators';
 
 import { BEPlanet } from '../model/be-model';
 import { mapGalaxy, mapPlanet } from '../model/mapper';
-import { Game, Planet } from '../model/model';
+import { Game, Planet, Server } from '../model/model';
 import { NewGameRequest } from '../store/actions';
 import { AppState } from '../store/reducers';
 import { selectCurrentGameID } from '../store/selectors';
@@ -32,6 +32,7 @@ export class GameService {
   constructor(private readonly http: HttpClient,
     private readonly store: Store<AppState>) {
     this.#host = window.localStorage.getItem('currentServerHost') || '';
+
     this.currentGameID = window.localStorage.getItem('currentGameID') || '';
 
     this.store.select(selectCurrentGameID).subscribe(gameID => {
@@ -44,20 +45,24 @@ export class GameService {
     })
   }
 
-  establishConnection(host: string): Observable<boolean> {
-    if (!host.startsWith('http')) {
-      this.#host = 'http://' + host;
+  establishConnection(server: Server): Observable<Server> {
+    if (!server.url.startsWith('http')) {
+      this.#host = 'http://' + server.url;
     }
-    this.#host = host;
-    console.log('trying', host);
+    this.#host = server.url;
+
+    console.log('trying', server.url);
     return this.http.get<{ ok: boolean }>(`${this.#host}/status`).pipe(
       map(res => {
         if (res.ok) {
           window.localStorage.setItem('currentServerHost', this.#host);
-          return true;
+          window.localStorage.setItem('currentServer', JSON.stringify(server));
+          window.localStorage.setItem('currentGameID', '');
+          this.currentGameID = '';
+          return server;
         }
         window.localStorage.setItem('currentServerHost', '');
-        return false;
+        throw new Error(`cannot connect to '${server.url}'`);
       })
     )
   }
@@ -86,11 +91,11 @@ export class GameService {
 
   newGame(newGameRequest: NewGameRequest): Observable<string> {
     return this.http.post<NewGameResponse>(`${this.#host}/games`, newGameRequest).pipe(
-      switchMap(res => {
+      map(res => {
         if (!res.ok) {
-          return throwError('could not create game');
+          throw new Error('could not create game');
         }
-        return of(res.gameID);
+        return res.gameID;
       })
     )
   }

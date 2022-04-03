@@ -1,6 +1,6 @@
 import { createAction, props } from '@ngrx/store';
 
-import { Game } from '../model/model';
+import { Game, Server } from '../model/model';
 import { GameListResponseItem } from '../services/game.service';
 
 
@@ -14,8 +14,9 @@ export const colonize = createAction('[Star View] Colonize',
 );
 
 export const connectToServer = createAction('[Server Page] Connect to server',
-  props<{ host: string }>()
+  props<{ server: Server }>()
 );
+export const serverConnectionSuccess = createAction('[Server Page] Server connected succesfully', props<{ server: Server }>())
 
 export const newGameRequest = createAction('[Game Page] New game request',
   props<NewGameRequest>()
@@ -50,5 +51,4 @@ export const colonizeRequest = createAction('[Star View] Colonize request',
   props<{ planetID: number; playerID: number }>());
 export const colonizeOK = createAction('[Star View] Colonize ok',
   props<{ game: Game }>());
-
 

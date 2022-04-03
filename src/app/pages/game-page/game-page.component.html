@@ -1,17 +1,21 @@
-<button (click)="openNewGameDialog()" color="primary" mat-raised-button>New Game</button>
+<h1>{{serverName | async}}</h1>
 
-<h2>Game List on this server</h2>
+<button (click)="openNewGameDialog()" color="primary" mat-mini-fab>
+  <mat-icon>add</mat-icon>
+</button>
+
+<h2>Game List</h2>
+
+<small *ngIf="!numGames">No games in this server, create one to get started.</small>
 <mat-list>
-  <mat-list-item *ngFor="let game of (gameList | async)">
-    <h3 matLine>
-      {{game.game_id}}
-    </h3>
-    <span matLine>
-      <mat-icon>star</mat-icon>
-      {{game.num_stars}}
-    </span>
-    <button (click)="startGame(game.game_id)" color="accent" mat-mini-fab>
-      <mat-icon>play_arrow</mat-icon>
-    </button>
+  <mat-list-item *ngFor="let game of gameList | async">
+    <h3 matLine>{{game.game_id}}</h3>
+    <span matLine>{{game.num_stars}} <mat-icon>star</mat-icon></span>
+
+    <div class="item-buttons">
+      <button (click)="startGame(game.game_id)" mat-stroked-button>PLAY</button>
+      <button disabled mat-stroked-button>STOP</button>
+    </div>
+    <mat-divider></mat-divider>
   </mat-list-item>
 </mat-list>

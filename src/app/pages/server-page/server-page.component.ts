@@ -1,12 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
+import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { filter, tap } from 'rxjs/operators';
 
+import { Server } from '../../model/model';
+import { ServerManagerService } from '../../services/server-manager.service';
+import { AppState } from '../../store/reducers';
+import { selectServer } from '../../store/selectors';
 import { NewServerDialogComponent } from './new-server-dialog/new-server-dialog.component';
-import { Server, ServerManagerService } from './server-manager.service';
-
 
 @Component({
   selector: 'ssg-server-page',
@@ -20,7 +23,8 @@ export class ServerPageComponent implements OnInit {
   constructor(
     private readonly route: Router,
     private readonly dialog: MatDialog,
-    private readonly serverManager: ServerManagerService
+    private readonly serverManager: ServerManagerService,
+    private readonly store: Store<AppState>
   ) { }
 
   ngOnInit(): void {
@@ -38,14 +42,11 @@ export class ServerPageComponent implements OnInit {
   }
 
   connect(server: Server) {
-    this.serverManager.connectTo(server).subscribe(ok => {
-      if (ok) {
-        console.log('connection ok');
-        this.route.navigate([ 'game' ]);
-      } else {
-        console.log('connection failed');
-      }
-    })
+    this.serverManager.connectTo(server);
+
+    this.store.select(selectServer).subscribe(() => {
+      this.route.navigate([ 'game' ]);
+    });
   }
 
   removeServer(server: Server) {

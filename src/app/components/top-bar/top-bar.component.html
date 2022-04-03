@@ -5,6 +5,7 @@
 
   <mat-menu #menu="matMenu">
     <button mat-menu-item routerLink="/server">Servers...</button>
+    <button mat-menu-item disabled>Current server: {{serverName | async}}</button>
   </mat-menu>
 
   <span>Simple Space Game</span>
@@ -14,12 +15,11 @@
 
   <span class="spacer"></span>
 
-  <span><small>current game:</small> {{gameID | async}}</span>
-  <button mat-button routerLink="/game">CHANGE</button>
+  <button mat-stroked-button routerLink="/game"><small>current game: {{gameID | async}}</small></button>
 </mat-toolbar>
 
 <mat-toolbar>
   <ssg-kpi icon="savings" [value]="treasury | async"></ssg-kpi>
   <span class="spacer"></span>
-  <button (click)="turn()" color="primary" mat-flat-button>TURN</button>
+  <button (click)="turn()" color="primary" mat-stroked-button>TURN</button>
 </mat-toolbar>

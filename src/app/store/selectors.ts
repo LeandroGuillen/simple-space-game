@@ -7,6 +7,8 @@ import { AppState } from './reducers';
 export const selectCurrentGame = (state: AppState) => state.game.currentGame;
 export const selectCurrentGameID = (state: AppState) => state.game.currentGameID;
 export const selectGameList = (state: AppState) => state.game.gameList;
+export const selectServerName = (state: AppState) => state.game.currentServer.name;
+export const selectServer = (state: AppState) => state.game.currentServer;
 
 // player data
 export const selectAllPlayers = (state: AppState) => state.game.currentGame?.players;

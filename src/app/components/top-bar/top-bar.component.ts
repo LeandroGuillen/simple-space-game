@@ -1,12 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs';
+import { EMPTY, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import { startGame, turnRequest } from '../../store/actions';
+import { Server } from '../../model/model';
+import { connectToServer, startGame, turnRequest } from '../../store/actions';
 import { AppState } from '../../store/reducers';
-import { selectCurrentGameID, selectPlayerTreasury } from '../../store/selectors';
+import {
+  selectCurrentGameID,
+  selectPlayerTreasury,
+  selectServer,
+  selectServerName,
+} from '../../store/selectors';
 
 @Component({
   selector: 'ssg-top-bar',
@@ -16,6 +22,7 @@ import { selectCurrentGameID, selectPlayerTreasury } from '../../store/selectors
 export class TopBarComponent implements OnInit {
   gameID!: Observable<string>;
   treasury!: Observable<number | undefined>;
+  serverName!: Observable<string>;
 
   constructor(
     private readonly router: Router,
@@ -43,8 +50,27 @@ export class TopBarComponent implements OnInit {
       }),
       map(id => id.substring(0, 8))
     );
-    this.treasury = this.store.select(selectPlayerTreasury(1));
 
+    this.store.select(selectServer).pipe(
+      map(server => {
+        if (server.url) {
+          return server;
+        }
+
+        // if there is no current game going on, try to load from storage
+        const serverString = window.localStorage.getItem('currentServer') || '';
+
+        if (serverString) {
+          const server: Server = JSON.parse(serverString);
+          this.store.dispatch(connectToServer({ server }));
+          return server;
+        }
+        return EMPTY;
+      })
+    ).subscribe();
+
+    this.treasury = this.store.select(selectPlayerTreasury(1));
+    this.serverName = this.store.select(selectServerName);
   }
 
   turn() {

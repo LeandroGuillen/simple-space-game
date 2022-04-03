@@ -1,13 +1,14 @@
 import * as fromRouter from '@ngrx/router-store';
 import { createReducer, on } from '@ngrx/store';
 
-import { emptyGame, Game } from '../model/model';
+import { emptyGame, emptyServer, Game, Server } from '../model/model';
 import { GameListResponseItem } from '../services/game.service';
 import {
   changeBuildingOK,
   colonizeOK,
   getGameListOK,
   newGameOK,
+  serverConnectionSuccess,
   startGame,
   turnOK,
   updateGame,
@@ -21,12 +22,14 @@ export type AppState = {
 export type GameState = {
 	currentGameID: string;
 	currentGame: Game;
+	currentServer: Server;
 	gameList: GameListResponseItem[];
 }
 
 const initialState: GameState = {
 	currentGameID: '',
 	currentGame: emptyGame(),
+	currentServer: emptyServer(),
 	gameList: [],
 };
 
@@ -74,6 +77,13 @@ export const gameReducer = createReducer(
 			galaxy: game.galaxy,
 			id: game.id,
 			players: game.players
+		}
+	})),
+	on(serverConnectionSuccess, (state, { server }) => ({
+		...state, currentServer: {
+			id: server.id,
+			name: server.name,
+			url: server.url
 		}
 	})),
 );

@@ -1,14 +1,11 @@
 import { Injectable } from '@angular/core';
+import { Store } from '@ngrx/store';
 import { BehaviorSubject, Observable } from 'rxjs';
 import * as uuid from 'uuid';
 
-import { GameService } from '../../services/game.service';
-
-export type Server = {
-	id: string;
-	name: string;
-	url: string;
-}
+import { Server } from '../model/model';
+import { connectToServer } from '../store/actions';
+import { AppState } from '../store/reducers';
 
 
 @Injectable({ providedIn: "root" })
@@ -18,10 +15,10 @@ export class ServerManagerService {
 
 	private readonly STORAGE_KEY = 'servers';
 
-	constructor(private readonly gameService: GameService) { }
+	constructor(private readonly store: Store<AppState>) { }
 
 	connectTo(server: Server) {
-		return this.gameService.establishConnection(server.url);
+		this.store.dispatch(connectToServer({ server }));
 	}
 
 	/** Read local environment for possible servers. */
