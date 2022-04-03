@@ -7,7 +7,7 @@ import { NewGameRequest } from '../../../store/actions';
 @Component({
   selector: 'ssg-new-game-dialog',
   templateUrl: './new-game-dialog.component.html',
-  styleUrls: [ './new-game-dialog.component.scss' ]
+  styleUrls: ['./new-game-dialog.component.scss']
 })
 export class NewGameDialogComponent {
   form: FormGroup;
@@ -29,11 +29,12 @@ export class NewGameDialogComponent {
     }
   ];
 
-  constructor(fb: FormBuilder,
+  constructor(
+    readonly fb: FormBuilder,
     public readonly dialogRef: MatDialogRef<NewGameDialogComponent>
   ) {
     this.form = fb.group({
-      numStars: this.galaxySizes[ 0 ].value,
+      numStars: this.galaxySizes[0].value,
       playerName: 'Augustus'
     });
   }

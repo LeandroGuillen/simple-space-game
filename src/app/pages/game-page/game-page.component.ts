@@ -3,6 +3,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 import { GameListResponseItem } from '../../services/game.service';
 import * as Actions from '../../store/actions';
@@ -13,7 +14,7 @@ import { NewGameDialogComponent } from './new-game-dialog/new-game-dialog.compon
 @Component({
   selector: 'ssg-game-page',
   templateUrl: './game-page.component.html',
-  styleUrls: [ './game-page.component.scss' ]
+  styleUrls: ['./game-page.component.scss']
 })
 export class GamePageComponent implements OnInit {
   gameList!: Observable<GameListResponseItem[]>;
@@ -33,6 +34,7 @@ export class GamePageComponent implements OnInit {
 
   openNewGameDialog(): void {
     this.dialog.open(NewGameDialogComponent).afterClosed()
+      .pipe(filter(request => !!request))
       .subscribe(request => {
         this.store.dispatch(Actions.newGameRequest(request));
         this.store.dispatch(Actions.updateGameList());
@@ -41,7 +43,7 @@ export class GamePageComponent implements OnInit {
 
   startGame(gameID: string) {
     this.store.dispatch(Actions.startGame({ gameID }));
-    this.route.navigate([ 'stars' ]);
+    this.route.navigate(['stars']);
   }
 
 }
