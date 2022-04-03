@@ -81,8 +81,15 @@ export type Planet = {
   armor: number;
   current_project: number;
   build_list: string[];
-  buildings: string[];
+  buildings: Building[];
 };
+
+export type Building = {
+  id: number;
+  name: string;
+  cost: number;
+  maintenance: number;
+}
 
 export function emptyGame(): Game {
   return {

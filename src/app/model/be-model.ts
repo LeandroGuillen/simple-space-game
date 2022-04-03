@@ -35,5 +35,12 @@ export type BEPlanet = {
   armor: number;
   current_project: number;
   build_list: string[];
-  buildings: string[];
+  buildings: BEBuilding[];
 };
+
+export type BEBuilding = {
+  id: number;
+  name: string;
+  cost: number;
+  maintenance: number;
+}
