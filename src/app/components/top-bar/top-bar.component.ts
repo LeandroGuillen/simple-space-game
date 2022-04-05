@@ -17,11 +17,11 @@ import {
 @Component({
   selector: 'ssg-top-bar',
   templateUrl: './top-bar.component.html',
-  styleUrls: [ './top-bar.component.scss' ]
+  styleUrls: ['./top-bar.component.scss']
 })
 export class TopBarComponent implements OnInit {
   gameID!: Observable<string>;
-  treasury!: Observable<number | undefined>;
+  // treasury!: Observable<number | undefined>;
   serverName!: Observable<string>;
 
   constructor(
@@ -45,7 +45,7 @@ export class TopBarComponent implements OnInit {
         }
 
         // if still no game, go to Game Screen
-        this.router.navigate([ 'game' ])
+        this.router.navigate(['game'])
         return ''
       }),
       map(id => id.substring(0, 8))
@@ -69,11 +69,6 @@ export class TopBarComponent implements OnInit {
       })
     ).subscribe();
 
-    this.treasury = this.store.select(selectPlayerTreasury(1));
     this.serverName = this.store.select(selectServerName);
-  }
-
-  turn() {
-    this.store.dispatch(turnRequest());
   }
 }

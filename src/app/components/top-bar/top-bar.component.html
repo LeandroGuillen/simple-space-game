@@ -4,34 +4,27 @@
   </button>
 
   <mat-menu #menu="matMenu">
-    <button mat-menu-item routerLink="/server">Servers...</button>
-    <button mat-menu-item disabled>Current server: {{serverName | async}}</button>
+    <button mat-menu-item routerLink="/server" matTooltip="Switch to another server"
+      matTooltipPosition="right">Servers</button>
+    <button mat-menu-item disabled>Playing on: {{serverName |async}}</button>
+    <mat-divider></mat-divider>
+    <button mat-menu-item routerLink="/game" matTooltip="See games on this server"
+      matTooltipPosition="right">Games</button>
+    <mat-divider></mat-divider>
+    <button mat-menu-item disabled>Help</button>
   </mat-menu>
 
   <span>Simple Space Game</span>
   <span class="spacer"></span>
   <button mat-button routerLink="/stars">STARS</button>
   <button mat-button routerLink="/colonies">COLONIES</button>
-  <button mat-button routerLink="/" disabled>PLANETS</button>
-  <button mat-button routerLink="/" disabled>FLEETS</button>
-  <button mat-button routerLink="/" disabled>LEADERS</button>
-  <button mat-button routerLink="/" disabled>RACES</button>
-  <button mat-button routerLink="/" disabled>INFO</button>
+  <button mat-button disabled>PLANETS</button>
+  <button mat-button disabled>FLEETS</button>
+  <button mat-button disabled>LEADERS</button>
+  <button mat-button disabled>RACES</button>
+  <button mat-button disabled>INFO</button>
 
   <span class="spacer"></span>
 
   <button mat-stroked-button routerLink="/game"><small>current game: {{gameID | async}}</small></button>
-</mat-toolbar>
-
-<mat-toolbar>
-  <div class="kpis">
-    <ssg-kpi matTooltip="Date" icon="event" [value]="3500.0" [disabled]="true"></ssg-kpi>
-    <ssg-kpi matTooltip="Treasury" icon="savings" [value]="treasury | async"></ssg-kpi>
-    <ssg-kpi matTooltip="Command points" icon="join_inner" [value]="6" [disabled]="true"></ssg-kpi>
-    <ssg-kpi matTooltip="Food" icon="dinner_dining" [value]="20" [disabled]="true"></ssg-kpi>
-    <ssg-kpi matTooltip="Freighters" icon="local_shipping" [value]="0" [disabled]="true"></ssg-kpi>
-    <ssg-kpi matTooltip="Research points" icon="biotech" [value]="12" [disabled]="true"></ssg-kpi>
-  </div>
-  <span class="spacer"></span>
-  <button (click)="turn()" color="primary" mat-stroked-button>TURN</button>
 </mat-toolbar>
