@@ -1,3 +1,13 @@
 .spacer {
   flex: 1 1 auto;
 }
+
+.kpis {
+  flex: 4 1 auto;
+  display: flex;
+
+  >* {
+    // background-color: darkseagreen;
+    margin-right: 0.5rem;
+  }
+}

@@ -24,7 +24,14 @@
 </mat-toolbar>
 
 <mat-toolbar>
-  <ssg-kpi icon="savings" [value]="treasury | async"></ssg-kpi>
+  <div class="kpis">
+    <ssg-kpi icon="event" [value]="3500.0" [disabled]="true"></ssg-kpi>
+    <ssg-kpi icon="savings" [value]="treasury | async"></ssg-kpi>
+    <ssg-kpi icon="join_inner" [value]="6" [disabled]="true"></ssg-kpi>
+    <ssg-kpi icon="dinner_dining" [value]="20" [disabled]="true"></ssg-kpi>
+    <ssg-kpi icon="local_shipping" [value]="0" [disabled]="true"></ssg-kpi>
+    <ssg-kpi icon="biotech" [value]="12" [disabled]="true"></ssg-kpi>
+  </div>
   <span class="spacer"></span>
   <button (click)="turn()" color="primary" mat-stroked-button>TURN</button>
 </mat-toolbar>
