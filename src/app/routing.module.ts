@@ -15,12 +15,12 @@ const routes: Routes = [
   { path: 'stars/:star_id/planets/:planet_id', component: PlanetViewComponent },
   { path: 'stars', component: StarListPageComponent },
   { path: 'colonies', component: ColoniesPageComponent },
-  { path: '**', redirectTo: '/home', },
+  { path: '**', redirectTo: '/server', },
 ];
 
 @NgModule({
-  imports: [ RouterModule.forRoot(routes) ],
-  exports: [ RouterModule ]
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
 })
 export class RoutingModule {
 }
