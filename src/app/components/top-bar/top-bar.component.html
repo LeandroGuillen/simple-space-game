@@ -26,5 +26,7 @@
 
   <span class="spacer"></span>
 
-  <button mat-stroked-button routerLink="/game"><small>current game: {{gameID | async}}</small></button>
+  <mat-chip-list>
+    <mat-chip>current game: {{gameID | async}}</mat-chip>
+  </mat-chip-list>
 </mat-toolbar>
