@@ -16,6 +16,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 const moduleList = [
   MatListModule,
@@ -35,7 +36,8 @@ const moduleList = [
   MatExpansionModule,
   MatRippleModule,
   MatCardModule,
-  MatChipsModule
+  MatChipsModule,
+  MatTooltipModule
 ]
 
 @NgModule({
