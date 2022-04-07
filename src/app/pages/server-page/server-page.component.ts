@@ -8,7 +8,7 @@ import { filter, tap } from 'rxjs/operators';
 import { Server } from '../../model/model';
 import { ServerManagerService } from '../../services/server-manager.service';
 import { AppState } from '../../store/reducers';
-import { selectServer } from '../../store/selectors';
+import { selectServer } from '../../store/selectors/server.selectors';
 import { NewServerDialogComponent } from './new-server-dialog/new-server-dialog.component';
 
 @Component({

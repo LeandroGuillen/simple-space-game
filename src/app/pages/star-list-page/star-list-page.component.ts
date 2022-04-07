@@ -6,7 +6,7 @@ import { Store } from '@ngrx/store';
 
 import { Galaxy, Star } from '../../model/model';
 import { AppState } from '../../store/reducers';
-import { selectGalaxy } from '../../store/selectors';
+import { selectGalaxy } from '../../store/selectors/galaxy.selectors';
 
 const starData: Star[] = [];
 

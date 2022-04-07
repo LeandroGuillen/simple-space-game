@@ -7,7 +7,8 @@ import { map, switchMap } from 'rxjs/operators';
 import { Planet } from '../../model/model';
 import { StringService } from '../../services/string.service';
 import { AppState } from '../../store/reducers';
-import { getCurrentRouteState, selectPlanet } from '../../store/selectors';
+import { selectPlanet } from '../../store/selectors/galaxy.selectors';
+import { getCurrentRouteState } from '../../store/selectors/router.selectors';
 
 @Component({
   selector: 'ssg-planet-view',

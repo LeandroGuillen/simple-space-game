@@ -9,7 +9,7 @@ import { mapGalaxy, mapPlanet } from '../model/mapper';
 import { Game, Planet, Server } from '../model/model';
 import { NewGameRequest } from '../store/actions';
 import { AppState } from '../store/reducers';
-import { selectCurrentGameID } from '../store/selectors';
+import { selectCurrentGameID } from '../store/selectors/game.selectors';
 
 type NewGameResponse = {
   ok: boolean;
@@ -38,10 +38,10 @@ export class GameService {
     this.store.select(selectCurrentGameID).subscribe(gameID => {
       if (gameID) {
         window.localStorage.setItem('currentGameID', gameID);
+        this.currentGameID = gameID;
       } else {
         this.currentGameID = window.localStorage.getItem('currentGameID') || '';
       }
-      this.currentGameID = gameID;
     })
   }
 

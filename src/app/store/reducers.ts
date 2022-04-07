@@ -20,14 +20,14 @@ export type AppState = {
 }
 
 export type GameState = {
-	currentGameID: string;
+	// currentGameID: string;
 	currentGame: Game;
 	currentServer: Server;
 	gameList: GameListResponseItem[];
 }
 
 const initialState: GameState = {
-	currentGameID: '',
+	// currentGameID: '',
 	currentGame: emptyGame(),
 	currentServer: emptyServer(),
 	gameList: [],
@@ -35,15 +35,17 @@ const initialState: GameState = {
 
 export const gameReducer = createReducer(
 	initialState,
-	on(newGameOK, (state, { gameID }) => ({ ...state, currentGameID: gameID })),
+	on(newGameOK, (state, { gameID }) => ({ ...state })),
+	// on(newGameOK, (state, { gameID }) => ({ ...state, currentGameID: gameID })),
 	on(getGameListOK, (state, { game_list }) => ({ ...state, gameList: game_list })),
-	on(startGame, (state, { gameID }) => ({ ...state, currentGameID: gameID })),
+	// on(startGame, (state, { gameID }) => ({ ...state, currentGameID: gameID })),
+	on(startGame, (state, { gameID }) => ({ ...state })),
 	on(turnOK, (state, { game }) => ({ ...state, currentGame: game })),
 	on(updateGame, (state, { game }) => {
 		const newGame = JSON.parse(JSON.stringify(game)) as Game;
 		return {
 			...state,
-			currentGameID: newGame.id,
+			// currentGameID: newGame.id,
 			currentGame: { ...newGame }
 		}
 	}),
@@ -61,7 +63,7 @@ export const gameReducer = createReducer(
 
 		return {
 			...state,
-			currentGameID: state.currentGameID,
+			// currentGameID: state.currentGameID,
 			gameList: state.gameList,
 			currentGame: {
 				...state.currentGame,

@@ -7,7 +7,8 @@ import { map, switchMap } from 'rxjs/operators';
 import { Planet, Star } from '../../model/model';
 import { colonizeRequest } from '../../store/actions';
 import { AppState } from '../../store/reducers';
-import { getCurrentRouteState, selectStar } from '../../store/selectors';
+import { selectStar } from '../../store/selectors/galaxy.selectors';
+import { getCurrentRouteState } from '../../store/selectors/router.selectors';
 
 @Component({
   selector: 'ssg-star-view',

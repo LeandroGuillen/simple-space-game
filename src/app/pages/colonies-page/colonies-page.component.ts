@@ -7,10 +7,8 @@ import { Store } from '@ngrx/store';
 import { Planet } from '../../model/model';
 import { changeBuildingRequest } from '../../store/actions';
 import { AppState } from '../../store/reducers';
-import { selectColonies } from '../../store/selectors';
-import {
-  ChangeBuildingDialogComponent,
-} from './change-building-dialog/change-building-dialog.component';
+import { selectColonies } from '../../store/selectors/galaxy.selectors';
+import { ChangeBuildingDialogComponent } from './change-building-dialog/change-building-dialog.component';
 
 const planetData: Planet[] = []
 
