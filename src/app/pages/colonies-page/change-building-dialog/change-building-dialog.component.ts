@@ -2,11 +2,6 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 
-export interface DialogData {
-  animal: string;
-  name: string;
-}
-
 @Component({
   selector: 'ssg-change-building-dialog',
   templateUrl: './change-building-dialog.component.html',
@@ -21,7 +16,7 @@ export class ChangeBuildingDialogComponent {
   ];
 
   constructor(fb: FormBuilder,
-    public readonly dialogRef: MatDialogRef<ChangeBuildingDialogComponent>
+    readonly dialogRef: MatDialogRef<ChangeBuildingDialogComponent>
   ) {
     this.form = fb.group({
       selectedBuilding: '',
@@ -32,12 +27,10 @@ export class ChangeBuildingDialogComponent {
     if (this.form.invalid) {
       return;
     }
-    this.dialogRef.close(this.form.value.selectedBuilding as number);
+    this.dialogRef.close(this.form.value.selectedBuilding);
   }
 
   cancel(): void {
     this.dialogRef.close();
   }
-
-
 }

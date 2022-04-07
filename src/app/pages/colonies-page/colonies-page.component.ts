@@ -10,8 +10,6 @@ import { AppState } from '../../store/reducers';
 import { selectColonies } from '../../store/selectors/galaxy.selectors';
 import { ChangeBuildingDialogComponent } from './change-building-dialog/change-building-dialog.component';
 
-const planetData: Planet[] = []
-
 @Component({
   selector: 'ssg-colonies-page',
   templateUrl: './colonies-page.component.html',
@@ -19,9 +17,7 @@ const planetData: Planet[] = []
 })
 export class ColoniesPageComponent implements AfterViewInit, OnInit {
   displayedColumns: (keyof Planet | 'actions')[] = [ 'id', 'name', 'farmers', 'workers', 'scientists', 'current_project', 'actions' ];
-  dataSource = new MatTableDataSource(planetData);
-
-  colonyList!: Planet[];
+  dataSource!: MatTableDataSource<Planet>;
 
   @ViewChild(MatSort) sort!: MatSort;
 
@@ -32,7 +28,6 @@ export class ColoniesPageComponent implements AfterViewInit, OnInit {
 
   ngOnInit() {
     this.store.select(selectColonies).subscribe(colonies => {
-      this.colonyList = colonies;
       this.dataSource = new MatTableDataSource(colonies);
       this.dataSource.sort = this.sort;
     })

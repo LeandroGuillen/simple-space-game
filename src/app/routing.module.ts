@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
 import { ColoniesPageComponent } from './pages/colonies-page/colonies-page.component';
+import { FleetsPageComponent } from './pages/fleets-page/fleets-page.component';
 import { GamePageComponent } from './pages/game-page/game-page.component';
 import { PlanetViewComponent } from './pages/planet-view/planet-view.component';
 import { ServerPageComponent } from './pages/server-page/server-page.component';
@@ -15,6 +16,7 @@ const routes: Routes = [
   { path: 'stars/:star_id/planets/:planet_id', component: PlanetViewComponent },
   { path: 'stars', component: StarListPageComponent },
   { path: 'colonies', component: ColoniesPageComponent },
+  { path: 'fleets', component: FleetsPageComponent },
   { path: '**', redirectTo: '/server', },
 ];
 
