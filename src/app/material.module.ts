@@ -17,12 +17,16 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 const moduleList = [
   MatListModule,
   MatTableModule,
   MatButtonModule,
+  MatButtonToggleModule,
   MatIconModule,
+  MatFormFieldModule,
   MatInputModule,
   MatDialogModule,
   MatCheckboxModule,
@@ -37,7 +41,7 @@ const moduleList = [
   MatRippleModule,
   MatCardModule,
   MatChipsModule,
-  MatTooltipModule
+  MatTooltipModule,
 ]
 
 @NgModule({

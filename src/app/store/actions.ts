@@ -52,3 +52,6 @@ export const colonizeRequest = createAction('[Star View] Colonize request',
 export const colonizeOK = createAction('[Star View] Colonize ok',
   props<{ game: Game }>());
 
+export const updateTaxRate = createAction('[KPI bar] Update tax rate',
+  props<{ newTaxRate: number }>());
+

@@ -12,6 +12,7 @@ import {
   startGame,
   turnOK,
   updateGame,
+  updateTaxRate,
 } from './actions';
 
 export type AppState = {
@@ -86,6 +87,18 @@ export const gameReducer = createReducer(
 			id: server.id,
 			name: server.name,
 			url: server.url
+		}
+	})),
+  on(updateTaxRate, (state, { newTaxRate }) => ({
+		...state, currentGame: {
+		  ...state.currentGame,
+			players: [
+        {
+          ...state.currentGame.players[0],
+          taxRate: newTaxRate
+        },
+        ...state.currentGame.players.slice(1)
+      ]
 		}
 	})),
 );

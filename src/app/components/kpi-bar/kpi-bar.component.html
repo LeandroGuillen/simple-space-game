@@ -1,7 +1,7 @@
 <section>
   <div class="kpis">
     <ssg-kpi matTooltip="Date" icon="event" [value]="3500.0" [disabled]="true"></ssg-kpi>
-    <ssg-kpi matTooltip="Treasury" icon="savings" [value]="treasury | async"></ssg-kpi>
+    <ssg-kpi (click)="taxDialog()"  matTooltip="Treasury" icon="savings" [value]="treasury | async"></ssg-kpi>
     <ssg-kpi matTooltip="Command points" icon="join_inner" [value]="6" [disabled]="true"></ssg-kpi>
     <ssg-kpi matTooltip="Food" icon="dinner_dining" [value]="20" [disabled]="true"></ssg-kpi>
     <ssg-kpi matTooltip="Freighters" icon="local_shipping" [value]="0" [disabled]="true"></ssg-kpi>

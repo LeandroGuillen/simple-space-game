@@ -5,14 +5,10 @@ import { EMPTY, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { Server } from '../../model/model';
-import { connectToServer, startGame, turnRequest } from '../../store/actions';
+import { connectToServer, startGame } from '../../store/actions';
 import { AppState } from '../../store/reducers';
-import {
-  selectCurrentGameID,
-  selectPlayerTreasury,
-  selectServer,
-  selectServerName,
-} from '../../store/selectors';
+import { selectCurrentGameID, selectServerName } from '../../store/selectors/game.selectors';
+import { selectServer } from '../../store/selectors/server.selectors';
 
 @Component({
   selector: 'ssg-top-bar',
