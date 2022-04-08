@@ -1,5 +1,4 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 
@@ -9,7 +8,6 @@ import { MatTableDataSource } from '@angular/material/table';
   styleUrls: ['./ship-design-table.component.scss'],
 })
 export class ShipDesignTableComponent implements OnInit {
-  filtersForm: FormGroup;
   dataSource: any; //MatTableDataSource;
 
   columns = [
@@ -20,13 +18,6 @@ export class ShipDesignTableComponent implements OnInit {
   displayedColumns = this.columns.map((c) => c.key);
 
   @ViewChild(MatSort) sort!: MatSort;
-
-  constructor(readonly fb: FormBuilder) {
-    this.filtersForm = fb.group({
-      combat: { value: true, disabled: true },
-      support: { value: true, disabled: true },
-    });
-  }
 
   ngOnInit(): void {
     this.dataSource = new MatTableDataSource([

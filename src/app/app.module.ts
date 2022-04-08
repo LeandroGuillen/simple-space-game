@@ -37,6 +37,7 @@ import { RoutesModule } from './routes.module';
 import { GameEffects } from './store/effects';
 import { CustomSerializer } from './store/reducer-router';
 import { gameReducer } from './store/reducers';
+import { EditShipDesignDialogComponent } from './pages/fleetsPage/edit-ship-design-dialog/edit-ship-design-dialog.component';
 
 @NgModule({
   declarations: [
@@ -54,6 +55,7 @@ import { gameReducer } from './store/reducers';
     FleetTableComponent,
     ShipDesignTableComponent,
     ShipDesignComponent,
+    EditShipDesignDialogComponent,
   ],
   imports: [
     // angular
