@@ -12,6 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
@@ -43,12 +44,12 @@ const moduleList = [
   MatCardModule,
   MatChipsModule,
   MatTooltipModule,
-  MatTabsModule
-]
+  MatTabsModule,
+  MatRadioModule,
+];
 
 @NgModule({
   imports: moduleList,
   exports: moduleList,
 })
-export class MaterialModule {
-}
+export class MaterialModule {}

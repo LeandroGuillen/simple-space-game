@@ -1,0 +1,22 @@
+:host {
+  display: block;
+  margin: 1rem;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+
+  width: 30%;
+}
+
+.hull-size-radio-group {
+  display: flex;
+  flex-direction: column;
+  margin: 15px 0;
+  align-items: flex-start;
+}
+
+.hull-size-radio-button {
+  margin: 5px;
+}

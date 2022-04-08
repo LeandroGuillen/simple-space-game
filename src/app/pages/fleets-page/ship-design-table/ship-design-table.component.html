@@ -1,0 +1,19 @@
+<table id="fleetTable" [dataSource]="dataSource" class="mat-elevation-z8" mat-table matSort>
+
+  <ng-container *ngFor="let c of columns" [matColumnDef]="c.key">
+    <th *matHeaderCellDef mat-header-cell mat-sort-header>{{c.name}}</th>
+    <td *matCellDef="let d" mat-cell>{{ d[c.key] }}</td>
+  </ng-container>
+
+  <tr *matHeaderRowDef="displayedColumns" mat-header-row></tr>
+  <tr *matRowDef="let row; columns: displayedColumns" mat-row></tr>
+</table>
+
+<section id="controls">
+  <div id="filtersForm" [formGroup]="filtersForm">
+    <mat-checkbox formControlName="combat" [disabled]="true">Combat</mat-checkbox>
+    <mat-checkbox formControlName="support" [disabled]="true">Support</mat-checkbox>
+  </div>
+  <button mat-stroked-button disabled color="primary">Select all</button>
+  <button mat-stroked-button disabled color="primary">Relocate</button>
+</section>

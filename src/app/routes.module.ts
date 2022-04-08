@@ -13,16 +13,18 @@ const routes: Routes = [
   { path: 'server', component: ServerPageComponent },
   { path: 'game', component: GamePageComponent },
   { path: 'stars/:star_id', component: StarViewComponent },
-  { path: 'stars/:star_id/planets/:planet_id', component: PlanetViewComponent },
+  {
+    path: 'stars/:star_id/planets/:planet_id',
+    component: PlanetViewComponent,
+  },
   { path: 'stars', component: StarListPageComponent },
   { path: 'colonies', component: ColoniesPageComponent },
   { path: 'fleets', component: FleetsPageComponent },
-  { path: '**', redirectTo: '/server', },
+  { path: '**', redirectTo: '/server' },
 ];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
-export class RoutingModule {
-}
+export class RoutesModule {}

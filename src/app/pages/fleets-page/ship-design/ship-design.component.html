@@ -1,0 +1,13 @@
+<form [formGroup]="form">
+	<mat-form-field appearance="fill">
+		<mat-label>Name</mat-label>
+		<input matInput formControlName="name">
+	</mat-form-field>
+
+	<label id="hull-size-label">Hull size:</label>
+	<mat-radio-group aria-labelledby="hull-size-label" class="hull-size-radio-group" formControlName="hullsize">
+		<mat-radio-button class="hull-size-radio-button" *ngFor="let hullSize of hullSizes" [value]="hullSize">
+			{{hullSize}}
+		</mat-radio-button>
+	</mat-radio-group>
+</form>

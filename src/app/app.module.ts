@@ -18,18 +18,25 @@ import {
 import { ColoniesPageComponent } from './pages/colonies-page/colonies-page.component';
 import { FleetTableComponent } from './pages/fleets-page/fleet-table/fleet-table.component';
 import { FleetsPageComponent } from './pages/fleets-page/fleets-page.component';
+import {
+  ShipDesignTableComponent,
+} from './pages/fleets-page/ship-design-table/ship-design-table.component';
+import { ShipDesignComponent } from './pages/fleets-page/ship-design/ship-design.component';
 import { GamePageComponent } from './pages/game-page/game-page.component';
-import { NewGameDialogComponent } from './pages/game-page/new-game-dialog/new-game-dialog.component';
+import {
+  NewGameDialogComponent,
+} from './pages/game-page/new-game-dialog/new-game-dialog.component';
 import { PlanetViewComponent } from './pages/planet-view/planet-view.component';
-import { NewServerDialogComponent } from './pages/server-page/new-server-dialog/new-server-dialog.component';
+import {
+  NewServerDialogComponent,
+} from './pages/server-page/new-server-dialog/new-server-dialog.component';
 import { ServerPageComponent } from './pages/server-page/server-page.component';
 import { StarListPageComponent } from './pages/star-list-page/star-list-page.component';
 import { StarViewComponent } from './pages/star-view/star-view.component';
-import { RoutingModule } from './routing.module';
+import { RoutesModule } from './routes.module';
 import { GameEffects } from './store/effects';
 import { CustomSerializer } from './store/reducer-router';
 import { gameReducer } from './store/reducers';
-
 
 @NgModule({
   declarations: [
@@ -44,27 +51,31 @@ import { gameReducer } from './store/reducers';
     ColoniesPageComponent,
     ChangeBuildingDialogComponent,
     FleetsPageComponent,
-    FleetTableComponent
+    FleetTableComponent,
+    ShipDesignTableComponent,
+    ShipDesignComponent,
   ],
   imports: [
     // angular
     BrowserModule,
     BrowserAnimationsModule,
-    RoutingModule,
+    RoutesModule,
     HttpClientModule,
     BrowserAnimationsModule,
     MaterialModule,
     ReactiveFormsModule,
     // ngrx
     StoreModule.forRoot({ game: gameReducer, router: routerReducer }),
-    EffectsModule.forRoot([ GameEffects ]),
-    StoreDevtoolsModule.instrument({ maxAge: 25, logOnly: environment.production }),
+    EffectsModule.forRoot([GameEffects]),
+    StoreDevtoolsModule.instrument({
+      maxAge: 25,
+      logOnly: environment.production,
+    }),
     StoreRouterConnectingModule.forRoot({ serializer: CustomSerializer }),
     // other
-    ComponentsModule
+    ComponentsModule,
   ],
   providers: [],
-  bootstrap: [ AppComponent ]
+  bootstrap: [AppComponent],
 })
-export class AppModule {
-}
+export class AppModule {}
