@@ -6,17 +6,42 @@
 form {
   display: flex;
   flex-direction: column;
-
-  width: 30%;
+  gap: 1rem;
 }
 
 .hull-size-radio-group {
   display: flex;
   flex-direction: column;
-  margin: 15px 0;
+  margin: 1.5rem 0;
   align-items: flex-start;
 }
 
 .hull-size-radio-button {
-  margin: 5px;
+  margin: 0.5rem;
+}
+
+#ship-details {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+
+  .col {
+    display: flex;
+    flex-direction: column;
+    width: 30%;
+    gap: 0.5rem;
+  }
+
+  ul {
+    margin-top: 0;
+  }
+
+  mat-divider {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+}
+
+small {
+  text-align: center;
 }

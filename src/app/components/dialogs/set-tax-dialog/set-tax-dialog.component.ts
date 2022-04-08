@@ -10,29 +10,30 @@ import { selectTaxRate } from 'src/app/store/selectors/player.selectors';
 @Component({
   selector: 'ssg-set-tax-dialog',
   templateUrl: './set-tax-dialog.component.html',
-  styleUrls: ['./set-tax-dialog.component.scss']
+  styleUrls: ['./set-tax-dialog.component.scss'],
 })
-export class SetTaxDialogComponent implements OnInit{
+export class SetTaxDialogComponent implements OnInit {
   taxRateControl = new FormControl();
 
   constructor(
     public dialogRef: MatDialogRef<SetTaxDialogComponent>,
     private readonly store: Store<AppState>,
-    @Inject(MAT_DIALOG_DATA) public data: any,
-  ) { }
+    @Inject(MAT_DIALOG_DATA) public data: any
+  ) {}
 
-  ngOnInit(){
-    this.store.select(selectTaxRate).pipe(tap(taxRate => {
-      this.taxRateControl.setValue(taxRate+'');
-    })).subscribe();
+  ngOnInit() {
+    this.store
+      .select(selectTaxRate)
+      .pipe(
+        tap((taxRate) => {
+          this.taxRateControl.setValue(taxRate + '');
+        })
+      )
+      .subscribe();
 
-    this.taxRateControl.valueChanges.subscribe(newVal => {
+    this.taxRateControl.valueChanges.subscribe((newVal) => {
       const newTaxRate = parseInt(newVal);
-      this.store.dispatch(updateTaxRate({newTaxRate}));
-    })
-  }
-
-  ok(): void {
-    this.dialogRef.close();
+      this.store.dispatch(updateTaxRate({ newTaxRate }));
+    });
   }
 }

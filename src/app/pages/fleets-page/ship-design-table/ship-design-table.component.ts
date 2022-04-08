@@ -23,8 +23,8 @@ export class ShipDesignTableComponent implements OnInit {
 
   constructor(readonly fb: FormBuilder) {
     this.filtersForm = fb.group({
-      combat: true,
-      support: true,
+      combat: { value: true, disabled: true },
+      support: { value: true, disabled: true },
     });
   }
 
