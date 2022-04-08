@@ -1,28 +1,38 @@
+<h1>Stars</h1>
+
 <div [formGroup]="form">
   <mat-slide-toggle formControlName="asTable" [color]="'accent'">
     See as table
   </mat-slide-toggle>
 </div>
 
-<ssg-galaxy-view *ngIf="galaxy && !showTable" [galaxy]="galaxy"></ssg-galaxy-view>
+<ssg-galaxy-view
+  *ngIf="galaxy && !showTable"
+  [galaxy]="galaxy"
+></ssg-galaxy-view>
 
-<table *ngIf="showTable" [dataSource]="dataSource" class="mat-elevation-z8" mat-table matSort>
+<table
+  *ngIf="showTable"
+  [dataSource]="dataSource"
+  class="mat-elevation-z8"
+  mat-table
+  matSort
+>
   <ng-container matColumnDef="id">
     <th *matHeaderCellDef mat-header-cell mat-sort-header>ID</th>
-    <td *matCellDef="let star" mat-cell>{{star.id}}</td>
+    <td *matCellDef="let star" mat-cell>{{ star.id }}</td>
   </ng-container>
 
   <ng-container matColumnDef="name">
     <th *matHeaderCellDef mat-header-cell mat-sort-header>Name</th>
     <td *matCellDef="let star" mat-cell>
-
-      <a routerLink="/stars/{{star.id}}">{{star.name}}</a>
+      <a routerLink="/stars/{{ star.id }}">{{ star.name }}</a>
     </td>
   </ng-container>
 
   <ng-container matColumnDef="position">
     <th *matHeaderCellDef mat-header-cell mat-sort-header>Position</th>
-    <td *matCellDef="let star" mat-cell>({{star.x}}, {{star.y}})</td>
+    <td *matCellDef="let star" mat-cell>({{ star.x }}, {{ star.y }})</td>
   </ng-container>
 
   <ng-container matColumnDef="color">
@@ -34,9 +44,9 @@
 
   <ng-container matColumnDef="numPlanets">
     <th *matHeaderCellDef mat-header-cell mat-sort-header>Number of Planets</th>
-    <td *matCellDef="let star" mat-cell>{{star.planets.length}}</td>
+    <td *matCellDef="let star" mat-cell>{{ star.planets.length }}</td>
   </ng-container>
 
   <tr *matHeaderRowDef="displayedColumns" mat-header-row></tr>
-  <tr *matRowDef="let row; columns: displayedColumns;" mat-row></tr>
+  <tr *matRowDef="let row; columns: displayedColumns" mat-row></tr>
 </table>
