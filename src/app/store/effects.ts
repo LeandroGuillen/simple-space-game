@@ -14,7 +14,7 @@ export class GameEffects {
       mergeMap(req => this.gameService.newGame(req)),
       switchMap(gameID => [
         actions.newGameOK({ gameID }),
-        // actions.startGame({ gameID })
+        actions.startGame({ gameID }),
       ]),
       catchError(() => EMPTY)
     )
