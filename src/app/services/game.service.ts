@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { Observable, throwError } from 'rxjs';
-import { filter, map, switchMap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { filter, map } from 'rxjs/operators';
 
 import { BEPlanet } from '../model/be-model';
 import { mapGalaxy, mapPlanet } from '../model/mapper';
@@ -64,6 +64,12 @@ export class GameService {
         window.localStorage.setItem('currentServerHost', '');
         throw new Error(`cannot connect to '${server.url}'`);
       })
+    )
+  }
+
+  checkServerHealth(server: Server): Observable<boolean> {
+    return this.http.get<{ ok: boolean }>(`${server.url}/status`).pipe(
+      map(res => res.ok)
     )
   }
 

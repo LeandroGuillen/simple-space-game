@@ -4,22 +4,12 @@
   </button>
 
   <mat-menu #menu="matMenu">
-    <button
-      mat-menu-item
-      routerLink="/server"
-      matTooltip="Switch to another server"
-      matTooltipPosition="right"
-    >
+    <button mat-menu-item routerLink="/server" matTooltip="Switch to another server" matTooltipPosition="right">
       Servers
     </button>
     <button mat-menu-item disabled>Playing on: {{ serverName | async }}</button>
     <mat-divider></mat-divider>
-    <button
-      mat-menu-item
-      routerLink="/game"
-      matTooltip="See games on this server"
-      matTooltipPosition="right"
-    >
+    <button mat-menu-item routerLink="/game" matTooltip="See games on this server" matTooltipPosition="right">
       Games
     </button>
     <mat-divider></mat-divider>
@@ -39,6 +29,6 @@
   <span class="spacer"></span>
 
   <mat-chip-list>
-    <mat-chip>current game: {{ gameID | async }}</mat-chip>
+    <mat-chip *ngIf="gameID | async as gid">current game: {{ gid }}</mat-chip>
   </mat-chip-list>
 </mat-toolbar>

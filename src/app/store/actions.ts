@@ -17,6 +17,10 @@ export const connectToServer = createAction('[Server Page] Connect to server',
   props<{ server: Server }>()
 );
 export const serverConnectionSuccess = createAction('[Server Page] Server connected succesfully', props<{ server: Server }>())
+export const checkServerHealth = createAction('[Server Page] Check server health',
+props<{ server: Server }>()
+);
+export const serverHealthOk = createAction('[Server Page] Server health OK', props<{ ok: boolean }>())
 
 export const newGameRequest = createAction('[Game Page] New game request',
   props<NewGameRequest>()

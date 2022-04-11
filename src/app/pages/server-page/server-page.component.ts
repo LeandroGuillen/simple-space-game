@@ -14,7 +14,7 @@ import { NewServerDialogComponent } from './new-server-dialog/new-server-dialog.
 @Component({
   selector: 'ssg-server-page',
   templateUrl: './server-page.component.html',
-  styleUrls: [ './server-page.component.scss' ]
+  styleUrls: ['./server-page.component.scss'],
 })
 export class ServerPageComponent implements OnInit {
   servers!: Observable<Server[]>;
@@ -25,16 +25,22 @@ export class ServerPageComponent implements OnInit {
     private readonly dialog: MatDialog,
     private readonly serverManager: ServerManagerService,
     private readonly store: Store<AppState>
-  ) { }
+  ) {}
 
   ngOnInit(): void {
-    this.servers = this.serverManager.getServerList().pipe(tap(servers => {
-      this.numServers = servers.length;
-    }));
+    this.servers = this.serverManager.getServerList().pipe(
+      tap(servers => {
+        this.numServers = servers.length;
+      })
+    );
+
+    this.serverManager.refreshServerList();
   }
 
   openNewServerDialog(): void {
-    this.dialog.open(NewServerDialogComponent).afterClosed()
+    this.dialog
+      .open(NewServerDialogComponent)
+      .afterClosed()
       .pipe(filter(newServer => !!newServer))
       .subscribe(newServer => {
         this.serverManager.addServer(newServer.name, newServer.url);
@@ -45,12 +51,11 @@ export class ServerPageComponent implements OnInit {
     this.serverManager.connectTo(server);
 
     this.store.select(selectServer).subscribe(() => {
-      this.route.navigate([ 'game' ]);
+      this.route.navigate(['game']);
     });
   }
 
   removeServer(server: Server) {
     this.serverManager.removeServer(server);
   }
-
 }
