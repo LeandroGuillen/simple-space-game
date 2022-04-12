@@ -38,6 +38,7 @@ import { GameEffects } from './store/effects';
 import { CustomSerializer } from './store/reducer-router';
 import { gameReducer } from './store/reducers';
 import { EditShipDesignDialogComponent } from './pages/fleetsPage/edit-ship-design-dialog/edit-ship-design-dialog.component';
+import { ServerStatusIconComponent } from './pages/server-page/server-status-icon/server-status-icon.component';
 
 @NgModule({
   declarations: [
@@ -56,6 +57,7 @@ import { EditShipDesignDialogComponent } from './pages/fleetsPage/edit-ship-desi
     ShipDesignTableComponent,
     ShipDesignComponent,
     EditShipDesignDialogComponent,
+    ServerStatusIconComponent,
   ],
   imports: [
     // angular

@@ -8,6 +8,7 @@
   <mat-list-item *ngFor="let s of servers | async">
     <h3 matLine>{{s.name}}</h3>
     <p matLine>
+      <ssg-server-status-icon [status]="false"></ssg-server-status-icon>
       <span>{{s.url}} </span>
       <strong>({{s.id.split('-')[0]}})</strong>
     </p>

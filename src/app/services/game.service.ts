@@ -14,23 +14,25 @@ import { selectCurrentGameID } from '../store/selectors/game.selectors';
 type NewGameResponse = {
   ok: boolean;
   gameID: string;
-}
+};
 
 export type GameListResponseItem = {
   game_id: string;
   num_stars: number;
-}
+};
 export type GameListResponse = {
   game_list: GameListResponseItem[];
-}
+};
 
-@Injectable({ providedIn: "root" })
+@Injectable({ providedIn: 'root' })
 export class GameService {
   private currentGameID: string;
   #host: string;
 
-  constructor(private readonly http: HttpClient,
-    private readonly store: Store<AppState>) {
+  constructor(
+    private readonly http: HttpClient,
+    private readonly store: Store<AppState>
+  ) {
     this.#host = window.localStorage.getItem('currentServerHost') || '';
 
     this.currentGameID = window.localStorage.getItem('currentGameID') || '';
@@ -42,7 +44,7 @@ export class GameService {
       } else {
         this.currentGameID = window.localStorage.getItem('currentGameID') || '';
       }
-    })
+    });
   }
 
   establishConnection(server: Server): Observable<Server> {
@@ -64,13 +66,13 @@ export class GameService {
         window.localStorage.setItem('currentServerHost', '');
         throw new Error(`cannot connect to '${server.url}'`);
       })
-    )
+    );
   }
 
   checkServerHealth(server: Server): Observable<boolean> {
-    return this.http.get<{ ok: boolean }>(`${server.url}/status`).pipe(
-      map(res => res.ok)
-    )
+    return this.http
+      .get<{ ok: boolean }>(`${server.url}/status`)
+      .pipe(map(res => res.ok));
   }
 
   getGalaxy(gameID: string): Observable<Game> {
@@ -79,38 +81,46 @@ export class GameService {
         g.galaxy = mapGalaxy(g.galaxy);
         window.localStorage.setItem('currentGameID', gameID);
         return g;
-      }))
+      })
+    );
   }
 
   colonize(ownerID: number, planetID: number): Observable<Game> {
-    const url = `${this.#host}/action/${ownerID}/colonize/${planetID}`
-    return this.http.post<{ game: Game }>(url, { game_id: this.currentGameID })
+    const url = `${this.#host}/action/${ownerID}/colonize/${planetID}`;
+    return this.http
+      .post<{ game: Game }>(url, { game_id: this.currentGameID })
       .pipe(map(({ game }) => game));
   }
 
   turn(): Observable<Game> {
-    return this.http.post<{ ok: boolean, game: Game }>(`${this.#host}/turn`, {
-      game_id: this.currentGameID,
-      player_id: 1
-    }).pipe(map(res => res.game));
+    return this.http
+      .post<{ ok: boolean; game: Game }>(`${this.#host}/turn`, {
+        game_id: this.currentGameID,
+        player_id: 1,
+      })
+      .pipe(map(res => res.game));
   }
 
   newGame(newGameRequest: NewGameRequest): Observable<string> {
-    return this.http.post<NewGameResponse>(`${this.#host}/games`, newGameRequest).pipe(
-      map(res => {
-        if (!res.ok) {
-          throw new Error('could not create game');
-        }
-        return res.gameID;
-      })
-    )
+    return this.http
+      .post<NewGameResponse>(`${this.#host}/games`, newGameRequest)
+      .pipe(
+        map(res => {
+          if (!res.ok) {
+            throw new Error('could not create game');
+          }
+          return res.gameID;
+        })
+      );
   }
 
   getGameList(): Observable<GameListResponseItem[]> {
     return this.http.get<GameListResponse>(`${this.#host}/games`).pipe(
-      map(res => res.game_list.sort((a, b) => {
-        return a.game_id.localeCompare(b.game_id)
-      })),
+      map(res =>
+        res.game_list.sort((a, b) => {
+          return a.game_id.localeCompare(b.game_id);
+        })
+      )
     );
   }
 
@@ -118,19 +128,30 @@ export class GameService {
     const getColonyListRequest = {
       game_id: this.currentGameID,
       player_id: 1,
-    }
-    return this.http.post<BEPlanet[]>(`${this.#host}/colonies`, getColonyListRequest)
-      .pipe(map(planets => planets.map(mapPlanet)))
+    };
+    return this.http
+      .post<BEPlanet[]>(`${this.#host}/colonies`, getColonyListRequest)
+      .pipe(map(planets => planets.map(mapPlanet)));
   }
 
-  changeBuilding(planetID: number, buildingID: number): Observable<{ planetID: number, buildingID: number }> {
+  changeBuilding(
+    planetID: number,
+    buildingID: number
+  ): Observable<{ planetID: number; buildingID: number }> {
     const changeBuildingRequest = {
       game_id: this.currentGameID,
       owner_id: 1,
       planet_id: planetID,
       building_id: buildingID,
-    }
-    return this.http.post<{ ok: boolean }>(`${this.#host}/colonies/build`, changeBuildingRequest)
-      .pipe(filter(res => res.ok), map(() => ({ planetID, buildingID })))
+    };
+    return this.http
+      .post<{ ok: boolean }>(
+        `${this.#host}/colonies/build`,
+        changeBuildingRequest
+      )
+      .pipe(
+        filter(res => res.ok),
+        map(() => ({ planetID, buildingID }))
+      );
   }
 }
