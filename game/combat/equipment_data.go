@@ -1,6 +1,8 @@
 package combat
 
-import "ssg/game/combat/computers"
+import (
+	"ssg/game/combat/computers"
+)
 
 var HullSizes = []HullSize{
 	{"Frigate", 25, 4, 10, 4, 1, 2, 1},

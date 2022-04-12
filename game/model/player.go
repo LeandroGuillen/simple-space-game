@@ -1,5 +1,7 @@
 package model
 
+import "ssg/game/combat"
+
 type Player struct {
 	ID   uint   `json:"id"`
 	Name string `json:"name"`
@@ -13,4 +15,6 @@ type Player struct {
 	Fleets         []uint `json:"fleets"`
 	Freighters     uint   `json:"freighters"`
 	FreightersUsed uint   `json:"freighters_used"`
+
+	ShipDesigns []combat.ShipDesign `json:"ship_designs"`
 }

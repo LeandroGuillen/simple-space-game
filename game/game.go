@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"ssg/data"
 	"ssg/game/builder"
+	"ssg/game/combat"
 	"ssg/game/model"
 
 	"github.com/google/uuid"
@@ -149,4 +150,16 @@ func (g *Game) BuildOnPlanet(planetID, ownerID, buildingID uint) error {
 	b := data.Buildings[buildingID]
 	p.Build(b)
 	return nil
+}
+
+func (g *Game) GetShipDesignsList(playerID uint) ([]*combat.ShipDesign, error) {
+	if player, err := g.getPlayer(playerID); err != nil {
+		return nil, err
+	} else {
+		shipDesigns := make([]*combat.ShipDesign, len(player.ShipDesigns))
+		for _, design := range player.ShipDesigns {
+			shipDesigns = append(shipDesigns, &design)
+		}
+		return shipDesigns, nil
+	}
 }

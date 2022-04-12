@@ -22,6 +22,10 @@ type GameListResponseItem struct {
 	NumStars int    `json:"num_stars"`
 }
 
+type GetGalaxyRequest struct {
+	GameID string `uri:"gameID" binding:"required" json:"game_id"`
+}
+
 func NewGame(c *gin.Context) {
 	var req NewGameRequest
 	_ = c.Bind(&req)
@@ -61,10 +65,6 @@ func GetGameList(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"game_list": gameList})
-}
-
-type GetGalaxyRequest struct {
-	GameID string `uri:"gameID" binding:"required" json:"game_id"`
 }
 
 func GetGame(c *gin.Context) {

@@ -48,6 +48,8 @@ func NewServer() *Server {
 
 	r.POST("/action/:owner/colonize/:planet", ColonizePlanet)
 
+	r.POST("/shipdesigns", GetShipDesignList)
+
 	server.router = r
 	return server
 }
