@@ -9,8 +9,11 @@
 <small *ngIf="!numGames">No games in this server, create one to get started.</small>
 <mat-list *ngIf="currentGameID | async as gameID">
   <mat-list-item *ngFor="let game of gameList | async">
-    <h3 [ngClass]="{currentGame: gameID===game.game_id}" matLine>{{game.game_id.substring(0, 8)}}</h3>
-    <span matLine>{{game.num_stars}} <mat-icon>star</mat-icon></span>
+    <div matLine class="game-line" [ngClass]="{currentGame: gameID===game.game_id}">
+      <span>{{game.game_id.substring(0, 8)}}</span>
+      <span>{{game.num_stars}} <mat-icon>star</mat-icon></span>
+
+    </div>
 
     <div class="item-buttons">
       <button [disabled]="gameID===game.game_id" (click)="startGame(game.game_id)" mat-stroked-button>PLAY</button>

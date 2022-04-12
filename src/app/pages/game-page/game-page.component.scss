@@ -21,3 +21,8 @@ mat-list {
 .currentGame {
   color: darkgreen;
 }
+
+.mat-line.game-line {
+  display: flex;
+  justify-content: space-between;
+}
