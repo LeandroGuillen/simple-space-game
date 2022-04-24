@@ -26,21 +26,21 @@ func readHeaders(header http.Header) (gameID string, playerID uint, err error) {
 	return
 }
 
-func getGameHandle(c *gin.Context, gameID string) (g *game.Game, err error) {
+func getGameHandle(c *gin.Context, gameID string) (g *game.Game, s *Server, err error) {
 	rawServer, serverExists := c.Get("server")
 	if !serverExists {
 		const msg = "server object was not created"
 		c.JSON(http.StatusInternalServerError, gin.H{"message": msg})
-		return nil, errors.New(msg)
+		return nil, nil, errors.New(msg)
 	}
 
-	s := rawServer.(*Server)
+	s = rawServer.(*Server)
 	g, gameFound := s.GameList[gameID]
 	if !gameFound {
 		msg := fmt.Sprintf("game with id %s was not found", gameID)
 		c.JSON(http.StatusNotFound, gin.H{"message": msg})
-		return nil, errors.New(msg)
+		return nil, nil, errors.New(msg)
 	}
 
-	return g, nil
+	return g, s, nil
 }

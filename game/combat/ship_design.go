@@ -6,16 +6,16 @@ import (
 )
 
 type ShipDesign struct {
-	Name           string
-	Weapons        []weapons.Weapon
-	SpecialSystems []SpecialSystem
-	BaseSpace      int64
-	Drive
-	computers.Computer
-	Shield
-	Armor
-	HullSize
-	FuelCell
+	Name               string           `json:"name"`
+	Weapons            []weapons.Weapon `json:"weapons"`
+	SpecialSystems     []SpecialSystem  `json:"special_systems"`
+	BaseSpace          int64            `json:"base_space"`
+	Drive              `json:"drive"`
+	computers.Computer `json:"computer"`
+	Shield             `json:"shield"`
+	Armor              `json:"armor"`
+	HullSize           `json:"hull_size"`
+	FuelCell           `json:"fuel_cell"`
 }
 
 func NewShipDesign(

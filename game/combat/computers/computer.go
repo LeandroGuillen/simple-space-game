@@ -3,8 +3,8 @@ package computers
 import "math"
 
 type Computer struct {
-	Name            string
-	BeamAttackBonus int64
+	Name            string `json:"name"`
+	BeamAttackBonus int64  `json:"beam_attack_bonus"`
 }
 
 // GetChanceToHit calculates the chance to hit.

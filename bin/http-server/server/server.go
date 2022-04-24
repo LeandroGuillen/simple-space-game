@@ -2,6 +2,7 @@ package server
 
 import (
 	"log"
+	"ssg/bin/http-server/server/ws"
 	"ssg/game"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 type Server struct {
 	GameList map[string]*game.Game
 	router   *gin.Engine
+	hub      *ws.Hub
 }
 
 func AddGameState(s *Server) gin.HandlerFunc {
@@ -33,8 +35,11 @@ func NewServer() *Server {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	server := &Server{}
-	server.GameList = make(map[string]*game.Game)
+	server := &Server{
+		GameList: make(map[string]*game.Game),
+		hub:      ws.NewHub(),
+	}
+
 	r.Use(AddGameState(server))
 
 	r.GET("/status", Status)
@@ -55,6 +60,14 @@ func NewServer() *Server {
 
 		resources.GET("/shipparts", GetShipPartsList)
 	}
+
+	r.GET("/turn2", Turn2)
+
+	r.GET("/gameupdater", func(c *gin.Context) {
+		ws.Handler(server.hub, c)
+	})
+
+	go server.hub.Run()
 
 	server.router = r
 	return server

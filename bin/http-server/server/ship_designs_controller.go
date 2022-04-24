@@ -18,7 +18,7 @@ func GetShipDesignList(c *gin.Context) {
 		return
 	}
 
-	g, err := getGameHandle(c, gameID)
+	g, _, err := getGameHandle(c, gameID)
 	if err != nil {
 		return
 	}
@@ -48,7 +48,7 @@ func CreateShipDesign(c *gin.Context) {
 		return
 	}
 
-	g, err := getGameHandle(c, gameID)
+	g, _, err := getGameHandle(c, gameID)
 	if err != nil {
 		return
 	}
@@ -84,7 +84,7 @@ func GetShipPartsList(c *gin.Context) {
 		return
 	}
 
-	g, err := getGameHandle(c, gameID)
+	g, _, err := getGameHandle(c, gameID)
 	if err != nil {
 		return
 	}
