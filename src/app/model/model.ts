@@ -1,3 +1,5 @@
+import { BEShipDesigns } from './combat';
+
 export type Player = {
   id: number;
   name: string;
@@ -11,13 +13,15 @@ export type Player = {
   fleets: number[];
   freighters: number;
   freightersUsed: number;
-}
+
+  shipDesigns: BEShipDesigns[];
+};
 
 export type Game = {
   galaxy: Galaxy;
   players: Player[];
   id: string;
-}
+};
 
 export type Galaxy = {
   stars: Star[];
@@ -35,11 +39,30 @@ export type Star = {
   numPlanets: number;
 };
 
-export enum PlanetSize { INVALID, TINY, SMALL, MEDIUM, LARGE, HUGE }
+export enum PlanetSize {
+  INVALID,
+  TINY,
+  SMALL,
+  MEDIUM,
+  LARGE,
+  HUGE,
+}
 
-export enum PlanetGravity { INVALID, LOW, NORMAL, HIGH }
+export enum PlanetGravity {
+  INVALID,
+  LOW,
+  NORMAL,
+  HIGH,
+}
 
-export enum PlanetMineral { INVALID, ULTRAPOOR, POOR, ABUNDANT, RICH, ULTRARICH }
+export enum PlanetMineral {
+  INVALID,
+  ULTRAPOOR,
+  POOR,
+  ABUNDANT,
+  RICH,
+  ULTRARICH,
+}
 
 export enum PlanetEnvironment {
   INVALID,
@@ -89,28 +112,28 @@ export type Building = {
   name: string;
   cost: number;
   maintenance: number;
-}
+};
 
 export function emptyGame(): Game {
   return {
     id: '',
     players: [],
     galaxy: {
-      stars: []
+      stars: [],
     },
-  }
+  };
 }
 
 export type Server = {
   id: string;
   name: string;
   url: string;
-}
+};
 
 export function emptyServer(): Server {
   return {
     id: '',
     name: '',
     url: '',
-  }
+  };
 }
