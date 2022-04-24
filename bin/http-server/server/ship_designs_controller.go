@@ -27,7 +27,7 @@ func GetShipDesignList(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	} else {
-		c.JSON(http.StatusOK, gin.H{"ship_designs": shipDesignsList})
+		c.JSON(http.StatusOK, shipDesignsList)
 	}
 }
 
@@ -74,5 +74,25 @@ func CreateShipDesign(c *gin.Context) {
 		return
 	} else {
 		c.JSON(http.StatusCreated, gin.H{"ok": true})
+	}
+}
+
+func GetShipPartsList(c *gin.Context) {
+	gameID, _, err := readHeaders(c.Request.Header)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	g, err := getGameHandle(c, gameID)
+	if err != nil {
+		return
+	}
+
+	if shipPartsList, err := g.GetShipPartsList(); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	} else {
+		c.JSON(http.StatusOK, shipPartsList)
 	}
 }

@@ -52,6 +52,8 @@ func NewServer() *Server {
 	{
 		resources.GET("/shipdesigns", GetShipDesignList)
 		resources.POST("/shipdesigns", CreateShipDesign)
+
+		resources.GET("/shipparts", GetShipPartsList)
 	}
 
 	server.router = r

@@ -6,6 +6,7 @@ import (
 	"ssg/data"
 	"ssg/game/builder"
 	"ssg/game/combat"
+	"ssg/game/combat/computers"
 	"ssg/game/combat/weapons"
 	"ssg/game/model"
 
@@ -193,4 +194,26 @@ func (g *Game) CreateShipDesign(
 		player.ShipDesigns = append(player.ShipDesigns, basicDesign)
 		return nil
 	}
+}
+
+type PartListResponse struct {
+	HullSizes []combat.HullSize    `json:"hull_sizes"`
+	Drives    []combat.Drive       `json:"drives"`
+	Armors    []combat.Armor       `json:"armors"`
+	Computers []computers.Computer `json:"computers"`
+	FuelCells []combat.FuelCell    `json:"fuel_cells"`
+	Shields   []combat.Shield      `json:"shields"`
+}
+
+func (g *Game) GetShipPartsList() (PartListResponse, error) {
+	var response PartListResponse = PartListResponse{
+		HullSizes: combat.HullSizes,
+		Drives:    combat.Drives,
+		Armors:    combat.Armors,
+		Computers: combat.Computers,
+		FuelCells: combat.FuelCells,
+		Shields:   combat.Shields,
+	}
+
+	return response, nil
 }

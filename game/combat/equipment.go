@@ -3,44 +3,44 @@ package combat
 //https://gamefaqs.gamespot.com/pc/197873-master-of-orion-ii-battle-at-antares/faqs/16743
 
 type HullSize struct {
-	Name      string
-	Space     int64
-	Marines   int64
-	BaseSpeed int64 // squares/turn
+	Name      string `json:"name"`
+	Space     int64  `json:"space"`
+	Marines   int64  `json:"marines"`
+	BaseSpeed int64  `json:"base_speed"` // squares/turn
 
 	// hit points
-	BaseHP     int64
-	ComputerHP int64
-	DriveHP    int64
-	ShieldHP   int64
+	BaseHP     int64 `json:"base_hp"`
+	ComputerHP int64 `json:"computer_hp"`
+	DriveHP    int64 `json:"drive_hp"`
+	ShieldHP   int64 `json:"shield_hp"`
 }
 
 type Drive struct {
-	Name              string
-	InterstellarSpeed int64 // parsecs/turn
-	CombatSpeed       int64 // squares/turn
+	Name              string `json:"name"`
+	InterstellarSpeed int64  `json:"interstellar_speed"` // parsecs/turn
+	CombatSpeed       int64  `json:"combat_speed"`       // squares/turn
 }
 
 type Armor struct {
-	Name                string
-	Multiplier          int64
-	GroundTroopStrength int64
+	Name                string `json:"name"`
+	Multiplier          int64  `json:"multiplier"`
+	GroundTroopStrength int64  `json:"ground_troop_strength"`
 }
 
 type FuelCell struct {
-	Name     string
-	Autonomy int64 // in parsecs
+	Name     string `json:"name"`
+	Autonomy int64  `json:"autonomy"` // in parsecs
 }
 
 type Shield struct {
-	Name            string
-	RechargeRate    float64
-	ReduceDamage    int64
-	AbsortionFactor int64 // Absorbes AbsortionFactor * BaseHP
+	Name            string  `json:"name"`
+	RechargeRate    float64 `json:"recharge_rate"`
+	ReduceDamage    int64   `json:"reduce_damage"`
+	AbsortionFactor int64   `json:"absortion_factor"` // Absorbes AbsortionFactor * BaseHP
 }
 
 type ShipSystem struct {
-	Name             string
-	BeamAttackBonus  int64
-	BeamDefenseBonus int64
+	Name             string `json:"name"`
+	BeamAttackBonus  int64  `json:"beam_attack_bonus"`
+	BeamDefenseBonus int64  `json:"beam_defense_bonus"`
 }
