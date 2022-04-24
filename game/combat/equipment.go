@@ -18,7 +18,7 @@ type HullSize struct {
 type Drive struct {
 	Name              string
 	InterstellarSpeed int64 // parsecs/turn
-	CombarSpeed       int64 // squares/turn
+	CombatSpeed       int64 // squares/turn
 }
 
 type Armor struct {

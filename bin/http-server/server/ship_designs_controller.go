@@ -1,10 +1,7 @@
 package server
 
 import (
-	"errors"
-	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,22 +11,6 @@ const (
 	PlayerIDHeader = "Player-Id"
 )
 
-func readHeaders(header http.Header) (gameID string, playerID uint, err error) {
-	if len(header[GameIDHeader]) == 0 {
-		return "", 0, errors.New(fmt.Sprintf("%s header missing", GameIDHeader))
-	}
-	gameID = header[GameIDHeader][0]
-
-	playerIDstring := header[PlayerIDHeader][0]
-	playerID64, err := strconv.ParseUint(playerIDstring, 10, 64)
-	if len(header[PlayerIDHeader]) == 0 {
-		return "", 0, errors.New(fmt.Sprintf("%s header missing", PlayerIDHeader))
-	}
-	playerID = uint(playerID64)
-
-	return
-}
-
 func GetShipDesignList(c *gin.Context) {
 	gameID, playerID, err := readHeaders(c.Request.Header)
 	if err != nil {
@@ -37,18 +18,8 @@ func GetShipDesignList(c *gin.Context) {
 		return
 	}
 
-	rawServer, serverExists := c.Get("server")
-	if !serverExists {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "server object was not created"})
-		return
-	}
-
-	s := rawServer.(*Server)
-	g, gameFound := s.GameList[gameID]
-	if !gameFound {
-		c.JSON(http.StatusNotFound, gin.H{
-			"message": fmt.Sprintf("game with id %s was not found", gameID),
-		})
+	g, err := getGameHandle(c, gameID)
+	if err != nil {
 		return
 	}
 
@@ -57,5 +28,51 @@ func GetShipDesignList(c *gin.Context) {
 		return
 	} else {
 		c.JSON(http.StatusOK, gin.H{"ship_designs": shipDesignsList})
+	}
+}
+
+type CreateShipDesignRequest struct {
+	Name     string `binding:"required" json:"name"`
+	Drive    string `binding:"required" json:"drive"`
+	Computer string `binding:"required" json:"computer"`
+	Shield   string `binding:"required" json:"shield"`
+	Armor    string `binding:"required" json:"armor"`
+	HullSize string `binding:"required" json:"hull_size"`
+	FuelCell string `binding:"required" json:"fuel_cell"`
+}
+
+func CreateShipDesign(c *gin.Context) {
+	gameID, playerID, err := readHeaders(c.Request.Header)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	g, err := getGameHandle(c, gameID)
+	if err != nil {
+		return
+	}
+
+	var req CreateShipDesignRequest
+	if err := c.Bind(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = g.CreateShipDesign(
+		playerID,
+		req.Name,
+		req.Drive,
+		req.Computer,
+		req.Shield,
+		req.Armor,
+		req.HullSize,
+		req.FuelCell,
+	)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	} else {
+		c.JSON(http.StatusCreated, gin.H{"ok": true})
 	}
 }

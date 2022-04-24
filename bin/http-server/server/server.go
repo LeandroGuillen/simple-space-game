@@ -51,6 +51,7 @@ func NewServer() *Server {
 	resources := r.Group("/resources")
 	{
 		resources.GET("/shipdesigns", GetShipDesignList)
+		resources.POST("/shipdesigns", CreateShipDesign)
 	}
 
 	server.router = r

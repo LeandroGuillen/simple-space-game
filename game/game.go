@@ -6,6 +6,7 @@ import (
 	"ssg/data"
 	"ssg/game/builder"
 	"ssg/game/combat"
+	"ssg/game/combat/weapons"
 	"ssg/game/model"
 
 	"github.com/google/uuid"
@@ -157,9 +158,39 @@ func (g *Game) GetShipDesignsList(playerID uint) ([]*combat.ShipDesign, error) {
 		return nil, err
 	} else {
 		shipDesigns := make([]*combat.ShipDesign, len(player.ShipDesigns))
-		for _, design := range player.ShipDesigns {
-			shipDesigns = append(shipDesigns, &design)
+		for i, _ := range player.ShipDesigns {
+			shipDesigns[i] = &player.ShipDesigns[i]
 		}
 		return shipDesigns, nil
+	}
+}
+
+func (g *Game) CreateShipDesign(
+	playerID uint,
+	name,
+	drive,
+	computer,
+	shield,
+	armor,
+	hullSize,
+	fuelCell string) error {
+
+	basicDesign := combat.NewShipDesign(
+		name,
+		[]weapons.Weapon{},
+		[]combat.SpecialSystem{},
+		combat.HullSizes[0],
+		combat.Drives[0],
+		combat.Armors[0],
+		combat.Computers[0],
+		combat.FuelCells[0],
+		combat.Shields[0],
+	)
+
+	if player, err := g.getPlayer(playerID); err != nil {
+		return err
+	} else {
+		player.ShipDesigns = append(player.ShipDesigns, basicDesign)
+		return nil
 	}
 }
