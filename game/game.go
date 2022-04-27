@@ -21,7 +21,7 @@ type Game struct {
 	Galaxy      model.Galaxy    `json:"galaxy"`
 	Players     []*model.Player `json:"players"`
 	ID          string          `json:"id"`
-	CurrentTurn uint64          `json:"current_turn"`
+	CurrentTurn float64         `json:"current_turn"`
 }
 
 func NewGame(playerName string, numStars uint) *Game {
@@ -31,7 +31,7 @@ func NewGame(playerName string, numStars uint) *Game {
 			{ID: 1, Name: playerName},
 		},
 		ID:          uuid.New().String(),
-		CurrentTurn: 0,
+		CurrentTurn: 3500,
 	}
 
 	_ = g.CreateCapitalPlanet(1, 1)
@@ -55,7 +55,7 @@ func (g *Game) Turn(playerID uint) error {
 		colony.Turn()
 	}
 
-	g.CurrentTurn++
+	g.CurrentTurn += 0.1
 	return nil
 }
 
