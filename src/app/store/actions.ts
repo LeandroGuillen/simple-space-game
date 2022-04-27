@@ -58,10 +58,7 @@ export const getGameListOK = createAction(
 );
 
 export const turnRequest = createAction('[Top bar] Turn request');
-export const turnOK = createAction(
-  '[Top bar] Turn ok',
-  props<{ game: Game }>()
-);
+export const turnOK = createAction('[Top bar] Turn ok');
 
 export const changeBuildingRequest = createAction(
   '[Colonies Page] Change building request',

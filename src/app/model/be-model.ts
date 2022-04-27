@@ -1,3 +1,29 @@
+import { BEShipDesigns } from './combat';
+
+export type BEGame = {
+  galaxy: BEGalaxy;
+  players: BEPlayer[];
+  id: string;
+  current_turn: number;
+};
+
+export type BEPlayer = {
+  id: number;
+  name: string;
+
+  race: string;
+
+  treasury: number;
+  taxRate: number;
+  researchPoints: number;
+
+  fleets: number[];
+  freighters: number;
+  freightersUsed: number;
+
+  shipDesigns: BEShipDesigns[];
+};
+
 export type BEGalaxy = {
   stars: BEStar[];
 };
@@ -43,4 +69,4 @@ export type BEBuilding = {
   name: string;
   cost: number;
   maintenance: number;
-}
+};

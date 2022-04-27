@@ -10,7 +10,6 @@ import {
   newGameOK,
   serverConnectionSuccess,
   startGame,
-  turnOK,
   updateGame,
   updateTaxRate,
 } from './actions';
@@ -37,20 +36,15 @@ const initialState: GameState = {
 export const gameReducer = createReducer(
   initialState,
   on(newGameOK, (state, { gameID }) => ({ ...state })),
-  // on(newGameOK, (state, { gameID }) => ({ ...state, currentGameID: gameID })),
   on(getGameListOK, (state, { game_list }) => ({
     ...state,
     gameList: game_list,
   })),
-  // on(startGame, (state, { gameID }) => ({ ...state, currentGameID: gameID })),
   on(startGame, (state, { gameID }) => ({ ...state })),
-  on(turnOK, (state, { game }) => ({ ...state, currentGame: game })),
   on(updateGame, (state, { game }) => {
-    const newGame = JSON.parse(JSON.stringify(game)) as Game;
     return {
       ...state,
-      // currentGameID: newGame.id,
-      currentGame: { ...newGame },
+      currentGame: game,
     };
   }),
   on(changeBuildingOK, (state, foo) => {
@@ -85,6 +79,7 @@ export const gameReducer = createReducer(
       galaxy: game.galaxy,
       id: game.id,
       players: game.players,
+      currentTurn: game.currentTurn,
     },
   })),
   on(serverConnectionSuccess, (state, { server }) => ({

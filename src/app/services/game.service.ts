@@ -92,13 +92,22 @@ export class GameService {
       .pipe(map(({ game }) => game));
   }
 
-  turn(): Observable<Game> {
+  turn(): Observable<boolean> {
     return this.http
-      .post<{ ok: boolean; game: Game }>(`${this.#host}/turn`, {
-        game_id: this.currentGameID,
-        player_id: 1,
+      .get<{ ok: boolean }>(`${this.#host}/turn`, {
+        headers: {
+          'game-id': this.currentGameID,
+          'player-id': '1',
+        },
       })
-      .pipe(map(res => res.game));
+      .pipe(
+        map(res => {
+          if (res.ok) {
+            return true;
+          }
+          throw Error('cannot complete turn');
+        })
+      );
   }
 
   newGame(newGameRequest: NewGameRequest): Observable<string> {

@@ -4,10 +4,19 @@ import { EMPTY } from 'rxjs';
 import { catchError, map, mergeMap, switchMap } from 'rxjs/operators';
 
 import { GameService } from '../services/game.service';
+import { WebsocketService } from '../services/websocket.service';
 import * as actions from './actions';
 
 @Injectable()
 export class GameEffects {
+  websocket$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(actions.serverConnectionSuccess),
+      switchMap(() => this.wsService.getActions()),
+      catchError(() => EMPTY)
+    )
+  );
+
   newGame$ = createEffect(() =>
     this.actions$.pipe(
       ofType(actions.newGameRequest),
@@ -33,7 +42,7 @@ export class GameEffects {
     this.actions$.pipe(
       ofType(actions.turnRequest),
       mergeMap(() => this.gameService.turn()),
-      map(game => actions.turnOK({ game })),
+      map(() => actions.turnOK()),
       catchError(() => EMPTY)
     )
   );
@@ -91,6 +100,7 @@ export class GameEffects {
 
   constructor(
     private readonly actions$: Actions,
-    private readonly gameService: GameService
+    private readonly gameService: GameService,
+    private readonly wsService: WebsocketService
   ) {}
 }

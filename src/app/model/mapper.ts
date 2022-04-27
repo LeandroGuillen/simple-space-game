@@ -1,10 +1,10 @@
-import { BEGalaxy, BEPlanet, BEStar } from './be-model';
-import { Galaxy, Planet, Star } from './model';
+import { BEGalaxy, BEGame, BEPlanet, BEStar } from './be-model';
+import { Galaxy, Game, Planet, Star } from './model';
 
 export function mapGalaxy(g: BEGalaxy): Galaxy {
   return {
-    stars: g.stars.map(mapStar)
-  }
+    stars: g.stars.map(mapStar),
+  };
 }
 
 function mapStar(s: BEStar): Star {
@@ -16,7 +16,7 @@ function mapStar(s: BEStar): Star {
     x: s.x,
     y: s.y,
     numPlanets: s.planets.length,
-  }
+  };
 }
 
 export function mapPlanet(p: BEPlanet): Planet {
@@ -45,5 +45,14 @@ export function mapPlanet(p: BEPlanet): Planet {
     current_project: p.current_project,
     build_list: p.build_list || [],
     buildings: p.buildings || [],
-  }
+  };
+}
+
+export function mapGame(g: BEGame): Game {
+  return {
+    id: g.id,
+    currentTurn: g.current_turn,
+    galaxy: mapGalaxy(g.galaxy),
+    players: g.players,
+  };
 }

@@ -21,6 +21,7 @@ export type Game = {
   galaxy: Galaxy;
   players: Player[];
   id: string;
+  currentTurn: number;
 };
 
 export type Galaxy = {
@@ -121,6 +122,7 @@ export function emptyGame(): Game {
     galaxy: {
       stars: [],
     },
+    currentTurn: 0,
   };
 }
 
