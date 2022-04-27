@@ -25,4 +25,10 @@ mat-list {
 .mat-line.game-line {
   display: flex;
   justify-content: space-between;
+  margin: 0.5rem;
+}
+
+.star-count {
+  display: flex;
+  align-items: end;
 }

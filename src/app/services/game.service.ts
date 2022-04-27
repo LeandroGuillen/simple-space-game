@@ -19,6 +19,7 @@ type NewGameResponse = {
 export type GameListResponseItem = {
   game_id: string;
   num_stars: number;
+  current_turn: number;
 };
 export type GameListResponse = {
   game_list: GameListResponseItem[];

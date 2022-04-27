@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { filter, tap } from 'rxjs/operators';
@@ -8,7 +7,7 @@ import { filter, tap } from 'rxjs/operators';
 import { GameListResponseItem } from '../../services/game.service';
 import * as Actions from '../../store/actions';
 import { AppState } from '../../store/reducers';
-import { selectCurrentGameID, selectGameList, selectServerName } from '../../store/selectors/game.selectors';
+import { selectCurrentGameID, selectGameList, selectServerName, selectTurn } from '../../store/selectors/game.selectors';
 import { NewGameDialogComponent } from './new-game-dialog/new-game-dialog.component';
 
 @Component({
@@ -20,11 +19,11 @@ export class GamePageComponent implements OnInit {
   gameList!: Observable<GameListResponseItem[]>;
   currentGameID!: Observable<string>;
   serverName!: Observable<string>;
+  turn!: Observable<number>;
   numGames = 0;
 
   constructor(
     private readonly dialog: MatDialog,
-    private readonly route: Router,
     private readonly store: Store<AppState>
   ) {}
 
@@ -37,6 +36,7 @@ export class GamePageComponent implements OnInit {
     );
     this.currentGameID = this.store.select(selectCurrentGameID);
     this.serverName = this.store.select(selectServerName);
+    this.turn = this.store.select(selectTurn);
   }
 
   openNewGameDialog(): void {
