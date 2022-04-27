@@ -18,8 +18,9 @@ type GameListResponse struct {
 }
 
 type GameListResponseItem struct {
-	GameID   string `json:"game_id"`
-	NumStars int    `json:"num_stars"`
+	GameID      string  `json:"game_id"`
+	NumStars    int     `json:"num_stars"`
+	CurrentTurn float64 `json:"current_turn"`
 }
 
 type GetGalaxyRequest struct {
@@ -59,8 +60,9 @@ func GetGameList(c *gin.Context) {
 	var gameList = make([]GameListResponseItem, 0)
 	for gameID, g := range s.GameList {
 		gameList = append(gameList, GameListResponseItem{
-			GameID:   gameID,
-			NumStars: len(g.Galaxy.Stars),
+			GameID:      gameID,
+			NumStars:    len(g.Galaxy.Stars),
+			CurrentTurn: g.CurrentTurn,
 		})
 	}
 
