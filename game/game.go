@@ -22,6 +22,8 @@ type Game struct {
 	Players     []*model.Player `json:"players"`
 	ID          string          `json:"id"`
 	CurrentTurn float64         `json:"current_turn"`
+
+	ResourceManager
 }
 
 func NewGame(playerName string, numStars uint) *Game {
@@ -176,16 +178,18 @@ func (g *Game) CreateShipDesign(
 	hullSize,
 	fuelCell string) error {
 
+	parts, _ := g.ResourceManager.GetShipPartsList()
+
 	basicDesign := combat.NewShipDesign(
 		name,
 		[]weapons.Weapon{},
 		[]combat.SpecialSystem{},
-		combat.HullSizes[0],
-		combat.Drives[0],
-		combat.Armors[0],
-		combat.Computers[0],
-		combat.FuelCells[0],
-		combat.Shields[0],
+		parts.HullSizes[0],
+		parts.Drives[0],
+		parts.Armors[0],
+		parts.Computers[0],
+		parts.FuelCells[0],
+		parts.Shields[0],
 	)
 
 	if player, err := g.getPlayer(playerID); err != nil {
@@ -206,14 +210,5 @@ type PartListResponse struct {
 }
 
 func (g *Game) GetShipPartsList() (PartListResponse, error) {
-	var response PartListResponse = PartListResponse{
-		HullSizes: combat.HullSizes,
-		Drives:    combat.Drives,
-		Armors:    combat.Armors,
-		Computers: combat.Computers,
-		FuelCells: combat.FuelCells,
-		Shields:   combat.Shields,
-	}
-
-	return response, nil
+	return g.ResourceManager.GetShipPartsList()
 }

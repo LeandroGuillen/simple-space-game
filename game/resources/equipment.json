@@ -1,0 +1,126 @@
+{
+  "hull_sizes": [
+    {
+      "name": "Frigate",
+      "space": 25,
+      "marines": 4,
+      "base_speed": 10,
+      "base_hp": 4,
+      "computer_hp": 1,
+      "drive_hp": 2,
+      "shield_hp": 1
+    },
+    {
+      "name": "Destroyer",
+      "space": 60,
+      "marines": 8,
+      "base_speed": 8,
+      "base_hp": 10,
+      "computer_hp": 2,
+      "drive_hp": 5,
+      "shield_hp": 2
+    },
+    {
+      "name": "Cruiser",
+      "space": 120,
+      "marines": 12,
+      "base_speed": 6,
+      "base_hp": 30,
+      "computer_hp": 5,
+      "drive_hp": 10,
+      "shield_hp": 6
+    },
+    {
+      "name": "Battleship",
+      "space": 250,
+      "marines": 20,
+      "base_speed": 5,
+      "base_hp": 50,
+      "computer_hp": 7,
+      "drive_hp": 15,
+      "shield_hp": 8
+    },
+    {
+      "name": "Titan",
+      "space": 500,
+      "marines": 30,
+      "base_speed": 4,
+      "base_hp": 80,
+      "computer_hp": 15,
+      "drive_hp": 30,
+      "shield_hp": 15
+    },
+    {
+      "name": "Doomstar",
+      "space": 1200,
+      "marines": 50,
+      "base_speed": 3,
+      "base_hp": 150,
+      "computer_hp": 25,
+      "drive_hp": 50,
+      "shield_hp": 25
+    }
+  ],
+  "drives": [
+    { "name": "Nuclear", "interstellar_speed": 2, "combat_speed": 0 },
+    { "name": "Fusion", "interstellar_speed": 3, "combat_speed": 2 },
+    { "name": "Ion", "interstellar_speed": 4, "combat_speed": 4 },
+    { "name": "Anti-matter", "interstellar_speed": 5, "combat_speed": 5 },
+    { "name": "Hyper", "interstellar_speed": 6, "combat_speed": 8 },
+    { "name": "Interphased", "interstellar_speed": 7, "combat_speed": 10 }
+  ],
+  "armors": [
+    { "name": "Titanium", "multiplier": 1, "ground_troop_strength": 5 },
+    { "name": "Tritanium", "multiplier": 2, "ground_troop_strength": 10 },
+    { "name": "Zortrium", "multiplier": 4, "ground_troop_strength": 15 },
+    { "name": "Neutronium", "multiplier": 6, "ground_troop_strength": 25 },
+    { "name": "Adamantium", "multiplier": 8, "ground_troop_strength": 30 },
+    { "name": "Xentronium", "multiplier": 10, "ground_troop_strength": 40 }
+  ],
+  "computers": [
+    { "name": "Electronic", "beam_attack_bonus": 30 },
+    { "name": "Optronic", "beam_attack_bonus": 60 },
+    { "name": "Positronic", "beam_attack_bonus": 90 },
+    { "name": "Cybertronic", "beam_attack_bonus": 120 },
+    { "name": "Moleculatronic", "beam_attack_bonus": 150 }
+  ],
+  "fuel_cells": [
+    { "name": "Standard", "autonomy": 4 },
+    { "name": "Deuterium", "autonomy": 6 },
+    { "name": "Iridium", "autonomy": 9 },
+    { "name": "Urridium", "autonomy": 12 },
+    { "name": "Thorium", "autonomy": 100 }
+  ],
+  "shields": [
+    {
+      "name": "Class I",
+      "recharge_rate": 0.3,
+      "reduce_damage": 1,
+      "absortion_factor": 1
+    },
+    {
+      "name": "Class III",
+      "recharge_rate": 0.3,
+      "reduce_damage": 3,
+      "absortion_factor": 3
+    },
+    {
+      "name": "Class V",
+      "recharge_rate": 0.3,
+      "reduce_damage": 5,
+      "absortion_factor": 5
+    },
+    {
+      "name": "Class VII",
+      "recharge_rate": 0.3,
+      "reduce_damage": 7,
+      "absortion_factor": 7
+    },
+    {
+      "name": "Class X",
+      "recharge_rate": 0.3,
+      "reduce_damage": 10,
+      "absortion_factor": 10
+    }
+  ]
+}

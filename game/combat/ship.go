@@ -3,6 +3,7 @@ package combat
 import (
 	"fmt"
 	"math/rand"
+	"ssg/game/combat/computers"
 	"ssg/game/combat/weapons"
 )
 
@@ -29,20 +30,25 @@ func (s Ship) String() string {
 }
 
 func NewEmptyBattleShip(name string) Ship {
-	return NewEmptyShip(name, HullSize{"BS_1", 250, 20, 5, 50, 7, 15, 8})
+	return NewEmptyShip(
+		name,
+		HullSize{"BS_1", 250, 20, 5, 50, 7, 15, 8},
+		Drive{}, Armor{}, computers.Computer{}, FuelCell{}, Shield{},
+	)
 }
 
-func NewEmptyShip(name string, hull HullSize) Ship {
+func NewEmptyShip(name string, hull HullSize, drive Drive, armor Armor,
+	computer computers.Computer, fuelCell FuelCell, shield Shield) Ship {
 	basicDesign := NewShipDesign(
 		name,
 		[]weapons.Weapon{},
 		[]SpecialSystem{},
 		hull,
-		Drives[0],
-		Armors[0],
-		Computers[0],
-		FuelCells[0],
-		Shields[0],
+		drive,
+		armor,
+		computer,
+		fuelCell,
+		shield,
 	)
 
 	return NewShip(name, basicDesign)

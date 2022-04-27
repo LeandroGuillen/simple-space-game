@@ -36,7 +36,7 @@ type Shield struct {
 	Name            string  `json:"name"`
 	RechargeRate    float64 `json:"recharge_rate"`
 	ReduceDamage    int64   `json:"reduce_damage"`
-	AbsortionFactor int64   `json:"absortion_factor"` // Absorbes AbsortionFactor * BaseHP
+	AbsortionFactor int64   `json:"absortion_factor"` // Absorbs AbsortionFactor * BaseHP
 }
 
 type ShipSystem struct {
