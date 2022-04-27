@@ -4,6 +4,7 @@ import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { turnRequest } from 'src/app/store/actions';
 import { AppState } from 'src/app/store/reducers';
+import { selectTurn } from 'src/app/store/selectors/game.selectors';
 import { selectTreasury } from 'src/app/store/selectors/player.selectors';
 
 import { SetTaxDialogComponent } from '../dialogs/set-tax-dialog/set-tax-dialog.component';
@@ -15,6 +16,7 @@ import { SetTaxDialogComponent } from '../dialogs/set-tax-dialog/set-tax-dialog.
 })
 export class KpiBarComponent implements OnInit {
   treasury!: Observable<number>;
+  turn!: Observable<number>;
 
   constructor(
     private readonly store: Store<AppState>,
@@ -23,9 +25,10 @@ export class KpiBarComponent implements OnInit {
 
   ngOnInit(): void {
     this.treasury = this.store.select(selectTreasury);
+    this.turn = this.store.select(selectTurn);
   }
 
-  turn() {
+  endTurn() {
     this.store.dispatch(turnRequest());
   }
 

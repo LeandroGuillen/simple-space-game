@@ -4,8 +4,8 @@ import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 
-import { BEPlanet } from '../model/be-model';
-import { mapGalaxy, mapPlanet } from '../model/mapper';
+import { BEGame, BEPlanet } from '../model/be-model';
+import { mapGame, mapPlanet } from '../model/mapper';
 import { Game, Planet, Server } from '../model/model';
 import { NewGameRequest } from '../store/actions';
 import { AppState } from '../store/reducers';
@@ -76,11 +76,10 @@ export class GameService {
   }
 
   getGalaxy(gameID: string): Observable<Game> {
-    return this.http.get<Game>(`${this.#host}/games/${gameID}`).pipe(
+    return this.http.get<BEGame>(`${this.#host}/games/${gameID}`).pipe(
       map(g => {
-        g.galaxy = mapGalaxy(g.galaxy);
         window.localStorage.setItem('currentGameID', gameID);
-        return g;
+        return mapGame(g);
       })
     );
   }

@@ -1,11 +1,10 @@
 <section>
   <div class="kpis">
     <ssg-kpi
-      matTooltip="Date"
+      matTooltip="Stardate"
       icon="event"
-      [value]="3500"
+      [value]="turn | async"
       [decimals]="1"
-      [disabled]="true"
     ></ssg-kpi>
     <ssg-kpi
       (click)="taxDialog()"
@@ -39,5 +38,5 @@
     ></ssg-kpi>
   </div>
   <span class="spacer"></span>
-  <button (click)="turn()" color="primary" mat-stroked-button>TURN</button>
+  <button (click)="endTurn()" color="primary" mat-stroked-button>TURN</button>
 </section>

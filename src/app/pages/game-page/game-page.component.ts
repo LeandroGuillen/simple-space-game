@@ -51,6 +51,5 @@ export class GamePageComponent implements OnInit {
 
   startGame(gameID: string) {
     this.store.dispatch(Actions.startGame({ gameID }));
-    this.route.navigate(['stars']);
   }
 }
