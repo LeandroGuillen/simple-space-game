@@ -1,4 +1,4 @@
-import { BEShipDesigns } from './combat';
+import { BEShipDesign } from './be-combat';
 
 export type BEGame = {
   galaxy: BEGalaxy;
@@ -15,13 +15,13 @@ export type BEPlayer = {
 
   treasury: number;
   taxRate: number;
-  researchPoints: number;
+  research_points: number;
 
   fleets: number[];
   freighters: number;
-  freightersUsed: number;
+  freighters_used: number;
 
-  shipDesigns: BEShipDesigns[];
+  ship_designs: BEShipDesign[];
 };
 
 export type BEGalaxy = {

@@ -1,4 +1,4 @@
-import { BEShipDesigns } from './combat';
+import { ShipDesign } from './combat';
 
 export type Player = {
   id: number;
@@ -14,7 +14,7 @@ export type Player = {
   freighters: number;
   freightersUsed: number;
 
-  shipDesigns: BEShipDesigns[];
+  shipDesigns: ShipDesign[];
 };
 
 export type Game = {

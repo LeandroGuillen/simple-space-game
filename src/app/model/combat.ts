@@ -1,47 +1,47 @@
-export type BEShipDesigns = {
+export type ShipDesign = {
   name: string;
-  weapons: BEWeapon[];
-  special_systems: BESpecialSystem[];
-  base_space: string;
-  drive: BEDrive;
-  computer: BEComputer;
-  shield: BEShield;
-  armor: BEArmor;
-  hull_size: BEHullSize;
-  fuel_cell: BEFuelCell;
+  weapons: Weapon[];
+  specialSystems: SpecialSystem[];
+  baseSpace: number;
+  drive: Drive;
+  computer: Computer;
+  shield: Shield;
+  armor: Armor;
+  hullSize: HullSize;
+  fuelCell: FuelCell;
 };
 
-type BEWeapon = {};
-type BESpecialSystem = {};
-type BEDrive = {
+type Weapon = {};
+type SpecialSystem = {};
+type Drive = {
   name: string;
-  interstellar_speed: number;
-  combat_speed: number;
+  interstellarSpeed: number;
+  combatSpeed: number;
 };
-type BEComputer = {};
-type BEShield = {
+type Computer = {};
+type Shield = {
   name: string;
-  recharge_rate: number;
-  reduce_damage: number;
-  absortion_factor: number;
+  rechargeRate: number;
+  reduceDamage: number;
+  absortionFactor: number;
 };
 
-type BEArmor = {
+type Armor = {
   name: string;
   multiplier: number;
-  ground_troop_strength: number;
+  groundTroopStrength: number;
 };
-type BEHullSize = {
+type HullSize = {
   name: string;
   space: number;
   marines: number;
-  base_speed: number;
-  base_hp: number;
-  computer_hp: number;
-  drive_hp: number;
-  shield_hp: number;
+  baseSpeed: number;
+  baseHP: number;
+  computerHP: number;
+  driveHP: number;
+  shieldHP: number;
 };
-type BEFuelCell = {
+type FuelCell = {
   name: string;
   autonomy: number;
 };
