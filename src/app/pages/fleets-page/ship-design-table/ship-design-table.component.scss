@@ -24,3 +24,8 @@
     gap: 0.5rem;
   }
 }
+
+tr.ship-design-row:hover {
+  cursor: pointer;
+  background: whitesmoke;
+}

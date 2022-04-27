@@ -4,6 +4,7 @@
   class="mat-elevation-z8"
   mat-table
   matSort
+  multiTemplateDataRows
 >
   <ng-container *ngFor="let c of columns" [matColumnDef]="c.key">
     <th *matHeaderCellDef mat-header-cell mat-sort-header>{{ c.name }}</th>
@@ -11,7 +12,12 @@
   </ng-container>
 
   <tr *matHeaderRowDef="displayedColumns" mat-header-row></tr>
-  <tr *matRowDef="let row; columns: displayedColumns" mat-row></tr>
+  <tr
+    class="ship-design-row"
+    *matRowDef="let row; columns: displayedColumns"
+    mat-row
+    (click)="selectRow(row)"
+  ></tr>
 </table>
 
 <section id="controls">
