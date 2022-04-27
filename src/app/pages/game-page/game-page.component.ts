@@ -8,11 +8,7 @@ import { filter, tap } from 'rxjs/operators';
 import { GameListResponseItem } from '../../services/game.service';
 import * as Actions from '../../store/actions';
 import { AppState } from '../../store/reducers';
-import {
-  selectCurrentGameID,
-  selectGameList,
-  selectServerName,
-} from '../../store/selectors/game.selectors';
+import { selectCurrentGameID, selectGameList, selectServerName } from '../../store/selectors/game.selectors';
 import { NewGameDialogComponent } from './new-game-dialog/new-game-dialog.component';
 
 @Component({
@@ -50,7 +46,6 @@ export class GamePageComponent implements OnInit {
       .pipe(filter(request => !!request))
       .subscribe(request => {
         this.store.dispatch(Actions.newGameRequest(request));
-        this.store.dispatch(Actions.updateGameList());
       });
   }
 

@@ -7,7 +7,6 @@ import {
   changeBuildingOK,
   colonizeOK,
   getGameListOK,
-  newGameOK,
   serverConnectionSuccess,
   startGame,
   updateGame,
@@ -20,14 +19,12 @@ export type AppState = {
 };
 
 export type GameState = {
-  // currentGameID: string;
   currentGame: Game;
   currentServer: Server;
   gameList: GameListResponseItem[];
 };
 
 const initialState: GameState = {
-  // currentGameID: '',
   currentGame: emptyGame(),
   currentServer: emptyServer(),
   gameList: [],
@@ -35,7 +32,6 @@ const initialState: GameState = {
 
 export const gameReducer = createReducer(
   initialState,
-  on(newGameOK, (state, { gameID }) => ({ ...state })),
   on(getGameListOK, (state, { game_list }) => ({
     ...state,
     gameList: game_list,
@@ -62,8 +58,6 @@ export const gameReducer = createReducer(
 
     return {
       ...state,
-      // currentGameID: state.currentGameID,
-      gameList: state.gameList,
       currentGame: {
         ...state.currentGame,
         galaxy: {

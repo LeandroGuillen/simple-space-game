@@ -35,11 +35,6 @@ export const newGameRequest = createAction(
   props<NewGameRequest>()
 );
 
-export const newGameOK = createAction(
-  '[Game Page] New game ok',
-  props<{ gameID: string }>()
-);
-
 export const startGame = createAction(
   '[Game Page] Start game',
   props<{ gameID: string }>()
