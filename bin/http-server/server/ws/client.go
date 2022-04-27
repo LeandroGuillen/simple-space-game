@@ -2,13 +2,16 @@ package ws
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/gorilla/websocket"
 )
 
-var upgrader = websocket.Upgrader{}
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool { return true },
+}
 
 // Client is a middleman between the websocket connection and the hub.
 type Client struct {

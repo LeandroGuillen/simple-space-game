@@ -6,13 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const (
-	GameIDHeader   = "Game-Id"
-	PlayerIDHeader = "Player-Id"
-)
-
 func GetShipDesignList(c *gin.Context) {
-	gameID, playerID, err := readHeaders(c.Request.Header)
+	gameID, playerID, err := readHeaders(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -42,7 +37,7 @@ type CreateShipDesignRequest struct {
 }
 
 func CreateShipDesign(c *gin.Context) {
-	gameID, playerID, err := readHeaders(c.Request.Header)
+	gameID, playerID, err := readHeaders(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -78,7 +73,7 @@ func CreateShipDesign(c *gin.Context) {
 }
 
 func GetShipPartsList(c *gin.Context) {
-	gameID, _, err := readHeaders(c.Request.Header)
+	gameID, _, err := readHeaders(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

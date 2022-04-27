@@ -10,17 +10,22 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func readHeaders(header http.Header) (gameID string, playerID uint, err error) {
-	if len(header[GameIDHeader]) == 0 {
+const (
+	GameIDHeader   = "Game-Id"
+	PlayerIDHeader = "Player-Id"
+)
+
+func readHeaders(c *gin.Context) (gameID string, playerID uint, err error) {
+	if c.GetHeader(GameIDHeader) == "" {
 		return "", 0, errors.New(fmt.Sprintf("%s header missing", GameIDHeader))
 	}
-	gameID = header[GameIDHeader][0]
+	gameID = c.GetHeader(GameIDHeader)
 
-	playerIDstring := header[PlayerIDHeader][0]
-	playerID64, err := strconv.ParseUint(playerIDstring, 10, 64)
-	if len(header[PlayerIDHeader]) == 0 {
+	playerIDstring := c.GetHeader(PlayerIDHeader)
+	if playerIDstring == "" {
 		return "", 0, errors.New(fmt.Sprintf("%s header missing", PlayerIDHeader))
 	}
+	playerID64, err := strconv.ParseUint(playerIDstring, 10, 64)
 	playerID = uint(playerID64)
 
 	return

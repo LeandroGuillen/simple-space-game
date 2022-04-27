@@ -27,9 +27,10 @@ func NewServer() *Server {
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:4200"},
+		AllowAllOrigins:  true,
+		AllowWebSockets:  true,
 		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "content-type"},
+		AllowHeaders:     []string{"Origin", "content-type", "game-id", "player-id"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
@@ -49,7 +50,6 @@ func NewServer() *Server {
 
 	r.POST("/colonies", GetColonyList)
 	r.POST("/colonies/build", BuildOnPlanet)
-	r.POST("/turn", Turn)
 
 	r.POST("/action/:owner/colonize/:planet", ColonizePlanet)
 
@@ -61,19 +61,17 @@ func NewServer() *Server {
 		resources.GET("/shipparts", GetShipPartsList)
 	}
 
-	r.GET("/turn2", Turn2)
-
-	r.GET("/gameupdater", func(c *gin.Context) {
+	r.GET("/gameupdates", func(c *gin.Context) {
 		ws.Handler(server.hub, c)
 	})
-
-	go server.hub.Run()
+	r.GET("/turn", Turn)
 
 	server.router = r
 	return server
 }
 
 func (s *Server) Start() {
+	go s.hub.Run()
 	err := s.router.Run() // listen and serve on 0.0.0.0:8080
 	if err != nil {
 		log.Printf("API error: %s", err)
