@@ -46,13 +46,10 @@ export class ShipDesignTableComponent implements OnInit {
           this.dataSource = new MatTableDataSource(
             shipDesigns.map(s => ({ hullsize: s.hullSize.name, name: s.name }))
           );
+          this.dataSource.sort = this.sort;
         })
       )
       .subscribe();
-  }
-
-  ngAfterViewInit() {
-    this.dataSource.sort = this.sort;
   }
 
   selectRow(row: ShipDesignRow) {

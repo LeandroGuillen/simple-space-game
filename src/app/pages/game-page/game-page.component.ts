@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { filter, tap } from 'rxjs/operators';
 
 import { GameListResponseItem } from '../../services/game.service';
-import * as Actions from '../../store/actions';
+import { newGameRequest, startGame, updateGameList } from '../../store/actions';
 import { AppState } from '../../store/reducers';
 import { selectCurrentGameID, selectGameList, selectServerName, selectTurn } from '../../store/selectors/game.selectors';
 import { NewGameDialogComponent } from './new-game-dialog/new-game-dialog.component';
@@ -17,7 +17,7 @@ import { NewGameDialogComponent } from './new-game-dialog/new-game-dialog.compon
 })
 export class GamePageComponent implements OnInit {
   gameList!: Observable<GameListResponseItem[]>;
-  currentGameID!: Observable<string>;
+  currentGameID!: string;
   serverName!: Observable<string>;
   turn!: Observable<number>;
   numGames = 0;
@@ -28,13 +28,15 @@ export class GamePageComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.store.dispatch(Actions.updateGameList());
+    this.store.dispatch(updateGameList());
     this.gameList = this.store.select(selectGameList).pipe(
       tap(gameList => {
         this.numGames = gameList.length;
       })
     );
-    this.currentGameID = this.store.select(selectCurrentGameID);
+    this.store.select(selectCurrentGameID).subscribe(gameID => {
+      this.currentGameID = gameID;
+    });
     this.serverName = this.store.select(selectServerName);
     this.turn = this.store.select(selectTurn);
   }
@@ -45,11 +47,11 @@ export class GamePageComponent implements OnInit {
       .afterClosed()
       .pipe(filter(request => !!request))
       .subscribe(request => {
-        this.store.dispatch(Actions.newGameRequest(request));
+        this.store.dispatch(newGameRequest(request));
       });
   }
 
   startGame(gameID: string) {
-    this.store.dispatch(Actions.startGame({ gameID }));
+    this.store.dispatch(startGame({ gameID }));
   }
 }

@@ -33,7 +33,6 @@ const moduleList = [
   MatDialogModule,
   MatCheckboxModule,
   MatSnackBarModule,
-  MatListModule,
   MatToolbarModule,
   MatSlideToggleModule,
   MatSortModule,

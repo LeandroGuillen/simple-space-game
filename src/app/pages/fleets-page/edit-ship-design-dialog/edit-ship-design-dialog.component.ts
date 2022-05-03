@@ -3,8 +3,16 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatTableDataSource } from '@angular/material/table';
 import { Store } from '@ngrx/store';
+import { Observable } from 'rxjs';
+import { Armor, Computer, Drive, HullSize, Shield } from 'src/app/model/combat';
 import { AppState } from 'src/app/store/reducers';
-import { selectShipResources } from 'src/app/store/selectors/player.selectors';
+import {
+  selectArmors,
+  selectComputers,
+  selectDrives,
+  selectHullSizes,
+  selectShield,
+} from 'src/app/store/selectors/game.selectors';
 
 type EditShipDesignDialogData = {
   shipDesignName: string;
@@ -41,41 +49,11 @@ export class EditShipDesignDialogComponent implements OnInit {
   ];
   systemsTableDisplayedColumns = this.systemsTableColumns.map(c => c.key);
 
-  hullSizes = [
-    'Frigate',
-    'Destroyer',
-    'Cruiser',
-    'Battleship',
-    'Titan',
-    'Doom Star',
-  ];
-
-  drives = [
-    'Nuclear Drive',
-    'Fusion Drive',
-    'Ion Drive',
-    'Hyper Drive',
-    'Interphased Drive',
-  ];
-
-  shields = [
-    'No Shield',
-    'Class I Shield',
-    'Class III Shield',
-    'Class V Shield',
-    'Class VII Shield',
-    'Class X Shield',
-  ];
-
-  computers = [
-    'Electronic Computer',
-    'Optronic Computer',
-    'Positronic Computer',
-    'Cybertronic Computer',
-    'Moleculatronic Computer',
-  ];
-
-  armors = ['Titanium', 'Tritanium', 'Zortrium', 'Neutronium', 'Adamantium'];
+  hullSizes!: Observable<HullSize[]>;
+  drives!: Observable<Drive[]>;
+  shields!: Observable<Shield[]>;
+  computers!: Observable<Computer[]>;
+  armors!: Observable<Armor[]>;
 
   constructor(
     readonly fb: FormBuilder,
@@ -85,18 +63,22 @@ export class EditShipDesignDialogComponent implements OnInit {
   ) {
     this.form = fb.group({
       name: data.shipDesignName,
-      hullsize: 'Frigate',
-      drive: 'Nuclear Drive',
-      armor: 'Titanium',
-      shield: 'No Shield',
-      computer: 'Electronic Computer',
+      hullsize: '',
+      drive: '',
+      armor: '',
+      shield: '',
+      computer: '',
     });
   }
 
   ngOnInit(): void {
     this.weaponsTableDataSource = new MatTableDataSource(this.weapons);
     this.systemsTableDataSource = new MatTableDataSource(this.systems);
-    this.store.select(selectShipResources);
+    this.hullSizes = this.store.select(selectHullSizes);
+    this.drives = this.store.select(selectDrives);
+    this.shields = this.store.select(selectShield);
+    this.computers = this.store.select(selectComputers);
+    this.armors = this.store.select(selectArmors);
   }
 
   cancel(): void {

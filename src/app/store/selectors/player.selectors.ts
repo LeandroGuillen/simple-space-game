@@ -19,7 +19,3 @@ export const selectShipDesigns = createSelector(
   selectCurrentPlayer,
   player => player?.shipDesigns
 );
-export const selectShipResources = createSelector(
-  selectCurrentPlayer,
-  player => player?.shipDesigns
-);

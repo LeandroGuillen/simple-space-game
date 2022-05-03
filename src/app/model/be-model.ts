@@ -1,10 +1,20 @@
-import { BEShipDesign } from './be-combat';
+import { BEArmor, BEComputer, BEDrive, BEFuelCell, BEHullSize, BEShield, BEShipDesign } from './be-combat';
 
 export type BEGame = {
   galaxy: BEGalaxy;
   players: BEPlayer[];
   id: string;
   current_turn: number;
+  resources: {
+    ship_parts: {
+      hull_sizes: BEHullSize[];
+      drives: BEDrive[];
+      armors: BEArmor[];
+      computers: BEComputer[];
+      fuel_cells: BEFuelCell[];
+      shields: BEShield[];
+    };
+  };
 };
 
 export type BEPlayer = {

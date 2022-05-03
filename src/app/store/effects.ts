@@ -21,10 +21,7 @@ export class GameEffects {
     this.actions$.pipe(
       ofType(actions.newGameRequest),
       mergeMap(req => this.gameService.newGame(req)),
-      switchMap(gameID => [
-        actions.startGame({ gameID }),
-        actions.updateGameList(),
-      ]),
+      switchMap(gameID => [actions.startGame({ gameID })]),
       catchError(() => EMPTY)
     )
   );
@@ -53,7 +50,7 @@ export class GameEffects {
       mergeMap(({ gameID }) => this.gameService.getGalaxy(gameID)),
       switchMap(game => [
         actions.updateGame({ game }),
-        actions.updateGameList()
+        actions.updateGameList(),
       ]),
       catchError(() => EMPTY)
     )

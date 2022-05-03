@@ -1,4 +1,15 @@
-import { ShipDesign } from './combat';
+import { Armor, Computer, Drive, FuelCell, HullSize, Shield, ShipDesign } from './combat';
+
+export type Resources = {
+  shipParts: {
+    hullSizes: HullSize[];
+    drives: Drive[];
+    armors: Armor[];
+    computers: Computer[];
+    fuelCells: FuelCell[];
+    shields: Shield[];
+  };
+};
 
 export type Player = {
   id: number;
@@ -22,6 +33,7 @@ export type Game = {
   players: Player[];
   id: string;
   currentTurn: number;
+  resources: Resources;
 };
 
 export type Galaxy = {
@@ -123,6 +135,16 @@ export function emptyGame(): Game {
       stars: [],
     },
     currentTurn: 0,
+    resources: {
+      shipParts: {
+        hullSizes: [],
+        drives: [],
+        armors: [],
+        computers: [],
+        fuelCells: [],
+        shields: [],
+      },
+    },
   };
 }
 

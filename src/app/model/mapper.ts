@@ -1,6 +1,6 @@
-import { BEShipDesign } from './be-combat';
+import { BEArmor, BEComputer, BEDrive, BEFuelCell, BEHullSize, BEShield, BEShipDesign } from './be-combat';
 import { BEGalaxy, BEGame, BEPlanet, BEPlayer, BEStar } from './be-model';
-import { ShipDesign } from './combat';
+import { Armor, Computer, Drive, FuelCell, HullSize, Shield, ShipDesign } from './combat';
 import { Galaxy, Game, Planet, Player, Star } from './model';
 
 export function mapGalaxy(g: BEGalaxy): Galaxy {
@@ -56,6 +56,16 @@ export function mapGame(g: BEGame): Game {
     currentTurn: g.current_turn,
     galaxy: mapGalaxy(g.galaxy),
     players: g.players.map(mapPlayer),
+    resources: {
+      shipParts: {
+        hullSizes: g.resources.ship_parts.hull_sizes.map(mapHullSize),
+        drives: g.resources.ship_parts.drives.map(mapDrive),
+        armors: g.resources.ship_parts.armors.map(mapArmor),
+        computers: g.resources.ship_parts.computers.map(mapComputer),
+        fuelCells: g.resources.ship_parts.fuel_cells.map(mapFuelCell),
+        shields: g.resources.ship_parts.shields.map(mapShield),
+      },
+    },
   };
 }
 
@@ -70,7 +80,7 @@ export function mapPlayer(p: BEPlayer): Player {
     fleets: p.fleets,
     freighters: p.freighters,
     freightersUsed: p.freighters_used,
-    shipDesigns: p.ship_designs.map(mapShipDesign),
+    shipDesigns: p.ship_designs?.map(mapShipDesign),
   };
 }
 
@@ -80,33 +90,63 @@ export function mapShipDesign(s: BEShipDesign): ShipDesign {
     weapons: s.weapons,
     specialSystems: s.special_systems,
     baseSpace: s.base_space,
-    drive: {
-      name: s.drive.name,
-      combatSpeed: s.drive.combat_speed,
-      interstellarSpeed: s.drive.interstellar_speed,
-    },
-    computer: s.computer,
-    shield: {
-      name: s.shield.name,
-      rechargeRate: s.shield.recharge_rate,
-      reduceDamage: s.shield.reduce_damage,
-      absortionFactor: s.shield.absortion_factor,
-    },
-    armor: {
-      name: s.armor.name,
-      multiplier: s.armor.multiplier,
-      groundTroopStrength: s.armor.ground_troop_strength,
-    },
-    hullSize: {
-      name: s.hull_size.name,
-      space: s.hull_size.space,
-      marines: s.hull_size.marines,
-      baseSpeed: s.hull_size.base_speed,
-      baseHP: s.hull_size.base_hp,
-      computerHP: s.hull_size.computer_hp,
-      driveHP: s.hull_size.drive_hp,
-      shieldHP: s.hull_size.shield_hp,
-    },
-    fuelCell: s.fuel_cell,
+    drive: mapDrive(s.drive),
+    computer: mapComputer(s.computer),
+    shield: mapShield(s.shield),
+    armor: mapArmor(s.armor),
+    hullSize: mapHullSize(s.hull_size),
+    fuelCell: mapFuelCell(s.fuel_cell),
+  };
+}
+
+function mapDrive(d: BEDrive): Drive {
+  return {
+    name: d.name,
+    combatSpeed: d.combat_speed,
+    interstellarSpeed: d.interstellar_speed,
+  };
+}
+
+function mapComputer(c: BEComputer): Computer {
+  return {
+    name: c.name,
+    beamAttackBonus: c.beam_attack_bonus,
+  };
+}
+
+function mapShield(s: BEShield): Shield {
+  return {
+    name: s.name,
+    rechargeRate: s.recharge_rate,
+    reduceDamage: s.reduce_damage,
+    absortionFactor: s.absortion_factor,
+  };
+}
+
+function mapArmor(a: BEArmor): Armor {
+  return {
+    name: a.name,
+    multiplier: a.multiplier,
+    groundTroopStrength: a.ground_troop_strength,
+  };
+}
+
+function mapHullSize(h: BEHullSize): HullSize {
+  return {
+    name: h.name,
+    space: h.space,
+    marines: h.marines,
+    baseSpeed: h.base_speed,
+    baseHP: h.base_hp,
+    computerHP: h.computer_hp,
+    driveHP: h.drive_hp,
+    shieldHP: h.shield_hp,
+  };
+}
+
+function mapFuelCell(f: BEFuelCell): FuelCell {
+  return {
+    name: f.name,
+    autonomy: f.autonomy,
   };
 }

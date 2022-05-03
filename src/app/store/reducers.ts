@@ -3,15 +3,7 @@ import { createReducer, on } from '@ngrx/store';
 
 import { emptyGame, emptyServer, Game, Server } from '../model/model';
 import { GameListResponseItem } from '../services/game.service';
-import {
-  changeBuildingOK,
-  colonizeOK,
-  getGameListOK,
-  serverConnectionSuccess,
-  startGame,
-  updateGame,
-  updateTaxRate,
-} from './actions';
+import { changeBuildingOK, colonizeOK, getGameListOK, serverConnectionSuccess, updateGame, updateTaxRate } from './actions';
 
 export type AppState = {
   game: GameState;
@@ -36,7 +28,6 @@ export const gameReducer = createReducer(
     ...state,
     gameList: game_list,
   })),
-  on(startGame, (state, { gameID }) => ({ ...state })),
   on(updateGame, (state, { game }) => {
     return {
       ...state,
@@ -74,6 +65,7 @@ export const gameReducer = createReducer(
       id: game.id,
       players: game.players,
       currentTurn: game.currentTurn,
+      resources: game.resources,
     },
   })),
   on(serverConnectionSuccess, (state, { server }) => ({

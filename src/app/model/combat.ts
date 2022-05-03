@@ -11,27 +11,30 @@ export type ShipDesign = {
   fuelCell: FuelCell;
 };
 
-type Weapon = {};
-type SpecialSystem = {};
-type Drive = {
+export type Weapon = {};
+export type SpecialSystem = {};
+export type Drive = {
   name: string;
   interstellarSpeed: number;
   combatSpeed: number;
 };
-type Computer = {};
-type Shield = {
+export type Computer = {
+  name: string;
+  beamAttackBonus: number;
+};
+export type Shield = {
   name: string;
   rechargeRate: number;
   reduceDamage: number;
   absortionFactor: number;
 };
 
-type Armor = {
+export type Armor = {
   name: string;
   multiplier: number;
   groundTroopStrength: number;
 };
-type HullSize = {
+export type HullSize = {
   name: string;
   space: number;
   marines: number;
@@ -41,7 +44,7 @@ type HullSize = {
   driveHP: number;
   shieldHP: number;
 };
-type FuelCell = {
+export type FuelCell = {
   name: string;
   autonomy: number;
 };

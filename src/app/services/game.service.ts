@@ -163,4 +163,18 @@ export class GameService {
         map(() => ({ planetID, buildingID }))
       );
   }
+
+  getShipParts(): Observable<PartListResponse> {
+    return this.http.get<PartListResponse>(
+      `${this.#host}/resources/shipparts`,
+      {
+        headers: {
+          'game-id': this.currentGameID,
+          'player-id': '1',
+        },
+      }
+    );
+  }
 }
+
+type PartListResponse = any;

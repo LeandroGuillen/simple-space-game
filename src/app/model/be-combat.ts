@@ -11,27 +11,30 @@ export type BEShipDesign = {
   fuel_cell: BEFuelCell;
 };
 
-type BEWeapon = {};
-type BESpecialSystem = {};
-type BEDrive = {
+export type BEWeapon = {};
+export type BESpecialSystem = {};
+export type BEDrive = {
   name: string;
   interstellar_speed: number;
   combat_speed: number;
 };
-type BEComputer = {};
-type BEShield = {
+export type BEComputer = {
+  name: string;
+  beam_attack_bonus: number;
+};
+export type BEShield = {
   name: string;
   recharge_rate: number;
   reduce_damage: number;
   absortion_factor: number;
 };
 
-type BEArmor = {
+export type BEArmor = {
   name: string;
   multiplier: number;
   ground_troop_strength: number;
 };
-type BEHullSize = {
+export type BEHullSize = {
   name: string;
   space: number;
   marines: number;
@@ -41,7 +44,7 @@ type BEHullSize = {
   drive_hp: number;
   shield_hp: number;
 };
-type BEFuelCell = {
+export type BEFuelCell = {
   name: string;
   autonomy: number;
 };
