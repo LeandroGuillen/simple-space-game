@@ -16,7 +16,7 @@
         <mat-radio-button
           class="hull-size-radio-button"
           *ngFor="let hullSize of hullSizes | async"
-          [value]="hullSize"
+          [value]="hullSize.name"
         >
           {{ hullSize.name }}
         </mat-radio-button>
@@ -27,7 +27,7 @@
       <mat-form-field>
         <mat-label>Drive</mat-label>
         <mat-select formControlName="drive" required>
-          <mat-option *ngFor="let v of drives | async" [value]="v">
+          <mat-option *ngFor="let v of drives | async" [value]="v.name">
             {{ v.name }}
           </mat-option>
         </mat-select>
@@ -43,7 +43,7 @@
       <mat-form-field>
         <mat-label>Armor</mat-label>
         <mat-select formControlName="armor" required>
-          <mat-option *ngFor="let v of armors | async" [value]="v">
+          <mat-option *ngFor="let v of armors | async" [value]="v.name">
             {{ v.name }}
           </mat-option>
         </mat-select>
@@ -59,7 +59,7 @@
       <mat-form-field>
         <mat-label>Shield</mat-label>
         <mat-select formControlName="shield" required>
-          <mat-option *ngFor="let v of shields | async" [value]="v">
+          <mat-option *ngFor="let v of shields | async" [value]="v.name">
             {{ v.name }}
           </mat-option>
         </mat-select>
@@ -75,7 +75,7 @@
       <mat-form-field>
         <mat-label>Computer</mat-label>
         <mat-select formControlName="computer" required>
-          <mat-option *ngFor="let v of computers | async" [value]="v">
+          <mat-option *ngFor="let v of computers | async" [value]="v.name">
             {{ v.name }}
           </mat-option>
         </mat-select>

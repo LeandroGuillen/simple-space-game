@@ -4,7 +4,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatTableDataSource } from '@angular/material/table';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
-import { Armor, Computer, Drive, HullSize, Shield } from 'src/app/model/combat';
+import { Armor, Computer, Drive, HullSize, Shield, ShipDesign } from 'src/app/model/combat';
 import { AppState } from 'src/app/store/reducers';
 import {
   selectArmors,
@@ -15,7 +15,7 @@ import {
 } from 'src/app/store/selectors/game.selectors';
 
 type EditShipDesignDialogData = {
-  shipDesignName: string;
+  design: ShipDesign;
 };
 
 @Component({
@@ -62,13 +62,24 @@ export class EditShipDesignDialogComponent implements OnInit {
     private readonly store: Store<AppState>
   ) {
     this.form = fb.group({
-      name: data.shipDesignName,
+      name: '',
       hullsize: '',
       drive: '',
       armor: '',
       shield: '',
       computer: '',
     });
+
+    if (data) {
+      this.form.patchValue({
+        name: data.design.name,
+        hullsize: data.design.hullSize.name,
+        drive: data.design.drive.name,
+        armor: data.design.armor.name,
+        shield: data.design.shield.name,
+        computer: data.design.computer.name,
+      });
+    }
   }
 
   ngOnInit(): void {

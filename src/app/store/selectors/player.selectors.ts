@@ -19,3 +19,7 @@ export const selectShipDesigns = createSelector(
   selectCurrentPlayer,
   player => player?.shipDesigns
 );
+export const selectShipDesignByName = (name: string) =>
+  createSelector(selectCurrentPlayer, player =>
+    player?.shipDesigns.find(d => d.name === name)
+  );

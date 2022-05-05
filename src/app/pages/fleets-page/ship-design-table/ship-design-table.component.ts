@@ -6,7 +6,7 @@ import { Store } from '@ngrx/store';
 import { tap } from 'rxjs/operators';
 
 import { AppState } from '../../../store/reducers';
-import { selectShipDesigns } from '../../../store/selectors/player.selectors';
+import { selectShipDesignByName, selectShipDesigns } from '../../../store/selectors/player.selectors';
 import { EditShipDesignDialogComponent } from '../edit-ship-design-dialog/edit-ship-design-dialog.component';
 
 type ShipDesignRow = {
@@ -53,10 +53,13 @@ export class ShipDesignTableComponent implements OnInit {
   }
 
   selectRow(row: ShipDesignRow) {
-    this.dialog.open(EditShipDesignDialogComponent, {
-      data: {
-        shipDesignName: row.name,
-      },
+    this.store.select(selectShipDesignByName(row.name)).subscribe(design => {
+      this.dialog.open(EditShipDesignDialogComponent, {
+        data: {
+          shipDesignName: row.name,
+          design,
+        },
+      });
     });
   }
 }
