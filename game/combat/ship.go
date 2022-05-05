@@ -32,7 +32,7 @@ func (s Ship) String() string {
 func NewEmptyBattleShip(name string) Ship {
 	return NewEmptyShip(
 		name,
-		HullSize{"BS_1", 250, 20, 5, 50, 7, 15, 8},
+		HullSize{"BS_1", 5, 250, 20, 5, 50, 7, 15, 8},
 		Drive{}, Armor{}, computers.Computer{}, FuelCell{}, Shield{},
 	)
 }

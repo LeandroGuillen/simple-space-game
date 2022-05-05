@@ -3,10 +3,11 @@ package combat
 //https://gamefaqs.gamespot.com/pc/197873-master-of-orion-ii-battle-at-antares/faqs/16743
 
 type HullSize struct {
-	Name      string `json:"name"`
-	Space     int64  `json:"space"`
-	Marines   int64  `json:"marines"`
-	BaseSpeed int64  `json:"base_speed"` // squares/turn
+	Name       string `json:"name"`
+	SizeRating int64  `json:"size_rating"`
+	Space      int64  `json:"space"`
+	Marines    int64  `json:"marines"`
+	BaseSpeed  int64  `json:"base_speed"` // squares/turn
 
 	// hit points
 	BaseHP     int64 `json:"base_hp"`
