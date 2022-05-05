@@ -1,10 +1,19 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MatRadioChange } from '@angular/material/radio';
 import { MatTableDataSource } from '@angular/material/table';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
-import { Armor, Computer, Drive, HullSize, Shield, ShipDesign } from 'src/app/model/combat';
+import { tap } from 'rxjs/operators';
+import {
+  Armor,
+  Computer,
+  Drive,
+  HullSize,
+  Shield,
+  ShipDesign,
+} from 'src/app/model/combat';
 import { AppState } from 'src/app/store/reducers';
 import {
   selectArmors,
@@ -25,6 +34,8 @@ type EditShipDesignDialogData = {
 })
 export class EditShipDesignDialogComponent implements OnInit {
   form!: FormGroup;
+  selectedHull!: HullSize;
+  hullObjects!: HullSize[];
 
   weapons = []; // TODO max 8 elements
   weaponsTableDataSource: any; //MatTableDataSource;
@@ -74,10 +85,10 @@ export class EditShipDesignDialogComponent implements OnInit {
       this.form.patchValue({
         name: data.design.name,
         hullsize: data.design.hullSize.name,
-        drive: data.design.drive.name,
-        armor: data.design.armor.name,
-        shield: data.design.shield.name,
-        computer: data.design.computer.name,
+        drive: data.design.drive,
+        armor: data.design.armor,
+        shield: data.design.shield,
+        computer: data.design.computer,
       });
     }
   }
@@ -85,7 +96,17 @@ export class EditShipDesignDialogComponent implements OnInit {
   ngOnInit(): void {
     this.weaponsTableDataSource = new MatTableDataSource(this.weapons);
     this.systemsTableDataSource = new MatTableDataSource(this.systems);
-    this.hullSizes = this.store.select(selectHullSizes);
+    this.hullSizes = this.store.select(selectHullSizes).pipe(
+      tap(hulls => {
+        this.hullObjects = hulls;
+        if (this.data) {
+          this.selectedHull =
+            this.hullObjects.find(
+              h => h.name === this.data.design.hullSize.name
+            ) || hulls[0];
+        }
+      })
+    );
     this.drives = this.store.select(selectDrives);
     this.shields = this.store.select(selectShield);
     this.computers = this.store.select(selectComputers);
@@ -94,5 +115,14 @@ export class EditShipDesignDialogComponent implements OnInit {
 
   cancel(): void {
     this.dialogRef.close();
+  }
+
+  compareObjects(a: { name: string }, b: { name: string }) {
+    return a.name === b.name;
+  }
+
+  updateHull(hull: MatRadioChange) {
+    this.selectedHull =
+      this.hullObjects.find(h => h.name === hull.value) || this.hullObjects[0];
   }
 }

@@ -1,6 +1,7 @@
-<h1 mat-dialog-title>Edit Ship Design</h1>
+<h1 mat-dialog-title>Editing '{{ form.value.name }}'</h1>
+
 <form [formGroup]="form" mat-dialog-content>
-  <mat-form-field>
+  <mat-form-field appearance="outline">
     <mat-label>Name</mat-label>
     <input matInput formControlName="name" />
   </mat-form-field>
@@ -12,6 +13,7 @@
         aria-labelledby="hull-size-label"
         class="hull-size-radio-group"
         formControlName="hullsize"
+        (change)="updateHull($event)"
       >
         <mat-radio-button
           class="hull-size-radio-button"
@@ -24,71 +26,88 @@
     </div>
 
     <div class="col">
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <mat-label>Drive</mat-label>
-        <mat-select formControlName="drive" required>
-          <mat-option *ngFor="let v of drives | async" [value]="v.name">
+        <mat-select
+          formControlName="drive"
+          required
+          [compareWith]="compareObjects"
+        >
+          <mat-option *ngFor="let v of drives | async" [value]="v">
             {{ v.name }}
           </mat-option>
         </mat-select>
       </mat-form-field>
-
       <ul>
-        <li>3 parsecs/turn</li>
-        <li>8 combat speed</li>
+        <li>{{ form.value.drive.interstellarSpeed }} parsecs/turn</li>
+        <li>{{ form.value.drive.combatSpeed }} combat speed</li>
       </ul>
 
-      <mat-divider></mat-divider>
-
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <mat-label>Armor</mat-label>
-        <mat-select formControlName="armor" required>
-          <mat-option *ngFor="let v of armors | async" [value]="v.name">
+        <mat-select
+          formControlName="armor"
+          required
+          [compareWith]="compareObjects"
+        >
+          <mat-option *ngFor="let v of armors | async" [value]="v">
             {{ v.name }}
           </mat-option>
         </mat-select>
       </mat-form-field>
-
-      <ul>
-        <li>160 structure points</li>
-        <li>160 armor points</li>
+      <ul *ngIf="selectedHull">
+        <li>
+          {{ selectedHull.baseHP * form.value.armor.multiplier }} structure
+          points
+        </li>
+        <li>
+          {{ selectedHull.baseHP * form.value.armor.multiplier }} armor points
+        </li>
       </ul>
     </div>
 
     <div class="col">
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <mat-label>Shield</mat-label>
-        <mat-select formControlName="shield" required>
-          <mat-option *ngFor="let v of shields | async" [value]="v.name">
+        <mat-select
+          formControlName="shield"
+          required
+          [compareWith]="compareObjects"
+        >
+          <mat-option *ngFor="let v of shields | async" [value]="v">
             {{ v.name }}
           </mat-option>
         </mat-select>
       </mat-form-field>
-
       <ul>
-        <li>No strength</li>
-        <li>No damage points blocked</li>
+        <li>
+          {{ form.value.shield.absortionFactor * 5 * selectedHull.sizeRating }}
+          strength
+        </li>
+        <li>{{ form.value.shield.reduceDamage }} damage points blocked</li>
       </ul>
 
-      <mat-divider></mat-divider>
-
-      <mat-form-field>
+      <mat-form-field appearance="outline">
         <mat-label>Computer</mat-label>
-        <mat-select formControlName="computer" required>
-          <mat-option *ngFor="let v of computers | async" [value]="v.name">
+        <mat-select
+          formControlName="computer"
+          required
+          [compareWith]="compareObjects"
+        >
+          <mat-option *ngFor="let v of computers | async" [value]="v">
             {{ v.name }}
           </mat-option>
         </mat-select>
       </mat-form-field>
 
       <ul>
-        <li>60 beam attack</li>
-        <li>40 beam defense</li>
-        <li>0% missile evasion</li>
+        <li>+{{ form.value.computer.beamAttackBonus }} beam attack</li>
       </ul>
+
+      <span>40 beam defense, 0% missile evasion</span>
     </div>
   </div>
-
+  <!--
   <table
     id="weaponTable"
     [dataSource]="weaponsTableDataSource"
@@ -127,7 +146,7 @@
     ></tr>
   </table>
 
-  <small *ngIf="systems.length === 0">No system added</small>
+  <small *ngIf="systems.length === 0">No system added</small> -->
 </form>
 
 <div mat-dialog-actions>
