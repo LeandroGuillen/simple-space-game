@@ -3,30 +3,36 @@ package game
 import (
 	_ "embed"
 	"encoding/json"
-	"log"
+	"errors"
+	"fmt"
+	"ssg/game/combat"
+	"ssg/game/combat/computers"
 )
 
 type ResourceManager struct {
-	equipment *PartListResponse
+	equipment *ShipPartsCollection
 }
 
 //go:embed resources/equipment.json
 var equipmentFile []byte
 
-func (r *ResourceManager) loadDataFromFile() {
-	var response PartListResponse
+func (r *ResourceManager) loadDataFromFile() error {
+	var response ShipPartsCollection
 	err := json.Unmarshal(equipmentFile, &response)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	r.equipment = &response
+	return nil
 }
 
-func (r *ResourceManager) GetShipPartsList() (PartListResponse, error) {
+func (r *ResourceManager) GetShipPartsList() (ShipPartsCollection, error) {
 	if r.equipment == nil {
-		r.loadDataFromFile()
+		if err := r.loadDataFromFile(); err != nil {
+			return ShipPartsCollection{}, err
+		}
 	}
-	var response PartListResponse = PartListResponse{
+	var response ShipPartsCollection = ShipPartsCollection{
 		HullSizes: r.equipment.HullSizes,
 		Drives:    r.equipment.Drives,
 		Armors:    r.equipment.Armors,
@@ -36,4 +42,134 @@ func (r *ResourceManager) GetShipPartsList() (PartListResponse, error) {
 	}
 
 	return response, nil
+}
+
+func (r *ResourceManager) canICreateThisDesign(
+	drive,
+	computer,
+	shield,
+	armor,
+	hullSize,
+	fuelCell string) error {
+
+	parts, err := r.GetShipPartsList()
+	if err != nil {
+		return err
+	}
+
+	found := false
+	for _, p := range parts.Drives {
+		if drive == p.Name {
+			found = true
+		}
+	}
+	if !found {
+		return errors.New(fmt.Sprintf("drive with name '%s' does not exist", drive))
+	}
+
+	found = false
+	for _, p := range parts.Computers {
+		if computer == p.Name {
+			found = true
+		}
+	}
+	if !found {
+		return errors.New(fmt.Sprintf("computer with name '%s' does not exist", computer))
+	}
+
+	found = false
+	for _, p := range parts.Shields {
+		if shield == p.Name {
+			found = true
+		}
+	}
+	if !found {
+		return errors.New(fmt.Sprintf("shield with name '%s' does not exist", shield))
+	}
+
+	found = false
+	for _, p := range parts.Armors {
+		if armor == p.Name {
+			found = true
+		}
+	}
+	if !found {
+		return errors.New(fmt.Sprintf("armor with name '%s' does not exist", armor))
+	}
+
+	found = false
+	for _, p := range parts.HullSizes {
+		if hullSize == p.Name {
+			found = true
+		}
+	}
+	if !found {
+		return errors.New(fmt.Sprintf("hull size with name '%s' does not exist", hullSize))
+	}
+
+	found = false
+	for _, p := range parts.FuelCells {
+		if fuelCell == p.Name {
+			found = true
+		}
+	}
+	if !found {
+		return errors.New(fmt.Sprintf("fuel cell with name '%s' does not exist", fuelCell))
+	}
+
+	return nil
+}
+
+func ArmorFromName(name string, list []combat.Armor) (combat.Armor, error) {
+	for _, v := range list {
+		if v.Name == name {
+			return v, nil
+		}
+	}
+	return combat.Armor{}, errors.New(fmt.Sprintf("%s not found", name))
+}
+
+func DriveFromName(name string, list []combat.Drive) (combat.Drive, error) {
+	for _, v := range list {
+		if v.Name == name {
+			return v, nil
+		}
+	}
+	return combat.Drive{}, errors.New(fmt.Sprintf("%s not found", name))
+}
+
+func HullSizeFromName(name string, list []combat.HullSize) (combat.HullSize, error) {
+	for _, v := range list {
+		if v.Name == name {
+			return v, nil
+		}
+	}
+	return combat.HullSize{}, errors.New(fmt.Sprintf("%s not found", name))
+}
+
+func ComputerFromName(name string, list []computers.Computer) (computers.Computer, error) {
+	for _, v := range list {
+		if v.Name == name {
+			return v, nil
+		}
+	}
+	return computers.Computer{}, errors.New(fmt.Sprintf("%s not found", name))
+}
+
+func FuelCellFromName(name string, list []combat.FuelCell) (combat.FuelCell, error) {
+	for _, v := range list {
+		if v.Name == name {
+			return v, nil
+		}
+	}
+	return combat.FuelCell{}, errors.New(fmt.Sprintf("%s not found", name))
+}
+
+func ShieldFromName(name string, list []combat.Shield) (combat.Shield, error) {
+	for _, v := range list {
+		if v.Name == name {
+			return v, nil
+		}
+	}
+	return combat.Shield{}, errors.New(fmt.Sprintf("%s not found", name))
 }

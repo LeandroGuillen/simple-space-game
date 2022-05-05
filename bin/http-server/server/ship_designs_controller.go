@@ -84,10 +84,5 @@ func GetShipPartsList(c *gin.Context) {
 		return
 	}
 
-	if shipPartsList, err := g.GetShipPartsList(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-		return
-	} else {
-		c.JSON(http.StatusOK, shipPartsList)
-	}
+	c.JSON(http.StatusOK, g.Resources.ShipPartsCollection)
 }

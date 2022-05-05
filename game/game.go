@@ -22,8 +22,13 @@ type Game struct {
 	Players     []*model.Player `json:"players"`
 	ID          string          `json:"id"`
 	CurrentTurn float64         `json:"current_turn"`
+	Resources   Resource        `json:"resources"`
 
-	ResourceManager
+	resourceManager ResourceManager
+}
+
+type Resource struct {
+	ShipPartsCollection `json:"ship_parts"`
 }
 
 func NewGame(playerName string, numStars uint) *Game {
@@ -34,7 +39,9 @@ func NewGame(playerName string, numStars uint) *Game {
 		},
 		ID:          uuid.New().String(),
 		CurrentTurn: 3500,
+		Resources:   Resource{},
 	}
+	g.Resources.ShipPartsCollection, _ = g.resourceManager.GetShipPartsList()
 
 	_ = g.CreateCapitalPlanet(1, 1)
 
@@ -161,7 +168,7 @@ func (g *Game) GetShipDesignsList(playerID uint) ([]*combat.ShipDesign, error) {
 		return nil, err
 	} else {
 		shipDesigns := make([]*combat.ShipDesign, len(player.ShipDesigns))
-		for i, _ := range player.ShipDesigns {
+		for i := range player.ShipDesigns {
 			shipDesigns[i] = &player.ShipDesigns[i]
 		}
 		return shipDesigns, nil
@@ -171,44 +178,57 @@ func (g *Game) GetShipDesignsList(playerID uint) ([]*combat.ShipDesign, error) {
 func (g *Game) CreateShipDesign(
 	playerID uint,
 	name,
-	drive,
-	computer,
-	shield,
-	armor,
-	hullSize,
-	fuelCell string) error {
+	driveName,
+	computerName,
+	shieldName,
+	armorName,
+	hullSizeName,
+	fuelCellName string) error {
 
-	parts, _ := g.ResourceManager.GetShipPartsList()
+	if err := g.resourceManager.canICreateThisDesign(driveName, computerName, shieldName, armorName, hullSizeName, fuelCellName); err != nil {
+		return err
+	}
+
+	parts, _ := g.resourceManager.GetShipPartsList()
+
+	// I can ignore errors here because I just checked that all part names are valid
+	armor, _ := ArmorFromName(armorName, parts.Armors)
+	drive, _ := DriveFromName(driveName, parts.Drives)
+	hullSize, _ := HullSizeFromName(hullSizeName, parts.HullSizes)
+	computer, _ := ComputerFromName(computerName, parts.Computers)
+	fuelCell, _ := FuelCellFromName(fuelCellName, parts.FuelCells)
+	shield, _ := ShieldFromName(shieldName, parts.Shields)
 
 	basicDesign := combat.NewShipDesign(
 		name,
 		[]weapons.Weapon{},
 		[]combat.SpecialSystem{},
-		parts.HullSizes[0],
-		parts.Drives[0],
-		parts.Armors[0],
-		parts.Computers[0],
-		parts.FuelCells[0],
-		parts.Shields[0],
+		hullSize,
+		drive,
+		armor,
+		computer,
+		fuelCell,
+		shield,
 	)
 
 	if player, err := g.getPlayer(playerID); err != nil {
 		return err
 	} else {
+		for _, design := range player.ShipDesigns {
+			if design.Name == name {
+				return errors.New(fmt.Sprintf("cannot create a design with name '%s', name already exists", name))
+			}
+		}
 		player.ShipDesigns = append(player.ShipDesigns, basicDesign)
 		return nil
 	}
 }
 
-type PartListResponse struct {
+type ShipPartsCollection struct {
 	HullSizes []combat.HullSize    `json:"hull_sizes"`
 	Drives    []combat.Drive       `json:"drives"`
 	Armors    []combat.Armor       `json:"armors"`
 	Computers []computers.Computer `json:"computers"`
 	FuelCells []combat.FuelCell    `json:"fuel_cells"`
 	Shields   []combat.Shield      `json:"shields"`
-}
-
-func (g *Game) GetShipPartsList() (PartListResponse, error) {
-	return g.ResourceManager.GetShipPartsList()
 }
