@@ -1,6 +1,22 @@
-import { BEArmor, BEComputer, BEDrive, BEFuelCell, BEHullSize, BEShield, BEShipDesign } from './be-combat';
+import {
+  BEArmor,
+  BEComputer,
+  BEDrive,
+  BEFuelCell,
+  BEHullSize,
+  BEShield,
+  BEShipDesign,
+} from './be-combat';
 import { BEGalaxy, BEGame, BEPlanet, BEPlayer, BEStar } from './be-model';
-import { Armor, Computer, Drive, FuelCell, HullSize, Shield, ShipDesign } from './combat';
+import {
+  Armor,
+  Computer,
+  Drive,
+  FuelCell,
+  HullSize,
+  Shield,
+  ShipDesign,
+} from './combat';
 import { Galaxy, Game, Planet, Player, Star } from './model';
 
 export function mapGalaxy(g: BEGalaxy): Galaxy {
@@ -134,6 +150,7 @@ function mapArmor(a: BEArmor): Armor {
 function mapHullSize(h: BEHullSize): HullSize {
   return {
     name: h.name,
+    sizeRating: h.size_rating,
     space: h.space,
     marines: h.marines,
     baseSpeed: h.base_speed,

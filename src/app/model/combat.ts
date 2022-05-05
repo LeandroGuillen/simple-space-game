@@ -36,6 +36,7 @@ export type Armor = {
 };
 export type HullSize = {
   name: string;
+  sizeRating: number;
   space: number;
   marines: number;
   baseSpeed: number;

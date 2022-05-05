@@ -36,6 +36,7 @@ export type BEArmor = {
 };
 export type BEHullSize = {
   name: string;
+  size_rating: number;
   space: number;
   marines: number;
   base_speed: number;
