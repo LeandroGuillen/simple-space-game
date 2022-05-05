@@ -78,6 +78,7 @@
     { "name": "Xentronium", "multiplier": 10, "ground_troop_strength": 40 }
   ],
   "computers": [
+    { "name": "None", "beam_attack_bonus": 0 },
     { "name": "Electronic", "beam_attack_bonus": 30 },
     { "name": "Optronic", "beam_attack_bonus": 60 },
     { "name": "Positronic", "beam_attack_bonus": 90 },
@@ -92,6 +93,12 @@
     { "name": "Thorium", "autonomy": 100 }
   ],
   "shields": [
+    {
+      "name": "None",
+      "recharge_rate": 0,
+      "reduce_damage": 0,
+      "absortion_factor": 0
+    },
     {
       "name": "Class I",
       "recharge_rate": 0.3,
