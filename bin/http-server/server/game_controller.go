@@ -39,7 +39,11 @@ func NewGame(c *gin.Context) {
 		return
 	}
 
-	g := game.NewGame(req.PlayerName, req.NumStars)
+	g, err := game.NewGame(req.PlayerName, req.NumStars)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
 	server := rawServer.(*Server)
 	server.GameList[g.ID] = g
 

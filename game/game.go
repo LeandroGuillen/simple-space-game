@@ -3,10 +3,8 @@ package game
 import (
 	"errors"
 	"fmt"
-	"ssg/data"
 	"ssg/game/builder"
 	"ssg/game/combat"
-	"ssg/game/combat/computers"
 	"ssg/game/combat/weapons"
 	"ssg/game/model"
 
@@ -22,16 +20,12 @@ type Game struct {
 	Players     []*model.Player `json:"players"`
 	ID          string          `json:"id"`
 	CurrentTurn float64         `json:"current_turn"`
-	Resources   Resource        `json:"resources"`
+	Resources   Resources       `json:"resources"`
 
-	resourceManager ResourceManager
+	resourceManager *ResourceManager
 }
 
-type Resource struct {
-	ShipPartsCollection `json:"ship_parts"`
-}
-
-func NewGame(playerName string, numStars uint) *Game {
+func NewGame(playerName string, numStars uint) (*Game, error) {
 	g := &Game{
 		Galaxy: builder.NewGalaxy(numStars),
 		Players: []*model.Player{
@@ -39,13 +33,17 @@ func NewGame(playerName string, numStars uint) *Game {
 		},
 		ID:          uuid.New().String(),
 		CurrentTurn: 3500,
-		Resources:   Resource{},
+		Resources:   Resources{},
 	}
-	g.Resources.ShipPartsCollection, _ = g.resourceManager.GetShipPartsList()
+	if rm, err := NewResourceManager(g); err != nil {
+		return nil, err
+	} else {
+		g.resourceManager = rm
+	}
 
 	_ = g.CreateCapitalPlanet(1, 1)
 
-	return g
+	return g, nil
 }
 
 func (g *Game) Turn(playerID uint) error {
@@ -110,7 +108,8 @@ func (g *Game) CreateCapitalPlanet(ownerID, planetID uint) error {
 	planet.Farmers = 2
 	planet.Scientists = 3
 
-	planet.AddBuilding(data.Buildings[0])
+	planet.AddBuilding(g.Resources.Buildings[0])
+	//planet.AddBuilding(data.Buildings[0])
 
 	return nil
 }
@@ -152,14 +151,14 @@ func (g *Game) BuildOnPlanet(planetID, ownerID, buildingID uint) error {
 		return err
 	}
 
-	p, err := g.getPlanet(planetID)
+	planet, err := g.getPlanet(planetID)
 	if err != nil {
 		return err
 	}
 
 	// get building from its ID
-	b := data.Buildings[buildingID]
-	p.Build(b)
+	building := g.Resources.Buildings[0]
+	planet.Build(building)
 	return nil
 }
 
@@ -189,7 +188,7 @@ func (g *Game) CreateShipDesign(
 		return err
 	}
 
-	parts, _ := g.resourceManager.GetShipPartsList()
+	parts := g.Resources.ShipPartsCollection
 
 	// I can ignore errors here because I just checked that all part names are valid
 	armor, _ := ArmorFromName(armorName, parts.Armors)
@@ -222,13 +221,4 @@ func (g *Game) CreateShipDesign(
 		player.ShipDesigns = append(player.ShipDesigns, basicDesign)
 		return nil
 	}
-}
-
-type ShipPartsCollection struct {
-	HullSizes []combat.HullSize    `json:"hull_sizes"`
-	Drives    []combat.Drive       `json:"drives"`
-	Armors    []combat.Armor       `json:"armors"`
-	Computers []computers.Computer `json:"computers"`
-	FuelCells []combat.FuelCell    `json:"fuel_cells"`
-	Shields   []combat.Shield      `json:"shields"`
 }

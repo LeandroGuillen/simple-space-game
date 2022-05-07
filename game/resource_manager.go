@@ -7,41 +7,68 @@ import (
 	"fmt"
 	"ssg/game/combat"
 	"ssg/game/combat/computers"
+	"ssg/game/model"
 )
 
+type Resources struct {
+	*ShipPartsCollection `json:"ship_parts"`
+	*BuildingCollection  `json:"building_collection"`
+}
+
+type ShipPartsCollection struct {
+	HullSizes []combat.HullSize    `json:"hull_sizes"`
+	Drives    []combat.Drive       `json:"drives"`
+	Armors    []combat.Armor       `json:"armors"`
+	Computers []computers.Computer `json:"computers"`
+	FuelCells []combat.FuelCell    `json:"fuel_cells"`
+	Shields   []combat.Shield      `json:"shields"`
+}
+
+type BuildingCollection struct {
+	Buildings []model.Building `json:"buildings"`
+}
+
 type ResourceManager struct {
-	equipment *ShipPartsCollection
+	Resources
 }
 
 //go:embed resources/equipment.json
 var equipmentFile []byte
 
-func (r *ResourceManager) loadDataFromFile() error {
-	var response ShipPartsCollection
-	err := json.Unmarshal(equipmentFile, &response)
+//go:embed resources/buildings.json
+var buildingsFile []byte
+
+func (r *ResourceManager) loadDataFromFiles() error {
+	var shipPartsCollection ShipPartsCollection
+	err := json.Unmarshal(equipmentFile, &shipPartsCollection)
 	if err != nil {
 		return err
 	}
-	r.equipment = &response
+	r.ShipPartsCollection = &ShipPartsCollection{
+		HullSizes: shipPartsCollection.HullSizes,
+		Drives:    shipPartsCollection.Drives,
+		Armors:    shipPartsCollection.Armors,
+		Computers: shipPartsCollection.Computers,
+		FuelCells: shipPartsCollection.FuelCells,
+		Shields:   shipPartsCollection.Shields,
+	}
+
+	var buildingCollection BuildingCollection
+	err = json.Unmarshal(buildingsFile, &buildingCollection)
+	if err != nil {
+		return err
+	}
+	r.BuildingCollection = &buildingCollection
 	return nil
 }
 
-func (r *ResourceManager) GetShipPartsList() (ShipPartsCollection, error) {
-	if r.equipment == nil {
-		if err := r.loadDataFromFile(); err != nil {
-			return ShipPartsCollection{}, err
-		}
+func NewResourceManager(g *Game) (*ResourceManager, error) {
+	rm := &ResourceManager{}
+	if err := rm.loadDataFromFiles(); err != nil {
+		return nil, err
 	}
-	var response ShipPartsCollection = ShipPartsCollection{
-		HullSizes: r.equipment.HullSizes,
-		Drives:    r.equipment.Drives,
-		Armors:    r.equipment.Armors,
-		Computers: r.equipment.Computers,
-		FuelCells: r.equipment.FuelCells,
-		Shields:   r.equipment.Shields,
-	}
-
-	return response, nil
+	g.Resources = rm.Resources
+	return rm, nil
 }
 
 func (r *ResourceManager) canICreateThisDesign(
@@ -52,10 +79,7 @@ func (r *ResourceManager) canICreateThisDesign(
 	hullSize,
 	fuelCell string) error {
 
-	parts, err := r.GetShipPartsList()
-	if err != nil {
-		return err
-	}
+	parts := r.ShipPartsCollection
 
 	found := false
 	for _, p := range parts.Drives {

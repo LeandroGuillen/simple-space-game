@@ -1,0 +1,22 @@
+{
+  "buildings": [
+    {
+      "id": 1,
+      "name": "Capitol",
+      "cost": 100,
+      "maintenance": 1
+    },
+    {
+      "id": 2,
+      "name": "Automated Factory",
+      "cost": 60,
+      "maintenance": 1
+    },
+    {
+      "id": 3,
+      "name": "Hydroponic Farm",
+      "cost": 60,
+      "maintenance": 1
+    }
+  ]
+}
