@@ -19,3 +19,5 @@ export const selectShield = (state: AppState) => selectShipParts(state).shields;
 export const selectComputers = (state: AppState) =>
   selectShipParts(state).computers;
 export const selectArmors = (state: AppState) => selectShipParts(state).armors;
+export const selectCommonShipDesigns = (state: AppState) =>
+  selectResources(state).shipDesignCollection.shipDesigns;

@@ -90,6 +90,10 @@ export class EditShipDesignDialogComponent implements OnInit {
         shield: data.design.shield,
         computer: data.design.computer,
       });
+
+      if (data.design.isCommon) {
+        this.form.disable();
+      }
     }
   }
 

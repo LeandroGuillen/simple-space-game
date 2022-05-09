@@ -3,15 +3,19 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { Store } from '@ngrx/store';
-import { tap } from 'rxjs/operators';
 
 import { AppState } from '../../../store/reducers';
-import { selectShipDesignByName, selectShipDesigns } from '../../../store/selectors/player.selectors';
+import {
+  selectAllShipDesigns,
+  selectShipDesignByName,
+} from '../../../store/selectors/player.selectors';
 import { EditShipDesignDialogComponent } from '../edit-ship-design-dialog/edit-ship-design-dialog.component';
+import { ShipDesign } from '../../../model/combat';
 
 type ShipDesignRow = {
   hullsize: string;
   name: string;
+  isCommon: 'Yes' | 'No';
 };
 
 @Component({
@@ -23,8 +27,9 @@ export class ShipDesignTableComponent implements OnInit {
   dataSource!: MatTableDataSource<ShipDesignRow>;
 
   columns = [
-    { key: 'name', name: 'Name' },
-    { key: 'hullsize', name: 'Hull size' },
+    {key: 'name', name: 'Name'},
+    {key: 'hullsize', name: 'Hull size'},
+    {key: 'isCommon', name: 'Is Common'},
   ];
   displayedColumns = this.columns.map(c => c.key);
 
@@ -33,23 +38,19 @@ export class ShipDesignTableComponent implements OnInit {
   constructor(
     private readonly store: Store<AppState>,
     private readonly dialog: MatDialog
-  ) {}
+  ) {
+  }
 
   ngOnInit(): void {
-    this.store
-      .select(selectShipDesigns)
-      .pipe(
-        tap(shipDesigns => {
-          if (!shipDesigns) {
-            return;
-          }
-          this.dataSource = new MatTableDataSource(
-            shipDesigns.map(s => ({ hullsize: s.hullSize.name, name: s.name }))
-          );
-          this.dataSource.sort = this.sort;
-        })
-      )
-      .subscribe();
+    this.store.select(selectAllShipDesigns).subscribe(shipDesigns => {
+      if (!shipDesigns) {
+        return;
+      }
+      this.dataSource = new MatTableDataSource(
+        shipDesigns.map(ShipDesignTableComponent.mapShipDesign2Row)
+      );
+      this.dataSource.sort = this.sort;
+    });
   }
 
   selectRow(row: ShipDesignRow) {
@@ -61,5 +62,13 @@ export class ShipDesignTableComponent implements OnInit {
         },
       });
     });
+  }
+
+  private static mapShipDesign2Row(s: ShipDesign): ShipDesignRow {
+    return {
+      hullsize: s.hullSize.name,
+      name: s.name,
+      isCommon: s.isCommon ? 'Yes' : 'No',
+    }
   }
 }

@@ -9,6 +9,8 @@ export type ShipDesign = {
   armor: Armor;
   hullSize: HullSize;
   fuelCell: FuelCell;
+
+  isCommon: boolean;
 };
 
 export type Weapon = {};

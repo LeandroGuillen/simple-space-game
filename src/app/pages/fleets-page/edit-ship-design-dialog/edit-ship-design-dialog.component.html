@@ -1,24 +1,27 @@
-<h1 mat-dialog-title>Editing '{{ form.value.name }}'</h1>
+<h1 *ngIf="!data.design.isCommon" mat-dialog-title>Editing '{{ form.value.name }}'</h1>
+<h1 *ngIf="data.design.isCommon" mat-dialog-title>{{ form.value.name }}</h1>
+
+<p *ngIf="data.design.isCommon" class="editable-warning">You cannot edit this design.</p>
 
 <form [formGroup]="form" mat-dialog-content>
   <mat-form-field appearance="outline">
     <mat-label>Name</mat-label>
-    <input matInput formControlName="name" />
+    <input formControlName="name" matInput/>
   </mat-form-field>
 
   <div id="ship-details">
     <div class="col">
       <mat-label id="hull-size-label">Hull size</mat-label>
       <mat-radio-group
+        (change)="updateHull($event)"
         aria-labelledby="hull-size-label"
         class="hull-size-radio-group"
         formControlName="hullsize"
-        (change)="updateHull($event)"
       >
         <mat-radio-button
-          class="hull-size-radio-button"
           *ngFor="let hullSize of hullSizes | async"
           [value]="hullSize.name"
+          class="hull-size-radio-button"
         >
           {{ hullSize.name }}
         </mat-radio-button>
@@ -29,9 +32,9 @@
       <mat-form-field appearance="outline">
         <mat-label>Drive</mat-label>
         <mat-select
+          [compareWith]="compareObjects"
           formControlName="drive"
           required
-          [compareWith]="compareObjects"
         >
           <mat-option *ngFor="let v of drives | async" [value]="v">
             {{ v.name }}
@@ -46,9 +49,9 @@
       <mat-form-field appearance="outline">
         <mat-label>Armor</mat-label>
         <mat-select
+          [compareWith]="compareObjects"
           formControlName="armor"
           required
-          [compareWith]="compareObjects"
         >
           <mat-option *ngFor="let v of armors | async" [value]="v">
             {{ v.name }}
@@ -70,9 +73,9 @@
       <mat-form-field appearance="outline">
         <mat-label>Shield</mat-label>
         <mat-select
+          [compareWith]="compareObjects"
           formControlName="shield"
           required
-          [compareWith]="compareObjects"
         >
           <mat-option *ngFor="let v of shields | async" [value]="v">
             {{ v.name }}
@@ -90,9 +93,9 @@
       <mat-form-field appearance="outline">
         <mat-label>Computer</mat-label>
         <mat-select
+          [compareWith]="compareObjects"
           formControlName="computer"
           required
-          [compareWith]="compareObjects"
         >
           <mat-option *ngFor="let v of computers | async" [value]="v">
             {{ v.name }}
@@ -150,6 +153,8 @@
 </form>
 
 <div mat-dialog-actions>
-  <button mat-button (click)="cancel()">CANCEL</button>
-  <button mat-raised-button color="primary">SAVE</button>
+  <button *ngIf="!data.design.isCommon" (click)="cancel()" mat-button>CANCEL</button>
+  <button *ngIf="!data.design.isCommon" color="primary" mat-raised-button>SAVE</button>
+
+  <button *ngIf="data.design.isCommon" color="primary" (click)="cancel()" mat-raised-button>OK</button>
 </div>

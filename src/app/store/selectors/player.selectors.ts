@@ -1,6 +1,7 @@
 import { createSelector } from '@ngrx/store';
 
 import { AppState } from '../reducers';
+import { selectCommonShipDesigns } from './game.selectors';
 
 const selectAllPlayers = (state: AppState) => state.game.currentGame?.players;
 const selectPlayer = (playerID: number) => (state: AppState) =>
@@ -17,9 +18,11 @@ export const selectTaxRate = createSelector(
 );
 export const selectShipDesigns = createSelector(
   selectCurrentPlayer,
-  player => player?.shipDesigns
+  player => player?.shipDesigns || []
 );
 export const selectShipDesignByName = (name: string) =>
-  createSelector(selectCurrentPlayer, player =>
-    player?.shipDesigns.find(d => d.name === name)
+  createSelector(selectAllShipDesigns, shipDesigns =>
+    shipDesigns.find(d => d.name === name)
   );
+export const selectAllShipDesigns = (state: AppState) =>
+  selectCommonShipDesigns(state).concat(selectShipDesigns(state));

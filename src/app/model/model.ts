@@ -1,4 +1,12 @@
-import { Armor, Computer, Drive, FuelCell, HullSize, Shield, ShipDesign } from './combat';
+import {
+  Armor,
+  Computer,
+  Drive,
+  FuelCell,
+  HullSize,
+  Shield,
+  ShipDesign,
+} from './combat';
 
 export type Resources = {
   shipParts: {
@@ -8,6 +16,9 @@ export type Resources = {
     computers: Computer[];
     fuelCells: FuelCell[];
     shields: Shield[];
+  };
+  shipDesignCollection: {
+    shipDesigns: ShipDesign[];
   };
 };
 
@@ -143,6 +154,9 @@ export function emptyGame(): Game {
         computers: [],
         fuelCells: [],
         shields: [],
+      },
+      shipDesignCollection: {
+        shipDesigns: [],
       },
     },
   };

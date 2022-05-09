@@ -7,7 +7,14 @@ import {
   BEShield,
   BEShipDesign,
 } from './be-combat';
-import { BEGalaxy, BEGame, BEPlanet, BEPlayer, BEStar } from './be-model';
+import {
+  BEGalaxy,
+  BEGame,
+  BEPlanet,
+  BEPlayer,
+  BEResources,
+  BEStar,
+} from './be-model';
 import {
   Armor,
   Computer,
@@ -17,7 +24,7 @@ import {
   Shield,
   ShipDesign,
 } from './combat';
-import { Galaxy, Game, Planet, Player, Star } from './model';
+import { Galaxy, Game, Planet, Player, Resources, Star } from './model';
 
 export function mapGalaxy(g: BEGalaxy): Galaxy {
   return {
@@ -72,16 +79,7 @@ export function mapGame(g: BEGame): Game {
     currentTurn: g.current_turn,
     galaxy: mapGalaxy(g.galaxy),
     players: g.players.map(mapPlayer),
-    resources: {
-      shipParts: {
-        hullSizes: g.resources.ship_parts.hull_sizes.map(mapHullSize),
-        drives: g.resources.ship_parts.drives.map(mapDrive),
-        armors: g.resources.ship_parts.armors.map(mapArmor),
-        computers: g.resources.ship_parts.computers.map(mapComputer),
-        fuelCells: g.resources.ship_parts.fuel_cells.map(mapFuelCell),
-        shields: g.resources.ship_parts.shields.map(mapShield),
-      },
-    },
+    resources: mapResources(g.resources),
   };
 }
 
@@ -112,6 +110,7 @@ export function mapShipDesign(s: BEShipDesign): ShipDesign {
     armor: mapArmor(s.armor),
     hullSize: mapHullSize(s.hull_size),
     fuelCell: mapFuelCell(s.fuel_cell),
+    isCommon: false,
   };
 }
 
@@ -165,5 +164,23 @@ function mapFuelCell(f: BEFuelCell): FuelCell {
   return {
     name: f.name,
     autonomy: f.autonomy,
+  };
+}
+
+function mapResources(r: BEResources): Resources {
+  return {
+    shipParts: {
+      hullSizes: r.ship_parts.hull_sizes.map(mapHullSize),
+      drives: r.ship_parts.drives.map(mapDrive),
+      armors: r.ship_parts.armors.map(mapArmor),
+      computers: r.ship_parts.computers.map(mapComputer),
+      fuelCells: r.ship_parts.fuel_cells.map(mapFuelCell),
+      shields: r.ship_parts.shields.map(mapShield),
+    },
+    shipDesignCollection: {
+      shipDesigns: r.ship_design_collection.ship_designs
+        .map(mapShipDesign)
+        .map(d => ({ ...d, isCommon: true })),
+    },
   };
 }
