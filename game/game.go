@@ -157,7 +157,7 @@ func (g *Game) BuildOnPlanet(planetID, ownerID, buildingID uint) error {
 	}
 
 	// get building from its ID
-	building := g.Resources.Buildings[0]
+	building := g.Resources.Buildings[buildingID]
 	planet.Build(building)
 	return nil
 }
@@ -166,9 +166,12 @@ func (g *Game) GetShipDesignsList(playerID uint) ([]*combat.ShipDesign, error) {
 	if player, err := g.getPlayer(playerID); err != nil {
 		return nil, err
 	} else {
-		shipDesigns := make([]*combat.ShipDesign, len(player.ShipDesigns))
-		for i := range player.ShipDesigns {
-			shipDesigns[i] = &player.ShipDesigns[i]
+		var shipDesigns []*combat.ShipDesign
+		for _, d := range g.Resources.ShipDesigns {
+			shipDesigns = append(shipDesigns, &d)
+		}
+		for _, d := range player.ShipDesigns {
+			shipDesigns = append(shipDesigns, &d)
 		}
 		return shipDesigns, nil
 	}
@@ -214,6 +217,11 @@ func (g *Game) CreateShipDesign(
 		return err
 	} else {
 		for _, design := range player.ShipDesigns {
+			if design.Name == name {
+				return errors.New(fmt.Sprintf("cannot create a design with name '%s', name already exists", name))
+			}
+		}
+		for _, design := range g.Resources.ShipDesigns {
 			if design.Name == name {
 				return errors.New(fmt.Sprintf("cannot create a design with name '%s', name already exists", name))
 			}

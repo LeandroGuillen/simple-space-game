@@ -5,14 +5,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/rand"
 	"ssg/game/combat"
 	"ssg/game/combat/computers"
+	"ssg/game/combat/weapons"
 	"ssg/game/model"
 )
 
 type Resources struct {
-	*ShipPartsCollection `json:"ship_parts"`
-	*BuildingCollection  `json:"building_collection"`
+	*ShipPartsCollection  `json:"ship_parts"`
+	*BuildingCollection   `json:"building_collection"`
+	*NameCollection       `json:"name_collection"`
+	*ShipDesignCollection `json:"ship_design_collection"`
 }
 
 type ShipPartsCollection struct {
@@ -28,6 +32,15 @@ type BuildingCollection struct {
 	Buildings []model.Building `json:"buildings"`
 }
 
+type NameCollection struct {
+	Stars []string `json:"stars"`
+}
+
+type ShipDesignCollection struct {
+	ShipDesignsDefs []combat.ShipDesignsDef `json:"ship_design_defs"`
+	ShipDesigns     []combat.ShipDesign     `json:"ship_designs"`
+}
+
 type ResourceManager struct {
 	Resources
 }
@@ -38,10 +51,15 @@ var equipmentFile []byte
 //go:embed resources/buildings.json
 var buildingsFile []byte
 
+//go:embed resources/names.json
+var namesFile []byte
+
+//go:embed resources/ship_designs.json
+var shipDesignsFile []byte
+
 func (r *ResourceManager) loadDataFromFiles() error {
 	var shipPartsCollection ShipPartsCollection
-	err := json.Unmarshal(equipmentFile, &shipPartsCollection)
-	if err != nil {
+	if err := json.Unmarshal(equipmentFile, &shipPartsCollection); err != nil {
 		return err
 	}
 	r.ShipPartsCollection = &ShipPartsCollection{
@@ -54,11 +72,67 @@ func (r *ResourceManager) loadDataFromFiles() error {
 	}
 
 	var buildingCollection BuildingCollection
-	err = json.Unmarshal(buildingsFile, &buildingCollection)
-	if err != nil {
+	if err := json.Unmarshal(buildingsFile, &buildingCollection); err != nil {
 		return err
 	}
 	r.BuildingCollection = &buildingCollection
+
+	var nameCollection NameCollection
+	if err := json.Unmarshal(namesFile, &nameCollection); err != nil {
+		return err
+	}
+	r.NameCollection = &nameCollection
+	rand.Shuffle(len(nameCollection.Stars), func(i int, j int) {
+		nameCollection.Stars[i], nameCollection.Stars[j] = nameCollection.Stars[j], nameCollection.Stars[i]
+	})
+
+	var shipDesignCollection ShipDesignCollection
+	if err := json.Unmarshal(shipDesignsFile, &shipDesignCollection); err != nil {
+		return err
+	}
+	r.ShipDesignCollection = &shipDesignCollection
+	for _, def := range shipDesignCollection.ShipDesignsDefs {
+		armor, err := ArmorFromName(def.Armor, shipPartsCollection.Armors)
+		if err != nil {
+			return errors.New(fmt.Sprintf("cannot read ship design data: %s", armor))
+		}
+		drive, err := DriveFromName(def.Drive, shipPartsCollection.Drives)
+		if err != nil {
+			return errors.New(fmt.Sprintf("cannot read ship design data: %s", drive))
+		}
+		hullSize, err := HullSizeFromName(def.HullSize, shipPartsCollection.HullSizes)
+		if err != nil {
+			return errors.New(fmt.Sprintf("cannot read ship design data: %s", hullSize))
+		}
+		computer, err := ComputerFromName(def.Computer, shipPartsCollection.Computers)
+		if err != nil {
+			return errors.New(fmt.Sprintf("cannot read ship design data: %s", computer))
+		}
+		fuelCell, err := FuelCellFromName(def.FuelCell, shipPartsCollection.FuelCells)
+		if err != nil {
+			return errors.New(fmt.Sprintf("cannot read ship design data: %s", fuelCell))
+		}
+		shield, err := ShieldFromName(def.Shield, shipPartsCollection.Shields)
+		if err != nil {
+			return errors.New(fmt.Sprintf("cannot read ship design data: %s", shield))
+		}
+
+		design := combat.NewShipDesign(
+			def.Name,
+			[]weapons.Weapon{},
+			[]combat.SpecialSystem{},
+			hullSize,
+			drive,
+			armor,
+			computer,
+			fuelCell,
+			shield,
+		)
+
+		// these designs are common to all players
+		r.ShipDesigns = append(r.ShipDesigns, design)
+	}
+
 	return nil
 }
 

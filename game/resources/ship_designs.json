@@ -1,0 +1,13 @@
+{
+  "ship_design_defs": [
+    {
+      "name": "Flunker I",
+      "drive": "Nuclear",
+      "computer": "Electronic",
+      "shield": "None",
+      "armor": "Titanium",
+      "hull_size": "Frigate",
+      "fuel_cell": "Standard"
+    }
+  ]
+}

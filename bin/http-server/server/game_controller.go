@@ -41,7 +41,10 @@ func NewGame(c *gin.Context) {
 
 	g, err := game.NewGame(req.PlayerName, req.NumStars)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "error",
+			"message": fmt.Sprintf("error creating game: %s", err.Error()),
+		})
 		return
 	}
 	server := rawServer.(*Server)
