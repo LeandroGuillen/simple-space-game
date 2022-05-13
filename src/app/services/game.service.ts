@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { catchError, filter, map, tap } from 'rxjs/operators';
 
 import { BEGame, BEPlanet } from '../model/be-model';
 import { mapGame, mapPlanet } from '../model/mapper';
@@ -10,6 +10,7 @@ import { Game, Planet, Server } from '../model/model';
 import { NewGameRequest } from '../store/actions';
 import { AppState } from '../store/reducers';
 import { selectCurrentGameID } from '../store/selectors/game.selectors';
+import { ShipDesignRef } from '../model/combat';
 
 type NewGameResponse = {
   ok: boolean;
@@ -174,6 +175,38 @@ export class GameService {
         },
       }
     );
+  }
+
+  saveNewShipDesign(d: ShipDesignRef) {
+    return this.http
+      .post<{ ok: boolean }>(
+        `${this.#host}/resources/shipdesigns`,
+        {
+          name: d.name,
+          drive: d.drive,
+          computer: d.computer,
+          shield: d.shield,
+          armor: d.armor,
+          hull_size: d.hullSize,
+          fuel_cell: d.fuelCell,
+        },
+        {
+          headers: {
+            'game-id': this.currentGameID,
+            'player-id': '1',
+          },
+        }
+      )
+      .pipe(
+        map(response => response.ok),
+        tap(f => {
+          console.log(1, f);
+        }),
+        catchError(err => {
+          console.error(err);
+          return of(false);
+        })
+      );
   }
 }
 

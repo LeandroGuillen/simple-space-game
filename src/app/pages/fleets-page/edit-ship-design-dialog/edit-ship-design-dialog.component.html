@@ -1,7 +1,11 @@
-<h1 *ngIf="!data.design.isCommon" mat-dialog-title>Editing '{{ form.value.name }}'</h1>
-<h1 *ngIf="data.design.isCommon" mat-dialog-title>{{ form.value.name }}</h1>
+<h1 *ngIf="editingMode && !data.design.isCommon" mat-dialog-title>Editing '{{ form.value.name }}'</h1>
+<h1 *ngIf="editingMode && data.design.isCommon" mat-dialog-title>{{ form.value.name }}</h1>
+<h1 *ngIf="!editingMode" mat-dialog-title>Creating
+  <span *ngIf="form.value.name">'{{ form.value.name }}'</span>
+  <span *ngIf="!form.value.name">'Unnamed'</span>
+</h1>
 
-<p *ngIf="data.design.isCommon" class="editable-warning">You cannot edit this design.</p>
+<p *ngIf="editingMode && data.design.isCommon" class="editable-warning">You cannot edit this design.</p>
 
 <form [formGroup]="form" mat-dialog-content>
   <mat-form-field appearance="outline">
@@ -16,7 +20,7 @@
         (change)="updateHull($event)"
         aria-labelledby="hull-size-label"
         class="hull-size-radio-group"
-        formControlName="hullsize"
+        formControlName="hullSize"
       >
         <mat-radio-button
           *ngFor="let hullSize of hullSizes | async"
@@ -41,10 +45,6 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
-      <ul>
-        <li>{{ form.value.drive.interstellarSpeed }} parsecs/turn</li>
-        <li>{{ form.value.drive.combatSpeed }} combat speed</li>
-      </ul>
 
       <mat-form-field appearance="outline">
         <mat-label>Armor</mat-label>
@@ -58,18 +58,7 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
-      <ul *ngIf="selectedHull">
-        <li>
-          {{ selectedHull.baseHP * form.value.armor.multiplier }} structure
-          points
-        </li>
-        <li>
-          {{ selectedHull.baseHP * form.value.armor.multiplier }} armor points
-        </li>
-      </ul>
-    </div>
 
-    <div class="col">
       <mat-form-field appearance="outline">
         <mat-label>Shield</mat-label>
         <mat-select
@@ -82,13 +71,6 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
-      <ul>
-        <li>
-          {{ form.value.shield.absortionFactor * 5 * selectedHull.sizeRating }}
-          strength
-        </li>
-        <li>{{ form.value.shield.reduceDamage }} damage points blocked</li>
-      </ul>
 
       <mat-form-field appearance="outline">
         <mat-label>Computer</mat-label>
@@ -103,8 +85,40 @@
         </mat-select>
       </mat-form-field>
 
+      <mat-form-field appearance="outline">
+        <mat-label>Fuel Cell</mat-label>
+        <mat-select
+          [compareWith]="compareObjects"
+          formControlName="fuelCell"
+          required
+        >
+          <mat-option *ngFor="let v of fuelCells | async" [value]="v">
+            {{ v.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+    </div>
+
+    <div class="col">
       <ul>
-        <li>+{{ form.value.computer.beamAttackBonus }} beam attack</li>
+        <li *ngIf="form.value.drive">{{ form.value.drive.interstellarSpeed }} parsecs/turn</li>
+        <li *ngIf="form.value.drive">{{ form.value.drive.combatSpeed }} combat speed</li>
+        <li *ngIf="selectedHull">
+          {{ selectedHull.baseHP * form.value.armor.multiplier }} structure
+          points
+        </li>
+        <li *ngIf="selectedHull">
+          {{ selectedHull.baseHP * form.value.armor.multiplier }} armor points
+        </li>
+        <li *ngIf="selectedHull">
+          {{ form.value.shield.absortionFactor * 5 * selectedHull.sizeRating }}
+          strength
+        </li>
+        <li *ngIf="form.value.shield">{{ form.value.shield.reduceDamage }} damage points blocked</li>
+        <li *ngIf="form.value.computer && form.value.computer.beamAttackBonus">
+          +{{ form.value.computer.beamAttackBonus }} beam attack
+        </li>
       </ul>
 
       <span>40 beam defense, 0% missile evasion</span>
@@ -153,8 +167,10 @@
 </form>
 
 <div mat-dialog-actions>
-  <button *ngIf="!data.design.isCommon" (click)="cancel()" mat-button>CANCEL</button>
-  <button *ngIf="!data.design.isCommon" color="primary" mat-raised-button>SAVE</button>
+  <button (click)="cancel()" *ngIf="!editingMode || (editingMode && !data.design.isCommon)" mat-button>CANCEL</button>
+  <button (click)="save()" *ngIf="!editingMode || (editingMode && !data.design.isCommon)" [disabled]="form.invalid"
+          color="primary" mat-raised-button>SAVE
+  </button>
 
-  <button *ngIf="data.design.isCommon" color="primary" (click)="cancel()" mat-raised-button>OK</button>
+  <button (click)="cancel()" *ngIf="editingMode && data.design.isCommon" color="primary" mat-raised-button>OK</button>
 </div>

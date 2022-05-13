@@ -64,6 +64,10 @@ export class ShipDesignTableComponent implements OnInit {
     });
   }
 
+  newDesign() {
+    this.dialog.open(EditShipDesignDialogComponent);
+  }
+
   private static mapShipDesign2Row(s: ShipDesign): ShipDesignRow {
     return {
       hullsize: s.hullSize.name,

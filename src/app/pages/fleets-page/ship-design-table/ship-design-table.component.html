@@ -1,7 +1,7 @@
 <table
-  id="fleetTable"
   [dataSource]="dataSource"
   class="mat-elevation-z8"
+  id="fleetTable"
   mat-table
   matSort
   multiTemplateDataRows
@@ -13,13 +13,13 @@
 
   <tr *matHeaderRowDef="displayedColumns" mat-header-row></tr>
   <tr
-    class="ship-design-row"
-    *matRowDef="let row; columns: displayedColumns"
-    mat-row
     (click)="selectRow(row)"
+    *matRowDef="let row; columns: displayedColumns"
+    class="ship-design-row"
+    mat-row
   ></tr>
 </table>
 
 <section id="controls">
-  <button mat-stroked-button disabled color="primary">New Design</button>
+  <button (click)="newDesign()" color="primary" mat-stroked-button>New Design</button>
 </section>

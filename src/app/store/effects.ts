@@ -98,6 +98,17 @@ export class GameEffects {
     )
   );
 
+  saveNewShipDesign$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(actions.saveNewShipDesign),
+      mergeMap(({ shipDesignRef }) =>
+        this.gameService.saveNewShipDesign(shipDesignRef)
+      ),
+      map(ok => actions.serverHealthOk({ ok })),
+      catchError(() => EMPTY)
+    )
+  );
+
   constructor(
     private readonly actions$: Actions,
     private readonly gameService: GameService,

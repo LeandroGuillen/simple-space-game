@@ -2,6 +2,7 @@ import { createAction, props } from '@ngrx/store';
 
 import { Game, Server } from '../model/model';
 import { GameListResponseItem } from '../services/game.service';
+import { ShipDesignRef } from '../model/combat';
 
 export type NewGameRequest = {
   num_stars: number;
@@ -76,4 +77,9 @@ export const colonizeOK = createAction(
 export const updateTaxRate = createAction(
   '[KPI bar] Update tax rate',
   props<{ newTaxRate: number }>()
+);
+
+export const saveNewShipDesign = createAction(
+  '[Ship Design Editor] Create new ship design',
+  props<{ shipDesignRef: ShipDesignRef }>()
 );

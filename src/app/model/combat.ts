@@ -1,8 +1,10 @@
 export type ShipDesign = {
   name: string;
-  weapons: Weapon[];
-  specialSystems: SpecialSystem[];
-  baseSpace: number;
+
+  weapons?: Weapon[];
+  specialSystems?: SpecialSystem[];
+  baseSpace?: number;
+
   drive: Drive;
   computer: Computer;
   shield: Shield;
@@ -11,6 +13,13 @@ export type ShipDesign = {
   fuelCell: FuelCell;
 
   isCommon: boolean;
+};
+
+export type ShipDesignRef = {
+  [property in keyof ShipDesign as Exclude<
+    property,
+    'isCommon' | 'baseSpace' | 'specialSystems' | 'weapons'
+  >]: string;
 };
 
 export type Weapon = {};

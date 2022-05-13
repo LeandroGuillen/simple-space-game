@@ -1,5 +1,5 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatRadioChange } from '@angular/material/radio';
 import { MatTableDataSource } from '@angular/material/table';
@@ -10,18 +10,22 @@ import {
   Armor,
   Computer,
   Drive,
+  FuelCell,
   HullSize,
   Shield,
   ShipDesign,
+  ShipDesignRef,
 } from 'src/app/model/combat';
 import { AppState } from 'src/app/store/reducers';
 import {
   selectArmors,
   selectComputers,
   selectDrives,
+  selectFuelCells,
   selectHullSizes,
   selectShield,
 } from 'src/app/store/selectors/game.selectors';
+import { saveNewShipDesign } from '../../../store/actions';
 
 type EditShipDesignDialogData = {
   design: ShipDesign;
@@ -36,6 +40,9 @@ export class EditShipDesignDialogComponent implements OnInit {
   form!: FormGroup;
   selectedHull!: HullSize;
   hullObjects!: HullSize[];
+
+  // true if editing/ viewing a design, false if creating a design
+  editingMode: boolean;
 
   weapons = []; // TODO max 8 elements
   weaponsTableDataSource: any; //MatTableDataSource;
@@ -65,6 +72,7 @@ export class EditShipDesignDialogComponent implements OnInit {
   shields!: Observable<Shield[]>;
   computers!: Observable<Computer[]>;
   armors!: Observable<Armor[]>;
+  fuelCells!: Observable<FuelCell[]>;
 
   constructor(
     readonly fb: FormBuilder,
@@ -73,22 +81,26 @@ export class EditShipDesignDialogComponent implements OnInit {
     private readonly store: Store<AppState>
   ) {
     this.form = fb.group({
-      name: '',
-      hullsize: '',
-      drive: '',
-      armor: '',
-      shield: '',
-      computer: '',
+      name: ['', Validators.required],
+      hullSize: ['', Validators.required],
+      drive: ['', Validators.required],
+      armor: ['', Validators.required],
+      shield: ['', Validators.required],
+      computer: ['', Validators.required],
+      fuelCell: ['', Validators.required],
     });
+
+    this.editingMode = !!data;
 
     if (data) {
       this.form.patchValue({
         name: data.design.name,
-        hullsize: data.design.hullSize.name,
+        hullSize: data.design.hullSize.name,
         drive: data.design.drive,
         armor: data.design.armor,
         shield: data.design.shield,
         computer: data.design.computer,
+        fuelCell: data.design.fuelCell,
       });
 
       if (data.design.isCommon) {
@@ -115,6 +127,25 @@ export class EditShipDesignDialogComponent implements OnInit {
     this.shields = this.store.select(selectShield);
     this.computers = this.store.select(selectComputers);
     this.armors = this.store.select(selectArmors);
+    this.fuelCells = this.store.select(selectFuelCells);
+  }
+
+  save() {
+    if (this.form.invalid) {
+      return;
+    }
+    const value = this.form.value;
+    const shipDesignRef: ShipDesignRef = {
+      name: value.name,
+      drive: value.drive.name,
+      armor: value.armor.name,
+      shield: value.shield.name,
+      computer: value.computer.name,
+      hullSize: value.hullSize,
+      fuelCell: value.fuelCell.name,
+    };
+    this.store.dispatch(saveNewShipDesign({ shipDesignRef }));
+    this.dialogRef.close();
   }
 
   cancel(): void {
