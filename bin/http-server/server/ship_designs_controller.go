@@ -43,7 +43,7 @@ func CreateShipDesign(c *gin.Context) {
 		return
 	}
 
-	g, _, err := getGameHandle(c, gameID)
+	g, s, err := getGameHandle(c, gameID)
 	if err != nil {
 		return
 	}
@@ -69,6 +69,7 @@ func CreateShipDesign(c *gin.Context) {
 		return
 	} else {
 		c.JSON(http.StatusCreated, gin.H{"ok": true})
+		s.hub.BroadcastGameUpdate(g)
 	}
 }
 
