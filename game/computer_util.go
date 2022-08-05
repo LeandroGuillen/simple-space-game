@@ -1,17 +1,15 @@
-package computers
+package game
 
-import "math"
-
-type Computer struct {
-	Name            string `json:"name"`
-	BeamAttackBonus int64  `json:"beam_attack_bonus"`
-}
+import (
+	"math"
+	. "ssg/game/model"
+)
 
 // GetChanceToHit calculates the chance to hit.
 // See section 2 in https://gamefaqs.gamespot.com/pc/197873-master-of-orion-ii-battle-at-antares/faqs/16743.
 // `attackBonus` represents additional targeting helpers, e.g. Battle Scanner. For every unit of distance
 // there is an attack penalty of one point.
-func (c *Computer) GetChanceToHit(defenderDefense int64, attackBonus, distance int64) float64 {
+func GetChanceToHit(c Computer, defenderDefense int64, attackBonus, distance int64) float64 {
 	// Beam Attack
 	BA := c.BeamAttackBonus + attackBonus
 	// Beam Defense

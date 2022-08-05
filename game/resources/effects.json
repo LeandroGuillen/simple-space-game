@@ -1,0 +1,20 @@
+{
+  "effects": [
+    {
+      "name": "industryBonus",
+      "description": "Bonus production per worker."
+    },
+    {
+      "name": "flatIndustryBonus",
+      "description": "Generates a fixed amount of production."
+    },
+    {
+      "name": "agricultureBonus",
+      "description": "Bonus food per farmer."
+    },
+    {
+      "name": "flatAgricultureBonus",
+      "description": "Generates a fixed amount of food."
+    }
+  ]
+}

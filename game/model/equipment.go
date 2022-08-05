@@ -1,4 +1,4 @@
-package combat
+package model
 
 //https://gamefaqs.gamespot.com/pc/197873-master-of-orion-ii-battle-at-antares/faqs/16743
 

@@ -1,4 +1,4 @@
-package combat
+package model
 
 type SpecialSystem struct {
 	Name string

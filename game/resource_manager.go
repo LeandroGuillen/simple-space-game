@@ -6,10 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"ssg/game/combat"
-	"ssg/game/combat/computers"
-	"ssg/game/combat/weapons"
-	"ssg/game/model"
+	. "ssg/game/model"
 )
 
 type Resources struct {
@@ -17,19 +14,20 @@ type Resources struct {
 	*BuildingCollection   `json:"building_collection"`
 	*NameCollection       `json:"name_collection"`
 	*ShipDesignCollection `json:"ship_design_collection"`
+	*BeamCollection       `json:"beam_collection"`
 }
 
 type ShipPartsCollection struct {
-	HullSizes []combat.HullSize    `json:"hull_sizes"`
-	Drives    []combat.Drive       `json:"drives"`
-	Armors    []combat.Armor       `json:"armors"`
-	Computers []computers.Computer `json:"computers"`
-	FuelCells []combat.FuelCell    `json:"fuel_cells"`
-	Shields   []combat.Shield      `json:"shields"`
+	HullSizes []HullSize `json:"hull_sizes"`
+	Drives    []Drive    `json:"drives"`
+	Armors    []Armor    `json:"armors"`
+	Computers []Computer `json:"computers"`
+	FuelCells []FuelCell `json:"fuel_cells"`
+	Shields   []Shield   `json:"shields"`
 }
 
 type BuildingCollection struct {
-	Buildings []model.Building `json:"buildings"`
+	Buildings []Building `json:"buildings"`
 }
 
 type NameCollection struct {
@@ -37,8 +35,12 @@ type NameCollection struct {
 }
 
 type ShipDesignCollection struct {
-	ShipDesignsDefs []combat.ShipDesignsDef `json:"ship_design_defs"`
-	ShipDesigns     []combat.ShipDesign     `json:"ship_designs"`
+	ShipDesignsDefs []ShipDesignsDef `json:"ship_design_defs"`
+	ShipDesigns     []ShipDesign     `json:"ship_designs"`
+}
+
+type BeamCollection struct {
+	Beams []Beam `json:"beams"`
 }
 
 type ResourceManager struct {
@@ -56,6 +58,9 @@ var namesFile []byte
 
 //go:embed resources/ship_designs.json
 var shipDesignsFile []byte
+
+//go:embed resources/beams.json
+var beamsFile []byte
 
 func (r *ResourceManager) loadDataFromFiles() error {
 	var shipPartsCollection ShipPartsCollection
@@ -86,6 +91,12 @@ func (r *ResourceManager) loadDataFromFiles() error {
 		nameCollection.Stars[i], nameCollection.Stars[j] = nameCollection.Stars[j], nameCollection.Stars[i]
 	})
 
+	var beamCollection BeamCollection
+	if err := json.Unmarshal(beamsFile, &beamCollection); err != nil {
+		return err
+	}
+	r.BeamCollection = &beamCollection
+
 	var shipDesignCollection ShipDesignCollection
 	if err := json.Unmarshal(shipDesignsFile, &shipDesignCollection); err != nil {
 		return err
@@ -94,33 +105,33 @@ func (r *ResourceManager) loadDataFromFiles() error {
 	for _, def := range shipDesignCollection.ShipDesignsDefs {
 		armor, err := ArmorFromName(def.Armor, shipPartsCollection.Armors)
 		if err != nil {
-			return errors.New(fmt.Sprintf("cannot read ship design data: %s", armor))
+			return errors.New(fmt.Sprintf("cannot read ship design data: %v", armor))
 		}
 		drive, err := DriveFromName(def.Drive, shipPartsCollection.Drives)
 		if err != nil {
-			return errors.New(fmt.Sprintf("cannot read ship design data: %s", drive))
+			return errors.New(fmt.Sprintf("cannot read ship design data: %v", drive))
 		}
 		hullSize, err := HullSizeFromName(def.HullSize, shipPartsCollection.HullSizes)
 		if err != nil {
-			return errors.New(fmt.Sprintf("cannot read ship design data: %s", hullSize))
+			return errors.New(fmt.Sprintf("cannot read ship design data: %v", hullSize))
 		}
 		computer, err := ComputerFromName(def.Computer, shipPartsCollection.Computers)
 		if err != nil {
-			return errors.New(fmt.Sprintf("cannot read ship design data: %s", computer))
+			return errors.New(fmt.Sprintf("cannot read ship design data: %v", computer))
 		}
 		fuelCell, err := FuelCellFromName(def.FuelCell, shipPartsCollection.FuelCells)
 		if err != nil {
-			return errors.New(fmt.Sprintf("cannot read ship design data: %s", fuelCell))
+			return errors.New(fmt.Sprintf("cannot read ship design data: %v", fuelCell))
 		}
 		shield, err := ShieldFromName(def.Shield, shipPartsCollection.Shields)
 		if err != nil {
-			return errors.New(fmt.Sprintf("cannot read ship design data: %s", shield))
+			return errors.New(fmt.Sprintf("cannot read ship design data: %v", shield))
 		}
 
-		design := combat.NewShipDesign(
+		design := NewShipDesign(
 			def.Name,
-			[]weapons.Weapon{},
-			[]combat.SpecialSystem{},
+			[]Beam{},
+			[]SpecialSystem{},
 			hullSize,
 			drive,
 			armor,
@@ -218,56 +229,56 @@ func (r *ResourceManager) canICreateThisDesign(
 	return nil
 }
 
-func ArmorFromName(name string, list []combat.Armor) (combat.Armor, error) {
+func ArmorFromName(name string, list []Armor) (Armor, error) {
 	for _, v := range list {
 		if v.Name == name {
 			return v, nil
 		}
 	}
-	return combat.Armor{}, errors.New(fmt.Sprintf("%s not found", name))
+	return Armor{}, errors.New(fmt.Sprintf("%s not found", name))
 }
 
-func DriveFromName(name string, list []combat.Drive) (combat.Drive, error) {
+func DriveFromName(name string, list []Drive) (Drive, error) {
 	for _, v := range list {
 		if v.Name == name {
 			return v, nil
 		}
 	}
-	return combat.Drive{}, errors.New(fmt.Sprintf("%s not found", name))
+	return Drive{}, errors.New(fmt.Sprintf("%s not found", name))
 }
 
-func HullSizeFromName(name string, list []combat.HullSize) (combat.HullSize, error) {
+func HullSizeFromName(name string, list []HullSize) (HullSize, error) {
 	for _, v := range list {
 		if v.Name == name {
 			return v, nil
 		}
 	}
-	return combat.HullSize{}, errors.New(fmt.Sprintf("%s not found", name))
+	return HullSize{}, errors.New(fmt.Sprintf("%s not found", name))
 }
 
-func ComputerFromName(name string, list []computers.Computer) (computers.Computer, error) {
+func ComputerFromName(name string, list []Computer) (Computer, error) {
 	for _, v := range list {
 		if v.Name == name {
 			return v, nil
 		}
 	}
-	return computers.Computer{}, errors.New(fmt.Sprintf("%s not found", name))
+	return Computer{}, errors.New(fmt.Sprintf("%s not found", name))
 }
 
-func FuelCellFromName(name string, list []combat.FuelCell) (combat.FuelCell, error) {
+func FuelCellFromName(name string, list []FuelCell) (FuelCell, error) {
 	for _, v := range list {
 		if v.Name == name {
 			return v, nil
 		}
 	}
-	return combat.FuelCell{}, errors.New(fmt.Sprintf("%s not found", name))
+	return FuelCell{}, errors.New(fmt.Sprintf("%s not found", name))
 }
 
-func ShieldFromName(name string, list []combat.Shield) (combat.Shield, error) {
+func ShieldFromName(name string, list []Shield) (Shield, error) {
 	for _, v := range list {
 		if v.Name == name {
 			return v, nil
 		}
 	}
-	return combat.Shield{}, errors.New(fmt.Sprintf("%s not found", name))
+	return Shield{}, errors.New(fmt.Sprintf("%s not found", name))
 }

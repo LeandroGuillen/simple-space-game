@@ -1,4 +1,4 @@
-package combat
+package model
 
 type ShipStatus struct {
 	// hitpoints

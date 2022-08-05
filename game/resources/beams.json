@@ -1,0 +1,14 @@
+{
+  "beams": [
+    {
+      "name": "Laser",
+      "minDamage": 1,
+      "maxDamage": 4
+    },
+    {
+      "name": "Fusion",
+      "minDamage": 2,
+      "maxDamage": 8
+    }
+  ]
+}

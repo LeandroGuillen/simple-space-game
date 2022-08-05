@@ -3,12 +3,8 @@ package game
 import (
 	"errors"
 	"fmt"
-	"ssg/game/builder"
-	"ssg/game/combat"
-	"ssg/game/combat/weapons"
-	"ssg/game/model"
-
 	"github.com/google/uuid"
+	. "ssg/game/model"
 )
 
 type Turnable interface {
@@ -16,19 +12,19 @@ type Turnable interface {
 }
 
 type Game struct {
-	Galaxy      model.Galaxy    `json:"galaxy"`
-	Players     []*model.Player `json:"players"`
-	ID          string          `json:"id"`
-	CurrentTurn float64         `json:"current_turn"`
-	Resources   Resources       `json:"resources"`
+	Galaxy      Galaxy    `json:"galaxy"`
+	Players     []*Player `json:"players"`
+	ID          string    `json:"id"`
+	CurrentTurn int64     `json:"current_turn"`
+	Resources   Resources `json:"resources"`
 
 	resourceManager *ResourceManager
 }
 
 func NewGame(playerName string, numStars uint) (*Game, error) {
 	g := &Game{
-		Galaxy: builder.NewGalaxy(numStars),
-		Players: []*model.Player{
+		Galaxy: NewGalaxy(numStars),
+		Players: []*Player{
 			{ID: 1, Name: playerName},
 		},
 		ID:          uuid.New().String(),
@@ -59,14 +55,14 @@ func (g *Game) Turn(playerID uint) error {
 		return err
 	}
 	for _, colony := range colonyList {
-		colony.Turn()
+		planetTurn(colony)
 	}
 
-	g.CurrentTurn += 0.1
+	g.CurrentTurn += 1
 	return nil
 }
 
-func (g *Game) getPlayer(ID uint) (*model.Player, error) {
+func (g *Game) getPlayer(ID uint) (*Player, error) {
 	for _, player := range g.Players {
 		if player.ID == ID {
 			return player, nil
@@ -75,7 +71,7 @@ func (g *Game) getPlayer(ID uint) (*model.Player, error) {
 	return nil, errors.New(fmt.Sprintf("player with ID %d not found", ID))
 }
 
-func (g *Game) getPlanet(ID uint) (*model.Planet, error) {
+func (g *Game) getPlanet(ID uint) (*Planet, error) {
 	for _, star := range g.Galaxy.Stars {
 		for _, planet := range star.Planets {
 			if planet.ID == ID {
@@ -97,10 +93,10 @@ func (g *Game) CreateCapitalPlanet(ownerID, planetID uint) error {
 	}
 
 	// default capital terran world
-	planet.Environment = model.PlanetEnvironmentTerran
-	planet.Size = model.PlanetSizeMedium
-	planet.MineralClass = model.PlanetMineralAbundant
-	planet.Gravity = model.PlanetGravityNormal
+	planet.Environment = PlanetEnvironmentTerran
+	planet.Size = PlanetSizeMedium
+	planet.MineralClass = PlanetMineralAbundant
+	planet.Gravity = PlanetGravityNormal
 
 	planet.Owner = ownerID
 	planet.Population = 8000
@@ -108,8 +104,8 @@ func (g *Game) CreateCapitalPlanet(ownerID, planetID uint) error {
 	planet.Farmers = 2
 	planet.Scientists = 3
 
-	planet.AddBuilding(g.Resources.Buildings[0])
-	//planet.AddBuilding(data.Buildings[0])
+	// TODO add building functionality
+	//AddBuilding(planet, g.Resources.Buildings[0])
 
 	return nil
 }
@@ -119,23 +115,24 @@ func (g *Game) ColonizePlanet(ownerID, planetID uint) error {
 		return err
 	}
 
-	planet, err := g.getPlanet(planetID)
+	_, err := g.getPlanet(planetID)
 	if err != nil {
 		return err
 	}
 
-	planet.Colonize(ownerID)
+	// TODO add colonize functionality
+	//Colonize(planet, ownerID)
 
 	return nil
 }
 
 // GetColonyList returns a list of planets that have a colony owned by given player.
-func (g *Game) GetColonyList(playerID uint) ([]*model.Planet, error) {
+func (g *Game) GetColonyList(playerID uint) ([]*Planet, error) {
 	if _, err := g.getPlayer(playerID); err != nil {
 		return nil, err
 	}
 
-	colonyList := make([]*model.Planet, 0)
+	colonyList := make([]*Planet, 0)
 	for _, star := range g.Galaxy.Stars {
 		for _, planet := range star.Planets {
 			if planet.Owner == playerID {
@@ -151,22 +148,24 @@ func (g *Game) BuildOnPlanet(planetID, ownerID, buildingID uint) error {
 		return err
 	}
 
-	planet, err := g.getPlanet(planetID)
+	_, err := g.getPlanet(planetID)
 	if err != nil {
 		return err
 	}
 
 	// get building from its ID
-	building := g.Resources.Buildings[buildingID]
-	planet.Build(building)
+	_ = g.Resources.Buildings[buildingID]
+
+	// TODO add build functionality
+	//Build(planet, building)
 	return nil
 }
 
-func (g *Game) GetShipDesignsList(playerID uint) ([]*combat.ShipDesign, error) {
+func (g *Game) GetShipDesignsList(playerID uint) ([]*ShipDesign, error) {
 	if player, err := g.getPlayer(playerID); err != nil {
 		return nil, err
 	} else {
-		var shipDesigns []*combat.ShipDesign
+		var shipDesigns []*ShipDesign
 		for _, d := range g.Resources.ShipDesigns {
 			shipDesigns = append(shipDesigns, &d)
 		}
@@ -201,10 +200,10 @@ func (g *Game) CreateShipDesign(
 	fuelCell, _ := FuelCellFromName(fuelCellName, parts.FuelCells)
 	shield, _ := ShieldFromName(shieldName, parts.Shields)
 
-	basicDesign := combat.NewShipDesign(
+	basicDesign := NewShipDesign(
 		name,
-		[]weapons.Weapon{},
-		[]combat.SpecialSystem{},
+		[]Beam{},
+		[]SpecialSystem{},
 		hullSize,
 		drive,
 		armor,

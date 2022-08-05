@@ -18,9 +18,9 @@ type GameListResponse struct {
 }
 
 type GameListResponseItem struct {
-	GameID      string  `json:"game_id"`
-	NumStars    int     `json:"num_stars"`
-	CurrentTurn float64 `json:"current_turn"`
+	GameID      string `json:"game_id"`
+	NumStars    int    `json:"num_stars"`
+	CurrentTurn int64  `json:"current_turn"`
 }
 
 type GetGalaxyRequest struct {

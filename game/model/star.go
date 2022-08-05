@@ -1,5 +1,6 @@
 package model
 
+//go:generate stringer -type=StarColor
 type StarColor byte
 
 const (

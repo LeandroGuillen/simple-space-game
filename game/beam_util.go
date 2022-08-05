@@ -1,20 +1,11 @@
-package weapons
+package game
 
 import (
 	"math"
+	. "ssg/game/model"
 )
 
-type Beam struct {
-	Name      string
-	MinDamage int64
-	MaxDamage int64
-}
-
-func (b Beam) GetName() string {
-	return b.Name
-}
-
-func (b Beam) GetDamage(distance int64) int64 {
+func GetDamage(b Beam, distance int64) int64 {
 	// base damage
 	totalDamage := b.MaxDamage
 	// ---------------------------------
@@ -55,15 +46,15 @@ func (b Beam) GetDamage(distance int64) int64 {
 // NewBasicBeam creates a new beam with damage range 1-{damage}.
 func NewBasicBeam(damage int64) Beam {
 	return Beam{
-		"Basic",
-		1,
-		damage,
+		Name:      "Basic",
+		MinDamage: 1,
+		MaxDamage: damage,
 	}
 }
 
 // NewMultipleBasicBeams creates `n` new beams with damage range 1-{damage}.
-func NewMultipleBasicBeams(n int, damage int64) []Weapon {
-	var beamArray = make([]Weapon, n)
+func NewMultipleBasicBeams(n int, damage int64) []Beam {
+	var beamArray = make([]Beam, n)
 	for i := 0; i < n; i++ {
 		beamArray[i] = NewBasicBeam(damage)
 	}

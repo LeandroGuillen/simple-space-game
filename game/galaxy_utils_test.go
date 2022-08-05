@@ -1,18 +1,18 @@
-package builder_test
+package game_test
 
 import (
-	"ssg/game/builder"
+	"ssg/game"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewGalaxy(t *testing.T) {
-	g := builder.NewGalaxy(1)
+	g := game.NewGalaxy(1)
 	assert.Equal(t, len(g.Stars), 1)
 }
 
 func TestNewEmptyGalaxy(t *testing.T) {
-	galaxy := builder.NewEmptyGalaxy()
+	galaxy := game.NewEmptyGalaxy()
 	assert.Equal(t, len(galaxy.Stars), 0, "galaxy should be empty")
 }
