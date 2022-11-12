@@ -46,6 +46,7 @@ export class FleetTableComponent implements OnInit {
       { id: 5, design: 'Creek IX ' },
     ]);
   }
+
   ngAfterViewInit() {
     this.dataSource.sort = this.sort;
   }

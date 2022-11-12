@@ -25,7 +25,8 @@ import {
   selectHullSizes,
   selectShield,
 } from 'src/app/store/selectors/game.selectors';
-import { saveNewShipDesign } from '../../../store/actions';
+
+import { saveNewShipDesign, updateShipDesign } from '../../../store/actions';
 
 type EditShipDesignDialogData = {
   design: ShipDesign;
@@ -103,6 +104,10 @@ export class EditShipDesignDialogComponent implements OnInit {
         fuelCell: data.design.fuelCell,
       });
 
+      if (this.editingMode) {
+        this.form.controls.name.disable();
+      }
+
       if (data.design.isCommon) {
         this.form.disable();
       }
@@ -131,6 +136,8 @@ export class EditShipDesignDialogComponent implements OnInit {
   }
 
   save() {
+    this.form.controls.name.enable();
+
     if (this.form.invalid) {
       return;
     }
@@ -144,7 +151,13 @@ export class EditShipDesignDialogComponent implements OnInit {
       hullSize: value.hullSize,
       fuelCell: value.fuelCell.name,
     };
-    this.store.dispatch(saveNewShipDesign({ shipDesignRef }));
+
+    if (this.editingMode) {
+      this.store.dispatch(updateShipDesign({ shipDesignRef }));
+    } else {
+      this.store.dispatch(saveNewShipDesign({ shipDesignRef }));
+    }
+
     this.dialogRef.close();
   }
 

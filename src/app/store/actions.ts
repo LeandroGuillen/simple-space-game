@@ -1,8 +1,8 @@
 import { createAction, props } from '@ngrx/store';
 
+import { ShipDesignRef } from '../model/combat';
 import { Game, Server } from '../model/model';
 import { GameListResponseItem } from '../services/game.service';
-import { ShipDesignRef } from '../model/combat';
 
 export type NewGameRequest = {
   num_stars: number;
@@ -81,5 +81,10 @@ export const updateTaxRate = createAction(
 
 export const saveNewShipDesign = createAction(
   '[Ship Design Editor] Create new ship design',
+  props<{ shipDesignRef: ShipDesignRef }>()
+);
+
+export const updateShipDesign = createAction(
+  '[Ship Design Editor] Update ship design',
   props<{ shipDesignRef: ShipDesignRef }>()
 );
