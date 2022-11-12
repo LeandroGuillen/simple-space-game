@@ -229,3 +229,50 @@ func (g *Game) CreateShipDesign(
 		return nil
 	}
 }
+
+func (g *Game) UpdateShipDesign(
+	playerID uint,
+	name,
+	driveName,
+	computerName,
+	shieldName,
+	armorName,
+	hullSizeName,
+	fuelCellName string) error {
+
+	if err := g.resourceManager.canICreateThisDesign(driveName, computerName, shieldName, armorName, hullSizeName, fuelCellName); err != nil {
+		return err
+	}
+
+	parts := g.Resources.ShipPartsCollection
+
+	// I can ignore errors here because I just checked that all part names are valid
+	armor, _ := ArmorFromName(armorName, parts.Armors)
+	drive, _ := DriveFromName(driveName, parts.Drives)
+	hullSize, _ := HullSizeFromName(hullSizeName, parts.HullSizes)
+	computer, _ := ComputerFromName(computerName, parts.Computers)
+	fuelCell, _ := FuelCellFromName(fuelCellName, parts.FuelCells)
+	shield, _ := ShieldFromName(shieldName, parts.Shields)
+
+	// get player reference
+	player, err := g.getPlayer(playerID)
+	if err != nil {
+		return err
+	}
+
+	// find ship design to update
+	for i, d := range player.ShipDesigns {
+		if d.Name == name {
+			design := &player.ShipDesigns[i]
+			design.Armor = armor
+			design.Drive = drive
+			design.HullSize = hullSize
+			design.Computer = computer
+			design.FuelCell = fuelCell
+			design.Shield = shield
+			return nil
+		}
+	}
+
+	return errors.New(fmt.Sprintf("cannot update, did not find a d with name '%s'", name))
+}

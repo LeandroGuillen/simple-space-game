@@ -29,7 +29,7 @@ func NewServer() *Server {
 	r.Use(cors.New(cors.Config{
 		AllowAllOrigins:  true,
 		AllowWebSockets:  true,
-		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "content-type", "game-id", "player-id"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
@@ -57,6 +57,7 @@ func NewServer() *Server {
 	{
 		resources.GET("/shipdesigns", GetShipDesignList)
 		resources.POST("/shipdesigns", CreateShipDesign)
+		resources.PUT("/shipdesigns", UpdateShipDesign)
 
 		resources.GET("/shipparts", GetShipPartsList)
 	}

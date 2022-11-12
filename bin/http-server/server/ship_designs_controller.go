@@ -73,6 +73,43 @@ func CreateShipDesign(c *gin.Context) {
 	}
 }
 
+func UpdateShipDesign(c *gin.Context) {
+	gameID, playerID, err := readHeaders(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	g, s, err := getGameHandle(c, gameID)
+	if err != nil {
+		return
+	}
+
+	var req CreateShipDesignRequest
+	if err := c.Bind(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = g.UpdateShipDesign(
+		playerID,
+		req.Name,
+		req.Drive,
+		req.Computer,
+		req.Shield,
+		req.Armor,
+		req.HullSize,
+		req.FuelCell,
+	)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	} else {
+		c.JSON(http.StatusCreated, gin.H{"ok": true})
+		s.hub.BroadcastGameUpdate(g)
+	}
+}
+
 func GetShipPartsList(c *gin.Context) {
 	gameID, _, err := readHeaders(c)
 	if err != nil {
