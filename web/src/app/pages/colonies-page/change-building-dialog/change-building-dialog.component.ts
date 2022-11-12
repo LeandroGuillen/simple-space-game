@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 
 @Component({
@@ -8,14 +8,14 @@ import { MatDialogRef } from '@angular/material/dialog';
   styleUrls: [ './change-building-dialog.component.scss' ]
 })
 export class ChangeBuildingDialogComponent {
-  form: FormGroup;
+  form: UntypedFormGroup;
 
   availableBuildings = [
     'Automated Factories',
     'Hydroponic Farms'
   ];
 
-  constructor(fb: FormBuilder,
+  constructor(fb: UntypedFormBuilder,
     readonly dialogRef: MatDialogRef<ChangeBuildingDialogComponent>
   ) {
     this.form = fb.group({

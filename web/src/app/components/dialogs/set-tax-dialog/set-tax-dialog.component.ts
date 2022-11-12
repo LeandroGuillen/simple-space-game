@@ -1,5 +1,5 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { UntypedFormControl } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { tap } from 'rxjs/operators';
@@ -13,7 +13,7 @@ import { selectTaxRate } from 'src/app/store/selectors/player.selectors';
   styleUrls: ['./set-tax-dialog.component.scss'],
 })
 export class SetTaxDialogComponent implements OnInit {
-  taxRateControl = new FormControl();
+  taxRateControl = new UntypedFormControl();
 
   constructor(
     public dialogRef: MatDialogRef<SetTaxDialogComponent>,

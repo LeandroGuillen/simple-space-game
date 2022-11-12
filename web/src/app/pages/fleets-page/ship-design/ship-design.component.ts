@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MatTableDataSource } from '@angular/material/table';
 
 @Component({
@@ -8,7 +8,7 @@ import { MatTableDataSource } from '@angular/material/table';
   styleUrls: ['./ship-design.component.scss'],
 })
 export class ShipDesignComponent implements OnInit {
-  form!: FormGroup;
+  form!: UntypedFormGroup;
 
   weapons = []; // TODO max 8 elements
   weaponsTableDataSource: any; //MatTableDataSource;
@@ -69,7 +69,7 @@ export class ShipDesignComponent implements OnInit {
 
   armors = ['Titanium', 'Tritanium', 'Zortrium', 'Neutronium', 'Adamantium'];
 
-  constructor(readonly fb: FormBuilder) {
+  constructor(readonly fb: UntypedFormBuilder) {
     this.form = fb.group({
       name: 'Nova',
       hullsize: 'Frigate',

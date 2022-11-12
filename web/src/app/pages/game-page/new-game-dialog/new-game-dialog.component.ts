@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 
 import { NewGameRequest } from '../../../store/actions';
@@ -10,7 +10,7 @@ import { NewGameRequest } from '../../../store/actions';
   styleUrls: ['./new-game-dialog.component.scss']
 })
 export class NewGameDialogComponent {
-  form: FormGroup;
+  form: UntypedFormGroup;
 
   galaxySizes = [
     {
@@ -30,7 +30,7 @@ export class NewGameDialogComponent {
   ];
 
   constructor(
-    readonly fb: FormBuilder,
+    readonly fb: UntypedFormBuilder,
     public readonly dialogRef: MatDialogRef<NewGameDialogComponent>
   ) {
     this.form = fb.group({

@@ -1,5 +1,5 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatRadioChange } from '@angular/material/radio';
 import { MatTableDataSource } from '@angular/material/table';
@@ -38,7 +38,7 @@ type EditShipDesignDialogData = {
   styleUrls: ['./edit-ship-design-dialog.component.scss'],
 })
 export class EditShipDesignDialogComponent implements OnInit {
-  form!: FormGroup;
+  form!: UntypedFormGroup;
   selectedHull!: HullSize;
   hullObjects!: HullSize[];
 
@@ -76,7 +76,7 @@ export class EditShipDesignDialogComponent implements OnInit {
   fuelCells!: Observable<FuelCell[]>;
 
   constructor(
-    readonly fb: FormBuilder,
+    readonly fb: UntypedFormBuilder,
     public dialogRef: MatDialogRef<EditShipDesignDialogData>,
     @Inject(MAT_DIALOG_DATA) public data: EditShipDesignDialogData,
     private readonly store: Store<AppState>

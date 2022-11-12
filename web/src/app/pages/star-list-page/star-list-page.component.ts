@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { Store } from '@ngrx/store';
@@ -20,13 +20,13 @@ export class StarListPageComponent implements OnInit {
   dataSource = new MatTableDataSource(starData);
 
   galaxy!: Galaxy;
-  form!: FormGroup;
+  form!: UntypedFormGroup;
   showTable!: boolean;
 
   @ViewChild(MatSort) sort!: MatSort;
 
   constructor(private readonly store: Store<AppState>,
-    private readonly fb: FormBuilder) {
+    private readonly fb: UntypedFormBuilder) {
   }
 
   ngOnInit() {

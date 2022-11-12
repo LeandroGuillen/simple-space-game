@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 
 @Component({
@@ -8,10 +8,10 @@ import { MatDialogRef } from '@angular/material/dialog';
   styleUrls: [ './new-server-dialog.component.scss' ]
 })
 export class NewServerDialogComponent {
-  form: FormGroup;
+  form: UntypedFormGroup;
 
   constructor(
-    readonly fb: FormBuilder,
+    readonly fb: UntypedFormBuilder,
     public readonly dialogRef: MatDialogRef<NewServerDialogComponent>
   ) {
     this.form = fb.group({

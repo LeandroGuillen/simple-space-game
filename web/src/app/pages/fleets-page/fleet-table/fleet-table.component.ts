@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 
@@ -9,13 +9,13 @@ import { MatTableDataSource } from '@angular/material/table';
   styleUrls: ['./fleet-table.component.scss'],
 })
 export class FleetTableComponent implements OnInit {
-  filtersForm: FormGroup;
+  filtersForm: UntypedFormGroup;
   displayedColumns = ['id', 'design'];
   dataSource: any; //MatTableDataSource;
 
   @ViewChild(MatSort) sort!: MatSort;
 
-  constructor(readonly fb: FormBuilder) {
+  constructor(readonly fb: UntypedFormBuilder) {
     this.filtersForm = fb.group({
       combat: { value: true, disabled: true },
       support: { value: true, disabled: true },
