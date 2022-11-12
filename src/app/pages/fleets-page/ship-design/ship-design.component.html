@@ -1,0 +1,99 @@
+<form [formGroup]="form">
+	<mat-form-field>
+		<mat-label>Name</mat-label>
+		<input matInput formControlName="name">
+	</mat-form-field>
+
+	<div id="ship-details">
+		<div class="col">
+
+			<mat-label id="hull-size-label">Hull size</mat-label>
+			<mat-radio-group aria-labelledby="hull-size-label" class="hull-size-radio-group" formControlName="hullsize">
+				<mat-radio-button class="hull-size-radio-button" *ngFor="let hullSize of hullSizes" [value]="hullSize">
+					{{hullSize}}
+				</mat-radio-button>
+			</mat-radio-group>
+		</div>
+
+		<div class="col">
+			<mat-form-field>
+				<mat-label>Drive</mat-label>
+				<mat-select formControlName="drive" required>
+					<mat-option *ngFor="let v of drives" [value]="v">{{v}}</mat-option>
+				</mat-select>
+			</mat-form-field>
+
+			<ul>
+				<li>3 parsecs/turn</li>
+				<li>8 combat speed</li>
+			</ul>
+
+			<mat-divider></mat-divider>
+
+			<mat-form-field>
+				<mat-label>Armor</mat-label>
+				<mat-select formControlName="armor" required>
+					<mat-option *ngFor="let v of armors" [value]="v">{{v}}</mat-option>
+				</mat-select>
+			</mat-form-field>
+
+			<ul>
+				<li>160 structure points</li>
+				<li>160 armor points</li>
+			</ul>
+		</div>
+
+		<div class="col">
+			<mat-form-field>
+				<mat-label>Shield</mat-label>
+				<mat-select formControlName="shield" required>
+					<mat-option *ngFor="let v of shields" [value]="v">{{v}}</mat-option>
+				</mat-select>
+			</mat-form-field>
+
+			<ul>
+				<li>No strength</li>
+				<li>No damage points blocked</li>
+			</ul>
+
+			<mat-divider></mat-divider>
+
+			<mat-form-field>
+				<mat-label>Computer</mat-label>
+				<mat-select formControlName="computer" required>
+					<mat-option *ngFor="let v of computers" [value]="v">{{v}}</mat-option>
+				</mat-select>
+			</mat-form-field>
+
+			<ul>
+				<li>60 beam attack</li>
+				<li>40 beam defense</li>
+				<li>0% missile evasion</li>
+			</ul>
+		</div>
+
+	</div>
+
+
+	<table id="weaponTable" [dataSource]="weaponsTableDataSource" class="mat-elevation-z8" mat-table matSort>
+		<ng-container *ngFor="let c of weaponsTableColumns" [matColumnDef]="c.key">
+			<th *matHeaderCellDef mat-header-cell mat-sort-header>{{c.name}}</th>
+			<td *matCellDef="let d" mat-cell>{{ d[c.key] }}</td>
+		</ng-container>
+		<tr *matHeaderRowDef="weaponsTableDisplayedColumns" mat-header-row></tr>
+		<tr *matRowDef="let row; columns: weaponsTableDisplayedColumns" mat-row></tr>
+	</table>
+
+	<small *ngIf="weapons.length===0">No weapon added</small>
+
+	<table id="systemsTable" [dataSource]="systemsTableDataSource" class="mat-elevation-z8" mat-table matSort>
+		<ng-container *ngFor="let c of systemsTableColumns" [matColumnDef]="c.key">
+			<th *matHeaderCellDef mat-header-cell mat-sort-header>{{c.name}}</th>
+			<td *matCellDef="let d" mat-cell>{{ d[c.key] }}</td>
+		</ng-container>
+		<tr *matHeaderRowDef="systemsTableDisplayedColumns" mat-header-row></tr>
+		<tr *matRowDef="let row; columns: systemsTableDisplayedColumns" mat-row></tr>
+	</table>
+
+	<small *ngIf="systems.length===0">No system added</small>
+</form>

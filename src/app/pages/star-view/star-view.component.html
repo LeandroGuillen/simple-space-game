@@ -1,0 +1,35 @@
+<button (click)="goBack()" mat-raised-button>BACK</button>
+
+<section>
+  <div class="planet-list">
+    <ssg-rich-select *ngFor="let p of planets" [planet]="p" (click)="clicked(p)" [selected]="p.id === selectedPlanetID">
+    </ssg-rich-select>
+  </div>
+
+  <div class="planet-card">
+    <ssg-planet-mini-view *ngIf="selectedPlanet" [planet]=selectedPlanet></ssg-planet-mini-view>
+  </div>
+</section>
+
+<!-- <table *ngIf="star && star.planets">
+  <tr>
+    <th>Name</th>
+    <th>Owned by</th>
+    <th>Mineral Class</th>
+    <th>Size</th>
+    <th>Gravity</th>
+    <th>Actions</th>
+  </tr>
+
+  <tr *ngFor="let p of star.planets">
+    <td *ngIf="p.owner !== 0"><a routerLink="/stars/{{p.parent_star}}/planets/{{p.id}}">{{p.name}}</a></td>
+    <td *ngIf="p.owner === 0">{{p.name}}</td>
+    <td>{{p.owner === 0 ? '' : p.owner}}</td>
+    <td>{{p.mineral_class}}</td>
+    <td>{{p.size}}</td>
+    <td>{{p.gravity}}</td>
+    <td>
+      <button (click)="colonize(p.id)" *ngIf="p.owner === 0" mat-stroked-button>colonize</button>
+    </td>
+  </tr>
+</table> -->

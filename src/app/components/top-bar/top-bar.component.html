@@ -1,0 +1,34 @@
+<mat-toolbar color="primary">
+  <button [matMenuTriggerFor]="menu" mat-icon-button>
+    <mat-icon>menu</mat-icon>
+  </button>
+
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item routerLink="/server" matTooltip="Switch to another server" matTooltipPosition="right">
+      Servers
+    </button>
+    <button mat-menu-item disabled>Playing on: {{ serverName | async }}</button>
+    <mat-divider></mat-divider>
+    <button mat-menu-item routerLink="/game" matTooltip="See games on this server" matTooltipPosition="right">
+      Games
+    </button>
+    <mat-divider></mat-divider>
+    <button mat-menu-item disabled>Help</button>
+  </mat-menu>
+
+  <span>Simple Space Game</span>
+  <span class="spacer"></span>
+  <button mat-button routerLink="/stars">STARS</button>
+  <button mat-button routerLink="/colonies">COLONIES</button>
+  <button mat-button disabled>PLANETS</button>
+  <button mat-button routerLink="/fleets">FLEETS</button>
+  <button mat-button disabled>LEADERS</button>
+  <button mat-button disabled>RACES</button>
+  <button mat-button disabled>INFO</button>
+
+  <span class="spacer"></span>
+
+  <mat-chip-list>
+    <mat-chip *ngIf="gameID | async as gid">current game: {{ gid }}</mat-chip>
+  </mat-chip-list>
+</mat-toolbar>

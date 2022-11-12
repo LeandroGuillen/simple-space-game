@@ -1,0 +1,149 @@
+<h1 *ngIf="editingMode && !data.design.isCommon" mat-dialog-title>Editing '{{ form.value.name }}'</h1>
+<h1 *ngIf="editingMode && data.design.isCommon" mat-dialog-title>{{ form.value.name }}</h1>
+<h1 *ngIf="!editingMode" mat-dialog-title>Creating
+  <span *ngIf="form.value.name">'{{ form.value.name }}'</span>
+  <span *ngIf="!form.value.name">'Unnamed'</span>
+</h1>
+
+<p *ngIf="editingMode && data.design.isCommon" class="editable-warning">You cannot edit this design.</p>
+
+<form [formGroup]="form" mat-dialog-content>
+  <mat-form-field appearance="outline">
+    <mat-label>Name</mat-label>
+    <input formControlName="name" matInput />
+  </mat-form-field>
+
+  <div id="ship-details">
+    <div class="col">
+      <mat-label id="hull-size-label">Hull size</mat-label>
+      <mat-radio-group (change)="updateHull($event)" aria-labelledby="hull-size-label" class="hull-size-radio-group"
+        formControlName="hullSize">
+        <mat-radio-button *ngFor="let hullSize of hullSizes | async" [value]="hullSize.name"
+          class="hull-size-radio-button">
+          {{ hullSize.name }}
+        </mat-radio-button>
+      </mat-radio-group>
+    </div>
+
+    <div class="col">
+      <mat-form-field appearance="outline">
+        <mat-label>Drive</mat-label>
+        <mat-select [compareWith]="compareObjects" formControlName="drive" required>
+          <mat-option *ngFor="let v of drives | async" [value]="v">
+            {{ v.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Armor</mat-label>
+        <mat-select [compareWith]="compareObjects" formControlName="armor" required>
+          <mat-option *ngFor="let v of armors | async" [value]="v">
+            {{ v.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Shield</mat-label>
+        <mat-select [compareWith]="compareObjects" formControlName="shield" required>
+          <mat-option *ngFor="let v of shields | async" [value]="v">
+            {{ v.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Computer</mat-label>
+        <mat-select [compareWith]="compareObjects" formControlName="computer" required>
+          <mat-option *ngFor="let v of computers | async" [value]="v">
+            {{ v.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Fuel Cell</mat-label>
+        <mat-select [compareWith]="compareObjects" formControlName="fuelCell" required>
+          <mat-option *ngFor="let v of fuelCells | async" [value]="v">
+            {{ v.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+    </div>
+
+    <div class="col">
+      <ul>
+        <li *ngIf="form.value.drive">{{ form.value.drive.interstellarSpeed }} parsecs/turn</li>
+        <li *ngIf="form.value.drive">{{ form.value.drive.combatSpeed }} combat speed</li>
+        <li *ngIf="selectedHull">
+          {{ selectedHull.baseHP * form.value.armor.multiplier }} structure
+          points
+        </li>
+        <li *ngIf="selectedHull">
+          {{ selectedHull.baseHP * form.value.armor.multiplier }} armor points
+        </li>
+        <li *ngIf="selectedHull">
+          {{ form.value.shield.absortionFactor * 5 * selectedHull.sizeRating }}
+          strength
+        </li>
+        <li *ngIf="form.value.shield">{{ form.value.shield.reduceDamage }} damage points blocked</li>
+        <li *ngIf="form.value.computer && form.value.computer.beamAttackBonus">
+          +{{ form.value.computer.beamAttackBonus }} beam attack
+        </li>
+      </ul>
+
+      <span>40 beam defense, 0% missile evasion</span>
+    </div>
+  </div>
+  <!--
+  <table
+    id="weaponTable"
+    [dataSource]="weaponsTableDataSource"
+    class="mat-elevation-z8"
+    mat-table
+    matSort
+  >
+    <ng-container *ngFor="let c of weaponsTableColumns" [matColumnDef]="c.key">
+      <th *matHeaderCellDef mat-header-cell mat-sort-header>{{ c.name }}</th>
+      <td *matCellDef="let d" mat-cell>{{ d[c.key] }}</td>
+    </ng-container>
+    <tr *matHeaderRowDef="weaponsTableDisplayedColumns" mat-header-row></tr>
+    <tr
+      *matRowDef="let row; columns: weaponsTableDisplayedColumns"
+      mat-row
+    ></tr>
+  </table>
+
+  <small *ngIf="weapons.length === 0">No weapon added</small>
+
+  <table
+    id="systemsTable"
+    [dataSource]="systemsTableDataSource"
+    class="mat-elevation-z8"
+    mat-table
+    matSort
+  >
+    <ng-container *ngFor="let c of systemsTableColumns" [matColumnDef]="c.key">
+      <th *matHeaderCellDef mat-header-cell mat-sort-header>{{ c.name }}</th>
+      <td *matCellDef="let d" mat-cell>{{ d[c.key] }}</td>
+    </ng-container>
+    <tr *matHeaderRowDef="systemsTableDisplayedColumns" mat-header-row></tr>
+    <tr
+      *matRowDef="let row; columns: systemsTableDisplayedColumns"
+      mat-row
+    ></tr>
+  </table>
+
+  <small *ngIf="systems.length === 0">No system added</small> -->
+</form>
+
+<div mat-dialog-actions>
+  <button (click)="cancel()" *ngIf="!editingMode || (editingMode && !data.design.isCommon)" mat-button>CANCEL</button>
+  <button (click)="save()" *ngIf="!editingMode || (editingMode && !data.design.isCommon)" [disabled]="form.invalid"
+    color="primary" mat-raised-button>{{editingMode ? 'UPDATE':'CREATE'}}
+  </button>
+
+  <button (click)="cancel()" *ngIf="editingMode && data.design.isCommon" color="primary" mat-raised-button>OK</button>
+</div>

@@ -1,0 +1,21 @@
+<button (click)="goBack()" mat-raised-button>BACK</button>
+
+<section *ngIf="planet">
+  <div class="planet-info">
+    <h2>{{planet.name}}</h2>
+
+    <h3>Stats</h3>
+    <pre>
+      {{mineral_class}} {{size}} planet, {{gravity}} gravity
+    </pre>
+
+    <h3>Population</h3>
+    <pre>
+      Pop: {{planet.current_pop}}/{{planet.max_pop}}
+      Growth: {{planet.pop_growth}}
+    </pre>
+  </div>
+
+  <pre>{{ planet | json}}</pre>
+
+</section>

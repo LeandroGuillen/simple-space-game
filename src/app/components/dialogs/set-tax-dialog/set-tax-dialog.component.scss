@@ -1,0 +1,10 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+// fix for buttons so show bottom line
+mat-button-toggle-group {
+  margin-bottom: 1rem;
+}

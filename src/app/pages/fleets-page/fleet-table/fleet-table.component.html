@@ -1,0 +1,25 @@
+<table id="fleetTable" [dataSource]="dataSource" class="mat-elevation-z8" mat-table matSort>
+  <ng-container matColumnDef="id">
+    <th *matHeaderCellDef mat-header-cell mat-sort-header>Ship ID</th>
+    <td *matCellDef="let ship" mat-cell>{{ ship.id }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="design">
+    <th *matHeaderCellDef mat-header-cell mat-sort-header>Design</th>
+    <td *matCellDef="let ship" mat-cell>
+      {{ ship.design }}
+    </td>
+  </ng-container>
+  <tr *matHeaderRowDef="displayedColumns" mat-header-row></tr>
+  <tr *matRowDef="let row; columns: displayedColumns" mat-row></tr>
+</table>
+
+<section id="controls">
+  <div id="filtersForm" [formGroup]="filtersForm">
+    <mat-checkbox formControlName="combat">Combat</mat-checkbox>
+    <mat-checkbox formControlName="support">Support</mat-checkbox>
+  </div>
+  <button mat-stroked-button disabled color="primary">Select all</button>
+  <button mat-stroked-button disabled color="primary">Relocate</button>
+  <button mat-stroked-button disabled color="primary">Scrap</button>
+</section>

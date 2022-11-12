@@ -1,0 +1,15 @@
+<h1>Fleet Operations</h1>
+
+<mat-tab-group mat-align-tabs="center">
+  <mat-tab label="Ship Designs">
+    <ssg-ship-design-table></ssg-ship-design-table>
+  </mat-tab>
+
+  <mat-tab label="Edit Design" [disabled]="true">
+    <ssg-ship-design></ssg-ship-design>
+  </mat-tab>
+
+  <mat-tab label="Fleets">
+    <ssg-fleet-table></ssg-fleet-table>
+  </mat-tab>
+</mat-tab-group>
