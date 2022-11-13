@@ -68,18 +68,8 @@ func BuildOnPlanet(c *gin.Context) {
 		return
 	}
 
-	rawServer, serverExists := c.Get("server")
-	if !serverExists {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "server object was not created"})
-		return
-	}
-
-	s := rawServer.(*Server)
-	g, gameFound := s.GameList[req.GameID]
-	if !gameFound {
-		c.JSON(http.StatusNotFound, gin.H{
-			"message": fmt.Sprintf("game with id %s was not found", req.GameID),
-		})
+	g, s, err := getGameHandle(c, req.GameID)
+	if err != nil {
 		return
 	}
 
@@ -87,6 +77,8 @@ func BuildOnPlanet(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
+
+	s.hub.BroadcastGameUpdate(g)
 
 	c.JSON(http.StatusOK, gin.H{"ok": true})
 }

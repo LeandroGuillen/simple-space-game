@@ -11,7 +11,7 @@
     <td *matCellDef="let planet" mat-cell>
       <a routerLink="/stars/{{ planet.parent_star }}/planets/{{ planet.id }}">{{
         planet.name
-      }}</a>
+        }}</a>
     </td>
   </ng-container>
 
@@ -32,7 +32,7 @@
 
   <ng-container matColumnDef="current_project">
     <th *matHeaderCellDef mat-header-cell mat-sort-header>Building</th>
-    <td *matCellDef="let planet" mat-cell>{{ planet.current_project }}</td>
+    <td *matCellDef="let planet" mat-cell>{{ planet.current_project.name }}</td>
   </ng-container>
 
   <ng-container matColumnDef="actions">

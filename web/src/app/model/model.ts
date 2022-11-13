@@ -1,12 +1,4 @@
-import {
-  Armor,
-  Computer,
-  Drive,
-  FuelCell,
-  HullSize,
-  Shield,
-  ShipDesign,
-} from './combat';
+import { Armor, Computer, Drive, FuelCell, HullSize, Shield, ShipDesign } from './combat';
 
 export type Resources = {
   shipParts: {
@@ -129,6 +121,9 @@ export type Planet = {
   current_project: number;
   build_list: string[];
   buildings: Building[];
+  industryStack: number;
+  buildBucket: number;
+  isBuilding: boolean;
 };
 
 export type Building = {

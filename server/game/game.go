@@ -43,11 +43,15 @@ func NewGame(playerName string, numStars uint) (*Game, error) {
 }
 
 func (g *Game) Turn(playerID uint) error {
+	// TODO A turn should just flag the player as ready, and then when
+	// all (human) players are ready then cycle through everything and
+	// update its state, not only the player's controlled objects.
 	player, err := g.getPlayer(playerID)
 	if err != nil {
 		return err
 	}
 
+	// TODO get income from trade goods/taxes
 	player.Treasury += 2
 
 	colonyList, err := g.GetColonyList(playerID)
@@ -60,26 +64,6 @@ func (g *Game) Turn(playerID uint) error {
 
 	g.CurrentTurn += 1
 	return nil
-}
-
-func (g *Game) getPlayer(ID uint) (*Player, error) {
-	for _, player := range g.Players {
-		if player.ID == ID {
-			return player, nil
-		}
-	}
-	return nil, errors.New(fmt.Sprintf("player with ID %d not found", ID))
-}
-
-func (g *Game) getPlanet(ID uint) (*Planet, error) {
-	for _, star := range g.Galaxy.Stars {
-		for _, planet := range star.Planets {
-			if planet.ID == ID {
-				return planet, nil
-			}
-		}
-	}
-	return nil, errors.New(fmt.Sprintf("planet with ID %d not found", ID))
 }
 
 func (g *Game) CreateCapitalPlanet(ownerID, planetID uint) error {
@@ -148,16 +132,17 @@ func (g *Game) BuildOnPlanet(planetID, ownerID, buildingID uint) error {
 		return err
 	}
 
-	_, err := g.getPlanet(planetID)
+	planet, err := g.getPlanet(planetID)
 	if err != nil {
 		return err
 	}
 
-	// get building from its ID
-	_ = g.Resources.Buildings[buildingID]
+	building := g.Resources.Buildings[buildingID]
 
-	// TODO add build functionality
-	//Build(planet, building)
+	planet.CurrentProject = building
+	planet.IsBuilding = true
+	planet.BuildBucket = building.Cost
+
 	return nil
 }
 

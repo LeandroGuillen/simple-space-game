@@ -21,10 +21,16 @@ type Planet struct {
 	Marines int64 `json:"marines"`
 	Armored int64 `json:"armor"`
 
+	// building
+
 	CurrentProject Building   `json:"current_project"`
 	BuildQueue     []Building `json:"build_queue"`
 	Buildings      []Building `json:"buildings"`
-	industryStack  int64
+	// IndustryStack contains the leftover production of a planet.
+	IndustryStack int64 `json:"industry_stack"`
+	// BuildBucket represents the production that is left for the current project to complete.
+	BuildBucket int64 `json:"build_bucket"`
+	IsBuilding  bool  `json:"is_building"`
 }
 
 //go:generate stringer -type=PlanetMineral

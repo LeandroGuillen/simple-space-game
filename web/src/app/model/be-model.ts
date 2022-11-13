@@ -85,6 +85,9 @@ export type BEPlanet = {
   current_project: number;
   build_list: string[];
   buildings: BEBuilding[];
+  industry_stack: number;
+  build_bucket: number;
+  is_building: boolean;
 };
 
 export type BEBuilding = {

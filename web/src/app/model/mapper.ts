@@ -7,23 +7,8 @@ import {
   BEShield,
   BEShipDesign,
 } from './be-combat';
-import {
-  BEGalaxy,
-  BEGame,
-  BEPlanet,
-  BEPlayer,
-  BEResources,
-  BEStar,
-} from './be-model';
-import {
-  Armor,
-  Computer,
-  Drive,
-  FuelCell,
-  HullSize,
-  Shield,
-  ShipDesign,
-} from './combat';
+import { BEGalaxy, BEGame, BEPlanet, BEPlayer, BEResources, BEStar } from './be-model';
+import { Armor, Computer, Drive, FuelCell, HullSize, Shield, ShipDesign } from './combat';
 import { Galaxy, Game, Planet, Player, Resources, Star } from './model';
 
 export function mapGalaxy(g: BEGalaxy): Galaxy {
@@ -70,6 +55,9 @@ export function mapPlanet(p: BEPlanet): Planet {
     current_project: p.current_project,
     build_list: p.build_list || [],
     buildings: p.buildings || [],
+    industryStack: p.industry_stack,
+    buildBucket: p.build_bucket,
+    isBuilding: p.is_building,
   };
 }
 
