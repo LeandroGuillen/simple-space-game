@@ -1,21 +1,55 @@
 <button (click)="goBack()" mat-raised-button>BACK</button>
 
-<section *ngIf="planet">
-  <div class="planet-info">
-    <h2>{{planet.name}}</h2>
+<div class="planet-info">
+  <h1>{{planet.name}}</h1>
+  <p><small>{{description}}</small></p>
 
-    <h3>Stats</h3>
-    <pre>
-      {{mineral_class}} {{size}} planet, {{gravity}} gravity
-    </pre>
+  <pre>
+    Pop: {{planet.current_pop}}/{{planet.max_pop}}
+    Growth: {{planet.pop_growth}}
+  </pre>
+</div>
 
-    <h3>Population</h3>
-    <pre>
-      Pop: {{planet.current_pop}}/{{planet.max_pop}}
-      Growth: {{planet.pop_growth}}
-    </pre>
+<div class="population-control">
+  <h2>Farmers ({{planet.farmers}})</h2>
+
+  <div cdkDropList #farmerList="cdkDropList" [cdkDropListData]="farmers"
+    [cdkDropListConnectedTo]="[workerList, scientistList]" class="example-list" (cdkDropListDropped)="drop($event)">
+    <div class="example-box" *ngFor="let item of farmers" cdkDrag>
+      <img src="assets/icons/shovel-24.png" alt="">
+    </div>
   </div>
 
-  <pre>{{ planet | json}}</pre>
+  <h2>Workers ({{planet.workers}})</h2>
 
-</section>
+  <div cdkDropList #workerList="cdkDropList" [cdkDropListData]="workers"
+    [cdkDropListConnectedTo]="[farmerList, scientistList]" class="example-list" (cdkDropListDropped)="drop($event)">
+    <div class="example-box" *ngFor="let item of workers" cdkDrag>
+      <img src="assets/icons/hammer-24.png" alt="">
+    </div>
+  </div>
+
+  <h2>Scientists ({{planet.scientists}})</h2>
+
+  <div cdkDropList #scientistList="cdkDropList" [cdkDropListData]="scientists"
+    [cdkDropListConnectedTo]="[farmerList, workerList]" class="example-list" (cdkDropListDropped)="drop($event)">
+    <div class="example-box" *ngFor="let item of scientists" cdkDrag>
+      <img src="assets/icons/microscope-24.png" alt="">
+    </div>
+  </div>
+
+</div>
+
+<div class="buildings">
+  <ssg-building-icon *ngFor="let b of planet.buildings" [building]="b"></ssg-building-icon>
+</div>
+
+
+<mat-accordion>
+  <mat-expansion-panel [expanded]="true">
+    <mat-expansion-panel-header>
+      <mat-panel-title>Planet debug info</mat-panel-title>
+    </mat-expansion-panel-header>
+    <pre class="debug">{{ planet | json}}</pre>
+  </mat-expansion-panel>
+</mat-accordion>

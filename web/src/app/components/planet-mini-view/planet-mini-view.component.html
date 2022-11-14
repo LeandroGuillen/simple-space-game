@@ -36,8 +36,7 @@
 			</div>
 		</div>
 		<div>
-			<mat-chip-list class="example-chip" cdkDropList cdkDropListOrientation="horizontal"
-				(cdkDropListDropped)="drop($event)">
+			<mat-chip-list class="example-chip" cdkDropList cdkDropListOrientation="horizontal">
 				<mat-chip cdkDrag *ngFor="let building of planet.buildings">
 					{{building.name}}
 				</mat-chip>

@@ -1,3 +1,4 @@
+import { CdkDragDrop, transferArrayItem } from '@angular/cdk/drag-drop';
 import { Location } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
@@ -13,36 +14,44 @@ import { getCurrentRouteState } from '../../store/selectors/router.selectors';
 @Component({
   selector: 'ssg-planet-view',
   templateUrl: './planet-view.component.html',
-  styleUrls: [ './planet-view.component.scss' ]
+  styleUrls: ['./planet-view.component.scss'],
 })
 export class PlanetViewComponent implements OnInit, OnDestroy {
   planet!: Planet;
   size!: string;
   gravity!: string;
   mineral_class!: string;
+  description = '';
 
   sub!: Subscription;
+
+  farmers = ['F', 'F', 'F'];
+  workers = ['W', 'W', 'W'];
+  scientists = ['S', 'S', 'S'];
 
   constructor(
     private readonly store: Store<AppState>,
     private readonly strings: StringService,
-    private readonly location: Location) {
-  }
-
+    private readonly location: Location
+  ) {}
 
   ngOnInit() {
-    this.sub = this.store.select(getCurrentRouteState).pipe(
-      map(route => parseInt((route as any).params.planet_id)),
-      switchMap(starID => this.store.select(selectPlanet(starID)))
-    ).subscribe(planet => {
-      if (!planet) {
-        return;
-      }
-      this.planet = planet;
-      this.size = this.strings.getSize(planet.size)
-      this.gravity = this.strings.getGravity(planet.gravity);
-      this.mineral_class = this.strings.getMineralClass(planet.mineral_class);
-    })
+    this.sub = this.store
+      .select(getCurrentRouteState)
+      .pipe(
+        map(route => parseInt((route as any).params.planet_id)),
+        switchMap(starID => this.store.select(selectPlanet(starID)))
+      )
+      .subscribe(planet => {
+        if (!planet) {
+          return;
+        }
+        this.planet = planet;
+        this.size = this.strings.getSize(planet.size);
+        this.gravity = this.strings.getGravity(planet.gravity);
+        this.mineral_class = this.strings.getMineralClass(planet.mineral_class);
+        this.description = this.strings.getPlanetFullDescription(planet);
+      });
   }
 
   ngOnDestroy() {
@@ -51,5 +60,16 @@ export class PlanetViewComponent implements OnInit, OnDestroy {
 
   goBack() {
     this.location.back();
+  }
+
+  drop(event: CdkDragDrop<string[]>) {
+    if (event.previousContainer !== event.container) {
+      transferArrayItem(
+        event.previousContainer.data,
+        event.container.data,
+        event.previousIndex,
+        event.currentIndex
+      );
+    }
   }
 }

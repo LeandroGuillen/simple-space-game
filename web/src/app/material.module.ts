@@ -1,3 +1,4 @@
+import { DragDropModule } from '@angular/cdk/drag-drop';
 import { NgModule } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -45,6 +46,7 @@ const moduleList = [
   MatTooltipModule,
   MatTabsModule,
   MatRadioModule,
+  DragDropModule,
 ];
 
 @NgModule({

@@ -1,23 +1,14 @@
 <h1>Stars</h1>
 
-<div [formGroup]="form">
+<div class="form" [formGroup]="form">
   <mat-slide-toggle formControlName="asTable" [color]="'accent'">
     See as table
   </mat-slide-toggle>
 </div>
 
-<ssg-galaxy-view
-  *ngIf="galaxy && !showTable"
-  [galaxy]="galaxy"
-></ssg-galaxy-view>
+<ssg-galaxy-view *ngIf="galaxy && !showTable" [galaxy]="galaxy"></ssg-galaxy-view>
 
-<table
-  *ngIf="showTable"
-  [dataSource]="dataSource"
-  class="mat-elevation-z8"
-  mat-table
-  matSort
->
+<table *ngIf="showTable" [dataSource]="dataSource" class="mat-elevation-z8" mat-table matSort>
   <ng-container matColumnDef="id">
     <th *matHeaderCellDef mat-header-cell mat-sort-header>ID</th>
     <td *matCellDef="let star" mat-cell>{{ star.id }}</td>
