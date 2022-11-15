@@ -1,4 +1,12 @@
-import { Armor, Computer, Drive, FuelCell, HullSize, Shield, ShipDesign } from './combat';
+import {
+  Armor,
+  Computer,
+  Drive,
+  FuelCell,
+  HullSize,
+  Shield,
+  ShipDesign,
+} from './combat';
 
 export type Resources = {
   shipParts: {
@@ -161,6 +169,7 @@ export type Server = {
   id: string;
   name: string;
   url: string;
+  isOnline: boolean;
 };
 
 export function emptyServer(): Server {
@@ -168,5 +177,6 @@ export function emptyServer(): Server {
     id: '',
     name: '',
     url: '',
+    isOnline: false,
   };
 }

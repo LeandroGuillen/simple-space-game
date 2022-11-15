@@ -12,13 +12,9 @@ import { environment } from '../environments/environment';
 import { AppComponent } from './app.component';
 import { ComponentsModule } from './components/components.module';
 import { MaterialModule } from './material.module';
-import {
-  ChangeBuildingDialogComponent,
-} from './pages/colonies-page/change-building-dialog/change-building-dialog.component';
+import { ChangeBuildingDialogComponent } from './pages/colonies-page/change-building-dialog/change-building-dialog.component';
 import { ColoniesPageComponent } from './pages/colonies-page/colonies-page.component';
-import {
-  EditShipDesignDialogComponent,
-} from './pages/fleets-page/edit-ship-design-dialog/edit-ship-design-dialog.component';
+import { EditShipDesignDialogComponent } from './pages/fleets-page/edit-ship-design-dialog/edit-ship-design-dialog.component';
 import { FleetTableComponent } from './pages/fleets-page/fleet-table/fleet-table.component';
 import { FleetsPageComponent } from './pages/fleets-page/fleets-page.component';
 import { ShipDesignTableComponent } from './pages/fleets-page/ship-design-table/ship-design-table.component';
@@ -27,6 +23,7 @@ import { GamePageComponent } from './pages/game-page/game-page.component';
 import { NewGameDialogComponent } from './pages/game-page/new-game-dialog/new-game-dialog.component';
 import { PlanetViewComponent } from './pages/planet-view/planet-view.component';
 import { NewServerDialogComponent } from './pages/server-page/new-server-dialog/new-server-dialog.component';
+import { ServerListItemComponent } from './pages/server-page/server-list-item/server-list-item.component';
 import { ServerPageComponent } from './pages/server-page/server-page.component';
 import { ServerStatusIconComponent } from './pages/server-page/server-status-icon/server-status-icon.component';
 import { StarListPageComponent } from './pages/star-list-page/star-list-page.component';
@@ -54,6 +51,7 @@ import { gameReducer } from './store/reducers';
     ShipDesignComponent,
     EditShipDesignDialogComponent,
     ServerStatusIconComponent,
+    ServerListItemComponent,
   ],
   imports: [
     // angular

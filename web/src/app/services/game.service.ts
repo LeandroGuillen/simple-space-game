@@ -58,15 +58,15 @@ export class GameService {
     console.log('trying', server.url);
     return this.http.get<{ ok: boolean }>(`${this.#host}/status`).pipe(
       map(res => {
-        if (res.ok) {
-          window.localStorage.setItem('currentServerHost', this.#host);
-          window.localStorage.setItem('currentServer', JSON.stringify(server));
-          window.localStorage.setItem('currentGameID', '');
-          this.currentGameID = '';
-          return server;
+        if (!res.ok) {
+          window.localStorage.setItem('currentServerHost', '');
+          throw new Error(`cannot connect to '${server.url}'`);
         }
-        window.localStorage.setItem('currentServerHost', '');
-        throw new Error(`cannot connect to '${server.url}'`);
+        window.localStorage.setItem('currentServerHost', this.#host);
+        window.localStorage.setItem('currentServer', JSON.stringify(server));
+        window.localStorage.setItem('currentGameID', '');
+        this.currentGameID = '';
+        return server;
       })
     );
   }

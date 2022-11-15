@@ -1,14 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { filter, tap } from 'rxjs/operators';
 
 import { Server } from '../../model/model';
 import { ServerManagerService } from '../../services/server-manager.service';
-import { AppState } from '../../store/reducers';
-import { selectServer } from '../../store/selectors/server.selectors';
 import { NewServerDialogComponent } from './new-server-dialog/new-server-dialog.component';
 
 @Component({
@@ -23,8 +20,7 @@ export class ServerPageComponent implements OnInit {
   constructor(
     private readonly route: Router,
     private readonly dialog: MatDialog,
-    private readonly serverManager: ServerManagerService,
-    private readonly store: Store<AppState>
+    private readonly serverManager: ServerManagerService
   ) {}
 
   ngOnInit(): void {
@@ -48,9 +44,7 @@ export class ServerPageComponent implements OnInit {
   }
 
   connect(server: Server) {
-    this.serverManager.connectTo(server);
-
-    this.store.select(selectServer).subscribe(() => {
+    this.serverManager.connectTo(server).subscribe(() => {
       this.route.navigate(['game']);
     });
   }

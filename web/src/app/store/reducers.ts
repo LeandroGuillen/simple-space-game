@@ -3,7 +3,14 @@ import { createReducer, on } from '@ngrx/store';
 
 import { emptyGame, emptyServer, Game, Server } from '../model/model';
 import { GameListResponseItem } from '../services/game.service';
-import { changeBuildingOK, colonizeOK, getGameListOK, serverConnectionSuccess, updateGame, updateTaxRate } from './actions';
+import {
+  changeBuildingOK,
+  colonizeOK,
+  getGameListOK,
+  serverConnectionSuccess,
+  updateGame,
+  updateTaxRate,
+} from './actions';
 
 export type AppState = {
   game: GameState;
@@ -74,6 +81,7 @@ export const gameReducer = createReducer(
       id: server.id,
       name: server.name,
       url: server.url,
+      isOnline: true,
     },
   })),
   on(updateTaxRate, (state, { newTaxRate }) => ({

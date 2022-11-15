@@ -1,0 +1,17 @@
+<div class="content">
+	<span class="server-name">{{server.name}}</span>
+	<span class="server-status">
+		<ssg-server-status-icon [status]="server.isOnline"></ssg-server-status-icon>
+		<span>{{server.url}}</span>
+	</span>
+	<span class="server-id">Server ID: {{server.id.split('-')[0]}}</span>
+</div>
+
+<div class="item-buttons">
+	<button (click)="connect.next(server)" color="primary" mat-mini-fab>
+		<mat-icon>play_arrow</mat-icon>
+	</button>
+	<button (click)="remove.next(server)" color="accent" mat-mini-fab>
+		<mat-icon>delete</mat-icon>
+	</button>
+</div>
