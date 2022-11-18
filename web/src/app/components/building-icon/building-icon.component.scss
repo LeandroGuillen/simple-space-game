@@ -1,19 +1,19 @@
 :host {
 	display: flex;
 	flex-direction: column;
-	justify-content: center;
+	padding: 1rem;
 	max-width: 10rem;
 	width: 5rem;
 	height: 5rem;
 	// border: thick double #32a1ce;
 	border-radius: 1rem;
-	background-color: brown;
+	background-color: lightgrey;
 	text-align: center;
 	color: white;
 }
 
 :host:hover {
 	cursor: pointer;
-	background-color: burlywood;
+	background-color: lightblue;
 	color: black;
 }
