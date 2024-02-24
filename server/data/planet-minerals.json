@@ -1,0 +1,27 @@
+[
+  {
+    "name": "Ultra Poor",
+    "description": "This is the description of the ultra poor",
+    "industryBase": 1
+  },
+  {
+    "name": "Poor",
+    "description": "This is the description of the poor",
+    "industryBase": 2
+  },
+  {
+    "name": "Abundant",
+    "description": "This is the description of the abundant",
+    "industryBase": 3
+  },
+  {
+    "name": "Rich",
+    "description": "This is the description of the rich",
+    "industryBase": 5
+  },
+  {
+    "name": "Ultra Rich",
+    "description": "This is the description of the ultra rich",
+    "industryBase": 8
+  }
+]

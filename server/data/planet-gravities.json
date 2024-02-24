@@ -1,0 +1,17 @@
+[
+  {
+    "name": "Low",
+    "description": "Low",
+    "industryFactor": 0.75
+  },
+  {
+    "name": "Medium",
+    "description": "Medium",
+    "industryFactor": 1
+  },
+  {
+    "name": "High",
+    "description": "High",
+    "industryFactor": 0.5
+  }
+]

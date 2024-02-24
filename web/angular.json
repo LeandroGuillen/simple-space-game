@@ -103,5 +103,8 @@
       }
     }
   },
-  "defaultProject": "ssg-web"
+  "defaultProject": "ssg-web",
+  "cli": {
+    "analytics": false
+  }
 }

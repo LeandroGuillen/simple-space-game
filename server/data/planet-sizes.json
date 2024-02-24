@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Tiny",
+    "populationMultiplier": 0.1,
+    "description": "A teeny tiny piece of rock.",
+    "maxPopulationBase": 1
+  },
+  {
+    "name": "Small",
+    "populationMultiplier": 0.5,
+    "description": "A small piece of rock.",
+    "maxPopulationBase": 3
+  },
+  {
+    "name": "Medium",
+    "populationMultiplier": 1,
+    "description": "A medium piece of rock.",
+    "maxPopulationBase": 5
+  },
+  {
+    "name": "Large",
+    "populationMultiplier": 2,
+    "description": "A large piece of rock.",
+    "maxPopulationBase": 7
+  },
+  {
+    "name": "Huge",
+    "populationMultiplier": 5,
+    "description": "A huge piece of rock.",
+    "maxPopulationBase": 10
+  }
+]
