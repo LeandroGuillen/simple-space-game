@@ -1,6 +1,6 @@
 <button (click)="goBack()" mat-raised-button>BACK</button>
 
-<div class="planet-info">
+<div class="planet-info" *ngIf="planet">
   <h1>{{planet.name}}</h1>
   <p><small>{{description}}</small></p>
 
@@ -11,36 +11,33 @@
 </div>
 
 <div class="population-control">
-  <h2>Farmers ({{planet.farmers}})</h2>
+  <h2>Farmers ({{farmers.length}})</h2>
 
-  <div cdkDropList #farmerList="cdkDropList" [cdkDropListData]="farmers"
-    [cdkDropListConnectedTo]="[workerList, scientistList]" class="example-list" (cdkDropListDropped)="drop($event)">
-    <div class="example-box" *ngFor="let item of farmers" cdkDrag>
-      <img src="assets/icons/shovel-24.png" alt="">
-    </div>
+  <div cdkDropList #farmerList="cdkDropList" [cdkDropListData]="farmers" cdkDropListOrientation="horizontal"
+    [cdkDropListConnectedTo]="[workerList, scientistList]" class="colonist-list" (cdkDropListDropped)="drop($event)">
+    <img src="assets/icons/shovel-24.png" alt="" class="colonist" *ngFor="let item of farmers" cdkDrag>
+    <img *cdkDragPreview src="assets/icons/hammer-24.png">
   </div>
 
-  <h2>Workers ({{planet.workers}})</h2>
+  <h2>Workers ({{workers.length}})</h2>
 
   <div cdkDropList #workerList="cdkDropList" [cdkDropListData]="workers"
-    [cdkDropListConnectedTo]="[farmerList, scientistList]" class="example-list" (cdkDropListDropped)="drop($event)">
-    <div class="example-box" *ngFor="let item of workers" cdkDrag>
-      <img src="assets/icons/hammer-24.png" alt="">
-    </div>
+    [cdkDropListConnectedTo]="[farmerList, scientistList]" class="colonist-list" (cdkDropListDropped)="drop($event)">
+    <img src="assets/icons/hammer-24.png" alt="" class="colonist" *ngFor="let item of workers" cdkDrag>
+    <img *cdkDragPreview src="assets/icons/hammer-24.png">
   </div>
 
-  <h2>Scientists ({{planet.scientists}})</h2>
+  <h2>Scientists ({{scientists.length}})</h2>
 
   <div cdkDropList #scientistList="cdkDropList" [cdkDropListData]="scientists"
-    [cdkDropListConnectedTo]="[farmerList, workerList]" class="example-list" (cdkDropListDropped)="drop($event)">
-    <div class="example-box" *ngFor="let item of scientists" cdkDrag>
-      <img src="assets/icons/microscope-24.png" alt="">
-    </div>
+    [cdkDropListConnectedTo]="[farmerList, workerList]" class="colonist-list" (cdkDropListDropped)="drop($event)">
+    <img src="assets/icons/microscope-24.png" alt="" class="colonist" *ngFor="let item of scientists" cdkDrag>
+    <img *cdkDragPreview src="assets/icons/hammer-24.png">
   </div>
 
 </div>
 
-<div class="buildings">
+<div class="buildings" *ngIf="planet">
   <ssg-building-icon *ngFor="let b of planet.buildings" [building]="b"></ssg-building-icon>
 </div>
 

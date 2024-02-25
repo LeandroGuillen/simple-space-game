@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNew(t *testing.T) {
+func TestNewGame(t *testing.T) {
 	playerName := "test_player"
 	var numStars uint = 1
 	g, _ := game.NewGame(playerName, numStars)
@@ -17,7 +17,7 @@ func TestNew(t *testing.T) {
 	assert.Equal(t, g.Players[0].Name, playerName, "player name is set up")
 }
 
-func TestGame_Turn(t *testing.T) {
+func TestGame_TurnPassing(t *testing.T) {
 	testPlanet := game.NewAverageTerranPlanet()
 	testStar := game.NewStar(1, "star_name", model.StarColorYellow, []*model.Planet{testPlanet})
 	g, _ := game.NewGame("test_player", 0)

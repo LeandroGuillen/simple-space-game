@@ -25,9 +25,9 @@ export class PlanetViewComponent implements OnInit, OnDestroy {
 
   sub!: Subscription;
 
-  farmers = ['F', 'F', 'F'];
-  workers = ['W', 'W', 'W'];
-  scientists = ['S', 'S', 'S'];
+  farmers: string[] = [];
+  workers: string[] = [];
+  scientists: string[] = [];
 
   constructor(
     private readonly store: Store<AppState>,
@@ -51,6 +51,16 @@ export class PlanetViewComponent implements OnInit, OnDestroy {
         this.gravity = this.strings.getGravity(planet.gravity);
         this.mineral_class = this.strings.getMineralClass(planet.mineral_class);
         this.description = this.strings.getPlanetFullDescription(planet);
+
+        for (let i = 0; i < this.planet.farmers; i++) {
+          this.farmers.push('F');
+        }
+        for (let i = 0; i < this.planet.workers; i++) {
+          this.workers.push('W');
+        }
+        for (let i = 0; i < this.planet.scientists; i++) {
+          this.scientists.push('S');
+        }
       });
   }
 
