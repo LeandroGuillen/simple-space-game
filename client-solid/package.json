@@ -1,0 +1,26 @@
+{
+  "name": "client-solid",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@solidjs/router": "^0.16.1",
+    "@tanstack/solid-table": "^8.21.3",
+    "solid-js": "^1.9.12"
+  },
+  "devDependencies": {
+    "@solidjs/testing-library": "^0.8.10",
+    "@types/node": "^24.12.2",
+    "jsdom": "^29.0.2",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.10",
+    "vite-plugin-solid": "^2.11.12",
+    "vitest": "^4.1.5"
+  }
+}

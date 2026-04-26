@@ -1,0 +1,152 @@
+import type {
+  ApiGame,
+  ApiGameListItem,
+  ApiGameUpdateMessage,
+  ApiShipParts,
+  ApiStatusResponse,
+} from "./types/api";
+import type { ShipDesignForm } from "./types/domain";
+import { normalizeServerUrl } from "./utils";
+
+type JsonHeaders = Record<string, string>;
+
+async function readJson<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    let message = `${response.status} ${response.statusText}`;
+    try {
+      const body = (await response.json()) as {
+        message?: string;
+        error?: string;
+      };
+      message = body.message || body.error || message;
+    } catch {
+      // ignore malformed JSON error bodies
+    }
+    throw new Error(message);
+  }
+  return (await response.json()) as T;
+}
+
+export class ApiClient {
+  readonly baseUrl: string;
+  readonly playerId: number;
+
+  constructor(baseUrl: string, playerId = 1) {
+    this.baseUrl = normalizeServerUrl(baseUrl);
+    this.playerId = playerId;
+  }
+
+  private headers(gameId?: string): HeadersInit {
+    const headers: JsonHeaders = {
+      "content-type": "application/json",
+    };
+    if (gameId) {
+      headers["Game-Id"] = gameId;
+      headers["Player-Id"] = String(this.playerId);
+    }
+    return headers;
+  }
+
+  async status() {
+    const response = await fetch(`${this.baseUrl}/status`);
+    return readJson<ApiStatusResponse>(response);
+  }
+
+  async getGames() {
+    const response = await fetch(`${this.baseUrl}/games`);
+    const body = await readJson<{ game_list: ApiGameListItem[] }>(response);
+    return body.game_list;
+  }
+
+  async createGame(playerName: string, numStars: number) {
+    const response = await fetch(`${this.baseUrl}/games`, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify({
+        player_name: playerName,
+        num_stars: numStars,
+      }),
+    });
+    const body = await readJson<{ ok: boolean; gameID: string }>(response);
+    return body.gameID;
+  }
+
+  async getGame(gameId: string) {
+    const response = await fetch(`${this.baseUrl}/games/${gameId}`);
+    return readJson<ApiGame>(response);
+  }
+
+  async getShipParts(gameId: string) {
+    const response = await fetch(`${this.baseUrl}/resources/shipparts`, {
+      headers: this.headers(gameId),
+    });
+    return readJson<ApiShipParts>(response);
+  }
+
+  async getShipDesigns(gameId: string) {
+    const response = await fetch(`${this.baseUrl}/resources/shipdesigns`, {
+      headers: this.headers(gameId),
+    });
+    return readJson<unknown[]>(response);
+  }
+
+  async endTurn(gameId: string) {
+    const response = await fetch(`${this.baseUrl}/turn`, {
+      headers: this.headers(gameId),
+    });
+    return readJson<{ ok: boolean }>(response);
+  }
+
+  async buildOnPlanet(gameId: string, planetId: number, buildingId: number) {
+    const response = await fetch(`${this.baseUrl}/colonies/build`, {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify({
+        game_id: gameId,
+        owner_id: this.playerId,
+        planet_id: planetId,
+        building_id: buildingId,
+      }),
+    });
+    return readJson<{ ok: boolean }>(response);
+  }
+
+  async colonize(gameId: string, planetId: number) {
+    const response = await fetch(
+      `${this.baseUrl}/action/${this.playerId}/colonize/${planetId}`,
+      {
+        method: "POST",
+        headers: this.headers(),
+        body: JSON.stringify({
+          game_id: gameId,
+        }),
+      },
+    );
+    return readJson<{ game: ApiGame }>(response);
+  }
+
+  async saveShipDesign(
+    gameId: string,
+    form: ShipDesignForm,
+    mode: "create" | "update",
+  ) {
+    const response = await fetch(`${this.baseUrl}/resources/shipdesigns`, {
+      method: mode === "create" ? "POST" : "PUT",
+      headers: this.headers(gameId),
+      body: JSON.stringify({
+        name: form.name,
+        drive: form.drive,
+        computer: form.computer,
+        shield: form.shield,
+        armor: form.armor,
+        hull_size: form.hullSize,
+        fuel_cell: form.fuelCell,
+      }),
+    });
+    return readJson<{ ok: boolean }>(response);
+  }
+}
+
+export function parseGameUpdate(payload: string) {
+  return JSON.parse(payload) as ApiGameUpdateMessage;
+}

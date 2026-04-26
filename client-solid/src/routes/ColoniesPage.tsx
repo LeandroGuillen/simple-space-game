@@ -1,0 +1,161 @@
+import { A } from "@solidjs/router";
+import { createMemo, createSignal, onMount } from "solid-js";
+
+import { useAppContext } from "../state/app-context";
+
+type SortKey = "name" | "starName" | "population" | "industry";
+
+export function ColoniesPage() {
+  const { colonies, refreshGame, state, changeBuilding } = useAppContext();
+  const [filter, setFilter] = createSignal("");
+  const [sortKey, setSortKey] = createSignal<SortKey>("name");
+  const [sortAsc, setSortAsc] = createSignal(true);
+  const buildingOptions = createMemo(
+    () => state.game?.resources.buildingCollection.buildings ?? [],
+  );
+
+  onMount(() => {
+    if (state.session.selectedGameId) {
+      void refreshGame();
+    }
+  });
+
+  const rows = createMemo(() => {
+    const needle = filter().trim().toLowerCase();
+    const filtered = colonies().filter(
+      (row) =>
+        !needle ||
+        row.name.toLowerCase().includes(needle) ||
+        row.starName.toLowerCase().includes(needle),
+    );
+    const sorted = [...filtered].sort((left, right) => {
+      const key = sortKey();
+      const leftValue = left[key];
+      const rightValue = right[key];
+      const order = sortAsc() ? 1 : -1;
+      if (typeof leftValue === "number" && typeof rightValue === "number") {
+        return (leftValue - rightValue) * order;
+      }
+      return String(leftValue).localeCompare(String(rightValue)) * order;
+    });
+    return sorted;
+  });
+
+  function toggleSort(nextKey: SortKey) {
+    if (sortKey() === nextKey) {
+      setSortAsc(!sortAsc());
+      return;
+    }
+    setSortKey(nextKey);
+    setSortAsc(true);
+  }
+
+  return (
+    <section class="panel">
+      <div class="section-header">
+        <div>
+          <p class="eyebrow">Colonies</p>
+          <h2>Production ledger</h2>
+        </div>
+        <label class="field inline-field">
+          <span>Filter</span>
+          <input
+            value={filter()}
+            onInput={(event) => setFilter(event.currentTarget.value)}
+          />
+        </label>
+      </div>
+
+      <div class="table-frame">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>
+                <button class="sort-button" onClick={() => toggleSort("name")}>
+                  Colony
+                </button>
+              </th>
+              <th>
+                <button
+                  class="sort-button"
+                  onClick={() => toggleSort("starName")}
+                >
+                  System
+                </button>
+              </th>
+              <th>
+                <button
+                  class="sort-button"
+                  onClick={() => toggleSort("population")}
+                >
+                  Population
+                </button>
+              </th>
+              <th>Farmers</th>
+              <th>Workers</th>
+              <th>Scientists</th>
+              <th>
+                <button
+                  class="sort-button"
+                  onClick={() => toggleSort("industry")}
+                >
+                  Industry
+                </button>
+              </th>
+              <th>Project</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows().map((row) => (
+              <tr>
+                <td>{row.name}</td>
+                <td>{row.starName}</td>
+                <td>
+                  {row.population}/{row.maxPopulation}
+                </td>
+                <td>{row.farmers}</td>
+                <td>{row.workers}</td>
+                <td>{row.scientists}</td>
+                <td>{row.industry}</td>
+                <td>
+                  <label class="sr-only" for={`project-${row.id}`}>
+                    Set project for {row.name}
+                  </label>
+                  <select
+                    id={`project-${row.id}`}
+                    value={
+                      state.game?.galaxy.stars
+                        .flatMap((star) => star.planets)
+                        .find((planet) => planet.id === row.id)?.currentProject
+                        ?.id ?? ""
+                    }
+                    onChange={(event) =>
+                      void changeBuilding(
+                        row.id,
+                        Number(event.currentTarget.value),
+                      )
+                    }
+                  >
+                    <option value="">Select building...</option>
+                    {buildingOptions().map((building) => (
+                      <option value={building.id}>{building.name}</option>
+                    ))}
+                  </select>
+                </td>
+                <td>
+                  <A
+                    class="link-button secondary-button"
+                    href={`/stars/${row.starId}/planets/${row.id}`}
+                  >
+                    Inspect
+                  </A>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
