@@ -59,7 +59,6 @@ import { gameReducer } from './store/reducers';
     BrowserAnimationsModule,
     RoutesModule,
     HttpClientModule,
-    BrowserAnimationsModule,
     MaterialModule,
     ReactiveFormsModule,
     // ngrx

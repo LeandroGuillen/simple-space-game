@@ -9,6 +9,7 @@ import { selectTaxRate } from 'src/app/store/selectors/player.selectors';
 
 @Component({
   selector: 'ssg-set-tax-dialog',
+  standalone: false,
   templateUrl: './set-tax-dialog.component.html',
   styleUrls: ['./set-tax-dialog.component.scss'],
 })

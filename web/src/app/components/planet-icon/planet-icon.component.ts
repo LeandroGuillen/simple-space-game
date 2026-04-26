@@ -5,6 +5,7 @@ import { ColorService } from '../../services/color.service';
 
 @Component({
   selector: 'ssg-planet-icon',
+  standalone: false,
   templateUrl: './planet-icon.component.svg',
   styleUrls: [ './planet-icon.component.scss' ]
 })

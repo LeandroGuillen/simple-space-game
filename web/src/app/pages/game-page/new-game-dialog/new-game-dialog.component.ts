@@ -6,6 +6,7 @@ import { NewGameRequest } from '../../../store/actions';
 
 @Component({
   selector: 'ssg-new-game-dialog',
+  standalone: false,
   templateUrl: './new-game-dialog.component.html',
   styleUrls: ['./new-game-dialog.component.scss']
 })

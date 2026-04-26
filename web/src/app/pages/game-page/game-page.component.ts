@@ -12,6 +12,7 @@ import { NewGameDialogComponent } from './new-game-dialog/new-game-dialog.compon
 
 @Component({
   selector: 'ssg-game-page',
+  standalone: false,
   templateUrl: './game-page.component.html',
   styleUrls: ['./game-page.component.scss'],
 })

@@ -5,6 +5,7 @@ import { Galaxy, Star } from '../../model/model';
 
 @Component({
   selector: 'ssg-galaxy-view',
+  standalone: false,
   templateUrl: './galaxy-view.component.svg',
   styleUrls: [ './galaxy-view.component.scss' ]
 })

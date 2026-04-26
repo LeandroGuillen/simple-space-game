@@ -12,6 +12,7 @@ const starData: Star[] = [];
 
 @Component({
   selector: 'ssg-galaxy-list',
+  standalone: false,
   templateUrl: './star-list-page.component.html',
   styleUrls: [ './star-list-page.component.scss' ]
 })

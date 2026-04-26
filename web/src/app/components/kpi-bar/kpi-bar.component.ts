@@ -11,6 +11,7 @@ import { SetTaxDialogComponent } from '../dialogs/set-tax-dialog/set-tax-dialog.
 
 @Component({
   selector: 'ssg-kpi-bar',
+  standalone: false,
   templateUrl: './kpi-bar.component.html',
   styleUrls: ['./kpi-bar.component.scss']
 })

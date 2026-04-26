@@ -4,6 +4,7 @@ import { Building } from '../../model/model';
 
 @Component({
   selector: 'ssg-building-icon',
+  standalone: false,
   templateUrl: './building-icon.component.html',
   styleUrls: ['./building-icon.component.scss'],
 })

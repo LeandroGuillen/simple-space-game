@@ -13,6 +13,7 @@ import { getCurrentRouteState } from '../../store/selectors/router.selectors';
 
 @Component({
   selector: 'ssg-planet-view',
+  standalone: false,
   templateUrl: './planet-view.component.html',
   styleUrls: ['./planet-view.component.scss'],
 })

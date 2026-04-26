@@ -4,6 +4,7 @@ import { MatDialogRef } from '@angular/material/dialog';
 
 @Component({
   selector: 'ssg-change-building-dialog',
+  standalone: false,
   templateUrl: './change-building-dialog.component.html',
   styleUrls: [ './change-building-dialog.component.scss' ]
 })

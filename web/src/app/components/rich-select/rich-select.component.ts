@@ -5,6 +5,7 @@ import { StringService } from '../../services/string.service';
 
 @Component({
   selector: 'ssg-rich-select',
+  standalone: false,
   templateUrl: './rich-select.component.html',
   styleUrls: [ './rich-select.component.scss' ]
 })

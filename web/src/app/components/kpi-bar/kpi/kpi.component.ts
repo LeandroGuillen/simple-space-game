@@ -2,6 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 
 @Component({
   selector: 'ssg-kpi',
+  standalone: false,
   templateUrl: './kpi.component.html',
   styleUrls: ['./kpi.component.scss'],
   host: { "[class.disabled]": "disabled" }

@@ -5,6 +5,7 @@ import { MatTableDataSource } from '@angular/material/table';
 
 @Component({
   selector: 'ssg-fleet-table',
+  standalone: false,
   templateUrl: './fleet-table.component.html',
   styleUrls: ['./fleet-table.component.scss'],
 })

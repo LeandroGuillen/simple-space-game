@@ -23,6 +23,7 @@ type ShipDesignRow = {
 
 @Component({
   selector: 'ssg-ship-design-table',
+  standalone: false,
   templateUrl: './ship-design-table.component.html',
   styleUrls: ['./ship-design-table.component.scss'],
 })

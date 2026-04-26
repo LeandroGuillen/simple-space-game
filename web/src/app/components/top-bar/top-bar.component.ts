@@ -11,6 +11,7 @@ import { selectServer } from '../../store/selectors/server.selectors';
 
 @Component({
   selector: 'ssg-top-bar',
+  standalone: false,
   templateUrl: './top-bar.component.html',
   styleUrls: ['./top-bar.component.scss'],
 })

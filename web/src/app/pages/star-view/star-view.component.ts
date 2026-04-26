@@ -12,6 +12,7 @@ import { getCurrentRouteState } from '../../store/selectors/router.selectors';
 
 @Component({
   selector: 'ssg-star-view',
+  standalone: false,
   templateUrl: './star-view.component.html',
   styleUrls: [ './star-view.component.scss' ]
 })

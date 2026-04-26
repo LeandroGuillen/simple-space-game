@@ -6,6 +6,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatRippleModule } from '@angular/material/core';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -32,6 +33,7 @@ const moduleList = [
   MatFormFieldModule,
   MatInputModule,
   MatDialogModule,
+  MatDividerModule,
   MatCheckboxModule,
   MatSnackBarModule,
   MatToolbarModule,

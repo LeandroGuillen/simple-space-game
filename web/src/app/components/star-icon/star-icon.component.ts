@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 
 @Component({
   selector: 'ssg-star-icon',
+  standalone: false,
   templateUrl: './star-icon.component.svg',
   styleUrls: [ './star-icon.component.scss' ]
 })

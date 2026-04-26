@@ -34,6 +34,7 @@ type EditShipDesignDialogData = {
 
 @Component({
   selector: 'ssg-edit-ship-design-dialog',
+  standalone: false,
   templateUrl: './edit-ship-design-dialog.component.html',
   styleUrls: ['./edit-ship-design-dialog.component.scss'],
 })

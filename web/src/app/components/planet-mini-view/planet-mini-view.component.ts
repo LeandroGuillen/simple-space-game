@@ -13,6 +13,7 @@ import { AppState } from '../../store/reducers';
 
 @Component({
   selector: 'ssg-planet-mini-view',
+  standalone: false,
   templateUrl: './planet-mini-view.component.html',
   styleUrls: [ './planet-mini-view.component.scss' ]
 })
@@ -54,4 +55,3 @@ export class PlanetMiniViewComponent {
     });
   }
 }
-

@@ -12,6 +12,7 @@ import { ChangeBuildingDialogComponent } from './change-building-dialog/change-b
 
 @Component({
   selector: 'ssg-colonies-page',
+  standalone: false,
   templateUrl: './colonies-page.component.html',
   styleUrls: [ './colonies-page.component.scss' ]
 })

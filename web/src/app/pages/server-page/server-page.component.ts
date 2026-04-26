@@ -10,6 +10,7 @@ import { NewServerDialogComponent } from './new-server-dialog/new-server-dialog.
 
 @Component({
   selector: 'ssg-server-page',
+  standalone: false,
   templateUrl: './server-page.component.html',
   styleUrls: ['./server-page.component.scss'],
 })

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { EMPTY } from 'rxjs';
 import { catchError, map, mergeMap, switchMap } from 'rxjs/operators';
@@ -8,6 +8,10 @@ import * as actions from './actions';
 
 @Injectable()
 export class GameEffects {
+  private readonly actions$ = inject(Actions);
+  private readonly gameService = inject(GameService);
+  private readonly wsService = inject(WebsocketService);
+
   websocket$ = createEffect(() =>
     this.actions$.pipe(
       ofType(actions.serverConnectionSuccess),
@@ -118,10 +122,4 @@ export class GameEffects {
       catchError(() => EMPTY)
     )
   );
-
-  constructor(
-    private readonly actions$: Actions,
-    private readonly gameService: GameService,
-    private readonly wsService: WebsocketService
-  ) {}
 }

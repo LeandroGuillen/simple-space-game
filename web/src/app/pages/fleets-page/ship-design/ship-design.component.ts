@@ -4,6 +4,7 @@ import { MatTableDataSource } from '@angular/material/table';
 
 @Component({
   selector: 'ssg-ship-design',
+  standalone: false,
   templateUrl: './ship-design.component.html',
   styleUrls: ['./ship-design.component.scss'],
 })

@@ -4,6 +4,7 @@ import { MatDialogRef } from '@angular/material/dialog';
 
 @Component({
   selector: 'ssg-new-server-dialog',
+  standalone: false,
   templateUrl: './new-server-dialog.component.html',
   styleUrls: [ './new-server-dialog.component.scss' ]
 })

@@ -4,6 +4,7 @@ import { Server } from '../../../model/model';
 
 @Component({
   selector: 'ssg-server-list-item',
+  standalone: false,
   templateUrl: './server-list-item.component.html',
   styleUrls: ['./server-list-item.component.scss'],
 })
