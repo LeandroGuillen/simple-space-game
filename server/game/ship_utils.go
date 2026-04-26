@@ -1,7 +1,6 @@
 package game
 
 import (
-	"math/rand"
 	. "ssg/game/model"
 )
 
@@ -22,7 +21,7 @@ func FireOn(attacker *Ship, defender *Ship, distance int64) (totalDamage int64) 
 	chanceToHit := GetChanceToHit(attacker.Computer, defender.BeamDefense, 0, distance)
 
 	for _, beam := range attacker.Beams {
-		roll := rand.Float64()
+		roll := randomFloat64()
 		if roll <= chanceToHit {
 			totalDamage += GetDamage(beam, distance)
 		}
@@ -60,7 +59,7 @@ func FireOn(attacker *Ship, defender *Ship, distance int64) (totalDamage int64) 
 func NewEmptyBattleShip(name string) Ship {
 	return NewEmptyShip(
 		name,
-		HullSize{"BS_1", 5, 250, 20, 5, 50, 7, 15, 8},
+		HullSize{Name: "BS_1", SizeRating: 5, Space: 250, Marines: 20, BaseSpeed: 5, BaseHP: 50, ComputerHP: 7, DriveHP: 15, ShieldHP: 8},
 		Drive{}, Armor{}, Computer{}, FuelCell{}, Shield{},
 	)
 }

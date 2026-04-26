@@ -2,7 +2,6 @@ package game_test
 
 import (
 	"fmt"
-	"math/rand"
 	. "ssg/game"
 	"testing"
 
@@ -59,7 +58,7 @@ func TestFireOn_Damage(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%s", tc.title), func(t *testing.T) {
-			rand.Seed(12)
+			SetRandomSeed(12)
 			s1 := NewEmptyBattleShip("S1")
 			s2 := NewEmptyBattleShip("S2")
 			s1.Computer.BeamAttackBonus = tc.attack
@@ -116,7 +115,7 @@ func TestFireOn_MultipleWeapons(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%s", tc.title), func(t *testing.T) {
-			rand.Seed(12)
+			SetRandomSeed(12)
 			s1 := NewEmptyBattleShip("S1")
 			s2 := NewEmptyBattleShip("S2")
 			s1.Computer.BeamAttackBonus = tc.attack
@@ -149,7 +148,7 @@ func TestFireOn_Distance(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%s%d", tc.title, tc.distance), func(t *testing.T) {
-			rand.Seed(1)
+			SetRandomSeed(1)
 			s1 := NewEmptyBattleShip("S1")
 			s2 := NewEmptyBattleShip("S2")
 			s1.Computer.BeamAttackBonus = 1000

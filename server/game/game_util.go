@@ -1,7 +1,6 @@
 package game
 
 import (
-	"errors"
 	"fmt"
 	"ssg/game/model"
 )
@@ -12,7 +11,7 @@ func (g *Game) getPlayer(ID uint) (*model.Player, error) {
 			return player, nil
 		}
 	}
-	return nil, errors.New(fmt.Sprintf("player with ID %d not found", ID))
+	return nil, fmt.Errorf("player with ID %d not found", ID)
 }
 
 func (g *Game) getPlanet(ID uint) (*model.Planet, error) {
@@ -23,5 +22,5 @@ func (g *Game) getPlanet(ID uint) (*model.Planet, error) {
 			}
 		}
 	}
-	return nil, errors.New(fmt.Sprintf("planet with ID %d not found", ID))
+	return nil, fmt.Errorf("planet with ID %d not found", ID)
 }

@@ -27,13 +27,12 @@ func NewServer() *Server {
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
-		AllowAllOrigins:  true,
-		AllowWebSockets:  true,
-		AllowMethods:     []string{"GET", "POST", "PUT", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "content-type", "game-id", "player-id"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
+		AllowOriginFunc: func(string) bool { return true },
+		AllowWebSockets: true,
+		AllowMethods:    []string{"GET", "POST", "PUT", "OPTIONS"},
+		AllowHeaders:    []string{"Origin", "content-type", "game-id", "player-id"},
+		ExposeHeaders:   []string{"Content-Length"},
+		MaxAge:          12 * time.Hour,
 	}))
 
 	server := &Server{

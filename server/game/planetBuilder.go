@@ -1,7 +1,6 @@
 package game
 
 import (
-	"math/rand"
 	"ssg/game/model"
 )
 
@@ -22,10 +21,10 @@ func NewPlanet(
 }
 
 func NewRandomPlanet() *model.Planet {
-	var mineralClass = model.PlanetMineral(rand.Intn(int(model.PlanetMineralMax)-1) + 1)
-	var size = model.PlanetSize(rand.Intn(int(model.PlanetSizeMax)-1) + 1)
-	var gravity = model.PlanetGravity(rand.Intn(int(model.PlanetGravityMax)-1) + 1)
-	var environment = model.PlanetEnvironment(rand.Intn(int(model.PlanetEnvironmentMax)-1) + 1)
+	var mineralClass = model.PlanetMineral(randomIntn(int(model.PlanetMineralMax)-1) + 1)
+	var size = model.PlanetSize(randomIntn(int(model.PlanetSizeMax)-1) + 1)
+	var gravity = model.PlanetGravity(randomIntn(int(model.PlanetGravityMax)-1) + 1)
+	var environment = model.PlanetEnvironment(randomIntn(int(model.PlanetEnvironmentMax)-1) + 1)
 
 	return NewPlanet(mineralClass, size, gravity, environment)
 }

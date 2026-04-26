@@ -2,12 +2,11 @@ package game
 
 import (
 	"fmt"
-	"math/rand"
 	"ssg/game/model"
 )
 
 func NewRandomStar(starId, planetIDCounter uint, starName string) (*model.Star, uint) {
-	var numPlanets = uint(rand.Intn(5) + 1)
+	var numPlanets = uint(randomIntn(5) + 1)
 	var planets []*model.Planet
 	for i := uint(0); i < numPlanets; i++ {
 		planet := NewRandomPlanet()
@@ -19,7 +18,7 @@ func NewRandomStar(starId, planetIDCounter uint, starName string) (*model.Star, 
 		planets = append(planets, planet)
 	}
 
-	var color = model.StarColor(rand.Intn(int(model.StarColorMax)))
+	var color = model.StarColor(randomIntn(int(model.StarColorMax)))
 
 	star := NewStar(starId, starName, color, planets)
 	return star, numPlanets

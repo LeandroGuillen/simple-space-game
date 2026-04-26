@@ -3,9 +3,7 @@ package game
 import (
 	_ "embed"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"math/rand"
 	. "ssg/game/model"
 )
 
@@ -87,7 +85,7 @@ func (r *ResourceManager) loadDataFromFiles() error {
 		return err
 	}
 	r.NameCollection = &nameCollection
-	rand.Shuffle(len(nameCollection.Stars), func(i int, j int) {
+	randomShuffle(len(nameCollection.Stars), func(i int, j int) {
 		nameCollection.Stars[i], nameCollection.Stars[j] = nameCollection.Stars[j], nameCollection.Stars[i]
 	})
 
@@ -105,27 +103,27 @@ func (r *ResourceManager) loadDataFromFiles() error {
 	for _, def := range shipDesignCollection.ShipDesignsDefs {
 		armor, err := ArmorFromName(def.Armor, shipPartsCollection.Armors)
 		if err != nil {
-			return errors.New(fmt.Sprintf("cannot read ship design data: %v", armor))
+			return fmt.Errorf("cannot read ship design data: %w", err)
 		}
 		drive, err := DriveFromName(def.Drive, shipPartsCollection.Drives)
 		if err != nil {
-			return errors.New(fmt.Sprintf("cannot read ship design data: %v", drive))
+			return fmt.Errorf("cannot read ship design data: %w", err)
 		}
 		hullSize, err := HullSizeFromName(def.HullSize, shipPartsCollection.HullSizes)
 		if err != nil {
-			return errors.New(fmt.Sprintf("cannot read ship design data: %v", hullSize))
+			return fmt.Errorf("cannot read ship design data: %w", err)
 		}
 		computer, err := ComputerFromName(def.Computer, shipPartsCollection.Computers)
 		if err != nil {
-			return errors.New(fmt.Sprintf("cannot read ship design data: %v", computer))
+			return fmt.Errorf("cannot read ship design data: %w", err)
 		}
 		fuelCell, err := FuelCellFromName(def.FuelCell, shipPartsCollection.FuelCells)
 		if err != nil {
-			return errors.New(fmt.Sprintf("cannot read ship design data: %v", fuelCell))
+			return fmt.Errorf("cannot read ship design data: %w", err)
 		}
 		shield, err := ShieldFromName(def.Shield, shipPartsCollection.Shields)
 		if err != nil {
-			return errors.New(fmt.Sprintf("cannot read ship design data: %v", shield))
+			return fmt.Errorf("cannot read ship design data: %w", err)
 		}
 
 		design := NewShipDesign(
@@ -173,7 +171,7 @@ func (r *ResourceManager) canICreateThisDesign(
 		}
 	}
 	if !found {
-		return errors.New(fmt.Sprintf("drive with name '%s' does not exist", drive))
+		return fmt.Errorf("drive with name %q does not exist", drive)
 	}
 
 	found = false
@@ -183,7 +181,7 @@ func (r *ResourceManager) canICreateThisDesign(
 		}
 	}
 	if !found {
-		return errors.New(fmt.Sprintf("computer with name '%s' does not exist", computer))
+		return fmt.Errorf("computer with name %q does not exist", computer)
 	}
 
 	found = false
@@ -193,7 +191,7 @@ func (r *ResourceManager) canICreateThisDesign(
 		}
 	}
 	if !found {
-		return errors.New(fmt.Sprintf("shield with name '%s' does not exist", shield))
+		return fmt.Errorf("shield with name %q does not exist", shield)
 	}
 
 	found = false
@@ -203,7 +201,7 @@ func (r *ResourceManager) canICreateThisDesign(
 		}
 	}
 	if !found {
-		return errors.New(fmt.Sprintf("armor with name '%s' does not exist", armor))
+		return fmt.Errorf("armor with name %q does not exist", armor)
 	}
 
 	found = false
@@ -213,7 +211,7 @@ func (r *ResourceManager) canICreateThisDesign(
 		}
 	}
 	if !found {
-		return errors.New(fmt.Sprintf("hull size with name '%s' does not exist", hullSize))
+		return fmt.Errorf("hull size with name %q does not exist", hullSize)
 	}
 
 	found = false
@@ -223,7 +221,7 @@ func (r *ResourceManager) canICreateThisDesign(
 		}
 	}
 	if !found {
-		return errors.New(fmt.Sprintf("fuel cell with name '%s' does not exist", fuelCell))
+		return fmt.Errorf("fuel cell with name %q does not exist", fuelCell)
 	}
 
 	return nil
@@ -235,7 +233,7 @@ func ArmorFromName(name string, list []Armor) (Armor, error) {
 			return v, nil
 		}
 	}
-	return Armor{}, errors.New(fmt.Sprintf("%s not found", name))
+	return Armor{}, fmt.Errorf("%s not found", name)
 }
 
 func DriveFromName(name string, list []Drive) (Drive, error) {
@@ -244,7 +242,7 @@ func DriveFromName(name string, list []Drive) (Drive, error) {
 			return v, nil
 		}
 	}
-	return Drive{}, errors.New(fmt.Sprintf("%s not found", name))
+	return Drive{}, fmt.Errorf("%s not found", name)
 }
 
 func HullSizeFromName(name string, list []HullSize) (HullSize, error) {
@@ -253,7 +251,7 @@ func HullSizeFromName(name string, list []HullSize) (HullSize, error) {
 			return v, nil
 		}
 	}
-	return HullSize{}, errors.New(fmt.Sprintf("%s not found", name))
+	return HullSize{}, fmt.Errorf("%s not found", name)
 }
 
 func ComputerFromName(name string, list []Computer) (Computer, error) {
@@ -262,7 +260,7 @@ func ComputerFromName(name string, list []Computer) (Computer, error) {
 			return v, nil
 		}
 	}
-	return Computer{}, errors.New(fmt.Sprintf("%s not found", name))
+	return Computer{}, fmt.Errorf("%s not found", name)
 }
 
 func FuelCellFromName(name string, list []FuelCell) (FuelCell, error) {
@@ -271,7 +269,7 @@ func FuelCellFromName(name string, list []FuelCell) (FuelCell, error) {
 			return v, nil
 		}
 	}
-	return FuelCell{}, errors.New(fmt.Sprintf("%s not found", name))
+	return FuelCell{}, fmt.Errorf("%s not found", name)
 }
 
 func ShieldFromName(name string, list []Shield) (Shield, error) {
@@ -280,5 +278,5 @@ func ShieldFromName(name string, list []Shield) (Shield, error) {
 			return v, nil
 		}
 	}
-	return Shield{}, errors.New(fmt.Sprintf("%s not found", name))
+	return Shield{}, fmt.Errorf("%s not found", name)
 }

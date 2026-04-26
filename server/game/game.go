@@ -1,10 +1,10 @@
 package game
 
 import (
-	"errors"
 	"fmt"
-	"github.com/google/uuid"
 	. "ssg/game/model"
+
+	"github.com/google/uuid"
 )
 
 type Turnable interface {
@@ -202,12 +202,12 @@ func (g *Game) CreateShipDesign(
 	} else {
 		for _, design := range player.ShipDesigns {
 			if design.Name == name {
-				return errors.New(fmt.Sprintf("cannot create a design with name '%s', name already exists", name))
+				return fmt.Errorf("cannot create a design with name '%s', name already exists", name)
 			}
 		}
 		for _, design := range g.Resources.ShipDesigns {
 			if design.Name == name {
-				return errors.New(fmt.Sprintf("cannot create a design with name '%s', name already exists", name))
+				return fmt.Errorf("cannot create a design with name %q, name already exists", name)
 			}
 		}
 		player.ShipDesigns = append(player.ShipDesigns, basicDesign)
@@ -259,5 +259,5 @@ func (g *Game) UpdateShipDesign(
 		}
 	}
 
-	return errors.New(fmt.Sprintf("cannot update, did not find a d with name '%s'", name))
+	return fmt.Errorf("cannot update, did not find a design with name %q", name)
 }

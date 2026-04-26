@@ -3,7 +3,6 @@ package game
 import (
 	"fmt"
 	"math"
-	"math/rand"
 	"ssg/data"
 	"ssg/game/model"
 )
@@ -30,8 +29,8 @@ func NewGalaxy(numStars uint) model.Galaxy {
 		planetIDCounter += numPlanets
 
 		// assign random position on map
-		star.X = rand.Int63() % galaxyWidth
-		star.Y = rand.Int63() % galaxyHeight
+		star.X = randomInt63() % galaxyWidth
+		star.Y = randomInt63() % galaxyHeight
 
 		stars = append(stars, star)
 	}
@@ -55,7 +54,7 @@ func NewRandomGalaxy() model.Galaxy {
 	// new galaxy parameters
 	var stdDev float64 = 2
 	var mean float64 = 6
-	n := uint(math.Abs(math.Floor(rand.NormFloat64()*stdDev + mean)))
+	n := uint(math.Abs(math.Floor(randomNormFloat64()*stdDev + mean)))
 	galaxy := NewGalaxy(n)
 	return galaxy
 }
