@@ -21,11 +21,18 @@ type Game struct {
 	resourceManager *ResourceManager
 }
 
-func NewGame(playerName string, numStars uint) (*Game, error) {
+func NewGame(playerName string, numStars uint, playerColor string) (*Game, error) {
+	if playerColor == "" {
+		playerColor = DefaultPlayerColor()
+	}
+	if !IsValidPlayerColor(playerColor) {
+		return nil, fmt.Errorf("invalid player color %q", playerColor)
+	}
+
 	g := &Game{
 		Galaxy: NewGalaxy(numStars),
 		Players: []*Player{
-			{ID: 1, Name: playerName},
+			{ID: 1, Name: playerName, Color: playerColor},
 		},
 		ID:          uuid.New().String(),
 		CurrentTurn: 3500,

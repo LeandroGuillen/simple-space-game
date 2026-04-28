@@ -195,6 +195,23 @@ func TestScenario_InvalidHeadersOrIDs_ReturnErrors(t *testing.T) {
 	assert.Contains(t, body, `"message":"drive with name \"Nope\" does not exist"`)
 }
 
+func TestScenario_PlayerColors_AreAvailable_AndValidated(t *testing.T) {
+	ts := testharness.NewTestServer(t)
+
+	resp, body := doRequest(t, http.MethodGet, ts.BaseURL+"/games/player-colors", nil, nil)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Contains(t, body, `"max_players":8`)
+	assert.Contains(t, body, "#FFFFFF")
+
+	resp, body = doRequest(t, http.MethodPost, ts.BaseURL+"/games", nil, map[string]any{
+		"player_name":  "invalid-color",
+		"num_stars":    24,
+		"player_color": "#000000",
+	})
+	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+	assert.Contains(t, body, "invalid player color")
+}
+
 func TestScenario_ColonizePlanet_DoesNotBroadcastUpdate(t *testing.T) {
 	ts := testharness.NewTestServer(t)
 	client := testharness.NewClient(ts.BaseURL)

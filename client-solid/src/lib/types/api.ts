@@ -161,6 +161,7 @@ export type ApiResources = {
 export type ApiPlayer = {
   id: number
   name: string
+  color: string
   race?: ApiRace
   treasury: number
   tax_rate: number
@@ -169,6 +170,11 @@ export type ApiPlayer = {
   freighters: number
   freighters_used: number
   ship_designs?: ApiShipDesign[] | null
+}
+
+export type ApiPlayerColorOptions = {
+  max_players: number
+  colors: string[]
 }
 
 export type ApiGame = {

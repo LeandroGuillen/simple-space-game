@@ -64,9 +64,14 @@ export function GalaxyMap(props: GalaxyMapProps) {
               />
               <circle class="star-ring" r="12" />
               <text
-                x="-16"
-                y="20"
-                classList={{ "star-label-unoccupied": star.explored && star.ownedPlanets === 0 }}
+                x="0"
+                y="22"
+                text-anchor="middle"
+                classList={{
+                  "star-label-unoccupied":
+                    star.explored && star.ownedPlanets === 0,
+                }}
+                style={star.ownerColor ? { fill: star.ownerColor } : undefined}
               >
                 {star.name}
               </text>

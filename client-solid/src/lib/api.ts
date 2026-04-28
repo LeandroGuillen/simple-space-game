@@ -2,6 +2,7 @@ import type {
   ApiGame,
   ApiGameListItem,
   ApiGameUpdateMessage,
+  ApiPlayerColorOptions,
   ApiShipParts,
   ApiStatusResponse,
 } from "./types/api";
@@ -58,13 +59,19 @@ export class ApiClient {
     return body.game_list;
   }
 
-  async createGame(playerName: string, numStars: number) {
+  async getPlayerColorOptions() {
+    const response = await fetch(`${this.baseUrl}/games/player-colors`);
+    return readJson<ApiPlayerColorOptions>(response);
+  }
+
+  async createGame(playerName: string, numStars: number, playerColor: string) {
     const response = await fetch(`${this.baseUrl}/games`, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify({
         player_name: playerName,
         num_stars: numStars,
+        player_color: playerColor,
       }),
     });
     const body = await readJson<{ ok: boolean; gameID: string }>(response);

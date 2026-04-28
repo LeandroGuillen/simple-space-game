@@ -48,6 +48,7 @@ export type StarSummary = {
   y: number
   ownedPlanets: number
   explored: boolean
+  ownerColor: string | null
 }
 
 export type GalaxyViewModel = {
@@ -57,6 +58,7 @@ export type GalaxyViewModel = {
 export type PlayerViewModel = {
   id: number
   name: string
+  color: string
   raceName: string
   treasury: number
   taxRate: number
@@ -65,6 +67,11 @@ export type PlayerViewModel = {
   freighters: number
   freightersUsed: number
   shipDesigns: ShipDesignViewModel[]
+}
+
+export type PlayerColorOptions = {
+  maxPlayers: number
+  colors: string[]
 }
 
 export type DriveViewModel = {

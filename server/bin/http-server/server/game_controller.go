@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"net/http"
 	"ssg/game"
+	"ssg/game/model"
 
 	"github.com/gin-gonic/gin"
 )
 
 type NewGameRequest struct {
-	NumStars   uint   `json:"num_stars,omitempty"`
-	PlayerName string `json:"player_name,omitempty"`
+	NumStars    uint   `json:"num_stars,omitempty"`
+	PlayerName  string `json:"player_name,omitempty"`
+	PlayerColor string `json:"player_color,omitempty"`
 }
 
 type GameListResponse struct {
@@ -39,7 +41,7 @@ func NewGame(c *gin.Context) {
 		return
 	}
 
-	g, err := game.NewGame(req.PlayerName, req.NumStars)
+	g, err := game.NewGame(req.PlayerName, req.NumStars, req.PlayerColor)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
@@ -51,6 +53,13 @@ func NewGame(c *gin.Context) {
 	server.GameList[g.ID] = g
 
 	c.JSON(http.StatusOK, gin.H{"ok": true, "gameID": g.ID})
+}
+
+func GetPlayerColors(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"max_players": model.MaxPlayers,
+		"colors":      model.PlayerColors,
+	})
 }
 
 func GetGameList(c *gin.Context) {

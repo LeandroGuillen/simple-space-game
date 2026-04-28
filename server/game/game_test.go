@@ -11,7 +11,7 @@ import (
 func TestNewGame(t *testing.T) {
 	playerName := "test_player"
 	var numStars uint = 1
-	g, _ := game.NewGame(playerName, numStars)
+	g, _ := game.NewGame(playerName, numStars, "#FFFFFF")
 
 	assert.Equal(t, len(g.Players), 1, "there should be only 1 player")
 	assert.Equal(t, g.Players[0].Name, playerName, "player name is set up")
@@ -20,7 +20,7 @@ func TestNewGame(t *testing.T) {
 func TestGame_TurnPassing(t *testing.T) {
 	testPlanet := game.NewAverageTerranPlanet()
 	testStar := game.NewStar(1, "star_name", model.StarColorYellow, []*model.Planet{testPlanet})
-	g, _ := game.NewGame("test_player", 0)
+	g, _ := game.NewGame("test_player", 0, "#FFFFFF")
 	g.Galaxy.Stars = append(g.Galaxy.Stars, testStar)
 
 	assert.Equal(t, g.CurrentTurn, int64(3500))
@@ -33,7 +33,7 @@ func TestGame_TurnPassing(t *testing.T) {
 }
 
 func TestGame_VisibleSystems_AreScopedPerPlayerExploration(t *testing.T) {
-	g, _ := game.NewGame("test_player", 2)
+	g, _ := game.NewGame("test_player", 2, "#FFFFFF")
 
 	visible, err := g.GetVisibleGameForPlayer(1)
 	assert.NoError(t, err)
@@ -45,7 +45,7 @@ func TestGame_VisibleSystems_AreScopedPerPlayerExploration(t *testing.T) {
 }
 
 func TestGame_ExploreStar_RevealsNameAndPlanets(t *testing.T) {
-	g, _ := game.NewGame("test_player", 2)
+	g, _ := game.NewGame("test_player", 2, "#FFFFFF")
 
 	err := g.ExploreStar(1, 2)
 	assert.NoError(t, err)

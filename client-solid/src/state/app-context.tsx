@@ -10,9 +10,13 @@ import {
 import { createStore } from "solid-js/store";
 
 import { ApiClient, parseGameUpdate } from "../lib/api";
-import { mapGame } from "../lib/mappers";
+import { mapGame, mapPlayerColorOptions } from "../lib/mappers";
 import type { ApiGameListItem } from "../lib/types/api";
-import type { GameViewModel, ShipDesignForm } from "../lib/types/domain";
+import type {
+  GameViewModel,
+  PlayerColorOptions,
+  ShipDesignForm,
+} from "../lib/types/domain";
 import {
   getColonyRows,
   getPrimaryPlayer,
@@ -30,6 +34,7 @@ type AppState = {
     connectionStatus: ConnectionStatus;
   };
   games: ApiGameListItem[];
+  playerColorOptions: PlayerColorOptions;
   game: GameViewModel | null;
   isBusy: boolean;
   error: string;
@@ -43,7 +48,11 @@ type AppContextValue = {
   connect: (serverUrl: string) => Promise<void>;
   disconnect: () => void;
   refreshGames: () => Promise<void>;
-  createGame: (playerName: string, numStars: number) => Promise<string>;
+  createGame: (
+    playerName: string,
+    numStars: number,
+    playerColor: string,
+  ) => Promise<string>;
   selectGame: (gameId: string) => Promise<void>;
   refreshGame: () => Promise<void>;
   changeBuilding: (planetId: number, buildingId: number) => Promise<void>;
@@ -73,6 +82,10 @@ export function AppProvider(props: ParentProps) {
       connectionStatus: "idle",
     },
     games: [],
+    playerColorOptions: {
+      maxPlayers: 8,
+      colors: ["#FFFFFF"],
+    },
     game: null,
     isBusy: false,
     error: "",
@@ -134,6 +147,8 @@ export function AppProvider(props: ParentProps) {
       if (!response.ok) {
         throw new Error("Server did not report healthy status.");
       }
+      const colorOptions = await client.getPlayerColorOptions();
+      setState("playerColorOptions", mapPlayerColorOptions(colorOptions));
       setState("session", "connectionStatus", "connected");
       setBusy(false, "Server connected");
       await refreshGames();
@@ -175,14 +190,18 @@ export function AppProvider(props: ParentProps) {
     }
   }
 
-  async function createGame(playerName: string, numStars: number) {
+  async function createGame(
+    playerName: string,
+    numStars: number,
+    playerColor: string,
+  ) {
     if (!api()) {
       throw new Error("Connect to a server first.");
     }
     setBusy(true, "Creating game");
     clearError();
     try {
-      const gameId = await api()!.createGame(playerName, numStars);
+      const gameId = await api()!.createGame(playerName, numStars, playerColor);
       setState("session", "selectedGameId", gameId);
       await refreshGames();
       await refreshGame();

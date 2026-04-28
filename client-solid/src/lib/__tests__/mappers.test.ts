@@ -45,6 +45,7 @@ describe('mapGame', () => {
         {
           id: 1,
           name: 'Ada',
+          color: '#FFFFFF',
           race: { id: 0, name: 'Human' },
           treasury: 24,
           tax_rate: 0,

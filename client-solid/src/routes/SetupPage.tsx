@@ -1,5 +1,11 @@
 import { useNavigate } from "@solidjs/router";
-import { createMemo, createSignal, onMount, Show } from "solid-js";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  onMount,
+  Show,
+} from "solid-js";
 
 import { gameIdShort } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
@@ -33,6 +39,7 @@ export function SetupPage() {
   const [showServerForm, setShowServerForm] = createSignal(false);
   const [playerName, setPlayerName] = createSignal("Admiral");
   const [numStars, setNumStars] = createSignal(24);
+  const [playerColor, setPlayerColor] = createSignal("#FFFFFF");
   const [showNewGameForm, setShowNewGameForm] = createSignal(false);
 
   const hasServer = createMemo(() => Boolean(state.session.serverUrl));
@@ -46,6 +53,16 @@ export function SetupPage() {
   onMount(() => {
     if (state.session.serverUrl) {
       void refreshGames();
+    }
+  });
+
+  createEffect(() => {
+    const colors = state.playerColorOptions.colors;
+    if (colors.length === 0) {
+      return;
+    }
+    if (!colors.includes(playerColor())) {
+      setPlayerColor(colors[0]!);
     }
   });
 
@@ -68,7 +85,11 @@ export function SetupPage() {
   const handleCreate = async (event: SubmitEvent) => {
     event.preventDefault();
     try {
-      const gameId = await createGame(playerName(), Number(numStars()));
+      const gameId = await createGame(
+        playerName(),
+        Number(numStars()),
+        playerColor(),
+      );
       await selectGame(gameId);
       navigate("/galaxy");
     } catch {
@@ -107,10 +128,7 @@ export function SetupPage() {
                   }
                 >
                   <span class="status-dot" aria-hidden="true" />
-                  {
-                    connectionStatusMeta(state.session.connectionStatus)
-                      .label
-                  }
+                  {connectionStatusMeta(state.session.connectionStatus).label}
                 </span>
               </div>
               <button
@@ -177,8 +195,11 @@ export function SetupPage() {
           <p class="eyebrow">Game</p>
           <h2>Join or create</h2>
           <p class="lede">
-            Enter an existing campaign or provision a new sector once the
-            server is connected.
+            Enter an existing campaign or provision a new sector once the server
+            is connected.
+          </p>
+          <p class="games-count">
+            Max players per game: {state.playerColorOptions.maxPlayers}
           </p>
         </header>
 
@@ -260,6 +281,21 @@ export function SetupPage() {
                   autofocus
                 />
               </label>
+              <label class="field">
+                <span>Empire color</span>
+              </label>
+              <div class="color-swatches">
+                {state.playerColorOptions.colors.map((color) => (
+                  <button
+                    type="button"
+                    class="color-swatch-button"
+                    classList={{ selected: playerColor() === color }}
+                    style={{ "background-color": color }}
+                    title={color}
+                    onClick={() => setPlayerColor(color)}
+                  />
+                ))}
+              </div>
               <label class="field">
                 <span>Stars</span>
                 <input

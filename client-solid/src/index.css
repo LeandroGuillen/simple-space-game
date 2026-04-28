@@ -941,6 +941,25 @@ a {
   margin: 0 0 4px;
 }
 
+.color-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.color-swatch-button {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid var(--rule-strong);
+  cursor: pointer;
+}
+
+.color-swatch-button.selected {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
 .map-panel .section-header {
   margin-bottom: 12px;
 }

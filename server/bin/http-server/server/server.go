@@ -55,6 +55,7 @@ func (s *Server) registerRoutes(r *gin.Engine) {
 	r.GET("/status", Status)
 	r.POST("/games", NewGame)
 	r.GET("/games", GetGameList)
+	r.GET("/games/player-colors", GetPlayerColors)
 	r.GET("/games/:gameID", GetGame)
 
 	r.POST("/colonies", GetColonyList)

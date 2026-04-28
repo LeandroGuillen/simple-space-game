@@ -94,8 +94,9 @@ func (c *APIClient) Status() (*StatusResponse, error) {
 
 func (c *APIClient) CreateGame(playerName string, numStars uint) (string, error) {
 	req := serverpkg.NewGameRequest{
-		PlayerName: playerName,
-		NumStars:   numStars,
+		PlayerName:  playerName,
+		NumStars:    numStars,
+		PlayerColor: "#FFFFFF",
 	}
 
 	var out NewGameResponse

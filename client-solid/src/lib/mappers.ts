@@ -13,6 +13,7 @@ import type {
   ApiStar,
 } from "./types/api";
 import type {
+  PlayerColorOptions,
   ArmorViewModel,
   BuildingViewModel,
   ComputerViewModel,
@@ -28,13 +29,16 @@ import type {
 } from "./types/domain";
 
 export function mapGame(apiGame: ApiGame): GameViewModel {
+  const players = apiGame.players.map(mapPlayer);
+  const playerColorById = new Map(players.map((player) => [player.id, player.color]));
+
   return {
     id: apiGame.id,
     currentTurn: apiGame.current_turn,
     galaxy: {
-      stars: apiGame.galaxy.stars.map(mapStar),
+      stars: apiGame.galaxy.stars.map((star) => mapStar(star, playerColorById)),
     },
-    players: apiGame.players.map(mapPlayer),
+    players,
     resources: {
       shipParts: {
         hullSizes: apiGame.resources.ship_parts.hull_sizes.map(mapHullSize),
@@ -63,6 +67,7 @@ function mapPlayer(player: ApiPlayer): PlayerViewModel {
   return {
     id: player.id,
     name: player.name,
+    color: player.color,
     raceName: player.race?.name || "Unassigned",
     treasury: player.treasury,
     taxRate: player.tax_rate,
@@ -75,9 +80,10 @@ function mapPlayer(player: ApiPlayer): PlayerViewModel {
   };
 }
 
-function mapStar(star: ApiStar): StarSummary {
+function mapStar(star: ApiStar, playerColorById: Map<number, string>): StarSummary {
   const explored = Boolean(star.name);
   const planets = (star.planets ?? []).map(mapPlanet);
+  const ownedBy = planets.find((planet) => planet.owner > 0)?.owner;
   return {
     id: star.id,
     name: star.name || "",
@@ -85,8 +91,19 @@ function mapStar(star: ApiStar): StarSummary {
     color: star.color,
     x: star.x,
     y: star.y,
-    ownedPlanets: planets.filter((planet) => planet.owner === 1).length,
+    ownedPlanets: planets.filter((planet) => planet.owner > 0).length,
     explored,
+    ownerColor: ownedBy ? playerColorById.get(ownedBy) ?? null : null,
+  };
+}
+
+export function mapPlayerColorOptions(options: {
+  max_players: number;
+  colors: string[];
+}): PlayerColorOptions {
+  return {
+    maxPlayers: options.max_players,
+    colors: options.colors,
   };
 }
 
