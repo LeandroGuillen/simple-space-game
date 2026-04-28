@@ -8,6 +8,12 @@ export type ShipDesignForm = {
   fuelCell: string
 }
 
+export type PendingPopChange = {
+  from: string
+  to: string
+  count: number
+}
+
 export type BuildingViewModel = {
   id: number
   name: string

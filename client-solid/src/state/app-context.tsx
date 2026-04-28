@@ -26,6 +26,12 @@ import {
 
 type ConnectionStatus = "idle" | "checking" | "connected" | "error";
 
+type PendingPopChange = {
+  from: string;
+  to: string;
+  count: number;
+};
+
 type AppState = {
   session: {
     serverUrl: string;
@@ -39,6 +45,7 @@ type AppState = {
   isBusy: boolean;
   error: string;
   info: string;
+  pendingPlanetChanges: Record<number, PendingPopChange[]>;
 };
 
 type AppContextValue = {
@@ -56,6 +63,12 @@ type AppContextValue = {
   selectGame: (gameId: string) => Promise<void>;
   refreshGame: () => Promise<void>;
   changeBuilding: (planetId: number, buildingId: number) => Promise<void>;
+  addPopulationChange: (
+    planetId: number,
+    fromCategory: string,
+    toCategory: string,
+    count: number,
+  ) => void;
   colonize: (planetId: number) => Promise<void>;
   exploreStar: (starId: number) => Promise<void>;
   endTurn: () => Promise<void>;
@@ -90,6 +103,7 @@ export function AppProvider(props: ParentProps) {
     isBusy: false,
     error: "",
     info: "",
+    pendingPlanetChanges: {},
   });
 
   const api = createMemo(() =>
@@ -266,6 +280,20 @@ export function AppProvider(props: ParentProps) {
     }
   }
 
+  function addPopulationChange(
+    planetId: number,
+    fromCategory: string,
+    toCategory: string,
+    count: number,
+  ) {
+    const current =
+      state.pendingPlanetChanges[planetId] ?? [];
+    setState("pendingPlanetChanges", planetId, [
+      ...current,
+      { from: fromCategory, to: toCategory, count },
+    ]);
+  }
+
   async function colonize(planetId: number) {
     if (!api() || !state.session.selectedGameId) {
       return;
@@ -293,10 +321,15 @@ export function AppProvider(props: ParentProps) {
     if (!api() || !state.session.selectedGameId) {
       return;
     }
+    const pendingChanges = state.pendingPlanetChanges;
     setBusy(true, "Ending turn");
     clearError();
     try {
-      await api()!.endTurn(state.session.selectedGameId);
+      await api()!.endTurn(
+        state.session.selectedGameId,
+        pendingChanges,
+      );
+      setState("pendingPlanetChanges", {});
       await refreshGame();
     } catch (error) {
       setBusy(false, "");
@@ -433,6 +466,7 @@ export function AppProvider(props: ParentProps) {
     selectGame,
     refreshGame,
     changeBuilding,
+    addPopulationChange,
     colonize,
     exploreStar,
     endTurn,
