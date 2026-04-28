@@ -6,7 +6,7 @@ import type {
   ApiShipParts,
   ApiStatusResponse,
 } from './types/api';
-import type { ShipDesignForm } from './types/domain';
+import type { MovePopulationCommand, ShipDesignForm } from './types/domain';
 import { normalizeServerUrl } from './utils';
 
 type JsonHeaders = Record<string, string>;
@@ -99,10 +99,14 @@ export class ApiClient {
     return readJson<unknown[]>(response);
   }
 
-  async endTurn(gameId: string) {
+  async endTurn(gameId: string, commands: { movePopulation: MovePopulationCommand[] }) {
     const response = await fetch(`${this.baseUrl}/turn`, {
-      method: 'GET',
+      method: 'POST',
       headers: this.headers(gameId),
+      body: JSON.stringify({
+        game_id: gameId,
+        commands,
+      }),
     });
     return readJson<{ ok: boolean }>(response);
   }
@@ -127,20 +131,6 @@ export class ApiClient {
       headers: this.headers(gameId),
       body: JSON.stringify({
         game_id: gameId,
-      }),
-    });
-    return readJson<{ game: ApiGame }>(response);
-  }
-
-  async reassignPopulation(gameId: string, planetId: number, fromCategory: string, toCategory: string, count: number) {
-    const response = await fetch(`${this.baseUrl}/action/${this.playerId}/reassign_population/${planetId}`, {
-      method: 'POST',
-      headers: this.headers(gameId),
-      body: JSON.stringify({
-        game_id: gameId,
-        from: fromCategory,
-        to: toCategory,
-        count,
       }),
     });
     return readJson<{ game: ApiGame }>(response);

@@ -3,6 +3,7 @@ import { createMemo, createSignal, Show } from 'solid-js';
 
 import { PlanetVisual } from '../components/PlanetVisual';
 import { findPlanet, labelForEnvironment, labelForGravity, labelForMinerals, labelForSize } from '../lib/utils';
+import type { MovePopulationCommand } from '../lib/types/domain';
 import { useAppContext } from '../state/app-context';
 
 type PopCategory = 'farmers' | 'workers' | 'scientists' | 'marines';
@@ -39,16 +40,16 @@ function getOutputIcons(count: number, type: 'food' | 'industry' | 'science'): s
 
 export function PlanetPage() {
   const params = useParams();
-  const { state, addPopulationChange } = useAppContext();
+  const { state, addMovePopulationCommand } = useAppContext();
   const [_raggedCount, setDraggedCount] = createSignal(0);
   const [_dragSource, setDragSource] = createSignal<PopCategory | null>(null);
 
   const planet = createMemo(() => findPlanet(state.game, Number(params.planetId)));
 
-  const pendingChanges = createMemo(() => {
+  const pendingMoves = createMemo(() => {
     const p = planet();
     if (!p) return [];
-    return state.pendingPlanetChanges[p.id] ?? [];
+    return state.pendingCommands.movePopulation.filter((cmd) => cmd.planetId === p.id);
   });
 
   const getPopCount = (cat: PopCategory) => {
@@ -69,12 +70,12 @@ export function PlanetPage() {
         base = p.marines;
         break;
     }
-    for (const change of pendingChanges()) {
-      if (change.to === cat) {
-        base += change.count;
+    for (const move of pendingMoves()) {
+      if (move.to === cat) {
+        base += move.count;
       }
-      if (change.from === cat) {
-        base -= change.count;
+      if (move.from === cat) {
+        base -= move.count;
       }
     }
     return Math.max(0, base);
@@ -202,7 +203,13 @@ export function PlanetPage() {
                       if (!source || count === 0 || source === cat) return;
                       const p = planet();
                       if (!p) return;
-                      addPopulationChange(p.id, source, cat, count);
+                      const cmd: MovePopulationCommand = {
+                        planetId: p.id,
+                        from: source,
+                        to: cat,
+                        count,
+                      };
+                      addMovePopulationCommand(cmd);
                       setDragSource(null);
                       setDraggedCount(0);
                     }}

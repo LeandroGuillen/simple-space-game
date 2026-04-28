@@ -8,9 +8,10 @@ export type ShipDesignForm = {
   fuelCell: string
 }
 
-export type PendingPopChange = {
-  from: string
-  to: string
+export type MovePopulationCommand = {
+  planetId: number
+  from: "farmers" | "workers" | "scientists" | "marines"
+  to: "farmers" | "workers" | "scientists" | "marines"
   count: number
 }
 

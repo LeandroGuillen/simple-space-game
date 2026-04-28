@@ -81,7 +81,7 @@ func (s *Server) registerRoutes(r *gin.Engine) {
 	r.GET("/gameupdates", func(c *gin.Context) {
 		ws.Handler(s.hub, c)
 	})
-	r.GET("/turn", Turn)
+	r.POST("/turn", Turn)
 }
 
 func (s *Server) startHub() {

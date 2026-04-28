@@ -67,7 +67,7 @@ func TestPlanetTurn_PopulationClampedToMaxPop(t *testing.T) {
 	star := game.NewStar(2, "test_star", model.StarColorYellow, []*model.Planet{planet})
 	g.Galaxy.Stars = append(g.Galaxy.Stars, star)
 
-	err := g.Turn(1)
+	err := g.Turn(1, model.Commands{})
 	assert.NoError(t, err)
 
 	// Without a cap the next value would be 11990 + 40 = 12030; with the
@@ -75,7 +75,7 @@ func TestPlanetTurn_PopulationClampedToMaxPop(t *testing.T) {
 	assert.Equal(t, int64(12000), planet.Population)
 
 	// A second turn at the cap leaves Population unchanged.
-	err = g.Turn(1)
+	err = g.Turn(1, model.Commands{})
 	assert.NoError(t, err)
 	assert.Equal(t, int64(12000), planet.Population)
 }
@@ -92,7 +92,7 @@ func TestPlanetTurn_PopulationNeverGoesNegative(t *testing.T) {
 	g.Galaxy.Stars = append(g.Galaxy.Stars, star)
 
 	for i := 0; i < 10; i++ {
-		err := g.Turn(1)
+		err := g.Turn(1, model.Commands{})
 		assert.NoError(t, err)
 		assert.GreaterOrEqual(t, planet.Population, int64(0))
 	}

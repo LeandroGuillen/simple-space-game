@@ -4,16 +4,10 @@ import { createStore } from 'solid-js/store';
 import { ApiClient, parseGameUpdate } from '../lib/api';
 import { mapGame, mapPlayerColorOptions } from '../lib/mappers';
 import type { ApiGameListItem } from '../lib/types/api';
-import type { GameViewModel, PlayerColorOptions, ShipDesignForm } from '../lib/types/domain';
+import type { GameViewModel, MovePopulationCommand, PlayerColorOptions, ShipDesignForm } from '../lib/types/domain';
 import { getColonyRows, getPrimaryPlayer, normalizeServerUrl, toWebSocketUrl } from '../lib/utils';
 
 type ConnectionStatus = 'idle' | 'checking' | 'connected' | 'error';
-
-type PendingPopChange = {
-  from: string;
-  to: string;
-  count: number;
-};
 
 type AppState = {
   session: {
@@ -28,7 +22,9 @@ type AppState = {
   isBusy: boolean;
   error: string;
   info: string;
-  pendingPlanetChanges: Record<number, PendingPopChange[]>;
+  pendingCommands: {
+    movePopulation: MovePopulationCommand[];
+  };
 };
 
 type AppContextValue = {
@@ -42,7 +38,7 @@ type AppContextValue = {
   selectGame: (gameId: string) => Promise<void>;
   refreshGame: () => Promise<void>;
   changeBuilding: (planetId: number, buildingId: number) => Promise<void>;
-  addPopulationChange: (planetId: number, fromCategory: string, toCategory: string, count: number) => void;
+  addMovePopulationCommand: (command: MovePopulationCommand) => void;
   colonize: (planetId: number) => Promise<void>;
   exploreStar: (starId: number) => Promise<void>;
   endTurn: () => Promise<void>;
@@ -74,7 +70,9 @@ export function AppProvider(props: ParentProps) {
     isBusy: false,
     error: '',
     info: '',
-    pendingPlanetChanges: {},
+    pendingCommands: {
+      movePopulation: [],
+    },
   });
 
   const api = createMemo(() =>
@@ -218,9 +216,8 @@ export function AppProvider(props: ParentProps) {
     }
   }
 
-  function addPopulationChange(planetId: number, fromCategory: string, toCategory: string, count: number) {
-    const current = state.pendingPlanetChanges[planetId] ?? [];
-    setState('pendingPlanetChanges', planetId, [...current, { from: fromCategory, to: toCategory, count }]);
+  function addMovePopulationCommand(command: MovePopulationCommand) {
+    setState('pendingCommands', 'movePopulation', (cmds) => [...cmds, command]);
   }
 
   async function colonize(planetId: number) {
@@ -246,8 +243,8 @@ export function AppProvider(props: ParentProps) {
     setBusy(true, 'Ending turn');
     clearError();
     try {
-      await api()!.endTurn(state.session.selectedGameId);
-      setState('pendingPlanetChanges', {});
+      await api()!.endTurn(state.session.selectedGameId, state.pendingCommands);
+      setState('pendingCommands', { movePopulation: [] });
       setState('info', 'Waiting for server update...');
     } catch (error) {
       setBusy(false, '');
@@ -355,7 +352,7 @@ export function AppProvider(props: ParentProps) {
     selectGame,
     refreshGame,
     changeBuilding,
-    addPopulationChange,
+    addMovePopulationCommand,
     colonize,
     exploreStar,
     endTurn,

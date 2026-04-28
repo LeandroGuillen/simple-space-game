@@ -50,16 +50,16 @@ func NewGame(playerName string, numStars uint, playerColor string) (*Game, error
 	return g, nil
 }
 
-func (g *Game) Turn(playerID uint) error {
-	// TODO A turn should just flag the player as ready, and then when
-	// all (human) players are ready then cycle through everything and
-	// update its state, not only the player's controlled objects.
+func (g *Game) Turn(playerID uint, commands Commands) error {
 	player, err := g.getPlayer(playerID)
 	if err != nil {
 		return err
 	}
 
-	// TODO get income from trade goods/taxes
+	if err := g.ApplyMovePopulationCommands(playerID, commands.MovePopulation); err != nil {
+		return err
+	}
+
 	player.Treasury += 2
 
 	colonyList, err := g.GetColonyList(playerID)
@@ -268,4 +268,67 @@ func (g *Game) UpdateShipDesign(
 	}
 
 	return fmt.Errorf("cannot update, did not find a design with name %q", name)
+}
+
+func (g *Game) ApplyMovePopulationCommands(playerID uint, commands []MovePopulationCommand) error {
+	for _, cmd := range commands {
+		planet, err := g.getPlanet(cmd.PlanetID)
+		if err != nil {
+			return err
+		}
+		if planet.Owner != playerID {
+			return fmt.Errorf("planet %d not owned by player %d", cmd.PlanetID, playerID)
+		}
+
+		fromCount := g.getPopulationCount(planet, cmd.From)
+		if fromCount < cmd.Count {
+			return fmt.Errorf("not enough %s on planet %d", cmd.From, cmd.PlanetID)
+		}
+
+		totalPop := planet.Farmers + planet.Workers + planet.Scientists + planet.Marines
+		newTotalPop := totalPop - cmd.Count + cmd.Count
+		maxPop := MaxPop(planet)
+		if newTotalPop > maxPop {
+			return fmt.Errorf("population %d exceeds max %d on planet %d", newTotalPop, maxPop, cmd.PlanetID)
+		}
+
+		planet.Population = newTotalPop
+
+		switch cmd.From {
+		case PopCategoryFarmers:
+			planet.Farmers -= cmd.Count
+		case PopCategoryWorkers:
+			planet.Workers -= cmd.Count
+		case PopCategoryScientists:
+			planet.Scientists -= cmd.Count
+		case PopCategoryMarines:
+			planet.Marines -= cmd.Count
+		}
+
+		switch cmd.To {
+		case PopCategoryFarmers:
+			planet.Farmers += cmd.Count
+		case PopCategoryWorkers:
+			planet.Workers += cmd.Count
+		case PopCategoryScientists:
+			planet.Scientists += cmd.Count
+		case PopCategoryMarines:
+			planet.Marines += cmd.Count
+		}
+	}
+	return nil
+}
+
+func (g *Game) getPopulationCount(p *Planet, cat PopCategory) int64 {
+	switch cat {
+	case PopCategoryFarmers:
+		return p.Farmers
+	case PopCategoryWorkers:
+		return p.Workers
+	case PopCategoryScientists:
+		return p.Scientists
+	case PopCategoryMarines:
+		return p.Marines
+	}
+	return 0
 }
