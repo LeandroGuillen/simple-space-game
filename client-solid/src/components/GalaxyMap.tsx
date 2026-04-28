@@ -3,6 +3,8 @@ import { For } from "solid-js";
 import type { StarSummary } from "../lib/types/domain";
 import { STAR_COLORS } from "../lib/utils";
 
+import "./GalaxyMap.css";
+
 /** Must match server galaxy bounds (`server/game/galaxy_utils.go`). */
 const GALAXY_W = 700;
 const GALAXY_H = 400;

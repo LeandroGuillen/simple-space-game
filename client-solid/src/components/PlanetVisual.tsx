@@ -1,6 +1,8 @@
 import { cssClassForEnvironment } from "../lib/utils";
 import type { JSX } from "solid-js";
 
+import "./PlanetVisual.css";
+
 type PlanetVisualProps = {
   environment: number;
   size?: "small" | "medium" | "large";

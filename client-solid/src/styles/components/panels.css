@@ -1,0 +1,59 @@
+.panel {
+  padding: 26px 28px;
+  background: var(--surface);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+.map-panel,
+.inspector-panel {
+  min-height: 620px;
+}
+
+.map-panel .section-header {
+  margin-bottom: 12px;
+}
+
+.setup-panel {
+  padding: 28px 30px;
+}
+
+.setup-header {
+  margin-bottom: 18px;
+
+  & .lede {
+    margin-bottom: 0;
+  }
+}
+
+.setup-divider {
+  margin: 28px -30px;
+  height: 1px;
+  background: var(--rule);
+}
+
+.setup-metrics {
+  margin-top: 22px;
+}
+
+.setup-subform-label {
+  margin-top: 28px;
+  margin-bottom: 4px;
+
+  & {
+    margin: 0 0 4px;
+  }
+}
+
+.planet-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 24px 28px;
+  align-items: center;
+  padding: 28px 30px;
+  background: var(--surface);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}

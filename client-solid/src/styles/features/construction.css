@@ -1,0 +1,194 @@
+.planet-commands {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.construction-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.construction-current {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.construction-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-mute);
+  flex-shrink: 0;
+}
+
+.feature-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+
+  & .planet-details {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    flex: 1;
+    min-width: 120px;
+
+    & p.eyebrow {
+      margin: 0;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-mute);
+    }
+
+    & h2 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    & .lede {
+      margin: 0;
+      font-size: 0.7rem;
+      opacity: 0.9;
+      line-height: 1.3;
+    }
+
+    & .metric-card {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.7rem;
+      margin-top: 4px;
+      padding-top: 4px;
+      border-top: 1px solid var(--rule);
+
+      & span {
+        color: var(--text-mute);
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      & strong {
+        font-weight: 600;
+        color: var(--text);
+        font-size: 0.75rem;
+      }
+    }
+  }
+
+  & .planet-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 150px;
+
+    & p.eyebrow {
+      margin: 0;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-mute);
+    }
+
+    & h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    & .lede {
+      margin: 0;
+      font-size: 0.8rem;
+      opacity: 0.9;
+      line-height: 1.4;
+    }
+
+    & .metric-card {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--rule);
+
+      & span {
+        color: var(--text-mute);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      & strong {
+        font-weight: 600;
+        color: var(--text);
+        font-size: 0.85rem;
+      }
+    }
+  }
+}
+
+.construction-button.square-button {
+  width: 150px;
+  height: 150px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--rule-strong);
+  background: var(--bg-elev);
+  cursor: pointer;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-evenly;
+  flex-direction: column;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+
+  &:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.construction-icon {
+  font-size: 48px;
+  flex-grow: 10;
+  align-content: center;
+}
+
+.construction-name {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 14px;
+  flex-grow: 1;
+}
+
+.construction-progress-display {
+  flex-grow: 1;
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.construction-progress-completion {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 10px;
+}
+
+.construction-progress-turns {
+  color: var(--text-dim);
+  font-size: 10px;
+}

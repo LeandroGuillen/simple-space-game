@@ -1,0 +1,6 @@
+.setup-page {
+  display: grid;
+  gap: 18px;
+  max-width: 760px;
+  margin: 0 auto;
+}

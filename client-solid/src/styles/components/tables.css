@@ -1,0 +1,55 @@
+.table-frame {
+  overflow-x: auto;
+  margin-top: 18px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+
+  & th,
+  & td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  & thead {
+    color: var(--text-mute);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+
+    & th {
+      border-bottom: 1px solid var(--rule-strong);
+      font-weight: 500;
+    }
+  }
+
+  & tbody tr {
+    cursor: default;
+    transition: background 0.12s ease;
+
+    &:hover {
+      background: var(--surface-quiet);
+    }
+  }
+
+  & select {
+    width: 100%;
+    min-width: 170px;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--rule-strong);
+    background: var(--bg-elev);
+    color: var(--text);
+
+    &:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-soft);
+    }
+  }
+}

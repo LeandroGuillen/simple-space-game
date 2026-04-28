@@ -1,0 +1,29 @@
+:root {
+  --bg: #06101a;
+  --bg-elev: #0a1623;
+  --surface: rgba(12, 21, 33, 0.92);
+  --surface-quiet: rgba(255, 255, 255, 0.025);
+  --rule: rgba(126, 160, 196, 0.12);
+  --rule-strong: rgba(126, 160, 196, 0.22);
+
+  --text: #dde7f0;
+  --text-dim: #9aacbd;
+  --text-mute: #6f8395;
+
+  --accent: #80c6c3;
+  --accent-soft: rgba(128, 198, 195, 0.14);
+  --accent-strong: rgba(128, 198, 195, 0.45);
+  --gold: #d5b46f;
+  --danger: #e08e86;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --shadow-soft:
+    0 1px 0 rgba(255, 255, 255, 0.02), 0 12px 28px rgba(0, 0, 0, 0.28);
+
+  --font-body:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading: "Space Grotesk", "Inter", sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", monospace;
+}

@@ -1,0 +1,43 @@
+.eyebrow {
+  margin: 0 0 6px;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.lede {
+  margin: 0 0 20px;
+  max-width: 60ch;
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+
+.content h2 {
+  margin: 0;
+  font-family: var(--font-heading);
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: var(--text);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.empty-copy,
+.fleet-note {
+  color: var(--text-dim);
+}
+
+.fleet-note p {
+  margin: 6px 0 0;
+  line-height: 1.55;
+}

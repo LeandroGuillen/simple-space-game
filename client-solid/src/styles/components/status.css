@@ -1,0 +1,54 @@
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+  flex-shrink: 0;
+}
+
+.status--idle {
+  color: var(--text-mute);
+
+  & .status-dot {
+    box-shadow: none;
+    opacity: 0.6;
+  }
+}
+
+.status--checking {
+  color: var(--gold);
+}
+
+.status--connected {
+  color: var(--accent);
+}
+
+.status--error {
+  color: var(--danger);
+}
+
+.status-banner {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  max-width: min(420px, calc(100vw - 40px));
+  padding: 12px 16px 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--rule-strong);
+  border-left: 3px solid var(--danger);
+  background: rgba(20, 14, 14, 0.96);
+  color: #ffd7d0;
+  box-shadow: var(--shadow-soft);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}

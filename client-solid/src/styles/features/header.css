@@ -1,0 +1,65 @@
+.app-topbar {
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 6px 16px;
+  margin-bottom: 8px;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.app-topbar-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.app-title {
+  font-family: var(--font-heading);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.app-version {
+  font-size: 0.68rem;
+  color: var(--text-mute);
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+.app-repo-link {
+  font-size: 0.74rem;
+  color: var(--accent);
+  border-bottom: 1px solid transparent;
+  padding-bottom: 1px;
+  transition:
+    color 0.12s ease,
+    border-color 0.12s ease;
+
+  &:hover {
+    color: var(--gold);
+    border-bottom-color: currentColor;
+  }
+}
+
+.game-topbar {
+  padding: 12px 22px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.game-turn-button {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  font-size: 0.76rem;
+}

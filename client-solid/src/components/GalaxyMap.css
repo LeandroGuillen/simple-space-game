@@ -1,0 +1,41 @@
+.galaxy-map {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+  display: block;
+}
+
+.galaxy-star {
+  cursor: pointer;
+
+  & text {
+    fill: var(--text-dim);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    font-family: var(--font-mono);
+  }
+
+  & text.star-label-unoccupied {
+    fill: #595c63;
+  }
+}
+
+.star-halo {
+  opacity: 0.16;
+}
+
+.star-core {
+  filter: drop-shadow(0 0 6px currentColor);
+}
+
+.star-ring {
+  fill: none;
+  stroke: rgba(213, 180, 111, 0);
+  stroke-width: 1.25;
+}
+
+.galaxy-star.selected .star-ring,
+.galaxy-star:hover .star-ring {
+  stroke: var(--gold);
+  stroke-opacity: 0.85;
+}

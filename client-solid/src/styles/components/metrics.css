@@ -1,0 +1,85 @@
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 22px 32px;
+  padding-top: 18px;
+  margin-top: 6px;
+  border-top: 1px solid var(--rule);
+}
+
+.metric-card {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  & span {
+    display: block;
+    color: var(--text-mute);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  & strong {
+    font-family: var(--font-heading);
+    font-size: 1.35rem;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 14px;
+  background: var(--surface-quiet);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  min-width: 90px;
+
+  & span {
+    font-size: 0.64rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-mute);
+    margin-bottom: 2px;
+  }
+
+  & strong {
+    font-family: var(--font-heading);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--text);
+  }
+}
+
+.planet-stats {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.planet-info {
+  min-width: 0;
+
+  & h2 {
+    margin: 0 0 6px;
+    font-family: var(--font-heading);
+    font-size: 1.55rem;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.01em;
+  }
+
+  & .lede {
+    margin: 0;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+}

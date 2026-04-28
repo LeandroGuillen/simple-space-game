@@ -1,0 +1,90 @@
+.build-queue {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--surface-quiet);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+}
+
+.build-queue-label {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-mute);
+}
+
+.build-queue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  & li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+  }
+}
+
+.queue-num {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-soft);
+  border-radius: 50%;
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--accent);
+}
+
+.queue-name {
+  flex: 1;
+  color: var(--text);
+}
+
+.queue-cost {
+  color: var(--text-dim);
+  font-size: 0.78rem;
+}
+
+.installed-buildings {
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
+}
+
+.building-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+  display: flex;
+  flex-direction: column;
+
+  & li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--rule);
+    font-size: 0.85rem;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    & span:first-child {
+      color: var(--text);
+    }
+  }
+}
+
+.building-cost {
+  color: var(--text-dim);
+  font-size: 0.78rem;
+}

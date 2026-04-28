@@ -1,0 +1,29 @@
+.frame {
+  min-height: 100vh;
+}
+
+.content {
+  min-width: 0;
+}
+
+.content--route {
+  min-width: 0;
+}
+
+.page-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.page-grid > .panel {
+  padding: 16px 20px;
+}
+
+.galaxy-layout {
+  grid-template-columns: minmax(0, 1.8fr) minmax(320px, 0.9fr);
+}
+
+.planet-layout {
+  display: grid;
+  gap: 18px;
+}

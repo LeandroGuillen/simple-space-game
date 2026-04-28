@@ -115,6 +115,11 @@ export function PlanetPage() {
     e.dataTransfer!.effectAllowed = 'move';
   };
 
+  const handleDragEnd = () => {
+    setDragSource(null);
+    setDraggedCount(0);
+  };
+
   return (
     <Show when={planet()} fallback={<section class='panel'>Planet not found.</section>}>
       {(currentPlanet) => (
@@ -135,10 +140,17 @@ export function PlanetPage() {
                   </strong>
                 </article>
                 <article class='metric-card'>
-                  <span>Population</span>
-                  <strong>
-                    {currentPlanet().population}/{currentPlanet().maxPopulation}
-                  </strong>
+                  <span>Income</span>
+                  <strong>50 BC</strong>
+                </article>
+                <article class='metric-card'>
+                  <span>Morale</span>
+                  <div class='pop-stat-icons'>
+                    <span class='pop-stat-icon'>😊</span>
+                    <span class='pop-stat-icon'>😊</span>
+                    <span class='pop-stat-icon'>😊</span>
+                    <span class='pop-stat-icon'>😐</span>
+                  </div>
                 </article>
               </div>
 
@@ -156,9 +168,26 @@ export function PlanetPage() {
           <section class='panel'>
             <p class='eyebrow'>Population</p>
 
-            <div class='pop-grid'>
+            <div class={`pop-grid ${isDragging() ? 'is-dragging' : ''}`}>
+              <div class='pop-stats-row'>
+                <div class='pop-stat'>
+                  <span class='pop-stat-label'>Income</span>
+                  <div class='pop-stat-icons'>
+                    <span class='pop-stat-icon income-icon'>🪙</span>
+                    <span class='pop-stat-icon income-icon'>🪙</span>
+                    <span class='pop-stat-icon income-icon'>🪙</span>
+                    <span class='pop-stat-icon income-icon'>💰</span>
+                    <span class='pop-stat-icon income-icon'>💰</span>
+                  </div>
+                </div>
+              </div>
               {(['farmers', 'workers', 'scientists'] as PopCategory[]).map((cat) => (
                 <div class={`pop-row ${isDragging() ? 'pop-row--drag-active' : ''}`}>
+                  <span class='pop-stat-label'>
+                    {cat === 'farmers' && 'Food'}
+                    {cat === 'workers' && 'Industry'}
+                    {cat === 'scientists' && 'Science'}
+                  </span>
                   <div class='pop-output'>
                     {cat === 'farmers' && getOutputIcons(getPopCount('farmers'), 'food')}
                     {cat === 'workers' && getOutputIcons(getPopCount('workers'), 'industry')}
@@ -190,6 +219,7 @@ export function PlanetPage() {
                         style={{ background: POP_COLORS[cat] }}
                         draggable={true}
                         onDragStart={(e) => handleDragStart(e, cat, idx)}
+                        onDragEnd={handleDragEnd}
                       />
                     ))}
                   </div>
