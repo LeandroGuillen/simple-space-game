@@ -6,7 +6,6 @@ import { FleetsPage } from "./routes/FleetsPage";
 import { GalaxyPage } from "./routes/GalaxyPage";
 import { PlanetPage } from "./routes/PlanetPage";
 import { SetupPage } from "./routes/SetupPage";
-import { StarPage } from "./routes/StarPage";
 import { AppProvider, useAppContext } from "./state/app-context";
 
 function HomeRoute() {
@@ -31,7 +30,6 @@ export default function App() {
         <Route path="/" component={HomeRoute} />
         <Route path="/setup" component={SetupPage} />
         <Route path="/galaxy" component={GalaxyPage} />
-        <Route path="/stars/:starId" component={StarPage} />
         <Route path="/stars/:starId/planets/:planetId" component={PlanetPage} />
         <Route path="/colonies" component={ColoniesPage} />
         <Route path="/fleets" component={FleetsPage} />

@@ -1,16 +1,17 @@
-import { useNavigate } from "@solidjs/router";
+import { A } from "@solidjs/router";
 import { createMemo, createSignal, onMount, Show } from "solid-js";
 
 import { GalaxyMap } from "../components/GalaxyMap";
 import {
   findStar,
   labelForEnvironment,
-  starOwnershipSummary,
+  labelForGravity,
+  labelForMinerals,
+  labelForSize
 } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
 
 export function GalaxyPage() {
-  const navigate = useNavigate();
   const { state, refreshGame, exploreStar } = useAppContext();
   const [selectedStarId, setSelectedStarId] = createSignal<number>();
 
@@ -26,6 +27,18 @@ export function GalaxyPage() {
     const chosenId = selectedStarId() ?? firstId;
     return chosenId ? findStar(state.game, chosenId) : null;
   });
+  const playerNameById = createMemo(
+    () =>
+      new Map(
+        (state.game?.players ?? []).map((player) => [player.id, player.name]),
+      ),
+  );
+  const playerColorById = createMemo(
+    () =>
+      new Map(
+        (state.game?.players ?? []).map((player) => [player.id, player.color]),
+      ),
+  );
 
   return (
     <Show
@@ -57,54 +70,69 @@ export function GalaxyPage() {
               <>
                 <p class="eyebrow">System Inspector</p>
                 <h2>{star().name}</h2>
-                <p>{starOwnershipSummary(star())}</p>
-                <div class="metric-grid">
-                  <article class="metric-card">
-                    <span>Planets</span>
-                    <strong>{star().explored ? star().planets.length : "?"}</strong>
-                  </article>
-                  <article class="metric-card">
-                    <span>Best World</span>
-                    <strong>
-                      {star().explored
-                        ? labelForEnvironment(star().planets[0]?.environment ?? 0)
-                        : "Unknown"}
-                    </strong>
-                  </article>
-                </div>
 
-                <ul class="compact-list">
+                <div class="planet-list">
                   <Show
                     when={star().explored}
-                    fallback={<li>No planet telemetry. Explore this system first.</li>}
+                    fallback={
+                      <article class="planet-card">
+                        <div>
+                          <p>No planet telemetry. Explore this system first.</p>
+                        </div>
+                      </article>
+                    }
                   >
                     {star().planets.map((planet) => (
-                      <li>
-                        <strong>{planet.name}</strong>
-                        <span>
-                          {planet.owner === 1 ? "Controlled" : "Unclaimed"}
-                        </span>
-                      </li>
+                      <article class="planet-card">
+                        <div>
+                          <p class="planet-title">
+                            <Show
+                              when={planet.owner > 0}
+                              fallback={<span>{planet.name}</span>}
+                            >
+                              <A
+                                class="planet-name-link"
+                                href={`/stars/${star().id}/planets/${planet.id}`}
+                                style={{
+                                  color:
+                                    playerColorById().get(planet.owner) ??
+                                    "var(--text)",
+                                }}
+                              >
+                                {planet.name}
+                              </A>
+                            </Show>
+                          </p>
+                          <p>
+                            {labelForEnvironment(planet.environment)} ·{" "}
+                            {labelForSize(planet.size)} ·{" "}
+                            {labelForMinerals(planet.mineralClass)}
+                          </p>
+                          <p>
+                            Gravity: {labelForGravity(planet.gravity)}
+                            <Show when={planet.owner > 0}>
+                              {" "}
+                              · Population {planet.population}/
+                              {planet.maxPopulation}
+                            </Show>
+                          </p>
+                          <p>
+                            {planet.owner > 0
+                              ? `Controlled by ${playerNameById().get(planet.owner) ?? `Player ${planet.owner}`}`
+                              : "Uncontrolled"}
+                          </p>
+                        </div>
+                      </article>
                     ))}
                   </Show>
-                </ul>
+                </div>
 
-                <Show
-                  when={star().explored}
-                  fallback={
-                    <button
-                      class="primary-button"
-                      onClick={() => void exploreStar(star().id)}
-                    >
-                      Explore System
-                    </button>
-                  }
-                >
+                <Show when={!star().explored}>
                   <button
                     class="primary-button"
-                    onClick={() => navigate(`/stars/${star().id}`)}
+                    onClick={() => void exploreStar(star().id)}
                   >
-                    Open Star System
+                    Explore System
                   </button>
                 </Show>
               </>
