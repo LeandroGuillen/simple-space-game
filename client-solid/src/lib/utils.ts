@@ -77,6 +77,24 @@ export function labelForEnvironment(value: number) {
   return environmentLabels[value] ?? "Unknown";
 }
 
+const environmentCssClassMap: Record<number, string> = {
+  1: "gasgiant",
+  2: "asteroid",
+  3: "toxic",
+  4: "radiated",
+  5: "barren",
+  6: "desert",
+  7: "arid",
+  8: "frozen",
+  9: "swamp",
+  10: "oceanic",
+  11: "terrestrial",
+};
+
+export function cssClassForEnvironment(value: number) {
+  return environmentCssClassMap[value] ?? "barren";
+}
+
 export function getPrimaryPlayer(game?: GameViewModel | null) {
   return game?.players[0] ?? null;
 }

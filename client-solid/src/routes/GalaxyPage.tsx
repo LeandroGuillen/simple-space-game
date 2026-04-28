@@ -2,12 +2,13 @@ import { A } from "@solidjs/router";
 import { createMemo, createSignal, onMount, Show } from "solid-js";
 
 import { GalaxyMap } from "../components/GalaxyMap";
+import { PlanetVisual } from "../components/PlanetVisual";
 import {
   findStar,
   labelForEnvironment,
   labelForGravity,
   labelForMinerals,
-  labelForSize
+  labelForSize,
 } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
 
@@ -84,7 +85,15 @@ export function GalaxyPage() {
                   >
                     {star().planets.map((planet) => (
                       <article class="planet-card">
-                        <div>
+                        <div class="planet-card-visual">
+                          <A href={`/stars/${star().id}/planets/${planet.id}`}>
+                            <PlanetVisual
+                              environment={planet.environment}
+                              size="small"
+                            />
+                          </A>
+                        </div>
+                        <div class="planet-card-info">
                           <p class="planet-title">
                             <Show
                               when={planet.owner > 0}

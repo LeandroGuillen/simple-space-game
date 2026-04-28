@@ -1,6 +1,7 @@
 import { useParams } from "@solidjs/router";
 import { createMemo, onMount, Show } from "solid-js";
 
+import { PlanetVisual } from "../components/PlanetVisual";
 import {
   findPlanet,
   labelForEnvironment,
@@ -33,34 +34,36 @@ export function PlanetPage() {
       fallback={<section class="panel">Planet not found.</section>}
     >
       {(currentPlanet) => (
-        <section class="page-grid">
-          <section class="panel feature-panel">
-            <p class="eyebrow">Planet Management</p>
-            <h2>{currentPlanet().name}</h2>
-            <p class="lede">
-              {labelForEnvironment(currentPlanet().environment)} ·{" "}
-              {labelForSize(currentPlanet().size)} ·{" "}
-              {labelForGravity(currentPlanet().gravity)} gravity ·{" "}
-              {labelForMinerals(currentPlanet().mineralClass)}
-            </p>
-
-            <div class="metric-grid">
-              <article class="metric-card">
+        <section class="planet-layout">
+          <section class="panel planet-header">
+            <PlanetVisual environment={currentPlanet().environment} size="large" />
+            <div class="planet-info">
+              <p class="eyebrow">Planet Management</p>
+              <h2>{currentPlanet().name}</h2>
+              <p class="lede">
+                {labelForEnvironment(currentPlanet().environment)} ·{" "}
+                {labelForSize(currentPlanet().size)} ·{" "}
+                {labelForGravity(currentPlanet().gravity)} gravity ·{" "}
+                {labelForMinerals(currentPlanet().mineralClass)}
+              </p>
+            </div>
+            <div class="planet-stats">
+              <article class="stat-card">
                 <span>Population</span>
                 <strong>
                   {currentPlanet().population}/{currentPlanet().maxPopulation}
                 </strong>
               </article>
-              <article class="metric-card">
+              <article class="stat-card">
                 <span>Workers</span>
                 <strong>{currentPlanet().workers}</strong>
               </article>
-              <article class="metric-card">
-                <span>Industry Stack</span>
+              <article class="stat-card">
+                <span>Industry</span>
                 <strong>{currentPlanet().industryStack}</strong>
               </article>
-              <article class="metric-card">
-                <span>Build Bucket</span>
+              <article class="stat-card">
+                <span>Build Queue</span>
                 <strong>{currentPlanet().buildBucket}</strong>
               </article>
             </div>
