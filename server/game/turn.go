@@ -3,6 +3,16 @@ package game
 import . "ssg/game/model"
 
 func planetTurn(p *Planet) {
+	if p.Owner != 0 {
+		p.Population += PopulationGrowth(p)
+		if p.Population < 0 {
+			p.Population = 0
+		}
+		if maxPop := MaxPop(p); p.Population > maxPop {
+			p.Population = maxPop
+		}
+	}
+
 	industryProduced := p.Workers * IndustryPerMineralClass(p.MineralClass)
 
 	// Is this a new project or is it ongoing?

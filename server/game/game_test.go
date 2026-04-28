@@ -32,6 +32,19 @@ func TestGame_TurnPassing(t *testing.T) {
 	assert.Equal(t, g.CurrentTurn, int64(3504))
 }
 
+func TestGame_TurnPassing_GrowsCapitalPopulationByBaseline(t *testing.T) {
+	g, _ := game.NewGame("test_player", 1, "#FFFFFF")
+
+	// CreateCapitalPlanet sets Population=8000 on a Normal-gravity Terran
+	// planet, which is the best-case +40 per turn.
+	capital := g.Galaxy.Stars[0].Planets[0]
+	assert.Equal(t, int64(8000), capital.Population)
+
+	err := g.Turn(1)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(8040), capital.Population)
+}
+
 func TestGame_VisibleSystems_AreScopedPerPlayerExploration(t *testing.T) {
 	g, _ := game.NewGame("test_player", 2, "#FFFFFF")
 
