@@ -1,6 +1,7 @@
 package game_test
 
 import (
+	"encoding/json"
 	"ssg/game"
 	"ssg/game/model"
 	"testing"
@@ -67,4 +68,103 @@ func TestGame_ExploreStar_RevealsNameAndPlanets(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, visible.Galaxy.Stars[1].Name)
 	assert.NotEmpty(t, visible.Galaxy.Stars[1].Planets)
+}
+
+func TestGame_VisiblePlanet_IncludesOutputBreakdowns(t *testing.T) {
+	g, _ := game.NewGame("test_player", 1, "#FFFFFF")
+	planet := g.Galaxy.Stars[0].Planets[0]
+
+	planet.Workers = 5
+	planet.Farmers = 3
+	planet.Scientists = 2
+	planet.MineralClass = model.PlanetMineralAbundant // base 3
+	planet.Buildings = []model.Building{
+		{
+			ID:   10,
+			Name: "Automated Factory",
+			Effects: []model.Effect{
+				{Name: "industryBonus", Bonus: 1},
+				{Name: "flatIndustryBonus", Bonus: 5},
+			},
+		},
+		{
+			ID:   20,
+			Name: "Hydroponic Farm",
+			Effects: []model.Effect{
+				{Name: "flatAgricultureBonus", Bonus: 2},
+			},
+		},
+		{
+			ID:   30,
+			Name: "Science Lab",
+			Effects: []model.Effect{
+				{Name: "scienceBonus", Bonus: 3},
+				{Name: "flatScienceBonus", Bonus: 4},
+			},
+		},
+	}
+	g.Players[0].Stats.Farming = 1
+
+	visible, err := g.GetVisibleGameForPlayer(1)
+	assert.NoError(t, err)
+
+	vPlanet := visible.Galaxy.Stars[0].Planets[0]
+
+	assert.Equal(t, int64(5), vPlanet.Industry.Workers)
+	assert.Equal(t, int64(3), vPlanet.Industry.BasePerWorker)
+	assert.Equal(t, int64(1), vPlanet.Industry.PerWorkerBonusTotal)
+	assert.Equal(t, int64(5), vPlanet.Industry.FlatBonusTotal)
+	assert.Equal(t, int64(25), vPlanet.Industry.Total) // 5*(3+1)+5
+	assert.NotEmpty(t, vPlanet.Industry.Contributors)
+
+	assert.Equal(t, int64(3), vPlanet.Food.Farmers)
+	assert.Equal(t, int64(1), vPlanet.Food.BasePerFarmer)
+	assert.Equal(t, int64(1), vPlanet.Food.PerFarmerBonusTotal) // race bonus
+	assert.Equal(t, int64(2), vPlanet.Food.FlatBonusTotal)
+	assert.Equal(t, int64(8), vPlanet.Food.Total) // 3*(1+1)+2
+	assert.NotEmpty(t, vPlanet.Food.Contributors)
+
+	assert.Equal(t, int64(2), vPlanet.Science.Scientists)
+	assert.Equal(t, int64(1), vPlanet.Science.BasePerScientist)
+	assert.Equal(t, int64(3), vPlanet.Science.PerScientistBonusTotal)
+	assert.Equal(t, int64(4), vPlanet.Science.FlatBonusTotal)
+	assert.Equal(t, int64(12), vPlanet.Science.Total) // 2*(1+3)+4
+	assert.NotEmpty(t, vPlanet.Science.Contributors)
+}
+
+func TestGame_VisiblePlanet_JsonOmitsLegacyPopAssignments(t *testing.T) {
+	g, _ := game.NewGame("test_player", 1, "#FFFFFF")
+
+	visible, err := g.GetVisibleGameForPlayer(1)
+	assert.NoError(t, err)
+
+	payload, err := json.Marshal(visible)
+	assert.NoError(t, err)
+
+	var root map[string]any
+	err = json.Unmarshal(payload, &root)
+	assert.NoError(t, err)
+
+	galaxy := root["galaxy"].(map[string]any)
+	stars := galaxy["stars"].([]any)
+	star := stars[0].(map[string]any)
+	planets := star["planets"].([]any)
+	planet := planets[0].(map[string]any)
+
+	_, hasWorkers := planet["workers"]
+	_, hasFarmers := planet["farmers"]
+	_, hasScientists := planet["scientists"]
+	assert.False(t, hasWorkers)
+	assert.False(t, hasFarmers)
+	assert.False(t, hasScientists)
+
+	industry, hasIndustry := planet["industry"]
+	food, hasFood := planet["food"]
+	science, hasScience := planet["science"]
+	assert.True(t, hasIndustry)
+	assert.True(t, hasFood)
+	assert.True(t, hasScience)
+	assert.NotNil(t, industry)
+	assert.NotNil(t, food)
+	assert.NotNil(t, science)
 }

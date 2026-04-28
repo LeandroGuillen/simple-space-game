@@ -39,6 +39,12 @@ func (g *Game) GetVisibleGameForPlayer(playerID uint) (*Game, error) {
 			starCopy.Planets = make([]*model.Planet, 0, len(star.Planets))
 			for _, planet := range star.Planets {
 				planetCopy := *planet
+				if planet.Owner != 0 {
+					owner, err := g.getPlayer(planet.Owner)
+					if err == nil {
+						hydratePlanetOutputs(&planetCopy, owner)
+					}
+				}
 				starCopy.Planets = append(starCopy.Planets, &planetCopy)
 			}
 		}
