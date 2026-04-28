@@ -61,6 +61,7 @@ func (s *Server) registerRoutes(r *gin.Engine) {
 	r.POST("/colonies/build", BuildOnPlanet)
 
 	r.POST("/action/:owner/colonize/:planet", ColonizePlanet)
+	r.POST("/action/:owner/explore/:star", ExploreStar)
 
 	resources := r.Group("/resources")
 	{

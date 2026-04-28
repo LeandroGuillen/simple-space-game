@@ -83,6 +83,16 @@ func GetGame(c *gin.Context) {
 		return
 	}
 
+	gameID, playerID, err := readHeaders(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if gameID != req.GameID {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "game id mismatch between URI and headers"})
+		return
+	}
+
 	rawServer, exists := c.Get("server")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -100,5 +110,11 @@ func GetGame(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, g)
+	visible, err := g.GetVisibleGameForPlayer(playerID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, visible)
 }

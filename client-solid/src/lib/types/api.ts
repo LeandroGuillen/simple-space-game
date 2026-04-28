@@ -60,8 +60,8 @@ export type ApiPlanet = {
 
 export type ApiStar = {
   id: number
-  name: string
-  planets: ApiPlanet[]
+  name?: string
+  planets?: ApiPlanet[]
   color: number
   x: number
   y: number

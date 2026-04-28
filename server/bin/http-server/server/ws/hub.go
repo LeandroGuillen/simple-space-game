@@ -57,10 +57,26 @@ func (h *Hub) Run() {
 					delete(h.clients, client)
 				}
 			}
+		case g := <-h.gameUpdates:
+			for client := range h.clients {
+				if client.gameID != g.ID {
+					continue
+				}
+				visible, err := g.GetVisibleGameForPlayer(client.playerID)
+				if err != nil {
+					continue
+				}
+				select {
+				case client.send <- gin.H{"game_update": visible}:
+				default:
+					close(client.send)
+					delete(h.clients, client)
+				}
+			}
 		}
 	}
 }
 
 func (h *Hub) BroadcastGameUpdate(g *game.Game) {
-	h.broadcast <- gin.H{"game_update": g}
+	h.gameUpdates <- g
 }

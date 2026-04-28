@@ -31,3 +31,27 @@ func TestGame_TurnPassing(t *testing.T) {
 	_ = g.Turn(1)
 	assert.Equal(t, g.CurrentTurn, int64(3504))
 }
+
+func TestGame_VisibleSystems_AreScopedPerPlayerExploration(t *testing.T) {
+	g, _ := game.NewGame("test_player", 2)
+
+	visible, err := g.GetVisibleGameForPlayer(1)
+	assert.NoError(t, err)
+	assert.Len(t, visible.Galaxy.Stars, 2)
+	assert.NotEmpty(t, visible.Galaxy.Stars[0].Name)
+	assert.NotEmpty(t, visible.Galaxy.Stars[0].Planets)
+	assert.Empty(t, visible.Galaxy.Stars[1].Name)
+	assert.Nil(t, visible.Galaxy.Stars[1].Planets)
+}
+
+func TestGame_ExploreStar_RevealsNameAndPlanets(t *testing.T) {
+	g, _ := game.NewGame("test_player", 2)
+
+	err := g.ExploreStar(1, 2)
+	assert.NoError(t, err)
+
+	visible, err := g.GetVisibleGameForPlayer(1)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, visible.Galaxy.Stars[1].Name)
+	assert.NotEmpty(t, visible.Galaxy.Stars[1].Planets)
+}

@@ -47,6 +47,7 @@ export type StarSummary = {
   x: number
   y: number
   ownedPlanets: number
+  explored: boolean
 }
 
 export type GalaxyViewModel = {

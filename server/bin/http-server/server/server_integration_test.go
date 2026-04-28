@@ -57,7 +57,7 @@ func TestScenario_BuildOnPlanet_BroadcastsUpdate(t *testing.T) {
 	require.NotEmpty(t, colonies)
 
 	targetPlanet := colonies[0]
-	updates := testharness.ConnectGameUpdates(t, ts.WSURL)
+	updates := testharness.ConnectGameUpdates(t, ts.WSURL, gameID, testPlayerID)
 
 	err = client.BuildOnPlanet(gameID, testPlayerID, targetPlanet.ID, 1)
 	require.NoError(t, err)
@@ -83,7 +83,7 @@ func TestScenario_Turn_AdvancesState_AndBroadcasts(t *testing.T) {
 	gameID, err := client.CreateGame("governor", 2)
 	require.NoError(t, err)
 
-	updates := testharness.ConnectGameUpdates(t, ts.WSURL)
+	updates := testharness.ConnectGameUpdates(t, ts.WSURL, gameID, testPlayerID)
 
 	err = client.Turn(gameID, testPlayerID)
 	require.NoError(t, err)
@@ -117,7 +117,7 @@ func TestScenario_ShipDesign_CreateAndUpdate(t *testing.T) {
 		FuelCell: parts.FuelCells[0].Name,
 	}
 
-	updates := testharness.ConnectGameUpdates(t, ts.WSURL)
+	updates := testharness.ConnectGameUpdates(t, ts.WSURL, gameID, testPlayerID)
 
 	err = client.CreateShipDesign(gameID, testPlayerID, createReq)
 	require.NoError(t, err)
@@ -206,7 +206,7 @@ func TestScenario_ColonizePlanet_DoesNotBroadcastUpdate(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, colonies)
 
-	updates := testharness.ConnectGameUpdates(t, ts.WSURL)
+	updates := testharness.ConnectGameUpdates(t, ts.WSURL, gameID, testPlayerID)
 
 	resp, body := doRequest(t, http.MethodPost, ts.BaseURL+"/action/1/colonize/1", nil, map[string]any{
 		"game_id": gameID,

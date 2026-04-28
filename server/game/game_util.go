@@ -24,3 +24,12 @@ func (g *Game) getPlanet(ID uint) (*model.Planet, error) {
 	}
 	return nil, fmt.Errorf("planet with ID %d not found", ID)
 }
+
+func (g *Game) getStar(ID uint) (*model.Star, error) {
+	for _, star := range g.Galaxy.Stars {
+		if star.ID == ID {
+			return star, nil
+		}
+	}
+	return nil, fmt.Errorf("star with ID %d not found", ID)
+}

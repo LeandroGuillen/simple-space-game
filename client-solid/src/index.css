@@ -958,9 +958,13 @@ a {
 
 .galaxy-star text {
   fill: var(--text-dim);
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.04em;
   font-family: var(--font-mono);
+}
+
+.galaxy-star text.star-label-unoccupied {
+  fill: #595c63;
 }
 
 .star-halo {

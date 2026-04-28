@@ -38,6 +38,7 @@ func NewGame(playerName string, numStars uint) (*Game, error) {
 	}
 
 	_ = g.CreateCapitalPlanet(1, 1)
+	_ = g.ExploreStar(1, 1)
 
 	return g, nil
 }

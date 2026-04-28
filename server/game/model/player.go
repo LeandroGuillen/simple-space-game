@@ -14,5 +14,6 @@ type Player struct {
 	Freighters     uint   `json:"freighters"`
 	FreightersUsed uint   `json:"freighters_used"`
 
-	ShipDesigns []ShipDesign `json:"ship_designs"`
+	ShipDesigns   []ShipDesign `json:"ship_designs"`
+	ExploredStars []uint       `json:"explored_stars"`
 }

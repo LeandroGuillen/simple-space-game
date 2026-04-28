@@ -13,7 +13,7 @@ import { useAppContext } from "../state/app-context";
 export function StarPage() {
   const params = useParams();
   const navigate = useNavigate();
-  const { state, refreshGame, colonize } = useAppContext();
+  const { state, refreshGame, colonize, exploreStar } = useAppContext();
 
   onMount(() => {
     if (state.session.selectedGameId) {
@@ -45,38 +45,58 @@ export function StarPage() {
             </div>
 
             <div class="planet-list">
-              {currentStar().planets.map((planet) => (
-                <article class="planet-card">
-                  <div>
-                    <p class="planet-title">{planet.name}</p>
-                    <p>
-                      {labelForEnvironment(planet.environment)} ·{" "}
-                      {labelForSize(planet.size)} ·{" "}
-                      {labelForMinerals(planet.mineralClass)}
-                    </p>
-                    <p>
-                      Gravity: {labelForGravity(planet.gravity)} · Population{" "}
-                      {planet.population}/{planet.maxPopulation}
-                    </p>
-                  </div>
-                  <div class="planet-actions">
-                    <A
-                      class="secondary-button link-button"
-                      href={`/stars/${currentStar().id}/planets/${planet.id}`}
-                    >
-                      Manage
-                    </A>
-                    <Show when={planet.owner === 0}>
+              <Show
+                when={currentStar().explored}
+                fallback={
+                  <article class="planet-card">
+                    <div>
+                      <p class="planet-title">System is unexplored</p>
+                      <p>Planet details unlock after exploration.</p>
+                    </div>
+                    <div class="planet-actions">
                       <button
-                        class="secondary-button"
-                        onClick={() => void colonize(planet.id)}
+                        class="primary-button"
+                        onClick={() => void exploreStar(currentStar().id)}
                       >
-                        Colonize
+                        Explore System
                       </button>
-                    </Show>
-                  </div>
-                </article>
-              ))}
+                    </div>
+                  </article>
+                }
+              >
+                {currentStar().planets.map((planet) => (
+                  <article class="planet-card">
+                    <div>
+                      <p class="planet-title">{planet.name}</p>
+                      <p>
+                        {labelForEnvironment(planet.environment)} ·{" "}
+                        {labelForSize(planet.size)} ·{" "}
+                        {labelForMinerals(planet.mineralClass)}
+                      </p>
+                      <p>
+                        Gravity: {labelForGravity(planet.gravity)} · Population{" "}
+                        {planet.population}/{planet.maxPopulation}
+                      </p>
+                    </div>
+                    <div class="planet-actions">
+                      <A
+                        class="secondary-button link-button"
+                        href={`/stars/${currentStar().id}/planets/${planet.id}`}
+                      >
+                        Manage
+                      </A>
+                      <Show when={planet.owner === 0}>
+                        <button
+                          class="secondary-button"
+                          onClick={() => void colonize(planet.id)}
+                        >
+                          Colonize
+                        </button>
+                      </Show>
+                    </div>
+                  </article>
+                ))}
+              </Show>
             </div>
           </section>
         </section>

@@ -63,7 +63,11 @@ export function GalaxyMap(props: GalaxyMapProps) {
                 fill={STAR_COLORS[star.color] ?? STAR_COLORS[0]}
               />
               <circle class="star-ring" r="12" />
-              <text x="-16" y="20">
+              <text
+                x="-16"
+                y="20"
+                classList={{ "star-label-unoccupied": star.explored && star.ownedPlanets === 0 }}
+              >
                 {star.name}
               </text>
             </g>

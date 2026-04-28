@@ -72,7 +72,9 @@ export class ApiClient {
   }
 
   async getGame(gameId: string) {
-    const response = await fetch(`${this.baseUrl}/games/${gameId}`);
+    const response = await fetch(`${this.baseUrl}/games/${gameId}`, {
+      headers: this.headers(gameId),
+    });
     return readJson<ApiGame>(response);
   }
 
@@ -114,6 +116,20 @@ export class ApiClient {
   async colonize(gameId: string, planetId: number) {
     const response = await fetch(
       `${this.baseUrl}/action/${this.playerId}/colonize/${planetId}`,
+      {
+        method: "POST",
+        headers: this.headers(),
+        body: JSON.stringify({
+          game_id: gameId,
+        }),
+      },
+    );
+    return readJson<{ game: ApiGame }>(response);
+  }
+
+  async exploreStar(gameId: string, starId: number) {
+    const response = await fetch(
+      `${this.baseUrl}/action/${this.playerId}/explore/${starId}`,
       {
         method: "POST",
         headers: this.headers(),

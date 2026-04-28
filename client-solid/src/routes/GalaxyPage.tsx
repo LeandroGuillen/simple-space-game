@@ -11,7 +11,7 @@ import { useAppContext } from "../state/app-context";
 
 export function GalaxyPage() {
   const navigate = useNavigate();
-  const { state, refreshGame } = useAppContext();
+  const { state, refreshGame, exploreStar } = useAppContext();
   const [selectedStarId, setSelectedStarId] = createSignal<number>();
 
   onMount(() => {
@@ -61,33 +61,52 @@ export function GalaxyPage() {
                 <div class="metric-grid">
                   <article class="metric-card">
                     <span>Planets</span>
-                    <strong>{star().planets.length}</strong>
+                    <strong>{star().explored ? star().planets.length : "?"}</strong>
                   </article>
                   <article class="metric-card">
                     <span>Best World</span>
                     <strong>
-                      {labelForEnvironment(star().planets[0]?.environment ?? 0)}
+                      {star().explored
+                        ? labelForEnvironment(star().planets[0]?.environment ?? 0)
+                        : "Unknown"}
                     </strong>
                   </article>
                 </div>
 
                 <ul class="compact-list">
-                  {star().planets.map((planet) => (
-                    <li>
-                      <strong>{planet.name}</strong>
-                      <span>
-                        {planet.owner === 1 ? "Controlled" : "Unclaimed"}
-                      </span>
-                    </li>
-                  ))}
+                  <Show
+                    when={star().explored}
+                    fallback={<li>No planet telemetry. Explore this system first.</li>}
+                  >
+                    {star().planets.map((planet) => (
+                      <li>
+                        <strong>{planet.name}</strong>
+                        <span>
+                          {planet.owner === 1 ? "Controlled" : "Unclaimed"}
+                        </span>
+                      </li>
+                    ))}
+                  </Show>
                 </ul>
 
-                <button
-                  class="primary-button"
-                  onClick={() => navigate(`/stars/${star().id}`)}
+                <Show
+                  when={star().explored}
+                  fallback={
+                    <button
+                      class="primary-button"
+                      onClick={() => void exploreStar(star().id)}
+                    >
+                      Explore System
+                    </button>
+                  }
                 >
-                  Open Star System
-                </button>
+                  <button
+                    class="primary-button"
+                    onClick={() => navigate(`/stars/${star().id}`)}
+                  >
+                    Open Star System
+                  </button>
+                </Show>
               </>
             )}
           </Show>

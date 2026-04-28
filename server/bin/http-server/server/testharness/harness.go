@@ -114,8 +114,12 @@ func (c *APIClient) GetGameList() ([]serverpkg.GameListResponseItem, error) {
 }
 
 func (c *APIClient) GetGame(gameID string) (*game.Game, error) {
+	headers := http.Header{}
+	headers.Set(serverpkg.GameIDHeader, gameID)
+	headers.Set(serverpkg.PlayerIDHeader, "1")
+
 	var out game.Game
-	if _, err := c.doJSON(http.MethodGet, "/games/"+gameID, nil, nil, &out); err != nil {
+	if _, err := c.doJSON(http.MethodGet, "/games/"+gameID, headers, nil, &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
@@ -250,10 +254,11 @@ type GameUpdatesClient struct {
 	errs     chan error
 }
 
-func ConnectGameUpdates(t *testing.T, wsBaseURL string) *GameUpdatesClient {
+func ConnectGameUpdates(t *testing.T, wsBaseURL, gameID string, playerID uint) *GameUpdatesClient {
 	t.Helper()
 
-	conn, _, err := websocket.DefaultDialer.Dial(wsBaseURL+"/gameupdates", nil)
+	wsURL := fmt.Sprintf("%s/gameupdates?game_id=%s&player_id=%d", wsBaseURL, gameID, playerID)
+	conn, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
 	require.NoError(t, err)
 
 	client := &GameUpdatesClient{

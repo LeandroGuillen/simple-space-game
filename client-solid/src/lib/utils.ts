@@ -48,8 +48,13 @@ export function normalizeServerUrl(value: string) {
   return /^https?:\/\//.test(trimmed) ? trimmed : `http://${trimmed}`;
 }
 
-export function toWebSocketUrl(serverUrl: string) {
-  return `${serverUrl.replace(/^http/, "ws")}/gameupdates`;
+export function toWebSocketUrl(serverUrl: string, gameId: string, playerId: number) {
+  const base = `${serverUrl.replace(/^http/, "ws")}/gameupdates`;
+  const params = new URLSearchParams({
+    game_id: gameId,
+    player_id: String(playerId),
+  });
+  return `${base}?${params.toString()}`;
 }
 
 export function gameIdShort(gameId: string) {
@@ -154,6 +159,9 @@ export function defaultShipDesignForm(
 }
 
 export function starOwnershipSummary(star: StarSummary) {
+  if (!star.explored) {
+    return "Unexplored system";
+  }
   if (star.ownedPlanets === 0) {
     return "Unclaimed system";
   }

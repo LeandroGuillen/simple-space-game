@@ -48,6 +48,7 @@ type AppContextValue = {
   refreshGame: () => Promise<void>;
   changeBuilding: (planetId: number, buildingId: number) => Promise<void>;
   colonize: (planetId: number) => Promise<void>;
+  exploreStar: (starId: number) => Promise<void>;
   endTurn: () => Promise<void>;
   saveShipDesign: (
     form: ShipDesignForm,
@@ -288,6 +289,26 @@ export function AppProvider(props: ParentProps) {
     }
   }
 
+  async function exploreStar(starId: number) {
+    if (!api() || !state.session.selectedGameId) {
+      return;
+    }
+    setBusy(true, "Exploring star system");
+    clearError();
+    try {
+      const response = await api()!.exploreStar(state.session.selectedGameId, starId);
+      setState("game", mapGame(response.game));
+      setBusy(false, "Star system explored");
+    } catch (error) {
+      setBusy(false, "");
+      setState(
+        "error",
+        error instanceof Error ? error.message : "Unable to explore star system.",
+      );
+      throw error;
+    }
+  }
+
   async function saveShipDesign(
     form: ShipDesignForm,
     mode: "create" | "update",
@@ -340,7 +361,9 @@ export function AppProvider(props: ParentProps) {
       return;
     }
 
-    const socket = new WebSocket(toWebSocketUrl(serverUrl));
+    const socket = new WebSocket(
+      toWebSocketUrl(serverUrl, gameId, state.session.playerId),
+    );
     socket.onmessage = (event) => {
       try {
         const payload = parseGameUpdate(event.data);
@@ -392,6 +415,7 @@ export function AppProvider(props: ParentProps) {
     refreshGame,
     changeBuilding,
     colonize,
+    exploreStar,
     endTurn,
     saveShipDesign,
     clearError,

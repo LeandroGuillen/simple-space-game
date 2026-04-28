@@ -76,15 +76,17 @@ function mapPlayer(player: ApiPlayer): PlayerViewModel {
 }
 
 function mapStar(star: ApiStar): StarSummary {
-  const planets = star.planets.map(mapPlanet);
+  const explored = Boolean(star.name);
+  const planets = (star.planets ?? []).map(mapPlanet);
   return {
     id: star.id,
-    name: star.name,
+    name: star.name || "",
     planets,
     color: star.color,
     x: star.x,
     y: star.y,
     ownedPlanets: planets.filter((planet) => planet.owner === 1).length,
+    explored,
   };
 }
 
