@@ -3,7 +3,6 @@ import {
   createEffect,
   createMemo,
   createSignal,
-  onMount,
   Show,
 } from "solid-js";
 
@@ -49,12 +48,6 @@ export function SetupPage() {
   const showServerFormResolved = createMemo(
     () => !hasServer() || showServerForm(),
   );
-
-  onMount(() => {
-    if (state.session.serverUrl) {
-      void refreshGames();
-    }
-  });
 
   createEffect(() => {
     const colors = state.playerColorOptions.colors;

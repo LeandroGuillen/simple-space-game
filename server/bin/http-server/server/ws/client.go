@@ -84,7 +84,7 @@ func Handler(hub *Hub, c *gin.Context) {
 	client := &Client{
 		hub:      hub,
 		socket:   socket,
-		send:     make(chan gin.H),
+		send:     make(chan gin.H, 1),
 		gameID:   gameID,
 		playerID: uint(playerID64),
 	}

@@ -26,15 +26,22 @@ type Hub struct {
 	unregister chan *Client
 
 	gameUpdates chan *game.Game
+
+	server ServerGetter
 }
 
-func NewHub() *Hub {
+type ServerGetter interface {
+	GetGame(id string) *game.Game
+}
+
+func NewHub(server ServerGetter) *Hub {
 	return &Hub{
-		broadcast:   make(chan gin.H),
-		register:    make(chan *Client),
-		unregister:  make(chan *Client),
+		broadcast:   make(chan gin.H, 10),
+		register:    make(chan *Client, 10),
+		unregister:  make(chan *Client, 10),
 		clients:     make(map[*Client]bool),
-		gameUpdates: make(chan *game.Game),
+		gameUpdates: make(chan *game.Game, 10),
+		server:      server,
 	}
 }
 
@@ -43,6 +50,17 @@ func (h *Hub) Run() {
 		select {
 		case client := <-h.register:
 			h.clients[client] = true
+			if g := h.server.GetGame(client.gameID); g != nil {
+				visible, err := g.GetVisibleGameForPlayer(client.playerID)
+				if err == nil {
+					select {
+					case client.send <- gin.H{"game_update": visible}:
+					default:
+						close(client.send)
+						delete(h.clients, client)
+					}
+				}
+			}
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)

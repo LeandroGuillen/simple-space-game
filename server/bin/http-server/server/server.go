@@ -19,6 +19,10 @@ type Server struct {
 	hubOnce  sync.Once
 }
 
+func (s *Server) GetGame(id string) *game.Game {
+	return s.GameList[id]
+}
+
 func AddGameState(s *Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Set("server", s)
@@ -40,8 +44,9 @@ func NewServer() *Server {
 
 	server := &Server{
 		GameList: make(map[string]*game.Game),
-		hub:      ws.NewHub(),
 	}
+
+	server.hub = ws.NewHub(server)
 
 	r.Use(AddGameState(server))
 	server.registerRoutes(r)

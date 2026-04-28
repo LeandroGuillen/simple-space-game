@@ -1,24 +1,18 @@
 import { A } from "@solidjs/router";
-import { createMemo, createSignal, onMount } from "solid-js";
+import { createMemo, createSignal } from "solid-js";
 
 import { useAppContext } from "../state/app-context";
 
 type SortKey = "name" | "starName" | "population" | "industry";
 
 export function ColoniesPage() {
-  const { colonies, refreshGame, state, changeBuilding } = useAppContext();
-  const [filter, setFilter] = createSignal("");
+  const { colonies, state, changeBuilding } = useAppContext();
+const [filter, setFilter] = createSignal("");
   const [sortKey, setSortKey] = createSignal<SortKey>("name");
   const [sortAsc, setSortAsc] = createSignal(true);
   const buildingOptions = createMemo(
     () => state.game?.resources.buildingCollection.buildings ?? [],
   );
-
-  onMount(() => {
-    if (state.session.selectedGameId) {
-      void refreshGame();
-    }
-  });
 
   const rows = createMemo(() => {
     const needle = filter().trim().toLowerCase();

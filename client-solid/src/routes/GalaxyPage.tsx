@@ -1,5 +1,5 @@
 import { A } from "@solidjs/router";
-import { createMemo, createSignal, onMount, Show } from "solid-js";
+import { createMemo, createSignal, Show } from "solid-js";
 
 import { GalaxyMap } from "../components/GalaxyMap";
 import { PlanetVisual } from "../components/PlanetVisual";
@@ -13,14 +13,8 @@ import {
 import { useAppContext } from "../state/app-context";
 
 export function GalaxyPage() {
-  const { state, refreshGame, exploreStar } = useAppContext();
+  const { state, exploreStar } = useAppContext();
   const [selectedStarId, setSelectedStarId] = createSignal<number>();
-
-  onMount(() => {
-    if (state.session.selectedGameId) {
-      void refreshGame();
-    }
-  });
 
   const stars = createMemo(() => state.game?.galaxy.stars ?? []);
   const selectedStar = createMemo(() => {

@@ -17,13 +17,13 @@ const (
 
 func readHeaders(c *gin.Context) (gameID string, playerID uint, err error) {
 	if c.GetHeader(GameIDHeader) == "" {
-		return "", 0, errors.New(fmt.Sprintf("%s header missing", GameIDHeader))
+		return "", 0, fmt.Errorf("%s header missing", GameIDHeader)
 	}
 	gameID = c.GetHeader(GameIDHeader)
 
 	playerIDstring := c.GetHeader(PlayerIDHeader)
 	if playerIDstring == "" {
-		return "", 0, errors.New(fmt.Sprintf("%s header missing", PlayerIDHeader))
+		return "", 0, fmt.Errorf("%s header missing", PlayerIDHeader)
 	}
 	playerID64, err := strconv.ParseUint(playerIDstring, 10, 64)
 	playerID = uint(playerID64)

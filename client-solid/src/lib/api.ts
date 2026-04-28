@@ -5,9 +5,9 @@ import type {
   ApiPlayerColorOptions,
   ApiShipParts,
   ApiStatusResponse,
-} from "./types/api";
-import type { PendingPopChange, ShipDesignForm } from "./types/domain";
-import { normalizeServerUrl } from "./utils";
+} from './types/api';
+import type { ShipDesignForm } from './types/domain';
+import { normalizeServerUrl } from './utils';
 
 type JsonHeaders = Record<string, string>;
 
@@ -39,11 +39,11 @@ export class ApiClient {
 
   private headers(gameId?: string): HeadersInit {
     const headers: JsonHeaders = {
-      "content-type": "application/json",
+      'content-type': 'application/json',
     };
     if (gameId) {
-      headers["Game-Id"] = gameId;
-      headers["Player-Id"] = String(this.playerId);
+      headers['Game-Id'] = gameId;
+      headers['Player-Id'] = String(this.playerId);
     }
     return headers;
   }
@@ -66,7 +66,7 @@ export class ApiClient {
 
   async createGame(playerName: string, numStars: number, playerColor: string) {
     const response = await fetch(`${this.baseUrl}/games`, {
-      method: "POST",
+      method: 'POST',
       headers: this.headers(),
       body: JSON.stringify({
         player_name: playerName,
@@ -99,22 +99,18 @@ export class ApiClient {
     return readJson<unknown[]>(response);
   }
 
-  async endTurn(gameId: string, pendingChanges: Record<number, PendingPopChange[]>) {
+  async endTurn(gameId: string) {
     const response = await fetch(`${this.baseUrl}/turn`, {
-      method: "POST",
-      headers: this.headers(),
-      body: JSON.stringify({
-        game_id: gameId,
-        pending_population_changes: pendingChanges,
-      }),
+      method: 'GET',
+      headers: this.headers(gameId),
     });
     return readJson<{ ok: boolean }>(response);
   }
 
   async buildOnPlanet(gameId: string, planetId: number, buildingId: number) {
     const response = await fetch(`${this.baseUrl}/colonies/build`, {
-      method: "POST",
-      headers: this.headers(),
+      method: 'POST',
+      headers: this.headers(gameId),
       body: JSON.stringify({
         game_id: gameId,
         owner_id: this.playerId,
@@ -126,63 +122,44 @@ export class ApiClient {
   }
 
   async colonize(gameId: string, planetId: number) {
-    const response = await fetch(
-      `${this.baseUrl}/action/${this.playerId}/colonize/${planetId}`,
-      {
-        method: "POST",
-        headers: this.headers(),
-        body: JSON.stringify({
-          game_id: gameId,
-        }),
-      },
-    );
+    const response = await fetch(`${this.baseUrl}/action/${this.playerId}/colonize/${planetId}`, {
+      method: 'POST',
+      headers: this.headers(gameId),
+      body: JSON.stringify({
+        game_id: gameId,
+      }),
+    });
     return readJson<{ game: ApiGame }>(response);
   }
 
-  async reassignPopulation(
-    gameId: string,
-    planetId: number,
-    fromCategory: string,
-    toCategory: string,
-    count: number,
-  ) {
-    const response = await fetch(
-      `${this.baseUrl}/action/${this.playerId}/reassign_population/${planetId}`,
-      {
-        method: "POST",
-        headers: this.headers(),
-        body: JSON.stringify({
-          game_id: gameId,
-          from: fromCategory,
-          to: toCategory,
-          count,
-        }),
-      },
-    );
+  async reassignPopulation(gameId: string, planetId: number, fromCategory: string, toCategory: string, count: number) {
+    const response = await fetch(`${this.baseUrl}/action/${this.playerId}/reassign_population/${planetId}`, {
+      method: 'POST',
+      headers: this.headers(gameId),
+      body: JSON.stringify({
+        game_id: gameId,
+        from: fromCategory,
+        to: toCategory,
+        count,
+      }),
+    });
     return readJson<{ game: ApiGame }>(response);
   }
 
   async exploreStar(gameId: string, starId: number) {
-    const response = await fetch(
-      `${this.baseUrl}/action/${this.playerId}/explore/${starId}`,
-      {
-        method: "POST",
-        headers: this.headers(),
-        body: JSON.stringify({
-          game_id: gameId,
-        }),
-      },
-    );
+    const response = await fetch(`${this.baseUrl}/action/${this.playerId}/explore/${starId}`, {
+      method: 'POST',
+      headers: this.headers(gameId),
+      body: JSON.stringify({
+        game_id: gameId,
+      }),
+    });
     return readJson<{ game: ApiGame }>(response);
   }
 
-  async saveShipDesign(
-    gameId: string,
-    form: ShipDesignForm,
-    mode: "create" | "update",
-  ) {
+  async saveShipDesign(gameId: string, form: ShipDesignForm, mode: 'create' | 'update') {
     const response = await fetch(`${this.baseUrl}/resources/shipdesigns`, {
-      method: mode === "create" ? "POST" : "PUT",
+      method: mode === 'create' ? 'POST' : 'PUT',
       headers: this.headers(gameId),
       body: JSON.stringify({
         name: form.name,

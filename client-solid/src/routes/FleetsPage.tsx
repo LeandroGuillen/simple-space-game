@@ -11,15 +11,12 @@ import { defaultShipDesignForm } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
 
 export function FleetsPage() {
-  const { state, currentPlayer, refreshGame, saveShipDesign } = useAppContext();
+  const { state, currentPlayer, saveShipDesign } = useAppContext();
   const [form, setForm] = createSignal<ShipDesignForm>(
     defaultShipDesignForm(state.game),
   );
 
   onMount(() => {
-    if (state.session.selectedGameId) {
-      void refreshGame();
-    }
   });
 
   createEffect(() => {

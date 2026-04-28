@@ -1,5 +1,5 @@
 import { useParams } from '@solidjs/router';
-import { createMemo, createSignal, onMount, Show } from 'solid-js';
+import { createMemo, createSignal, Show } from 'solid-js';
 
 import { PlanetVisual } from '../components/PlanetVisual';
 import { findPlanet, labelForEnvironment, labelForGravity, labelForMinerals, labelForSize } from '../lib/utils';
@@ -39,15 +39,9 @@ function getOutputIcons(count: number, type: 'food' | 'industry' | 'science'): s
 
 export function PlanetPage() {
   const params = useParams();
-  const { state, refreshGame, addPopulationChange } = useAppContext();
+  const { state, addPopulationChange } = useAppContext();
   const [_raggedCount, setDraggedCount] = createSignal(0);
   const [_dragSource, setDragSource] = createSignal<PopCategory | null>(null);
-
-  onMount(() => {
-    if (state.session.selectedGameId) {
-      void refreshGame();
-    }
-  });
 
   const planet = createMemo(() => findPlanet(state.game, Number(params.planetId)));
 
