@@ -11,9 +11,33 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: currentColor;
-  box-shadow: 0 0 8px currentColor;
   flex-shrink: 0;
+}
+
+.status-dot--idle {
+  background: var(--text-mute);
+  box-shadow: none;
+  opacity: 0.6;
+}
+
+.status-dot--checking {
+  background: var(--gold);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.status-dot--connected {
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.status-dot--error {
+  background: #dc2626;
+  box-shadow: 0 0 8px #dc2626;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
 }
 
 .status--idle {
@@ -30,11 +54,11 @@
 }
 
 .status--connected {
-  color: var(--accent);
+  color: #10b981;
 }
 
 .status--error {
-  color: var(--danger);
+  color: #dc2626;
 }
 
 .status-banner {

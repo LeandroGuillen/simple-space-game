@@ -6,6 +6,13 @@ export type ApiGameListItem = {
   game_id: string
   num_stars: number
   current_turn: number
+  players: ApiGameListPlayer[]
+}
+
+export type ApiGameListPlayer = {
+  name: string
+  color: string
+  num_stars: number
 }
 
 export type ApiRace = {

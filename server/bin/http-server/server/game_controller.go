@@ -20,9 +20,16 @@ type GameListResponse struct {
 }
 
 type GameListResponseItem struct {
-	GameID      string `json:"game_id"`
+	GameID       string `json:"game_id"`
 	NumStars    int    `json:"num_stars"`
 	CurrentTurn int64  `json:"current_turn"`
+	Players     []GameListPlayerInfo `json:"players"`
+}
+
+type GameListPlayerInfo struct {
+	Name       string `json:"name"`
+	Color     string `json:"color"`
+	NumStars  int    `json:"num_stars"`
 }
 
 type GetGalaxyRequest struct {
@@ -75,10 +82,28 @@ func GetGameList(c *gin.Context) {
 
 	var gameList = make([]GameListResponseItem, 0)
 	for gameID, g := range s.GameList {
+		playerInfos := make([]GameListPlayerInfo, len(g.Players))
+		for i, p := range g.Players {
+			ownedStars := 0
+			for _, star := range g.Galaxy.Stars {
+				for _, planet := range star.Planets {
+					if planet.Owner == p.ID {
+						ownedStars++
+						break // count each star once if it has any owned planet
+					}
+				}
+			}
+			playerInfos[i] = GameListPlayerInfo{
+				Name:     p.Name,
+				Color:    p.Color,
+				NumStars: ownedStars,
+			}
+		}
 		gameList = append(gameList, GameListResponseItem{
-			GameID:      gameID,
+			GameID:       gameID,
 			NumStars:    len(g.Galaxy.Stars),
 			CurrentTurn: g.CurrentTurn,
+			Players:     playerInfos,
 		})
 	}
 
