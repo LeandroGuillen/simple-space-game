@@ -1,5 +1,10 @@
-import { A, useLocation, type RouteSectionProps } from "@solidjs/router";
-import { For, Show, createMemo } from "solid-js";
+import {
+  A,
+  useLocation,
+  useNavigate,
+  type RouteSectionProps,
+} from "@solidjs/router";
+import { For, Show, createEffect, createMemo } from "solid-js";
 
 import { APP_VERSION } from "../lib/app-meta";
 import { gameIdShort } from "../lib/utils";
@@ -12,7 +17,7 @@ const gameNavItems = [
 ] as const;
 
 const REPO_PLACEHOLDER_HREF =
-  "https://github.com/placeholder/simple-space-game";
+  "https://github.com/leandroguillen/simple-space-game";
 
 function isGameCommandPath(pathname: string) {
   return (
@@ -21,6 +26,22 @@ function isGameCommandPath(pathname: string) {
     pathname.startsWith("/colonies") ||
     pathname.startsWith("/fleets")
   );
+}
+
+/** Which campaign sidebar href should show as active (star/planet views belong to Galaxy). */
+function campaignNavActiveHref(
+  pathname: string,
+): (typeof gameNavItems)[number]["href"] | null {
+  if (pathname.startsWith("/galaxy") || pathname.startsWith("/stars")) {
+    return "/galaxy";
+  }
+  if (pathname.startsWith("/colonies")) {
+    return "/colonies";
+  }
+  if (pathname.startsWith("/fleets")) {
+    return "/fleets";
+  }
+  return null;
 }
 
 type ConnectionStatus = "idle" | "checking" | "connected" | "error";
@@ -55,12 +76,23 @@ function connectionStatusMeta(status: ConnectionStatus): {
 
 export function AppShell(props: RouteSectionProps) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { state, currentPlayer, endTurn } = useAppContext();
   const connectionMeta = createMemo(() =>
     connectionStatusMeta(state.session.connectionStatus),
   );
 
   const showGameChrome = createMemo(() => isGameCommandPath(location.pathname));
+
+  const activeCampaignNavHref = createMemo(() =>
+    campaignNavActiveHref(location.pathname),
+  );
+
+  createEffect(() => {
+    if (isGameCommandPath(location.pathname) && !state.session.selectedGameId) {
+      navigate("/setup", { replace: true });
+    }
+  });
 
   return (
     <div class="frame">
@@ -77,7 +109,7 @@ export function AppShell(props: RouteSectionProps) {
           target="_blank"
           rel="noreferrer"
         >
-          Repository
+          github
         </a>
       </header>
 
@@ -91,19 +123,22 @@ export function AppShell(props: RouteSectionProps) {
               <p class="eyebrow">Campaign</p>
               <nav class="nav-list" aria-label="Game commands">
                 <For each={gameNavItems}>
-                  {(item) => {
-                    const active = location.pathname.startsWith(item.href);
-                    return (
-                      <A
-                        href={item.href}
-                        class="nav-link"
-                        classList={{ active }}
-                        aria-current={active ? "page" : undefined}
-                      >
-                        {item.label}
-                      </A>
-                    );
-                  }}
+                  {(item) => (
+                    <A
+                      href={item.href}
+                      class="nav-link"
+                      classList={{
+                        active: activeCampaignNavHref() === item.href,
+                      }}
+                      aria-current={
+                        activeCampaignNavHref() === item.href
+                          ? "page"
+                          : undefined
+                      }
+                    >
+                      {item.label}
+                    </A>
+                  )}
                 </For>
               </nav>
             </div>
@@ -134,13 +169,19 @@ export function AppShell(props: RouteSectionProps) {
               <header class="game-topbar panel" aria-label="Current game">
                 <div class="turn-panel">
                   <div class="turn-meta">
-                    <div class="turn-stat">
-                      <span>Stardate</span>
-                      <strong>{state.game?.currentTurn}</strong>
-                    </div>
                     <div class="turn-stat turn-stat--accent">
                       <span>Treasury</span>
                       <strong>{currentPlayer()?.treasury ?? 0} BC</strong>
+                    </div>
+
+                    <div class="turn-stat">
+                      <span>Command</span>
+                      <strong>0</strong>
+                    </div>
+
+                    <div class="turn-stat">
+                      <span>Stardate</span>
+                      <strong>{state.game?.currentTurn}</strong>
                     </div>
                   </div>
                   <div class="turn-actions">

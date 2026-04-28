@@ -39,10 +39,7 @@ export function GalaxyPage() {
       <section class="page-grid galaxy-layout">
         <section class="panel map-panel">
           <div class="section-header">
-            <div>
-              <p class="eyebrow">Galaxy Screen</p>
-              <h2>Strategic cartography</h2>
-            </div>
+            <p class="eyebrow">Galaxy Map</p>
           </div>
           <GalaxyMap
             stars={stars()}
