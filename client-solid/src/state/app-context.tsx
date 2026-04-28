@@ -41,6 +41,7 @@ type AppContextValue = {
   currentPlayer: () => ReturnType<typeof getPrimaryPlayer>;
   colonies: () => ReturnType<typeof getColonyRows>;
   connect: (serverUrl: string) => Promise<void>;
+  disconnect: () => void;
   refreshGames: () => Promise<void>;
   createGame: (playerName: string, numStars: number) => Promise<string>;
   selectGame: (gameId: string) => Promise<void>;
@@ -95,6 +96,23 @@ export function AppProvider(props: ParentProps) {
       isBusy,
       info,
     });
+  }
+
+  function disconnect() {
+    setState({
+      session: {
+        serverUrl: "",
+        playerId: state.session.playerId,
+        selectedGameId: "",
+        connectionStatus: "idle",
+      },
+      games: [],
+      game: null,
+      info: "Disconnected",
+    });
+    clearError();
+    window.localStorage.removeItem(STORAGE_KEYS.serverUrl);
+    window.localStorage.removeItem(STORAGE_KEYS.selectedGameId);
   }
 
   async function connect(serverUrl: string) {
@@ -367,6 +385,7 @@ export function AppProvider(props: ParentProps) {
     currentPlayer,
     colonies,
     connect,
+    disconnect,
     refreshGames,
     createGame,
     selectGame,

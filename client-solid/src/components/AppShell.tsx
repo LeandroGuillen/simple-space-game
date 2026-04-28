@@ -27,28 +27,28 @@ type ConnectionStatus = "idle" | "checking" | "connected" | "error";
 
 function connectionStatusMeta(status: ConnectionStatus): {
   label: string;
-  pillClass: string;
+  statusClass: string;
 } {
   switch (status) {
     case "idle":
       return {
         label: "Not connected",
-        pillClass: "status-pill status-pill--idle",
+        statusClass: "status status--idle",
       };
     case "checking":
       return {
         label: "Connecting…",
-        pillClass: "status-pill status-pill--checking",
+        statusClass: "status status--checking",
       };
     case "connected":
       return {
         label: "Connected",
-        pillClass: "status-pill status-pill--connected",
+        statusClass: "status status--connected",
       };
     case "error":
       return {
         label: "Connection error",
-        pillClass: "status-pill status-pill--error",
+        statusClass: "status status--error",
       };
   }
 }
@@ -60,9 +60,7 @@ export function AppShell(props: RouteSectionProps) {
     connectionStatusMeta(state.session.connectionStatus),
   );
 
-  const showGameChrome = createMemo(() =>
-    isGameCommandPath(location.pathname),
-  );
+  const showGameChrome = createMemo(() => isGameCommandPath(location.pathname));
 
   return (
     <div class="frame">
@@ -110,68 +108,52 @@ export function AppShell(props: RouteSectionProps) {
               </nav>
             </div>
 
-            <section class="sidebar-section">
-              <p class="eyebrow">Session</p>
-              <dl class="session-rows">
-                <dt>Server</dt>
-                <dd>
-                  <span
-                    class="session-value"
-                    title={state.session.serverUrl || undefined}
-                  >
-                    {state.session.serverUrl || "—"}
-                  </span>
-                </dd>
-                <dt>Status</dt>
-                <dd>
-                  <span class={connectionMeta().pillClass}>
-                    {connectionMeta().label}
-                  </span>
-                </dd>
-                <Show when={state.session.selectedGameId}>
-                  <dt>Game</dt>
-                  <dd>{gameIdShort(state.session.selectedGameId)}</dd>
-                </Show>
-              </dl>
-              <p class="sidebar-setup-link-wrap">
-                <A href="/setup" class="link-button sidebar-setup-link">
-                  Server & game…
-                </A>
-              </p>
+            <section class="sidebar-session" aria-label="Session">
+              <span class={connectionMeta().statusClass}>
+                <span class="status-dot" aria-hidden="true" />
+                {connectionMeta().label}
+              </span>
+              <Show when={state.session.serverUrl}>
+                <span class="session-server" title={state.session.serverUrl}>
+                  {state.session.serverUrl}
+                </span>
+              </Show>
+              <Show when={state.session.selectedGameId}>
+                <span class="session-game">
+                  Game · {gameIdShort(state.session.selectedGameId)}
+                </span>
+              </Show>
+              <A href="/setup" class="session-manage">
+                Manage
+              </A>
             </section>
-
-            <Show when={state.info}>
-              <section class="sidebar-section sidebar-note">
-                <p>{state.info}</p>
-              </section>
-            </Show>
           </aside>
 
           <div class="game-main">
             <Show when={state.game}>
               <header class="game-topbar panel" aria-label="Current game">
                 <div class="turn-panel">
-                  <div class="turn-chip">
-                    <span>Stardate</span>
-                    <strong>{state.game?.currentTurn}</strong>
+                  <div class="turn-meta">
+                    <div class="turn-stat">
+                      <span>Stardate</span>
+                      <strong>{state.game?.currentTurn}</strong>
+                    </div>
+                    <div class="turn-stat turn-stat--accent">
+                      <span>Treasury</span>
+                      <strong>{currentPlayer()?.treasury ?? 0} BC</strong>
+                    </div>
                   </div>
-                  <div class="turn-chip">
-                    <span>Treasury</span>
-                    <strong>{currentPlayer()?.treasury ?? 0} BC</strong>
+                  <div class="turn-actions">
+                    <button
+                      type="button"
+                      class="primary-button game-turn-button"
+                      onClick={() => void endTurn()}
+                      disabled={state.isBusy}
+                      aria-busy={state.isBusy}
+                    >
+                      End Turn
+                    </button>
                   </div>
-                  <div class="turn-chip">
-                    <span>Game</span>
-                    <strong>{gameIdShort(state.game?.id ?? "")}</strong>
-                  </div>
-                  <button
-                    type="button"
-                    class="primary-button game-turn-button"
-                    onClick={() => void endTurn()}
-                    disabled={state.isBusy}
-                    aria-busy={state.isBusy}
-                  >
-                    Turn
-                  </button>
                 </div>
               </header>
             </Show>

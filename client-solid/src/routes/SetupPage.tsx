@@ -1,18 +1,47 @@
 import { useNavigate } from "@solidjs/router";
-import { createSignal, onMount, Show } from "solid-js";
+import { createMemo, createSignal, onMount, Show } from "solid-js";
 
 import { gameIdShort } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
 
+type ConnectionStatus = "idle" | "checking" | "connected" | "error";
+
+function connectionStatusMeta(status: ConnectionStatus): {
+  label: string;
+  statusClass: string;
+} {
+  switch (status) {
+    case "idle":
+      return { label: "Not connected", statusClass: "status status--idle" };
+    case "checking":
+      return { label: "Connecting…", statusClass: "status status--checking" };
+    case "connected":
+      return { label: "Connected", statusClass: "status status--connected" };
+    case "error":
+      return {
+        label: "Connection error",
+        statusClass: "status status--error",
+      };
+  }
+}
+
 export function SetupPage() {
   const navigate = useNavigate();
-  const { state, connect, createGame, refreshGames, selectGame } =
+  const { state, connect, disconnect, createGame, refreshGames, selectGame } =
     useAppContext();
-  const [serverUrl, setServerUrl] = createSignal(
-    state.session.serverUrl || "http://127.0.0.1:8080",
-  );
+  const [serverUrl, setServerUrl] = createSignal("http://127.0.0.1:8080");
+  const [showServerForm, setShowServerForm] = createSignal(false);
   const [playerName, setPlayerName] = createSignal("Admiral");
   const [numStars, setNumStars] = createSignal(24);
+  const [showNewGameForm, setShowNewGameForm] = createSignal(false);
+
+  const hasServer = createMemo(() => Boolean(state.session.serverUrl));
+  const isConnected = createMemo(
+    () => state.session.connectionStatus === "connected",
+  );
+  const showServerFormResolved = createMemo(
+    () => !hasServer() || showServerForm(),
+  );
 
   onMount(() => {
     if (state.session.serverUrl) {
@@ -24,9 +53,16 @@ export function SetupPage() {
     event.preventDefault();
     try {
       await connect(serverUrl());
+      setShowServerForm(false);
     } catch {
       // error surfaced in state
     }
+  };
+
+  const handleDisconnect = () => {
+    disconnect();
+    setShowServerForm(false);
+    setShowNewGameForm(false);
   };
 
   const handleCreate = async (event: SubmitEvent) => {
@@ -48,135 +84,213 @@ export function SetupPage() {
   return (
     <section class="setup-page">
       <section class="panel setup-panel">
-        <p class="eyebrow">Server</p>
-        <h2>Connect</h2>
-        <p class="lede">
-          Point this client at the Go backend, then pick or create a game below.
-        </p>
+        <header class="setup-header">
+          <p class="eyebrow">Server</p>
+          <h2>Connect</h2>
+          <p class="lede">
+            Point this client at the Go backend, then pick or create a game
+            below.
+          </p>
+        </header>
 
-        <form class="stack-form" onSubmit={handleConnect}>
-          <label class="field">
-            <span>Server URL</span>
-            <input
-              value={serverUrl()}
-              onInput={(event) => setServerUrl(event.currentTarget.value)}
-              placeholder="http://127.0.0.1:8080"
-            />
-          </label>
-          <button class="primary-button" type="submit" disabled={state.isBusy}>
-            {state.session.connectionStatus === "connected"
-              ? "Reconnect"
-              : "Connect"}
-          </button>
-        </form>
-
-        <div class="metric-grid setup-metrics">
-          <article class="metric-card">
-            <span>State</span>
-            <strong>{state.session.connectionStatus}</strong>
-          </article>
-          <article class="metric-card">
-            <span>Known games</span>
-            <strong>{state.games.length}</strong>
-          </article>
-          <article class="metric-card">
-            <span>Selected game</span>
-            <strong>
-              {state.session.selectedGameId
-                ? gameIdShort(state.session.selectedGameId)
-                : "None"}
-            </strong>
-          </article>
-        </div>
-
-        <Show when={state.games.length > 0}>
-          <div class="list-block">
-            <p class="eyebrow">Detected games</p>
-            <ul class="compact-list">
-              {state.games.map((game) => (
-                <li>
-                  <strong>{gameIdShort(game.game_id)}</strong>
-                  <span>{game.num_stars} stars</span>
-                  <span>Turn {game.current_turn}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+        <Show when={hasServer()}>
+          <ul class="server-list">
+            <li class="server-row">
+              <div class="server-info">
+                <span class="server-url" title={state.session.serverUrl}>
+                  {state.session.serverUrl}
+                </span>
+                <span
+                  class={
+                    connectionStatusMeta(state.session.connectionStatus)
+                      .statusClass
+                  }
+                >
+                  <span class="status-dot" aria-hidden="true" />
+                  {
+                    connectionStatusMeta(state.session.connectionStatus)
+                      .label
+                  }
+                </span>
+              </div>
+              <button
+                class="secondary-button"
+                type="button"
+                onClick={handleDisconnect}
+                disabled={state.isBusy}
+              >
+                Disconnect
+              </button>
+            </li>
+          </ul>
         </Show>
-      </section>
-
-      <section class="panel setup-panel">
-        <p class="eyebrow">Game</p>
-        <h2>Join or create</h2>
-        <p class="lede">
-          Enter an existing campaign or provision a new sector once the server is
-          connected.
-        </p>
 
         <Show
-          when={state.session.connectionStatus === "connected"}
+          when={showServerFormResolved()}
+          fallback={
+            <div class="form-actions reveal-actions">
+              <button
+                class="secondary-button"
+                type="button"
+                onClick={() => setShowServerForm(true)}
+              >
+                Add server
+              </button>
+            </div>
+          }
+        >
+          <form class="stack-form reveal-form" onSubmit={handleConnect}>
+            <label class="field">
+              <span>Server URL</span>
+              <input
+                value={serverUrl()}
+                onInput={(event) => setServerUrl(event.currentTarget.value)}
+                placeholder="http://127.0.0.1:8080"
+                autofocus
+              />
+            </label>
+            <div class="form-actions">
+              <Show when={hasServer()}>
+                <button
+                  class="link-button"
+                  type="button"
+                  onClick={() => setShowServerForm(false)}
+                  disabled={state.isBusy}
+                >
+                  Cancel
+                </button>
+              </Show>
+              <button
+                class="primary-button"
+                type="submit"
+                disabled={state.isBusy}
+              >
+                {isConnected() ? "Reconnect" : "Connect"}
+              </button>
+            </div>
+          </form>
+        </Show>
+
+        <div class="setup-divider" role="separator" />
+
+        <header class="setup-header">
+          <p class="eyebrow">Game</p>
+          <h2>Join or create</h2>
+          <p class="lede">
+            Enter an existing campaign or provision a new sector once the
+            server is connected.
+          </p>
+        </header>
+
+        <Show
+          when={isConnected()}
           fallback={
             <p class="empty-copy">
               Connect to a server using the form above before selecting a game.
             </p>
           }
         >
-          <button
-            class="secondary-button"
-            type="button"
-            onClick={() => void refreshGames()}
-            disabled={state.isBusy}
-          >
-            Refresh game list
-          </button>
-
-          <div class="game-list">
-            {state.games.map((game) => (
-              <article class="game-card">
-                <div>
-                  <strong>{gameIdShort(game.game_id)}</strong>
-                  <p>{game.num_stars} stars</p>
-                  <p>Current turn {game.current_turn}</p>
-                </div>
-                <button
-                  class="primary-button"
-                  type="button"
-                  onClick={() => void handleSelect(game.game_id)}
-                >
-                  Enter
-                </button>
-              </article>
-            ))}
-            <Show when={state.games.length === 0}>
-              <p class="empty-copy">No games on this server yet.</p>
+          <div class="game-list-header">
+            <Show
+              when={state.games.length > 0}
+              fallback={<p class="empty-copy">No games on this server yet.</p>}
+            >
+              <p class="games-count">
+                {state.games.length} game
+                {state.games.length === 1 ? "" : "s"} available
+              </p>
             </Show>
+            <button
+              class="link-button games-refresh"
+              type="button"
+              onClick={() => void refreshGames()}
+              disabled={state.isBusy}
+              title="Refresh game list"
+            >
+              Refresh
+            </button>
           </div>
 
-          <p class="eyebrow setup-subform-label">New game</p>
-          <form class="stack-form" onSubmit={handleCreate}>
-            <label class="field">
-              <span>Commander name</span>
-              <input
-                value={playerName()}
-                onInput={(event) => setPlayerName(event.currentTarget.value)}
-              />
-            </label>
-            <label class="field">
-              <span>Stars</span>
-              <input
-                type="number"
-                min="12"
-                max="72"
-                value={numStars()}
-                onInput={(event) =>
-                  setNumStars(Number(event.currentTarget.value))
-                }
-              />
-            </label>
-            <button class="primary-button" type="submit" disabled={state.isBusy}>
-              Create sector
-            </button>
-          </form>
+          <Show when={state.games.length > 0}>
+            <ul class="game-list">
+              {state.games.map((game) => (
+                <li>
+                  <button
+                    type="button"
+                    class="game-card"
+                    onClick={() => void handleSelect(game.game_id)}
+                    disabled={state.isBusy}
+                  >
+                    <div>
+                      <strong>{gameIdShort(game.game_id)}</strong>
+                      <p>
+                        {game.num_stars} stars · Turn {game.current_turn}
+                      </p>
+                    </div>
+                    <span class="game-card-cue" aria-hidden="true">
+                      Enter →
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </Show>
+
+          <Show
+            when={showNewGameForm()}
+            fallback={
+              <div class="form-actions reveal-actions">
+                <button
+                  class="secondary-button"
+                  type="button"
+                  onClick={() => setShowNewGameForm(true)}
+                >
+                  New Game
+                </button>
+              </div>
+            }
+          >
+            <form class="stack-form reveal-form" onSubmit={handleCreate}>
+              <p class="eyebrow setup-subform-label">New game</p>
+              <label class="field">
+                <span>Commander name</span>
+                <input
+                  value={playerName()}
+                  onInput={(event) => setPlayerName(event.currentTarget.value)}
+                  autofocus
+                />
+              </label>
+              <label class="field">
+                <span>Stars</span>
+                <input
+                  type="number"
+                  min="12"
+                  max="72"
+                  value={numStars()}
+                  onInput={(event) =>
+                    setNumStars(Number(event.currentTarget.value))
+                  }
+                />
+              </label>
+              <div class="form-actions">
+                <button
+                  class="link-button"
+                  type="button"
+                  onClick={() => setShowNewGameForm(false)}
+                  disabled={state.isBusy}
+                >
+                  Cancel
+                </button>
+                <button
+                  class="primary-button"
+                  type="submit"
+                  disabled={state.isBusy}
+                >
+                  Create
+                </button>
+              </div>
+            </form>
+          </Show>
         </Show>
       </section>
     </section>

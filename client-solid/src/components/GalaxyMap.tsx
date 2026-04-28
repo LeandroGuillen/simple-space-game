@@ -14,11 +14,11 @@ export function GalaxyMap(props: GalaxyMapProps) {
     <svg class="galaxy-map" viewBox="0 0 700 400" role="img" aria-label="Galaxy map">
       <defs>
         <linearGradient id="panelGlow" x1="0%" x2="100%" y1="0%" y2="100%">
-          <stop offset="0%" stop-color="#101b2c" />
-          <stop offset="100%" stop-color="#070b12" />
+          <stop offset="0%" stop-color="#0a1623" />
+          <stop offset="100%" stop-color="#06101a" />
         </linearGradient>
       </defs>
-      <rect x="0" y="0" width="700" height="400" rx="16" fill="url(#panelGlow)" />
+      <rect x="0" y="0" width="700" height="400" rx="6" fill="url(#panelGlow)" />
       <g>
         <For each={props.stars}>
           {(star) => (
