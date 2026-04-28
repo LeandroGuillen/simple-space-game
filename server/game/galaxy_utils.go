@@ -7,10 +7,56 @@ import (
 	"ssg/game/model"
 )
 
+const (
+	galaxyWidth  int64 = 700
+	galaxyHeight int64 = 400
+	// 1 parsec in map pixels, calibrated from visual spacing examples.
+	parsecInPixels = 60
+	// Reject a candidate if Euclidean distance to an existing star is below 1 parsec.
+	minStarSeparationParsecSq   = 1.0 * parsecInPixels * parsecInPixels
+	maxRandomStarPlacementTries = 500_000
+)
+
+func starDistanceSq(x1, y1, x2, y2 int64) float64 {
+	dx := float64(x1 - x2)
+	dy := float64(y1 - y2)
+	return dx*dx + dy*dy
+}
+
+func tooCloseToExisting(x, y int64, stars []*model.Star) bool {
+	for _, s := range stars {
+		if starDistanceSq(x, y, s.X, s.Y) < minStarSeparationParsecSq {
+			return true
+		}
+	}
+	return false
+}
+
+// assignGalaxyStarPosition sets X,Y so every star is at least 1 parsec from all previously placed stars.
+func assignGalaxyStarPosition(star *model.Star, existing []*model.Star) {
+	w := int(galaxyWidth)
+	h := int(galaxyHeight)
+	for try := 0; try < maxRandomStarPlacementTries; try++ {
+		x := int64(randomIntn(w))
+		y := int64(randomIntn(h))
+		if !tooCloseToExisting(x, y, existing) {
+			star.X, star.Y = x, y
+			return
+		}
+	}
+	for y := int64(0); y < galaxyHeight; y++ {
+		for x := int64(0); x < galaxyWidth; x++ {
+			if !tooCloseToExisting(x, y, existing) {
+				star.X, star.Y = x, y
+				return
+			}
+		}
+	}
+	panic(fmt.Sprintf("galaxy: could not place star (already have %d stars)", len(existing)))
+}
+
 func NewGalaxy(numStars uint) model.Galaxy {
 	var stars []*model.Star
-	var galaxyWidth int64 = 700
-	var galaxyHeight int64 = 400
 	var starNames = make(map[string]int)
 	var planetIDCounter uint = 1
 
@@ -28,10 +74,7 @@ func NewGalaxy(numStars uint) model.Galaxy {
 		star, numPlanets := NewRandomStar(i+1, planetIDCounter, randomName)
 		planetIDCounter += numPlanets
 
-		// assign random position on map
-		star.X = randomInt63() % galaxyWidth
-		star.Y = randomInt63() % galaxyHeight
-
+		assignGalaxyStarPosition(star, stars)
 		stars = append(stars, star)
 	}
 
