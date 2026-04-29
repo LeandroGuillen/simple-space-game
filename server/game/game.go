@@ -50,6 +50,19 @@ func NewGame(playerName string, numStars uint, playerColor string) (*Game, error
 	return g, nil
 }
 
+/*
+Turn sequence
+
+Each time "Turn" button was pushed next actions take place:
+
+ 1. Population is increased/decreased.
+ 2. FP/PP/RP/Money are generated.
+ 3. New buildings are constructed.
+ 4. New colonists arrive by freighters (and battles take place).
+ 5. Research projects are finished (and, possibly, spies finish their jobs).
+
+https://strategywiki.org/wiki/Master_of_Orion_II:_Battle_at_Antares/Calculations
+*/
 func (g *Game) Turn(playerID uint, commands Commands) error {
 	player, err := g.getPlayer(playerID)
 	if err != nil {

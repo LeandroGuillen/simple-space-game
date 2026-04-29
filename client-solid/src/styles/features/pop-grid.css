@@ -66,11 +66,61 @@
 }
 
 .pop-output {
+  position: relative;
   display: flex;
   align-items: center;
   min-height: 32px;
   font-size: 1.15rem;
   letter-spacing: 0.05em;
+  cursor: help;
+}
+
+.pop-output-tooltip {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 8px);
+  min-width: 260px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--rule);
+  background: var(--bg-elev);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24);
+  opacity: 0;
+  transform: translateY(-2px);
+  pointer-events: none;
+  transition: opacity 0.12s ease, transform 0.12s ease;
+  z-index: 20;
+}
+
+.pop-output:hover .pop-output-tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.pop-output-tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 0.75rem;
+  letter-spacing: 0;
+  line-height: 1.4;
+  color: var(--text-mute);
+}
+
+.pop-output-tooltip-row + .pop-output-tooltip-row {
+  margin-top: 4px;
+}
+
+.pop-output-tooltip-row strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.pop-output-tooltip-row--total {
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--rule);
 }
 
 .pop-units-row {

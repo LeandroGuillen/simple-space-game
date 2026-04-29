@@ -7,7 +7,7 @@ import (
 func hydratePlanetOutputs(p *model.Planet) {
 	p.Food = model.PlanetFoodOutput{
 		Farmers:             p.Food.Farmers,
-		ProducedPerFarmer:   3,
+		ProducedPerFarmer:   2,
 		ProducedPerBuilding: 0,
 	}
 
