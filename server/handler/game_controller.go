@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"ssg/game"
-	"ssg/game/model"
+	"ssg/model"
 
 	"github.com/gin-gonic/gin"
 )

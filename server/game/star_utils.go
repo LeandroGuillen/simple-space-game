@@ -2,7 +2,7 @@ package game
 
 import (
 	"fmt"
-	"ssg/game/model"
+	"ssg/model"
 )
 
 func NewRandomStar(starId, planetIDCounter uint, starName string) (*model.Star, uint) {

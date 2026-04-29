@@ -3,8 +3,7 @@ package game
 import (
 	"fmt"
 	"math"
-	"ssg/data"
-	"ssg/game/model"
+	"ssg/model"
 )
 
 const (
@@ -62,7 +61,7 @@ func NewGalaxy(numStars uint) model.Galaxy {
 
 	for i := uint(0); i < numStars; i++ {
 		// assign random name, adding numbers if necessary
-		randomName := data.GetRandomStarName()
+		randomName := GetRandomStarName()
 		repetitions, nameExists := starNames[randomName]
 		if nameExists {
 			starNames[randomName] = repetitions + 1

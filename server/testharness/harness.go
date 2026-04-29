@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	serverpkg "ssg/bin/http-server/server"
+	serverpkg "ssg/handler"
 	"ssg/game"
-	"ssg/game/model"
+	"ssg/model"
 
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/require"

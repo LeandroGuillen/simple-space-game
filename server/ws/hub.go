@@ -10,38 +10,27 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Hub maintains the set of active clients and broadcasts messages to the
-// clients.
 type Hub struct {
-	// Registered clients.
-	clients map[*Client]bool
-
-	// Inbound messages from the clients.
-	broadcast chan gin.H
-
-	// Register requests from the clients.
-	register chan *Client
-
-	// Unregister requests from clients.
-	unregister chan *Client
-
+	clients      map[*Client]bool
+	broadcast    chan gin.H
+	register    chan *Client
+	unregister   chan *Client
 	gameUpdates chan *game.Game
-
-	server ServerGetter
+	server      ServerGetter
 }
 
 type ServerGetter interface {
 	GetGame(id string) *game.Game
 }
 
-func NewHub(server ServerGetter) *Hub {
+func NewHub(s ServerGetter) *Hub {
 	return &Hub{
 		broadcast:   make(chan gin.H, 10),
 		register:    make(chan *Client, 10),
 		unregister:  make(chan *Client, 10),
 		clients:     make(map[*Client]bool),
 		gameUpdates: make(chan *game.Game, 10),
-		server:      server,
+		server:      s,
 	}
 }
 

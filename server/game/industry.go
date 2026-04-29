@@ -1,6 +1,6 @@
 package game
 
-import . "ssg/game/model"
+import . "ssg/model"
 
 func Industry(p *Planet) int64 {
 	// TODO add morale, tech, racial traits, etc. to this industry effort

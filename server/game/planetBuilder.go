@@ -1,7 +1,7 @@
 package game
 
 import (
-	"ssg/game/model"
+	"ssg/model"
 )
 
 func NewPlanet(

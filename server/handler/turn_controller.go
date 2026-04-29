@@ -3,7 +3,7 @@ package server
 import (
 	"net/http"
 
-	"ssg/game/model"
+	"ssg/model"
 
 	"github.com/gin-gonic/gin"
 )

@@ -2,7 +2,7 @@ package game
 
 import (
 	"math"
-	. "ssg/game/model"
+	. "ssg/model"
 )
 
 // GetChanceToHit calculates the chance to hit.

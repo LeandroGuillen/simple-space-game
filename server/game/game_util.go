@@ -2,7 +2,7 @@ package game
 
 import (
 	"fmt"
-	"ssg/game/model"
+	"ssg/model"
 )
 
 func (g *Game) getPlayer(ID uint) (*model.Player, error) {

@@ -2,7 +2,7 @@ package game_test
 
 import (
 	"ssg/game"
-	"ssg/game/model"
+	"ssg/model"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

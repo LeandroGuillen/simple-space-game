@@ -2,7 +2,7 @@ package game
 
 import (
 	"math"
-	. "ssg/game/model"
+	. "ssg/model"
 )
 
 func MaxPop(p *Planet) int64 {

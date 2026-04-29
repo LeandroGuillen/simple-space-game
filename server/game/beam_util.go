@@ -2,7 +2,7 @@ package game
 
 import (
 	"math"
-	. "ssg/game/model"
+	. "ssg/model"
 )
 
 func GetDamage(b Beam, distance int64) int64 {

@@ -4,7 +4,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
-	. "ssg/game/model"
+	. "ssg/model"
 )
 
 type Resources struct {
@@ -45,19 +45,19 @@ type ResourceManager struct {
 	Resources
 }
 
-//go:embed resources/equipment.json
+//go:embed equipment.json
 var equipmentFile []byte
 
-//go:embed resources/buildings.json
+//go:embed buildings.json
 var buildingsFile []byte
 
-//go:embed resources/names.json
+//go:embed names.json
 var namesFile []byte
 
-//go:embed resources/ship_designs.json
+//go:embed ship_designs.json
 var shipDesignsFile []byte
 
-//go:embed resources/beams.json
+//go:embed beams.json
 var beamsFile []byte
 
 func (r *ResourceManager) loadDataFromFiles() error {

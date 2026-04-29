@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"ssg/game/model"
+	"ssg/model"
 )
 
 func hydratePlanetOutputs(p *model.Planet, owner *model.Player) {

@@ -1,6 +1,6 @@
 package game
 
-import . "ssg/game/model"
+import . "ssg/model"
 
 func planetTurn(p *Planet) {
 	if p.Owner != 0 {

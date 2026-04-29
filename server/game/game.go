@@ -2,7 +2,7 @@ package game
 
 import (
 	"fmt"
-	. "ssg/game/model"
+	. "ssg/model"
 
 	"github.com/google/uuid"
 )

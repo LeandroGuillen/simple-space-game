@@ -3,7 +3,7 @@ package server
 import (
 	"log"
 	"net/http"
-	"ssg/bin/http-server/server/ws"
+	"ssg/ws"
 	"ssg/game"
 	"sync"
 	"time"
