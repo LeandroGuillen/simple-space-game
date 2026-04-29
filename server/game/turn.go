@@ -5,10 +5,8 @@ import (
 	. "ssg/model"
 )
 
-func planetTurn(p *Planet, commands Commands) error {
-	if err := applyMovePopulationCommands(p, commands.MovePopulation); err != nil {
-		return err
-	}
+func planetTurn(p *Planet, commands Commands) {
+	applyMovePopulationCommands(p, commands.MovePopulation)
 
 	// population growth calculations
 	oldPopulation := p.Population
@@ -33,6 +31,8 @@ func planetTurn(p *Planet, commands Commands) error {
 		}
 	}
 
+	hydratePlanetOutputs(p)
+
 	industryProduced := p.Industry.Workers * IndustryPerMineralClass(p.MineralClass)
 
 	// Is this a new project or is it ongoing?
@@ -53,11 +53,9 @@ func planetTurn(p *Planet, commands Commands) error {
 		// if nothing to work on, save production
 		p.IndustryStack += industryProduced
 	}
-
-	return nil
 }
 
-func applyMovePopulationCommands(planet *Planet, commands []MovePopulationCommand) error {
+func applyMovePopulationCommands(planet *Planet, commands []MovePopulationCommand) {
 	for _, cmd := range commands {
 		switch cmd.From {
 		case PopCategoryFarmers:
@@ -77,5 +75,4 @@ func applyMovePopulationCommands(planet *Planet, commands []MovePopulationComman
 			planet.Science.Scientists += cmd.Count
 		}
 	}
-	return nil
 }

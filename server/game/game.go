@@ -62,9 +62,7 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 		return err
 	}
 	for _, colony := range colonyList {
-		if err := planetTurn(colony, commands); err != nil {
-			return err
-		}
+		planetTurn(colony, commands)
 	}
 
 	// empire turn processing

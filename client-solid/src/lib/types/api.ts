@@ -52,30 +52,20 @@ export type ApiPlanet = {
   gravity: number;
   environment: number;
   population: number;
-
   food: {
     farmers: number;
-    base_per_farmer: number;
-    per_farmer_bonus_total: number;
-    flat_bonus_total: number;
-    percent_bonus_total: number;
-    contributors: ApiContributor[];
+    produced_per_farmer: number;
+    produced_per_building: number;
   };
   industry: {
     workers: number;
-    base_per_worker: number;
-    per_worker_bonus_total: number;
-    flat_bonus_total: number;
-    percent_bonus_total: number;
-    contributors: ApiContributor[];
+    produced_per_worker: number;
+    produced_per_building: number;
   };
   science: {
     scientists: number;
-    base_per_scientist: number;
-    per_scientist_bonus_total: number;
-    flat_bonus_total: number;
-    percent_bonus_total: number;
-    contributors: ApiContributor[];
+    produced_per_scientist: number;
+    produced_per_building: number;
   };
   marines: number;
   armor: number;
@@ -85,19 +75,6 @@ export type ApiPlanet = {
   industry_stack: number;
   build_bucket: number;
   is_building: boolean;
-};
-
-export type ApiContributor = {
-  id: string;
-  source_type: string;
-  source_id: string;
-  label: string;
-  effects: ApiEffect2[];
-};
-
-export type ApiEffect2 = {
-  kind: string;
-  value: any;
 };
 
 export type ApiStar = {

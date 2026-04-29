@@ -18,23 +18,6 @@ const POP_COLORS: Record<PopCategory, string> = {
   scientists: '#9eb8a8',
 };
 
-function getOutputIcons(count: number, type: 'food' | 'industry' | 'science'): string {
-  const tens = Math.floor(count / 10);
-  const ones = count % 10;
-  const icons: string[] = [];
-  if (type === 'food') {
-    for (let i = 0; i < tens; i++) icons.push('🌾');
-    for (let i = 0; i < ones; i++) icons.push('🌱');
-  } else if (type === 'industry') {
-    for (let i = 0; i < tens; i++) icons.push('⚡');
-    for (let i = 0; i < ones; i++) icons.push('🔧');
-  } else if (type === 'science') {
-    for (let i = 0; i < tens; i++) icons.push('🧫');
-    for (let i = 0; i < ones; i++) icons.push('🔬');
-  }
-  return icons.join(' ');
-}
-
 export function PlanetPage() {
   const params = useParams();
   const { state, addMovePopulationCommand } = useAppContext();
@@ -48,6 +31,48 @@ export function PlanetPage() {
     if (!p) return [];
     return state.pendingCommands.movePopulation.filter((cmd) => cmd.planetId === p.id);
   });
+
+  const getOutputIcons = (count: number, tensIcon: string, onesIcon: string): string => {
+    const tens = Math.floor(count / 10);
+    const ones = count % 10;
+    const icons: string[] = [];
+    for (let i = 0; i < tens; i++) icons.push(tensIcon);
+    for (let i = 0; i < ones; i++) icons.push(onesIcon);
+    return icons.join(' ');
+  };
+
+  const getFoodOutput = (): string => {
+    const p = planet();
+    if (!p) return '';
+    let count = p.food.farmers * p.food.produced_per_farmer;
+    for (const move of pendingMoves()) {
+      if (move.to === 'farmers') count += move.count * p.food.produced_per_farmer;
+      if (move.from === 'farmers') count -= move.count * p.food.produced_per_farmer;
+    }
+    return getOutputIcons(Math.max(0, count), '🌾', '🌱');
+  };
+
+  const getIndustryOutput = (): string => {
+    const p = planet();
+    if (!p) return '';
+    let count = p.industry.workers * p.industry.produced_per_worker;
+    for (const move of pendingMoves()) {
+      if (move.to === 'workers') count += move.count * p.industry.produced_per_worker;
+      if (move.from === 'workers') count -= move.count * p.industry.produced_per_worker;
+    }
+    return getOutputIcons(Math.max(0, count), '⚡', '🔧');
+  };
+
+  const getScienceOutput = (): string => {
+    const p = planet();
+    if (!p) return '';
+    let count = p.science.scientists * p.science.produced_per_scientist;
+    for (const move of pendingMoves()) {
+      if (move.to === 'scientists') count += move.count * p.science.produced_per_scientist;
+      if (move.from === 'scientists') count -= move.count * p.science.produced_per_scientist;
+    }
+    return getOutputIcons(Math.max(0, count), '🔬', '🧫');
+  };
 
   const getPopCount = (cat: PopCategory) => {
     const p = planet();
@@ -178,9 +203,9 @@ export function PlanetPage() {
                     {cat === 'scientists' && 'Science'}
                   </span>
                   <div class='pop-output'>
-                    {cat === 'farmers' && getOutputIcons(getPopCount('farmers'), 'food')}
-                    {cat === 'workers' && getOutputIcons(getPopCount('workers'), 'industry')}
-                    {cat === 'scientists' && getOutputIcons(getPopCount('scientists'), 'science')}
+                    {cat === 'farmers' && getFoodOutput()}
+                    {cat === 'workers' && getIndustryOutput()}
+                    {cat === 'scientists' && getScienceOutput()}
                   </div>
                   <div
                     class='pop-units-row'

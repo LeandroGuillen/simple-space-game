@@ -34,47 +34,22 @@ type Planet struct {
 	IsBuilding  bool  `json:"is_building"`
 }
 
-type PlanetOutputContributor struct {
-	ID         string               `json:"id"`
-	SourceType string               `json:"source_type"`
-	SourceID   string               `json:"source_id"`
-	Label      string               `json:"label"`
-	Effects    []PlanetOutputEffect `json:"effects,omitempty"`
-}
-
-type PlanetOutputEffect struct {
-	Kind  string  `json:"kind"`
-	Value float64 `json:"value"`
+type PlanetFoodOutput struct {
+	Farmers             int64 `json:"farmers"`
+	ProducedPerFarmer   int64 `json:"produced_per_farmer"`
+	ProducedPerBuilding int64 `json:"produced_per_building"`
 }
 
 type PlanetIndustryOutput struct {
-	Workers             int64                     `json:"workers"`
-	BasePerWorker       int64                     `json:"base_per_worker"`
-	PerWorkerBonusTotal int64                     `json:"per_worker_bonus_total"`
-	FlatBonusTotal      int64                     `json:"flat_bonus_total"`
-	PercentBonusTotal   float64                   `json:"percent_bonus_total"`
-	Contributors        []PlanetOutputContributor `json:"contributors"`
-	Total               int64                     `json:"total"`
-}
-
-type PlanetFoodOutput struct {
-	Farmers             int64                     `json:"farmers"`
-	BasePerFarmer       int64                     `json:"base_per_farmer"`
-	PerFarmerBonusTotal int64                     `json:"per_farmer_bonus_total"`
-	FlatBonusTotal      int64                     `json:"flat_bonus_total"`
-	PercentBonusTotal   float64                   `json:"percent_bonus_total"`
-	Contributors        []PlanetOutputContributor `json:"contributors"`
-	Total               int64                     `json:"total"`
+	Workers             int64 `json:"workers"`
+	ProducedPerWorker   int64 `json:"produced_per_worker"`
+	ProducedPerBuilding int64 `json:"produced_per_building"`
 }
 
 type PlanetScienceOutput struct {
-	Scientists             int64                     `json:"scientists"`
-	BasePerScientist       int64                     `json:"base_per_scientist"`
-	PerScientistBonusTotal int64                     `json:"per_scientist_bonus_total"`
-	FlatBonusTotal         int64                     `json:"flat_bonus_total"`
-	PercentBonusTotal      float64                   `json:"percent_bonus_total"`
-	Contributors           []PlanetOutputContributor `json:"contributors"`
-	Total                  int64                     `json:"total"`
+	Scientists           int64 `json:"scientists"`
+	ProducedPerScientist int64 `json:"produced_per_scientist"`
+	ProducedPerBuilding  int64 `json:"produced_per_building"`
 }
 
 //go:generate stringer -type=PlanetMineral

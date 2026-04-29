@@ -29,27 +29,18 @@ export type PlanetViewModel = {
   armor: number;
   food: {
     farmers: number;
-    base_per_farmer: number;
-    per_farmer_bonus_total: number;
-    flat_bonus_total: number;
-    percent_bonus_total: number;
-    contributors: Contributor[];
+    produced_per_farmer: number;
+    produced_per_building: number;
   };
   industry: {
     workers: number;
-    base_per_worker: number;
-    per_worker_bonus_total: number;
-    flat_bonus_total: number;
-    percent_bonus_total: number;
-    contributors: Contributor[];
+    produced_per_worker: number;
+    produced_per_building: number;
   };
   science: {
     scientists: number;
-    base_per_scientist: number;
-    per_scientist_bonus_total: number;
-    flat_bonus_total: number;
-    percent_bonus_total: number;
-    contributors: Contributor[];
+    produced_per_scientist: number;
+    produced_per_building: number;
   };
   currentProject: BuildingViewModel | null;
   buildQueue: BuildingViewModel[];
@@ -58,19 +49,6 @@ export type PlanetViewModel = {
   buildBucket: number;
   isBuilding: boolean;
   maxPopulation: number;
-};
-
-export type Contributor = {
-  id: string;
-  source_type: string;
-  source_id: string;
-  label: string;
-  effects: Effect[];
-};
-
-export type Effect = {
-  kind: string;
-  value: any;
 };
 
 export type StarSummary = {
