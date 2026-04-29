@@ -1,4 +1,4 @@
-import { createMemo, createSignal } from 'solid-js';
+import { createMemo, createSignal, For } from 'solid-js';
 import type { MovePopulationCommand } from '../lib/types/commands';
 import type { PlanetViewModel } from '../lib/types/domain';
 import { useAppContext } from '../state/app-context';
@@ -98,9 +98,48 @@ export function PopulationPanel(props: PopulationPanelProps) {
     };
   };
 
-  const getFoodOutput = () => getOutputIcons(getOutputBreakdown('farmers').total, '🌾', '🌱');
   const getIndustryOutput = () => getOutputIcons(getOutputBreakdown('workers').total, '⚡', '🔧');
   const getScienceOutput = () => getOutputIcons(getOutputBreakdown('scientists').total, '🔬', '🧫');
+  const getTotalPopUnits = () => getPopCount('farmers') + getPopCount('workers') + getPopCount('scientists');
+
+  const renderFoodOutput = () => {
+    const produced = getOutputBreakdown('farmers').total;
+    const required = getTotalPopUnits();
+    const consumed = Math.min(produced, required);
+    const surplus = Math.max(0, produced - required);
+    const deficit = Math.max(0, required - produced);
+    const renderFoodIcons = (count: number, outlined = false) => {
+      const tens = Math.floor(count / 10);
+      const ones = count % 10;
+      return (
+        <>
+          <For each={Array.from({ length: tens })}>
+            {() => (
+              <span class={`food-output-icon ${outlined ? 'food-output-icon--deficit' : ''}`} data-icon='🌾'>
+                🌾
+              </span>
+            )}
+          </For>
+          <For each={Array.from({ length: ones })}>
+            {() => (
+              <span class={`food-output-icon ${outlined ? 'food-output-icon--deficit' : ''}`} data-icon='🌱'>
+                🌱
+              </span>
+            )}
+          </For>
+        </>
+      );
+    };
+
+    return (
+      <div class='food-output-icons'>
+        {renderFoodIcons(consumed)}
+        {surplus > 0 && <span class='food-output-gap' aria-hidden='true' />}
+        {renderFoodIcons(surplus)}
+        {renderFoodIcons(deficit, true)}
+      </div>
+    );
+  };
 
   const handleDragStart = (e: DragEvent, category: PopCategory, index: number) => {
     const count = getPopCount(category);
@@ -172,8 +211,8 @@ export function PopulationPanel(props: PopulationPanelProps) {
 
         <div class={`pop-row ${isDragging() ? 'pop-row--drag-active' : ''}`}>
           <span class='pop-stat-label'>Food</span>
-          <div class='pop-output'>
-            {getFoodOutput()}
+          <div class='pop-output pop-output--food'>
+            {renderFoodOutput()}
             <div class='pop-output-tooltip'>
               <div class='pop-output-tooltip-row pop-output-tooltip-row--total'>
                 <span>Total food produced:</span>

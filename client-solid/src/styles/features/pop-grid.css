@@ -75,6 +75,34 @@
   cursor: help;
 }
 
+.pop-output--food {
+  letter-spacing: 0;
+}
+
+.food-output-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.food-output-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1em;
+}
+
+.food-output-gap {
+  width: 12px;
+  height: 1px;
+}
+
+.food-output-icon--deficit {
+  position: relative;
+  filter: contrast(0.3) hue-rotate(-75deg);
+}
+
+
 .pop-output-tooltip {
   position: absolute;
   left: 0;

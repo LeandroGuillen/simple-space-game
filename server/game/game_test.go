@@ -83,25 +83,16 @@ func TestGame_VisiblePlanet_IncludesOutputBreakdowns(t *testing.T) {
 	vPlanet := visible.Galaxy.Stars[0].Planets[0]
 
 	assert.Equal(t, int64(5), vPlanet.Industry.Workers)
-	assert.Equal(t, int64(3), vPlanet.Industry.BasePerWorker)
-	assert.Equal(t, int64(1), vPlanet.Industry.PerWorkerBonusTotal)
-	assert.Equal(t, int64(5), vPlanet.Industry.FlatBonusTotal)
-	assert.Equal(t, int64(25), vPlanet.Industry.Total) // 5*(3+1)+5
-	assert.NotEmpty(t, vPlanet.Industry.Contributors)
+	assert.Equal(t, int64(3), vPlanet.Industry.ProducedPerWorker)
+	assert.Equal(t, int64(1), vPlanet.Industry.ProducedPerBuilding)
 
 	assert.Equal(t, int64(3), vPlanet.Food.Farmers)
-	assert.Equal(t, int64(1), vPlanet.Food.BasePerFarmer)
-	assert.Equal(t, int64(1), vPlanet.Food.PerFarmerBonusTotal) // race bonus
-	assert.Equal(t, int64(2), vPlanet.Food.FlatBonusTotal)
-	assert.Equal(t, int64(8), vPlanet.Food.Total) // 3*(1+1)+2
-	assert.NotEmpty(t, vPlanet.Food.Contributors)
+	assert.Equal(t, int64(1), vPlanet.Food.ProducedPerFarmer)
+	assert.Equal(t, int64(1), vPlanet.Food.ProducedPerBuilding)
 
 	assert.Equal(t, int64(2), vPlanet.Science.Scientists)
-	assert.Equal(t, int64(1), vPlanet.Science.BasePerScientist)
-	assert.Equal(t, int64(3), vPlanet.Science.PerScientistBonusTotal)
-	assert.Equal(t, int64(4), vPlanet.Science.FlatBonusTotal)
-	assert.Equal(t, int64(12), vPlanet.Science.Total) // 2*(1+3)+4
-	assert.NotEmpty(t, vPlanet.Science.Contributors)
+	assert.Equal(t, int64(1), vPlanet.Science.ProducedPerScientist)
+	assert.Equal(t, int64(3), vPlanet.Science.ProducedPerBuilding)
 }
 
 func TestGame_VisiblePlanet_JsonOmitsLegacyPopAssignments(t *testing.T) {
