@@ -8,7 +8,7 @@ import (
 func NewRandomStar(starId, planetIDCounter uint, starName string) (*model.Star, uint) {
 	var numPlanets = uint(randomIntn(5) + 1)
 	var planets []*model.Planet
-	for i := uint(0); i < numPlanets; i++ {
+	for i := range numPlanets {
 		planet := NewRandomPlanet()
 		planet.ID = planetIDCounter
 		planetIDCounter++

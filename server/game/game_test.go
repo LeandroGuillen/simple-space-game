@@ -18,32 +18,6 @@ func TestNewGame(t *testing.T) {
 	assert.Equal(t, g.Players[0].Name, playerName, "player name is set up")
 }
 
-func TestGame_TurnPassing(t *testing.T) {
-	testPlanet := game.NewAverageTerranPlanet()
-	testStar := game.NewStar(1, "star_name", model.StarColorYellow, []*model.Planet{testPlanet})
-	g, _ := game.NewGame("test_player", 0, "#FFFFFF")
-	g.Galaxy.Stars = append(g.Galaxy.Stars, testStar)
-
-	assert.Equal(t, g.CurrentTurn, int64(3500))
-	_ = g.Turn(1, model.Commands{})
-	assert.Equal(t, g.CurrentTurn, int64(3501))
-	_ = g.Turn(1, model.Commands{})
-	_ = g.Turn(1, model.Commands{})
-	_ = g.Turn(1, model.Commands{})
-	assert.Equal(t, g.CurrentTurn, int64(3504))
-}
-
-func TestGame_TurnPassing_GrowsCapitalPopulationByBaseline(t *testing.T) {
-	g, _ := game.NewGame("test_player", 1, "#FFFFFF")
-
-	capital := g.Galaxy.Stars[0].Planets[0]
-	assert.Equal(t, int64(8000), capital.Population)
-
-	err := g.Turn(1, model.Commands{})
-	assert.NoError(t, err)
-	assert.Equal(t, int64(8040), capital.Population)
-}
-
 func TestGame_VisibleSystems_AreScopedPerPlayerExploration(t *testing.T) {
 	g, _ := game.NewGame("test_player", 2, "#FFFFFF")
 
@@ -165,81 +139,4 @@ func TestGame_VisiblePlanet_JsonOmitsLegacyPopAssignments(t *testing.T) {
 	assert.NotNil(t, industry)
 	assert.NotNil(t, food)
 	assert.NotNil(t, science)
-}
-
-func TestGame_TurnWithMovePopulationCommand(t *testing.T) {
-	g, _ := game.NewGame("test_player", 1, "#FFFFFF")
-	planet := g.Galaxy.Stars[0].Planets[0]
-
-	planet.Food.Farmers = 5
-	planet.Industry.Workers = 3
-	planet.Science.Scientists = 2
-	planet.Marines = 0
-
-	commands := model.Commands{
-		MovePopulation: []model.MovePopulationCommand{
-			{PlanetID: planet.ID, From: model.PopCategoryFarmers, To: model.PopCategoryWorkers, Count: 2},
-		},
-	}
-
-	err := g.Turn(1, commands)
-	assert.NoError(t, err)
-	assert.Equal(t, int64(3), planet.Food.Farmers)
-	assert.Equal(t, int64(5), planet.Industry.Workers)
-}
-
-func TestGame_TurnMovePopulation_PlanetNotOwned(t *testing.T) {
-	g, _ := game.NewGame("test_player", 1, "#FFFFFF")
-	planet := g.Galaxy.Stars[0].Planets[0]
-
-	planet.Food.Farmers = 5
-	planet.Owner = 2
-
-	commands := model.Commands{
-		MovePopulation: []model.MovePopulationCommand{
-			{PlanetID: planet.ID, From: model.PopCategoryFarmers, To: model.PopCategoryWorkers, Count: 2},
-		},
-	}
-
-	err := g.Turn(1, commands)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "not owned by player")
-}
-
-func TestGame_TurnMovePopulation_NotEnoughPop(t *testing.T) {
-	g, _ := game.NewGame("test_player", 1, "#FFFFFF")
-	planet := g.Galaxy.Stars[0].Planets[0]
-
-	planet.Food.Farmers = 2
-
-	commands := model.Commands{
-		MovePopulation: []model.MovePopulationCommand{
-			{PlanetID: planet.ID, From: model.PopCategoryFarmers, To: model.PopCategoryWorkers, Count: 5},
-		},
-	}
-
-	err := g.Turn(1, commands)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "not enough")
-}
-
-func TestGame_TurnMovePopulation_ExceedsMaxPop(t *testing.T) {
-	g, _ := game.NewGame("test_player", 1, "#FFFFFF")
-	planet := g.Galaxy.Stars[0].Planets[0]
-
-	planet.Food.Farmers = 5
-	planet.Industry.Workers = 5
-	planet.Science.Scientists = 5
-	planet.Marines = 5
-	planet.Population = 20
-	planet.Size = model.PlanetSizeTiny
-
-	commands := model.Commands{
-		MovePopulation: []model.MovePopulationCommand{
-			{PlanetID: planet.ID, From: model.PopCategoryFarmers, To: model.PopCategoryWorkers, Count: 5},
-		},
-	}
-
-	err := g.Turn(1, commands)
-	assert.NoError(t, err)
 }

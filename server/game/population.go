@@ -32,7 +32,7 @@ func gravityPopFactor(g PlanetGravity) float64 {
 	case PlanetGravityHigh:
 		return 0.5
 	default:
-		return 0.0
+		return 1.0
 	}
 }
 
@@ -63,7 +63,7 @@ func habitabilityPopFactor(e PlanetEnvironment) float64 {
 	case PlanetEnvironmentGasGiant, PlanetEnvironmentAsteroidBelt:
 		return 0.0
 	default:
-		return 0.0
+		return 1.0
 	}
 }
 

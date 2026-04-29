@@ -56,20 +56,19 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 		return err
 	}
 
-	if err := g.ApplyMovePopulationCommands(playerID, commands.MovePopulation); err != nil {
-		return err
-	}
-
-	player.Treasury += 2
-
+	// colonies turn processing
 	colonyList, err := g.GetColonyList(playerID)
 	if err != nil {
 		return err
 	}
 	for _, colony := range colonyList {
-		planetTurn(colony)
+		if err := planetTurn(colony, commands); err != nil {
+			return err
+		}
 	}
 
+	// empire turn processing
+	player.Treasury += 2
 	g.CurrentTurn += 1
 	return nil
 }
@@ -270,59 +269,59 @@ func (g *Game) UpdateShipDesign(
 	return fmt.Errorf("cannot update, did not find a design with name %q", name)
 }
 
-func (g *Game) ApplyMovePopulationCommands(playerID uint, commands []MovePopulationCommand) error {
-	for _, cmd := range commands {
-		planet, err := g.getPlanet(cmd.PlanetID)
-		if err != nil {
-			return err
-		}
-		if planet.Owner != playerID {
-			return fmt.Errorf("planet %d not owned by player %d", cmd.PlanetID, playerID)
-		}
+// func (g *Game) ApplyMovePopulationCommands(playerID uint, commands []MovePopulationCommand) error {
+// 	for _, cmd := range commands {
+// 		planet, err := g.getPlanet(cmd.PlanetID)
+// 		if err != nil {
+// 			return err
+// 		}
+// 		if planet.Owner != playerID {
+// 			return fmt.Errorf("planet %d not owned by player %d", cmd.PlanetID, playerID)
+// 		}
 
-		fromCount := g.getPopulationCount(planet, cmd.From)
-		if fromCount < cmd.Count {
-			return fmt.Errorf("not enough %s on planet %d", cmd.From, cmd.PlanetID)
-		}
+// 		fromCount := g.getPopulationCount(planet, cmd.From)
+// 		if fromCount < cmd.Count {
+// 			return fmt.Errorf("not enough %s on planet %d", cmd.From, cmd.PlanetID)
+// 		}
 
-		totalPop := planet.Food.Farmers + planet.Industry.Workers + planet.Science.Scientists + planet.Marines
-		newTotalPop := totalPop - cmd.Count + cmd.Count
-		maxPop := MaxPop(planet)
-		if newTotalPop > maxPop {
-			return fmt.Errorf("population %d exceeds max %d on planet %d", newTotalPop, maxPop, cmd.PlanetID)
-		}
+// 		totalPop := planet.Food.Farmers + planet.Industry.Workers + planet.Science.Scientists + planet.Marines
+// 		newTotalPop := totalPop - cmd.Count + cmd.Count
+// 		maxPop := MaxPop(planet)
+// 		if newTotalPop > maxPop {
+// 			return fmt.Errorf("population %d exceeds max %d on planet %d", newTotalPop, maxPop, cmd.PlanetID)
+// 		}
 
-		planet.Population = newTotalPop
+// 		planet.Population = newTotalPop
 
-		switch cmd.From {
-		case PopCategoryFarmers:
-			planet.Food.Farmers -= cmd.Count
-		case PopCategoryWorkers:
-			planet.Industry.Workers -= cmd.Count
-		case PopCategoryScientists:
-			planet.Science.Scientists -= cmd.Count
-		}
+// 		switch cmd.From {
+// 		case PopCategoryFarmers:
+// 			planet.Food.Farmers -= cmd.Count
+// 		case PopCategoryWorkers:
+// 			planet.Industry.Workers -= cmd.Count
+// 		case PopCategoryScientists:
+// 			planet.Science.Scientists -= cmd.Count
+// 		}
 
-		switch cmd.To {
-		case PopCategoryFarmers:
-			planet.Food.Farmers += cmd.Count
-		case PopCategoryWorkers:
-			planet.Industry.Workers += cmd.Count
-		case PopCategoryScientists:
-			planet.Science.Scientists += cmd.Count
-		}
-	}
-	return nil
-}
+// 		switch cmd.To {
+// 		case PopCategoryFarmers:
+// 			planet.Food.Farmers += cmd.Count
+// 		case PopCategoryWorkers:
+// 			planet.Industry.Workers += cmd.Count
+// 		case PopCategoryScientists:
+// 			planet.Science.Scientists += cmd.Count
+// 		}
+// 	}
+// 	return nil
+// }
 
-func (g *Game) getPopulationCount(p *Planet, cat PopCategory) int64 {
-	switch cat {
-	case PopCategoryFarmers:
-		return p.Food.Farmers
-	case PopCategoryWorkers:
-		return p.Industry.Workers
-	case PopCategoryScientists:
-		return p.Science.Scientists
-	}
-	return 0
-}
+// func (g *Game) getPopulationCount(p *Planet, cat PopCategory) int64 {
+// 	switch cat {
+// 	case PopCategoryFarmers:
+// 		return p.Food.Farmers
+// 	case PopCategoryWorkers:
+// 		return p.Industry.Workers
+// 	case PopCategoryScientists:
+// 		return p.Science.Scientists
+// 	}
+// 	return 0
+// }
