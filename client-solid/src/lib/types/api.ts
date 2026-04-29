@@ -52,6 +52,7 @@ export type ApiPlanet = {
   gravity: number;
   environment: number;
   population: number;
+  last_turn_pop_growth: number;
   food: {
     farmers: number;
     produced_per_farmer: number;

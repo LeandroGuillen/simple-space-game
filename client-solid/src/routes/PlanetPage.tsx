@@ -1,7 +1,7 @@
 import { useParams } from '@solidjs/router';
 import { Show } from 'solid-js';
-import { PopulationPanel } from '../components/PopulationPanel';
 import { PlanetVisual } from '../components/PlanetVisual';
+import { PopulationPanel } from '../components/PopulationPanel';
 import { findPlanet, labelForEnvironment, labelForGravity, labelForMinerals, labelForSize } from '../lib/utils';
 import { useAppContext } from '../state/app-context';
 
@@ -28,6 +28,12 @@ export function PlanetPage() {
                   <strong>
                     {currentPlanet().population}/{currentPlanet().maxPopulation}
                   </strong>
+                  <Show when={currentPlanet().last_turn_pop_growth >= 0}>
+                    <span>+{currentPlanet().last_turn_pop_growth}</span>
+                  </Show>
+                  <Show when={currentPlanet().last_turn_pop_growth < 0}>
+                    <span class='starving-warning'>{currentPlanet().last_turn_pop_growth} STARVING!</span>
+                  </Show>
                 </article>
                 <article class='metric-card'>
                   <span>Income</span>

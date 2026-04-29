@@ -7,31 +7,37 @@ import (
 
 func planetTurn(p *Planet, commands Commands) {
 	applyMovePopulationCommands(p, commands.MovePopulation)
+	hydratePlanetOutputs(p)
 
 	// population growth calculations
 	oldPopulation := p.Population
-	p.Population += PopulationGrowth(p)
-	if p.Population < 0 {
-		p.Population = 0
+	growth := PopulationGrowth(p)
+	p.Population += growth
+	p.LastTurnPopGrowth = growth
+
+	// minimum pop units is 1
+	if p.Population < 1000 {
+		p.Population = 1000
 	}
+
+	// capping population to planet max
 	if maxPop := MaxPop(p); p.Population > maxPop {
 		p.Population = maxPop
 	}
 
-	// should we increase pop units?
-	if math.Floor(float64(p.Population/1000)) > math.Floor(float64(oldPopulation/1000)) {
+	// should we increase/decrease pop units?
+	popIncrease := int64(math.Floor(float64(p.Population/1000)) - math.Floor(float64(oldPopulation/1000)))
+	if popIncrease != 0 {
 		// whoever has more units, add one more. This reinforces colonies that are
 		// focused on one type of production
 		if p.Industry.Workers >= p.Food.Farmers && p.Industry.Workers >= p.Science.Scientists {
-			p.Industry.Workers++
+			p.Industry.Workers += popIncrease
 		} else if p.Food.Farmers >= p.Industry.Workers && p.Food.Farmers >= p.Science.Scientists {
-			p.Food.Farmers++
+			p.Food.Farmers += popIncrease
 		} else {
-			p.Science.Scientists++
+			p.Science.Scientists += popIncrease
 		}
 	}
-
-	hydratePlanetOutputs(p)
 
 	industryProduced := p.Industry.Workers * IndustryPerMineralClass(p.MineralClass)
 

@@ -13,7 +13,8 @@ type Planet struct {
 	Environment  PlanetEnvironment `json:"environment"`
 
 	// population
-	Population int64 `json:"population"`
+	Population        int64 `json:"population"`
+	LastTurnPopGrowth int64 `json:"last_turn_pop_growth"`
 
 	Industry PlanetIndustryOutput `json:"industry"`
 	Food     PlanetFoodOutput     `json:"food"`

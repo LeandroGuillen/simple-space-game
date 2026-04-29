@@ -25,6 +25,7 @@ export type PlanetViewModel = {
   gravity: number;
   environment: number;
   population: number;
+  last_turn_pop_growth: number;
   marines: number;
   armor: number;
   food: {

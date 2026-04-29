@@ -110,6 +110,7 @@ function mapPlanet(planet: ApiPlanet): PlanetViewModel {
     gravity: planet.gravity,
     environment: planet.environment,
     population: planet.population,
+    last_turn_pop_growth: planet.last_turn_pop_growth,
     food: planet.food,
     industry: planet.industry,
     science: planet.science,
