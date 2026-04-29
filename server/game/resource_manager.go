@@ -45,19 +45,19 @@ type ResourceManager struct {
 	Resources
 }
 
-//go:embed equipment.json
+//go:embed resources/equipment.json
 var equipmentFile []byte
 
-//go:embed buildings.json
+//go:embed resources/buildings.json
 var buildingsFile []byte
 
-//go:embed names.json
+//go:embed resources/names.json
 var namesFile []byte
 
-//go:embed ship_designs.json
+//go:embed resources/ship_designs.json
 var shipDesignsFile []byte
 
-//go:embed beams.json
+//go:embed resources/beams.json
 var beamsFile []byte
 
 func (r *ResourceManager) loadDataFromFiles() error {
