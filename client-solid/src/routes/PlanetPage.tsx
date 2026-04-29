@@ -1,24 +1,21 @@
 import { useParams } from '@solidjs/router';
 import { createMemo, createSignal, Show } from 'solid-js';
-
 import { PlanetVisual } from '../components/PlanetVisual';
+import type { MovePopulationCommand } from '../lib/types/commands';
 import { findPlanet, labelForEnvironment, labelForGravity, labelForMinerals, labelForSize } from '../lib/utils';
-import type { MovePopulationCommand } from '../lib/types/domain';
 import { useAppContext } from '../state/app-context';
 
-type PopCategory = 'farmers' | 'workers' | 'scientists' | 'marines';
+type PopCategory = 'farmers' | 'workers' | 'scientists';
 
 const POP_LABELS: Record<PopCategory, string> = {
   farmers: 'Farmer',
   workers: 'Worker',
   scientists: 'Scientist',
-  marines: 'Marine',
 };
 const POP_COLORS: Record<PopCategory, string> = {
   farmers: '#b59a58',
   workers: '#5a8cb8',
   scientists: '#9eb8a8',
-  marines: '#a88c5a',
 };
 
 function getOutputIcons(count: number, type: 'food' | 'industry' | 'science'): string {
@@ -58,16 +55,13 @@ export function PlanetPage() {
     let base = 0;
     switch (cat) {
       case 'farmers':
-        base = p.farmers;
+        base = p.food.farmers;
         break;
       case 'workers':
-        base = p.workers;
+        base = p.industry.workers;
         break;
       case 'scientists':
-        base = p.scientists;
-        break;
-      case 'marines':
-        base = p.marines;
+        base = p.science.scientists;
         break;
     }
     for (const move of pendingMoves()) {

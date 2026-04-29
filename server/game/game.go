@@ -92,9 +92,9 @@ func (g *Game) CreateCapitalPlanet(ownerID, planetID uint) error {
 
 	planet.Owner = ownerID
 	planet.Population = 8000
-	planet.Workers = 3
-	planet.Farmers = 2
-	planet.Scientists = 3
+	planet.Industry.Workers = 3
+	planet.Food.Farmers = 2
+	planet.Science.Scientists = 3
 
 	// TODO add building functionality
 	//AddBuilding(planet, g.Resources.Buildings[0])
@@ -285,7 +285,7 @@ func (g *Game) ApplyMovePopulationCommands(playerID uint, commands []MovePopulat
 			return fmt.Errorf("not enough %s on planet %d", cmd.From, cmd.PlanetID)
 		}
 
-		totalPop := planet.Farmers + planet.Workers + planet.Scientists + planet.Marines
+		totalPop := planet.Food.Farmers + planet.Industry.Workers + planet.Science.Scientists + planet.Marines
 		newTotalPop := totalPop - cmd.Count + cmd.Count
 		maxPop := MaxPop(planet)
 		if newTotalPop > maxPop {
@@ -296,24 +296,20 @@ func (g *Game) ApplyMovePopulationCommands(playerID uint, commands []MovePopulat
 
 		switch cmd.From {
 		case PopCategoryFarmers:
-			planet.Farmers -= cmd.Count
+			planet.Food.Farmers -= cmd.Count
 		case PopCategoryWorkers:
-			planet.Workers -= cmd.Count
+			planet.Industry.Workers -= cmd.Count
 		case PopCategoryScientists:
-			planet.Scientists -= cmd.Count
-		case PopCategoryMarines:
-			planet.Marines -= cmd.Count
+			planet.Science.Scientists -= cmd.Count
 		}
 
 		switch cmd.To {
 		case PopCategoryFarmers:
-			planet.Farmers += cmd.Count
+			planet.Food.Farmers += cmd.Count
 		case PopCategoryWorkers:
-			planet.Workers += cmd.Count
+			planet.Industry.Workers += cmd.Count
 		case PopCategoryScientists:
-			planet.Scientists += cmd.Count
-		case PopCategoryMarines:
-			planet.Marines += cmd.Count
+			planet.Science.Scientists += cmd.Count
 		}
 	}
 	return nil
@@ -322,13 +318,11 @@ func (g *Game) ApplyMovePopulationCommands(playerID uint, commands []MovePopulat
 func (g *Game) getPopulationCount(p *Planet, cat PopCategory) int64 {
 	switch cat {
 	case PopCategoryFarmers:
-		return p.Farmers
+		return p.Food.Farmers
 	case PopCategoryWorkers:
-		return p.Workers
+		return p.Industry.Workers
 	case PopCategoryScientists:
-		return p.Scientists
-	case PopCategoryMarines:
-		return p.Marines
+		return p.Science.Scientists
 	}
 	return 0
 }

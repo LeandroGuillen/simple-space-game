@@ -13,14 +13,11 @@ type Planet struct {
 	Environment  PlanetEnvironment `json:"environment"`
 
 	// population
-	Population  int64 `json:"population"`
-	Farmers     int64 `json:"farmers"`
-	Workers    int64 `json:"workers"`
-	Scientists int64 `json:"scientists"`
+	Population int64 `json:"population"`
 
-	Industry PlanetIndustryOutput `json:"industry,omitempty"`
-	Food     PlanetFoodOutput     `json:"food,omitempty"`
-	Science  PlanetScienceOutput  `json:"science,omitempty"`
+	Industry PlanetIndustryOutput `json:"industry"`
+	Food     PlanetFoodOutput     `json:"food"`
+	Science  PlanetScienceOutput  `json:"science"`
 
 	Marines int64 `json:"marines"`
 	Armored int64 `json:"armor"`

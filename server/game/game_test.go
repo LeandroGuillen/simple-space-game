@@ -72,9 +72,9 @@ func TestGame_VisiblePlanet_IncludesOutputBreakdowns(t *testing.T) {
 	g, _ := game.NewGame("test_player", 1, "#FFFFFF")
 	planet := g.Galaxy.Stars[0].Planets[0]
 
-	planet.Workers = 5
-	planet.Farmers = 3
-	planet.Scientists = 2
+	planet.Industry.Workers = 5
+	planet.Food.Farmers = 3
+	planet.Science.Scientists = 2
 	planet.MineralClass = model.PlanetMineralAbundant // base 3
 	planet.Buildings = []model.Building{
 		{
@@ -171,9 +171,9 @@ func TestGame_TurnWithMovePopulationCommand(t *testing.T) {
 	g, _ := game.NewGame("test_player", 1, "#FFFFFF")
 	planet := g.Galaxy.Stars[0].Planets[0]
 
-	planet.Farmers = 5
-	planet.Workers = 3
-	planet.Scientists = 2
+	planet.Food.Farmers = 5
+	planet.Industry.Workers = 3
+	planet.Science.Scientists = 2
 	planet.Marines = 0
 
 	commands := model.Commands{
@@ -184,15 +184,15 @@ func TestGame_TurnWithMovePopulationCommand(t *testing.T) {
 
 	err := g.Turn(1, commands)
 	assert.NoError(t, err)
-	assert.Equal(t, int64(3), planet.Farmers)
-	assert.Equal(t, int64(5), planet.Workers)
+	assert.Equal(t, int64(3), planet.Food.Farmers)
+	assert.Equal(t, int64(5), planet.Industry.Workers)
 }
 
 func TestGame_TurnMovePopulation_PlanetNotOwned(t *testing.T) {
 	g, _ := game.NewGame("test_player", 1, "#FFFFFF")
 	planet := g.Galaxy.Stars[0].Planets[0]
 
-	planet.Farmers = 5
+	planet.Food.Farmers = 5
 	planet.Owner = 2
 
 	commands := model.Commands{
@@ -210,7 +210,7 @@ func TestGame_TurnMovePopulation_NotEnoughPop(t *testing.T) {
 	g, _ := game.NewGame("test_player", 1, "#FFFFFF")
 	planet := g.Galaxy.Stars[0].Planets[0]
 
-	planet.Farmers = 2
+	planet.Food.Farmers = 2
 
 	commands := model.Commands{
 		MovePopulation: []model.MovePopulationCommand{
@@ -227,9 +227,9 @@ func TestGame_TurnMovePopulation_ExceedsMaxPop(t *testing.T) {
 	g, _ := game.NewGame("test_player", 1, "#FFFFFF")
 	planet := g.Galaxy.Stars[0].Planets[0]
 
-	planet.Farmers = 5
-	planet.Workers = 5
-	planet.Scientists = 5
+	planet.Food.Farmers = 5
+	planet.Industry.Workers = 5
+	planet.Science.Scientists = 5
 	planet.Marines = 5
 	planet.Population = 20
 	planet.Size = model.PlanetSizeTiny

@@ -24,6 +24,6 @@ func Industry(p *Planet) int64 {
 	totalIndustryPerWorker := industryBonus + IndustryPerMineralClass(p.MineralClass)
 	totalFlatIndustry := flatIndustryBonus
 
-	totalIndustry := totalFlatIndustry + totalIndustryPerWorker*p.Workers
+	totalIndustry := totalFlatIndustry + totalIndustryPerWorker*p.Industry.Workers
 	return totalIndustry
 }

@@ -11,9 +11,8 @@ import type {
   ApiShield,
   ApiShipDesign,
   ApiStar,
-} from "./types/api";
+} from './types/api';
 import type {
-  PlayerColorOptions,
   ArmorViewModel,
   BuildingViewModel,
   ComputerViewModel,
@@ -22,11 +21,12 @@ import type {
   GameViewModel,
   HullSizeViewModel,
   PlanetViewModel,
+  PlayerColorOptions,
   PlayerViewModel,
   ShieldViewModel,
   ShipDesignViewModel,
   StarSummary,
-} from "./types/domain";
+} from './types/domain';
 
 export function mapGame(apiGame: ApiGame): GameViewModel {
   const players = apiGame.players.map(mapPlayer);
@@ -49,15 +49,11 @@ export function mapGame(apiGame: ApiGame): GameViewModel {
         shields: apiGame.resources.ship_parts.shields.map(mapShield),
       },
       buildingCollection: {
-        buildings:
-          apiGame.resources.building_collection?.buildings?.map(mapBuilding) ??
-          [],
+        buildings: apiGame.resources.building_collection?.buildings?.map(mapBuilding) ?? [],
       },
       shipDesignCollection: {
         shipDesigns:
-          apiGame.resources.ship_design_collection?.ship_designs?.map(
-            (design) => mapShipDesign(design, true),
-          ) ?? [],
+          apiGame.resources.ship_design_collection?.ship_designs?.map((design) => mapShipDesign(design, true)) ?? [],
       },
     },
   };
@@ -68,15 +64,14 @@ function mapPlayer(player: ApiPlayer): PlayerViewModel {
     id: player.id,
     name: player.name,
     color: player.color,
-    raceName: player.race?.name || "Unassigned",
+    raceName: player.race?.name || 'Unassigned',
     treasury: player.treasury,
     taxRate: player.tax_rate,
     researchPoints: player.research_points,
     fleets: player.fleets ?? [],
     freighters: player.freighters,
     freightersUsed: player.freighters_used,
-    shipDesigns:
-      player.ship_designs?.map((design) => mapShipDesign(design, false)) ?? [],
+    shipDesigns: player.ship_designs?.map((design) => mapShipDesign(design, false)) ?? [],
   };
 }
 
@@ -86,21 +81,18 @@ function mapStar(star: ApiStar, playerColorById: Map<number, string>): StarSumma
   const ownedBy = planets.find((planet) => planet.owner > 0)?.owner;
   return {
     id: star.id,
-    name: star.name || "",
+    name: star.name || '',
     planets,
     color: star.color,
     x: star.x,
     y: star.y,
     ownedPlanets: planets.filter((planet) => planet.owner > 0).length,
     explored,
-    ownerColor: ownedBy ? playerColorById.get(ownedBy) ?? null : null,
+    ownerColor: ownedBy ? (playerColorById.get(ownedBy) ?? null) : null,
   };
 }
 
-export function mapPlayerColorOptions(options: {
-  max_players: number;
-  colors: string[];
-}): PlayerColorOptions {
+export function mapPlayerColorOptions(options: { max_players: number; colors: string[] }): PlayerColorOptions {
   return {
     maxPlayers: options.max_players,
     colors: options.colors,
@@ -118,14 +110,12 @@ function mapPlanet(planet: ApiPlanet): PlanetViewModel {
     gravity: planet.gravity,
     environment: planet.environment,
     population: planet.population,
-    farmers: planet.farmers,
-    workers: planet.workers,
-    scientists: planet.scientists,
+    food: planet.food,
+    industry: planet.industry,
+    science: planet.science,
     marines: planet.marines,
     armor: planet.armor,
-    currentProject: hasBuildingName(planet.current_project)
-      ? mapBuilding(planet.current_project)
-      : null,
+    currentProject: hasBuildingName(planet.current_project) ? mapBuilding(planet.current_project) : null,
     buildQueue: planet.build_queue?.map(mapBuilding) ?? [],
     buildings: planet.buildings?.map(mapBuilding) ?? [],
     industryStack: planet.industry_stack,
@@ -135,16 +125,11 @@ function mapPlanet(planet: ApiPlanet): PlanetViewModel {
   };
 }
 
-function hasBuildingName(
-  building: ApiBuilding | undefined,
-): building is ApiBuilding {
+function hasBuildingName(building: ApiBuilding | undefined): building is ApiBuilding {
   return Boolean(building?.name);
 }
 
-function mapShipDesign(
-  ship: ApiShipDesign,
-  isCommon: boolean,
-): ShipDesignViewModel {
+function mapShipDesign(ship: ApiShipDesign, isCommon: boolean): ShipDesignViewModel {
   return {
     name: ship.name,
     baseSpace: ship.base_space ?? 0,
@@ -161,7 +146,7 @@ function mapShipDesign(
 function mapBuilding(building: ApiBuilding): BuildingViewModel {
   return {
     id: building.id ?? 0,
-    name: building.name ?? "Unknown building",
+    name: building.name ?? 'Unknown building',
     cost: building.cost ?? 0,
     maintenance: building.maintenance ?? 0,
   };

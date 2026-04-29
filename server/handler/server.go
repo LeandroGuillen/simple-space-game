@@ -1,7 +1,6 @@
 package server
 
 import (
-	"log"
 	"net/http"
 	"ssg/ws"
 	"ssg/game"
@@ -95,10 +94,7 @@ func (s *Server) Handler() http.Handler {
 	return s.router
 }
 
-func (s *Server) Start() {
+func (s *Server) Start(port string) error {
 	s.startHub()
-	err := s.router.Run() // listen and serve on 0.0.0.0:8080
-	if err != nil {
-		log.Printf("API error: %s", err)
-	}
+	return s.router.Run(":" + port)
 }

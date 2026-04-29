@@ -16,7 +16,7 @@ func hydratePlanetOutputs(p *model.Planet, owner *model.Player) {
 func buildIndustryOutput(p *model.Planet) model.PlanetIndustryOutput {
 	basePerWorker := model.IndustryPerMineralClass(p.MineralClass)
 	out := model.PlanetIndustryOutput{
-		Workers:       p.Workers,
+		Workers:       p.Industry.Workers,
 		BasePerWorker: basePerWorker,
 		Contributors: []model.PlanetOutputContributor{
 			{
@@ -54,7 +54,7 @@ func buildIndustryOutput(p *model.Planet) model.PlanetIndustryOutput {
 
 func buildFoodOutput(p *model.Planet, owner *model.Player) model.PlanetFoodOutput {
 	out := model.PlanetFoodOutput{
-		Farmers:       p.Farmers,
+		Farmers:       p.Food.Farmers,
 		BasePerFarmer: 1,
 		Contributors: []model.PlanetOutputContributor{
 			{
@@ -107,7 +107,7 @@ func buildFoodOutput(p *model.Planet, owner *model.Player) model.PlanetFoodOutpu
 
 func buildScienceOutput(p *model.Planet) model.PlanetScienceOutput {
 	out := model.PlanetScienceOutput{
-		Scientists:       p.Scientists,
+		Scientists:       p.Science.Scientists,
 		BasePerScientist: 1,
 		Contributors: []model.PlanetOutputContributor{
 			{
