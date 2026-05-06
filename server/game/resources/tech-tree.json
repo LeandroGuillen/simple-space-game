@@ -1,0 +1,353 @@
+{
+  "subjects": [
+    {
+      "name": "Construction",
+      "levels": [
+        {
+          "name": "Advanced Engineering",
+          "cost": 80,
+          "available_techs": ["Anti-Missile Rockets", "Fighter Bays", "Reinforced Hull"]
+        },
+        {
+          "name": "Advanced Construction",
+          "cost": 150,
+          "available_techs": ["Automated Factory", "Missile Base", "Heavy Armor"]
+        },
+        {
+          "name": "Capsule Construction",
+          "cost": 250,
+          "available_techs": ["Battle Pods", "Troop Pods", "Survival Pods"]
+        },
+        {
+          "name": "Astro Engineering",
+          "cost": 400,
+          "available_techs": ["Space Port", "Armor Barracks", "Fighter Garrison"]
+        },
+        {
+          "name": "Robotics",
+          "cost": 650,
+          "available_techs": ["Robo-Miners", "Battlestation", "Powered Armor"]
+        },
+        {
+          "name": "Servo Mechanics",
+          "cost": 900,
+          "available_techs": ["Fast Missile Racks", "Advanced Damage Control", "Assault Shuttles"]
+        },
+        {
+          "name": "Astro Construction",
+          "cost": 1150,
+          "available_techs": ["Titan Construction", "Ground Batteries", "Battleoids"]
+        },
+        {
+          "name": "Advanced Manufacturing",
+          "cost": 1500,
+          "available_techs": ["Recyclotron", "Automated Repair Unit", "Artificial Planet Construction"]
+        },
+        {
+          "name": "Advanced Robotics",
+          "cost": 2000,
+          "available_techs": ["Robotic Factory", "Bomber Bays"]
+        },
+        {
+          "name": "Tectonic Engineering",
+          "cost": 3500,
+          "available_techs": ["Deep Core Mine", "Core Waste Dump"]
+        },
+        {
+          "name": "Superscalar Construction",
+          "cost": 6000,
+          "available_techs": ["Star Fortress", "Advanced City Planning", "Heavy Fighters"]
+        },
+        {
+          "name": "Planetoid Construction",
+          "cost": 7500,
+          "available_techs": ["Doom Star Construction", "Artemis System Net"]
+        }
+      ]
+    },
+    {
+      "name": "Power",
+      "levels": [
+        {
+          "name": "Nuclear Fission",
+          "cost": 50,
+          "force_all": true,
+          "available_techs": ["Freighters", "Nuclear Drive", "Nuclear Bomb"]
+        },
+        {
+          "name": "Cold Fusion",
+          "cost": 80,
+          "force_all": true,
+          "available_techs": ["Colony Ship", "Outpost Ship", "Transport"]
+        },
+        {
+          "name": "Advanced Fusion",
+          "cost": 250,
+          "available_techs": ["Fusion Drive", "Fusion Bomb", "Augmented Engines"]
+        },
+        {
+          "name": "Ion Fission",
+          "cost": 900,
+          "available_techs": ["Ion Drive", "Ion Pulse Cannon", "Shield Capacitor"]
+        },
+        {
+          "name": "Anti-Matter Fission",
+          "cost": 2000,
+          "available_techs": ["Anti-Matter Drive", "Anti-Matter Torpedoes", "Anti-Matter Bomb"]
+        },
+        {
+          "name": "Matter-Energy Conversion",
+          "cost": 2750,
+          "available_techs": ["Transporters", "Food Replicators"]
+        },
+        {
+          "name": "High Energy Distribution",
+          "cost": 3500,
+          "available_techs": ["High Energy Focus", "Energy Absorber", "Megafluxers"]
+        },
+        {
+          "name": "Hyper-Dimensional Fission",
+          "cost": 4500,
+          "available_techs": ["Proton Torpedo", "Hyper Drive", "Hyper-X Capacitors"]
+        },
+        {
+          "name": "Interphased Fission",
+          "cost": 10000,
+          "available_techs": ["Interphased Drive", "Plasma Torpedo", "Neutronium Bomb"]
+        }
+      ]
+    },
+    {
+      "name": "Chemistry",
+      "levels": [
+        {
+          "name": "Chemistry",
+          "cost": 50,
+          "force_all": true,
+          "available_techs": ["Nuclear Missile", "Standard Fuel Cells", "Extended Fuel Tanks", "Titanium Armor"]
+        },
+        {
+          "name": "Advanced Metallurgy",
+          "cost": 250,
+          "available_techs": ["Deuterium Fuel Cells", "Tritanium Armor"]
+        },
+        {
+          "name": "Advanced Chemistry",
+          "cost": 650,
+          "available_techs": ["Merculite Missile", "Pollution Processor"]
+        },
+        {
+          "name": "Molecular Compression",
+          "cost": 1150,
+          "available_techs": ["Pulson Missile", "Atmospheric Renewer", "Iridium Fuel Cells"]
+        },
+        {
+          "name": "Nano Technology",
+          "cost": 2000,
+          "available_techs": ["Nano Disassemblers", "Microlite Construction", "Zortrium Armor"]
+        },
+        {
+          "name": "Molecular Manipulation",
+          "cost": 4500,
+          "available_techs": ["Zeon Missile", "Neutronium Armor", "Uridium Fuel Cells"]
+        },
+        {
+          "name": "Molecular Control",
+          "cost": 10000,
+          "available_techs": ["Thorium Fuel Cells", "Adamantium Armor"]
+        }
+      ]
+    },
+    {
+      "name": "Sociology",
+      "levels": [
+        {
+          "name": "Military Tactics",
+          "cost": 150,
+          "available_techs": ["Space Academy"]
+        },
+        {
+          "name": "Xeno Relations",
+          "cost": 650,
+          "available_techs": ["Xeno Psychology", "Alien Management Center"]
+        },
+        {
+          "name": "Macro Economics",
+          "cost": 1150,
+          "available_techs": ["Stock Exchange"]
+        },
+        {
+          "name": "Teaching Methods",
+          "cost": 2000,
+          "available_techs": ["Astro University"]
+        },
+        {
+          "name": "Advanced Government",
+          "cost": 4500,
+          "available_techs": ["Confederation", "Imperium", "Federation", "Galactic Unification"]
+        },
+        {
+          "name": "Galactic Economics",
+          "cost": 6000,
+          "available_techs": ["Galactic Currency Exchange"]
+        }
+      ]
+    },
+    {
+      "name": "Computers",
+      "levels": [
+        {
+          "name": "Electronics",
+          "cost": 50,
+          "available_techs": ["Electronic Computer"]
+        },
+        {
+          "name": "Optronics",
+          "cost": 150,
+          "available_techs": ["Research Laboratory", "Optronic Computer", "Dauntless Guidance System"]
+        },
+        {
+          "name": "Artificial Intelligence",
+          "cost": 400,
+          "available_techs": ["Neural Scanner", "Scout Lab", "Security Stations"]
+        },
+        {
+          "name": "Positronics",
+          "cost": 650,
+          "available_techs": ["Planetary Supercomputer", "Holo Simulator", "Battle Computer"]
+        },
+        {
+          "name": "Cybertronics",
+          "cost": 1150,
+          "available_techs": ["Cybertronic Computer", "Autolab", "ECM Jammer Mk II"]
+        },
+        {
+          "name": "Artificial Consciousness",
+          "cost": 2000,
+          "available_techs": ["Android Workers", "Sentient Computer", "Cyborg Factory"]
+        },
+        {
+          "name": "Hyper-Consciousness",
+          "cost": 3500,
+          "available_techs": ["Hyper-Conscious Computer", "AI Colony Ship"]
+        },
+        {
+          "name": "Nanoelectronics",
+          "cost": 6000,
+          "available_techs": ["Nano Computer"]
+        }
+      ]
+    },
+    {
+      "name": "Biology",
+      "levels": [
+        {
+          "name": "Astro Biology",
+          "cost": 80,
+          "available_techs": ["Hydroponic Farm", "Biospheres"]
+        },
+        {
+          "name": "Advanced Biology",
+          "cost": 250,
+          "available_techs": ["Soil Enrichment", "Cloning Center"]
+        },
+        {
+          "name": "Genetic Engineering",
+          "cost": 650,
+          "available_techs": ["Bio Toxin", "Bio Enhancement", "Bio Suppressant"]
+        },
+        {
+          "name": "Evolutionary Genetics",
+          "cost": 1150,
+          "available_techs": ["Evolutionary Mutation", "Genetic Engineering Lab"]
+        },
+        {
+          "name": "Cyber Biology",
+          "cost": 2000,
+          "available_techs": ["Cyborging", "Bio-Androids"]
+        },
+        {
+          "name": "Sub-Atomic Biology",
+          "cost": 4500,
+          "available_techs": ["Universal Antidote", "Immortality"]
+        }
+      ]
+    },
+    {
+      "name": "Physics",
+      "levels": [
+        {
+          "name": "Physics",
+          "cost": 50,
+          "force_all": true,
+          "available_techs": ["Laser Cannon", "Laser Rifle", "Space Scanner"]
+        },
+        {
+          "name": "Advanced Physics",
+          "cost": 150,
+          "available_techs": ["Gauss Cannon", "Hyper-X Ray", "Subspace Scanner"]
+        },
+        {
+          "name": "Particle Physics",
+          "cost": 400,
+          "available_techs": ["Particle Beam", "Neutron Blaster", "Inertial Nullifier"]
+        },
+        {
+          "name": "High Energy Physics",
+          "cost": 900,
+          "available_techs": ["Phasor", "Auto Blaster", "Graviton Beam"]
+        },
+        {
+          "name": "Plasma Physics",
+          "cost": 2000,
+          "available_techs": ["Plasma Cannon", "Plasma Rifle", "Stasis Field"]
+        },
+        {
+          "name": "Graviton Physics",
+          "cost": 3500,
+          "available_techs": ["Graviton Cannon", "Disruptor Cannon", "Pulsar"]
+        },
+        {
+          "name": "Temporal Physics",
+          "cost": 6000,
+          "available_techs": ["Temporal Field", "Mauler Device"]
+        }
+      ]
+    },
+    {
+      "name": "Force Fields",
+      "levels": [
+        {
+          "name": "Advanced Magnetism",
+          "cost": 250,
+          "available_techs": ["Class I Shield", "Mass Driver", "ECM Jammer"]
+        },
+        {
+          "name": "Electromagnetic Fields",
+          "cost": 650,
+          "available_techs": ["Class III Shield", "Gauss Cannon Mk II", "Cloaking Device"]
+        },
+        {
+          "name": "High Energy Fields",
+          "cost": 1150,
+          "available_techs": ["Class V Shield", "Personal Deflector Shield"]
+        },
+        {
+          "name": "Plasma Fields",
+          "cost": 2000,
+          "available_techs": ["Class VII Shield", "Black Hole Generator"]
+        },
+        {
+          "name": "Multi-Phased Fields",
+          "cost": 3500,
+          "available_techs": ["Class X Shield", "Phasor Rifle", "Stasis Shield"]
+        },
+        {
+          "name": "Hyper-Advanced Fields",
+          "cost": 6000,
+          "available_techs": ["Class XV Shield", "Inertial Nullifier Mk II"]
+        }
+      ]
+    }
+  ]
+}

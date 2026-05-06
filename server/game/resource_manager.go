@@ -13,6 +13,7 @@ type Resources struct {
 	*NameCollection       `json:"name_collection"`
 	*ShipDesignCollection `json:"ship_design_collection"`
 	*BeamCollection       `json:"beam_collection"`
+	*TechTree             `json:"tech_tree"`
 }
 
 type ShipPartsCollection struct {
@@ -59,6 +60,9 @@ var shipDesignsFile []byte
 
 //go:embed resources/beams.json
 var beamsFile []byte
+
+//go:embed resources/tech-tree.json
+var techTreeFile []byte
 
 func (r *ResourceManager) loadDataFromFiles() error {
 	var shipPartsCollection ShipPartsCollection
@@ -141,6 +145,12 @@ func (r *ResourceManager) loadDataFromFiles() error {
 		// these designs are common to all players
 		r.ShipDesigns = append(r.ShipDesigns, design)
 	}
+
+	var techTree TechTree
+	if err := json.Unmarshal(techTreeFile, &techTree); err != nil {
+		return err
+	}
+	r.TechTree = &techTree
 
 	return nil
 }

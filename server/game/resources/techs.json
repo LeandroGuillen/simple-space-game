@@ -1,0 +1,22 @@
+[
+  { "name": "Anti-Missile Rockets", "description": "No description provided", "effects": [] },
+  { "name": "Fighter Bays", "description": "No description provided", "effects": [] },
+  { "name": "Reinforced Hull", "description": "No description provided", "effects": [] },
+  { "name": "Freighters", "description": "No description provided", "effects": [] },
+  { "name": "Nuclear Drive", "description": "No description provided", "effects": [] },
+  { "name": "Nuclear Bomb", "description": "No description provided", "effects": [] },
+  { "name": "Nuclear Missile", "description": "No description provided", "effects": [] },
+  { "name": "Standard Fuel Cells", "description": "No description provided", "effects": [] },
+  { "name": "Extended Fuel Tanks", "description": "No description provided", "effects": [] },
+  { "name": "Titanium Armor", "description": "No description provided", "effects": [] },
+  { "name": "Space Academy", "description": "No description provided", "effects": [] },
+  { "name": "Electronic Computer", "description": "No description provided", "effects": [] },
+  { "name": "Hydroponic Farm", "description": "No description provided", "effects": [] },
+  { "name": "Biospheres", "description": "No description provided", "effects": [] },
+  { "name": "Laser Cannon", "description": "No description provided", "effects": [] },
+  { "name": "Laser Rifle", "description": "No description provided", "effects": [] },
+  { "name": "Space Scanner", "description": "No description provided", "effects": [] },
+  { "name": "Class I Shield", "description": "No description provided", "effects": [] },
+  { "name": "Mass Driver", "description": "No description provided", "effects": [] },
+  { "name": "ECM Jammer", "description": "No description provided", "effects": [] }
+]
