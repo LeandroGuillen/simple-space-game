@@ -82,6 +82,9 @@ func (r *ResourceManager) loadDataFromFiles() error {
 	if err := json.Unmarshal(buildingsFile, &buildingCollection); err != nil {
 		return err
 	}
+	for i := range buildingCollection.Buildings {
+		buildingCollection.Buildings[i].ID = uint(i + 1)
+	}
 	r.BuildingCollection = &buildingCollection
 
 	var nameCollection NameCollection

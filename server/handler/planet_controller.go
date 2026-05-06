@@ -20,7 +20,7 @@ type BuildOnPlanetRequest struct {
 	GameID     string `binding:"required" json:"game_id"`
 	OwnerID    uint   `binding:"required" json:"owner_id"`
 	PlanetID   uint   `binding:"required" json:"planet_id"`
-	BuildingID uint   `binding:"required" json:"building_id"`
+	BuildingID *uint  `binding:"required" json:"building_id"`
 }
 
 func ColonizePlanet(c *gin.Context) {
@@ -121,7 +121,7 @@ func BuildOnPlanet(c *gin.Context) {
 		return
 	}
 
-	if err := g.BuildOnPlanet(req.PlanetID, req.OwnerID, req.BuildingID); err != nil {
+	if err := g.BuildOnPlanet(req.PlanetID, req.OwnerID, *req.BuildingID); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}

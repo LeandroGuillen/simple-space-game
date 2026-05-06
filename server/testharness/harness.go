@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	serverpkg "ssg/handler"
 	"ssg/game"
+	serverpkg "ssg/handler"
 	"ssg/model"
 
 	"github.com/gorilla/websocket"
@@ -144,7 +144,7 @@ func (c *APIClient) BuildOnPlanet(gameID string, ownerID, planetID, buildingID u
 		GameID:     gameID,
 		OwnerID:    ownerID,
 		PlanetID:   planetID,
-		BuildingID: buildingID,
+		BuildingID: &buildingID,
 	}
 
 	_, err := c.doJSON(http.MethodPost, "/colonies/build", nil, req, &StatusResponse{})

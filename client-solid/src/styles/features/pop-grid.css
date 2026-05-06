@@ -151,6 +151,16 @@
   border-bottom: 1px solid var(--rule);
 }
 
+.pop-output-tooltip-row--detail {
+  padding-left: 8px;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.pop-output-tooltip-row--detail span {
+  max-width: 190px;
+}
+
 .pop-units-row {
   display: flex;
   flex-wrap: wrap;

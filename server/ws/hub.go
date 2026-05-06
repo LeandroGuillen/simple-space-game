@@ -11,10 +11,10 @@ import (
 )
 
 type Hub struct {
-	clients      map[*Client]bool
-	broadcast    chan gin.H
+	clients     map[*Client]bool
+	broadcast   chan gin.H
 	register    chan *Client
-	unregister   chan *Client
+	unregister  chan *Client
 	gameUpdates chan *game.Game
 	server      ServerGetter
 }

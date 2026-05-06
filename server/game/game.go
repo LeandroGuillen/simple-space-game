@@ -154,8 +154,34 @@ func (g *Game) BuildOnPlanet(planetID, ownerID, buildingID uint) error {
 	if err != nil {
 		return err
 	}
+	if planet.Owner != ownerID {
+		return fmt.Errorf("planet %d is not owned by player %d", planetID, ownerID)
+	}
 
-	building := g.Resources.Buildings[buildingID]
+	if buildingID == 0 {
+		planet.CurrentProject = Building{}
+		planet.IsBuilding = false
+		planet.BuildBucket = 0
+		return nil
+	}
+
+	var building Building
+	found := false
+	for _, candidate := range g.Resources.Buildings {
+		if candidate.ID == buildingID {
+			building = candidate
+			found = true
+			break
+		}
+	}
+	if !found {
+		return fmt.Errorf("building with id %d does not exist", buildingID)
+	}
+	for _, built := range planet.Buildings {
+		if built.ID == building.ID {
+			return fmt.Errorf("building %s is already built on planet %d", building.Name, planetID)
+		}
+	}
 
 	planet.CurrentProject = building
 	planet.IsBuilding = true

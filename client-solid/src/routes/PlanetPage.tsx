@@ -1,5 +1,6 @@
 import { useParams } from '@solidjs/router';
-import { Show } from 'solid-js';
+import { createMemo, Show } from 'solid-js';
+import { ConstructionPanel } from '../components/ConstructionPanel';
 import { PlanetVisual } from '../components/PlanetVisual';
 import { PopulationPanel } from '../components/PopulationPanel';
 import { findPlanet, labelForEnvironment, labelForGravity, labelForMinerals, labelForSize } from '../lib/utils';
@@ -9,6 +10,35 @@ export function PlanetPage() {
   const params = useParams();
   const { state } = useAppContext();
   const planet = () => findPlanet(state.game, Number(params.planetId));
+  const projectedPopGrowth = createMemo(() => {
+    const current = planet();
+    if (!current || current.population <= 0) {
+      return 0;
+    }
+
+    let farmers = current.food.farmers;
+    for (const move of state.pendingCommands.movePopulation.filter((cmd) => cmd.planetId === current.id)) {
+      if (move.to === 'farmers') {
+        farmers += move.count;
+      }
+      if (move.from === 'farmers') {
+        farmers -= move.count;
+      }
+    }
+    farmers = Math.max(0, farmers);
+
+    const planetCapacity = Math.floor(current.maxPopulation / 1000);
+    const popUnits = Math.floor(current.population / 1000);
+    const freeSpace = planetCapacity - popUnits;
+    const basicIncrement = planetCapacity > 0 && freeSpace > 0
+      ? Math.floor(Math.sqrt((2000 * popUnits * freeSpace) / planetCapacity))
+      : 0;
+    const foodProduced = farmers * current.food.produced_per_farmer + current.food.produced_per_building;
+    const foodLack = popUnits - foodProduced;
+    const foodLackPenalty = foodLack > 0 ? 50 * foodLack : 0;
+
+    return Math.floor(basicIncrement - foodLackPenalty);
+  });
 
   return (
     <Show when={planet()} fallback={<section class='panel'>Planet not found.</section>}>
@@ -28,11 +58,11 @@ export function PlanetPage() {
                   <strong>
                     {currentPlanet().population}/{currentPlanet().maxPopulation}
                   </strong>
-                  <Show when={currentPlanet().last_turn_pop_growth >= 0}>
-                    <span>+{currentPlanet().last_turn_pop_growth}</span>
+                  <Show when={projectedPopGrowth() >= 0}>
+                    <span>+{projectedPopGrowth()} this turn</span>
                   </Show>
-                  <Show when={currentPlanet().last_turn_pop_growth < 0}>
-                    <span class='starving-warning'>{currentPlanet().last_turn_pop_growth} STARVING!</span>
+                  <Show when={projectedPopGrowth() < 0}>
+                    <span class='starving-warning'>{projectedPopGrowth()} this turn</span>
                   </Show>
                 </article>
                 <article class='metric-card'>
@@ -49,18 +79,10 @@ export function PlanetPage() {
                   </div>
                 </article>
               </div>
-
-              <button class='construction-button square-button'>
-                <span class='construction-icon'>🏗️</span>
-                <span class='construction-name'>Command Center</span>
-                <div class='construction-progress-display'>
-                  <span class='construction-progress-completion'>45%</span>
-                  <span class='construction-progress-turns'>~3 turns</span>
-                </div>
-              </button>
             </div>
           </section>
 
+          <ConstructionPanel planet={currentPlanet()} />
           <PopulationPanel planet={currentPlanet()} />
         </section>
       )}

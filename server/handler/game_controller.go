@@ -20,16 +20,16 @@ type GameListResponse struct {
 }
 
 type GameListResponseItem struct {
-	GameID       string `json:"game_id"`
-	NumStars    int    `json:"num_stars"`
-	CurrentTurn int64  `json:"current_turn"`
+	GameID      string               `json:"game_id"`
+	NumStars    int                  `json:"num_stars"`
+	CurrentTurn int64                `json:"current_turn"`
 	Players     []GameListPlayerInfo `json:"players"`
 }
 
 type GameListPlayerInfo struct {
-	Name       string `json:"name"`
-	Color     string `json:"color"`
-	NumStars  int    `json:"num_stars"`
+	Name     string `json:"name"`
+	Color    string `json:"color"`
+	NumStars int    `json:"num_stars"`
 }
 
 type GetGalaxyRequest struct {
@@ -100,7 +100,7 @@ func GetGameList(c *gin.Context) {
 			}
 		}
 		gameList = append(gameList, GameListResponseItem{
-			GameID:       gameID,
+			GameID:      gameID,
 			NumStars:    len(g.Galaxy.Stars),
 			CurrentTurn: g.CurrentTurn,
 			Players:     playerInfos,

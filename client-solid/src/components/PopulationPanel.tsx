@@ -11,6 +11,12 @@ type OutputBreakdown = {
   fromBuildings: number;
 };
 
+type BuildingContribution = {
+  buildingName: string;
+  label: string;
+  total: number;
+};
+
 const POP_LABELS: Record<PopCategory, string> = {
   farmers: 'Farmer',
   workers: 'Worker',
@@ -70,6 +76,12 @@ export function PopulationPanel(props: PopulationPanelProps) {
     return icons.join(' ');
   };
 
+  const getBuildingEffectBonus = (effectName: string) =>
+    props.planet.buildings.reduce(
+      (sum, building) => sum + building.effects.reduce((effectSum, effect) => effectSum + (effect.name === effectName ? effect.bonus : 0), 0),
+      0,
+    );
+
   const getOutputBreakdown = (cat: PopCategory): OutputBreakdown => {
     if (cat === 'farmers') {
       const fromPopulation = getPopCount('farmers') * props.planet.food.produced_per_farmer;
@@ -81,21 +93,95 @@ export function PopulationPanel(props: PopulationPanelProps) {
       };
     }
     if (cat === 'workers') {
-      const fromPopulation = getPopCount('workers') * props.planet.industry.produced_per_worker;
-      const fromBuildings = props.planet.industry.produced_per_building;
+      const perWorkerBuildingBonus = getBuildingEffectBonus('industryBonus');
+      const basePerWorker = Math.max(0, props.planet.industry.produced_per_worker - perWorkerBuildingBonus);
+      const fromPopulation = getPopCount('workers') * basePerWorker;
+      const fromBuildings = props.planet.industry.produced_per_building + getPopCount('workers') * perWorkerBuildingBonus;
       return {
         total: fromPopulation + fromBuildings,
         fromPopulation,
         fromBuildings,
       };
     }
-    const fromPopulation = getPopCount('scientists') * props.planet.science.produced_per_scientist;
-    const fromBuildings = props.planet.science.produced_per_building;
+    const perScientistBuildingBonus = getBuildingEffectBonus('scienceBonus');
+    const basePerScientist = Math.max(0, props.planet.science.produced_per_scientist - perScientistBuildingBonus);
+    const fromPopulation = getPopCount('scientists') * basePerScientist;
+    const fromBuildings = props.planet.science.produced_per_building + getPopCount('scientists') * perScientistBuildingBonus;
     return {
       total: fromPopulation + fromBuildings,
       fromPopulation,
       fromBuildings,
     };
+  };
+
+  const getBuildingContributions = (cat: PopCategory): BuildingContribution[] => {
+    const workerCount = getPopCount(cat);
+    const contributions: BuildingContribution[] = [];
+    for (const building of props.planet.buildings) {
+      for (const effect of building.effects) {
+        if (cat === 'farmers' && effect.name === 'flatAgricultureBonus') {
+          contributions.push({
+            buildingName: building.name,
+            label: 'flat food',
+            total: effect.bonus,
+          });
+        }
+        if (cat === 'workers' && effect.name === 'industryBonus') {
+          contributions.push({
+            buildingName: building.name,
+            label: `+${effect.bonus} per worker × ${workerCount}`,
+            total: effect.bonus * workerCount,
+          });
+        }
+        if (cat === 'workers' && effect.name === 'flatIndustryBonus') {
+          contributions.push({
+            buildingName: building.name,
+            label: 'flat industry',
+            total: effect.bonus,
+          });
+        }
+        if (cat === 'scientists' && effect.name === 'scienceBonus') {
+          contributions.push({
+            buildingName: building.name,
+            label: `+${effect.bonus} per scientist × ${workerCount}`,
+            total: effect.bonus * workerCount,
+          });
+        }
+        if (cat === 'scientists' && effect.name === 'flatScienceBonus') {
+          contributions.push({
+            buildingName: building.name,
+            label: 'flat science',
+            total: effect.bonus,
+          });
+        }
+      }
+    }
+    return contributions;
+  };
+
+  const renderBuildingContributionRows = (cat: PopCategory) => {
+    const contributions = getBuildingContributions(cat);
+    if (contributions.length === 0) {
+      return (
+        <div class='pop-output-tooltip-row pop-output-tooltip-row--detail'>
+          <span>No building bonuses</span>
+          <strong>0</strong>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <For each={contributions}>
+          {(contribution) => (
+            <div class='pop-output-tooltip-row pop-output-tooltip-row--detail'>
+              <span>{contribution.buildingName}: {contribution.label}</span>
+              <strong>+{contribution.total}</strong>
+            </div>
+          )}
+        </For>
+      </>
+    );
   };
 
   const getIndustryOutput = () => getOutputIcons(getOutputBreakdown('workers').total, '⚡', '🔧');
@@ -226,6 +312,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
                 <span>From buildings:</span>
                 <strong>{getOutputBreakdown('farmers').fromBuildings}</strong>
               </div>
+              {renderBuildingContributionRows('farmers')}
             </div>
           </div>
           <div
@@ -266,6 +353,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
                 <span>From buildings:</span>
                 <strong>{getOutputBreakdown('workers').fromBuildings}</strong>
               </div>
+              {renderBuildingContributionRows('workers')}
             </div>
           </div>
           <div
@@ -306,6 +394,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
                 <span>From buildings:</span>
                 <strong>{getOutputBreakdown('scientists').fromBuildings}</strong>
               </div>
+              {renderBuildingContributionRows('scientists')}
             </div>
           </div>
           <div

@@ -4,7 +4,8 @@ import { createStore } from 'solid-js/store';
 import { ApiClient, parseGameUpdate } from '../lib/api';
 import { mapGame, mapPlayerColorOptions } from '../lib/mappers';
 import type { ApiGameListItem } from '../lib/types/api';
-import type { GameViewModel, MovePopulationCommand, PlayerColorOptions, ShipDesignForm } from '../lib/types/domain';
+import type { GameViewModel, PlayerColorOptions, ShipDesignForm } from '../lib/types/domain';
+import type { MovePopulationCommand } from '../lib/types/commands';
 import { getColonyRows, getPrimaryPlayer, normalizeServerUrl, toWebSocketUrl } from '../lib/utils';
 
 type ConnectionStatus = 'idle' | 'checking' | 'connected' | 'error';

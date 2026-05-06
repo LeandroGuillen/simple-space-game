@@ -100,24 +100,7 @@ export function getPrimaryPlayer(game?: GameViewModel | null) {
 }
 
 export function getPlanetIndustry(planet: PlanetViewModel) {
-  return planet.workers * industryPerMineralClass(planet.mineralClass);
-}
-
-function industryPerMineralClass(value: number) {
-  switch (value) {
-    case 1:
-      return 1;
-    case 2:
-      return 2;
-    case 3:
-      return 3;
-    case 4:
-      return 5;
-    case 5:
-      return 8;
-    default:
-      return 0;
-  }
+  return planet.industry.workers * planet.industry.produced_per_worker + planet.industry.produced_per_building;
 }
 
 export function getColonyRows(game?: GameViewModel | null): ColonyRow[] {
@@ -134,9 +117,9 @@ export function getColonyRows(game?: GameViewModel | null): ColonyRow[] {
         starName: star.name,
         population: planet.population,
         maxPopulation: planet.maxPopulation,
-        farmers: planet.farmers,
-        workers: planet.workers,
-        scientists: planet.scientists,
+        farmers: planet.food.farmers,
+        workers: planet.industry.workers,
+        scientists: planet.science.scientists,
         industry: getPlanetIndustry(planet),
         currentProject: planet.currentProject?.name || "Idle",
       })),

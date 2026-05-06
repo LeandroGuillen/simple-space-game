@@ -83,16 +83,16 @@ func TestGame_VisiblePlanet_IncludesOutputBreakdowns(t *testing.T) {
 	vPlanet := visible.Galaxy.Stars[0].Planets[0]
 
 	assert.Equal(t, int64(5), vPlanet.Industry.Workers)
-	assert.Equal(t, int64(3), vPlanet.Industry.ProducedPerWorker)
-	assert.Equal(t, int64(1), vPlanet.Industry.ProducedPerBuilding)
+	assert.Equal(t, int64(4), vPlanet.Industry.ProducedPerWorker)
+	assert.Equal(t, int64(5), vPlanet.Industry.ProducedPerBuilding)
 
 	assert.Equal(t, int64(3), vPlanet.Food.Farmers)
-	assert.Equal(t, int64(1), vPlanet.Food.ProducedPerFarmer)
-	assert.Equal(t, int64(1), vPlanet.Food.ProducedPerBuilding)
+	assert.Equal(t, int64(2), vPlanet.Food.ProducedPerFarmer)
+	assert.Equal(t, int64(2), vPlanet.Food.ProducedPerBuilding)
 
 	assert.Equal(t, int64(2), vPlanet.Science.Scientists)
-	assert.Equal(t, int64(1), vPlanet.Science.ProducedPerScientist)
-	assert.Equal(t, int64(3), vPlanet.Science.ProducedPerBuilding)
+	assert.Equal(t, int64(6), vPlanet.Science.ProducedPerScientist)
+	assert.Equal(t, int64(4), vPlanet.Science.ProducedPerBuilding)
 }
 
 func TestGame_VisiblePlanet_JsonOmitsLegacyPopAssignments(t *testing.T) {
@@ -130,4 +130,62 @@ func TestGame_VisiblePlanet_JsonOmitsLegacyPopAssignments(t *testing.T) {
 	assert.NotNil(t, industry)
 	assert.NotNil(t, food)
 	assert.NotNil(t, science)
+}
+
+func TestGame_ConstructingBuilding_CompletesAfterProductionCostIsCovered(t *testing.T) {
+	g, _ := game.NewGame("test_player", 1, "#FFFFFF")
+	planet := g.Galaxy.Stars[0].Planets[0]
+	planet.Food.Farmers = 4
+	planet.Industry.Workers = 10
+	planet.Science.Scientists = 0
+	planet.MineralClass = model.PlanetMineralAbundant
+
+	automatedFactory := g.Resources.Buildings[1]
+	err := g.BuildOnPlanet(planet.ID, 1, automatedFactory.ID)
+	assert.NoError(t, err)
+	assert.True(t, planet.IsBuilding)
+	assert.Equal(t, "Automated Factory", planet.CurrentProject.Name)
+	assert.Equal(t, automatedFactory.Cost, planet.BuildBucket)
+
+	err = g.Turn(1, model.Commands{})
+	assert.NoError(t, err)
+	assert.True(t, planet.IsBuilding)
+	assert.Equal(t, int64(30), planet.BuildBucket)
+	assert.Empty(t, planet.Buildings)
+
+	err = g.Turn(1, model.Commands{})
+	assert.NoError(t, err)
+	assert.False(t, planet.IsBuilding)
+	assert.Equal(t, int64(0), planet.BuildBucket)
+	assert.Len(t, planet.Buildings, 1)
+	assert.Equal(t, "Automated Factory", planet.Buildings[0].Name)
+}
+
+func TestGame_BuildOnPlanet_TradeGoodsClearsCurrentProject(t *testing.T) {
+	g, _ := game.NewGame("test_player", 1, "#FFFFFF")
+	planet := g.Galaxy.Stars[0].Planets[0]
+
+	automatedFactory := g.Resources.Buildings[1]
+	err := g.BuildOnPlanet(planet.ID, 1, automatedFactory.ID)
+	assert.NoError(t, err)
+
+	err = g.BuildOnPlanet(planet.ID, 1, 0)
+	assert.NoError(t, err)
+	assert.False(t, planet.IsBuilding)
+	assert.Equal(t, "", planet.CurrentProject.Name)
+	assert.Equal(t, int64(0), planet.BuildBucket)
+}
+
+func TestGame_BuildOnPlanet_RejectsAlreadyBuiltBuilding(t *testing.T) {
+	g, _ := game.NewGame("test_player", 1, "#FFFFFF")
+	planet := g.Galaxy.Stars[0].Planets[0]
+	automatedFactory := g.Resources.Buildings[1]
+	planet.Buildings = append(planet.Buildings, automatedFactory)
+
+	err := g.BuildOnPlanet(planet.ID, 1, automatedFactory.ID)
+
+	assert.Error(t, err)
+	assert.False(t, planet.IsBuilding)
+	assert.Equal(t, "", planet.CurrentProject.Name)
+	assert.Equal(t, int64(0), planet.BuildBucket)
 }

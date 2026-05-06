@@ -6,7 +6,8 @@ import type {
   ApiShipParts,
   ApiStatusResponse,
 } from './types/api';
-import type { MovePopulationCommand, ShipDesignForm } from './types/domain';
+import type { ShipDesignForm } from './types/domain';
+import type { MovePopulationCommand } from './types/commands';
 import { normalizeServerUrl } from './utils';
 
 type JsonHeaders = Record<string, string>;

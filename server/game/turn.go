@@ -39,7 +39,7 @@ func planetTurn(p *Planet, commands Commands) {
 		}
 	}
 
-	industryProduced := p.Industry.Workers * IndustryPerMineralClass(p.MineralClass)
+	industryProduced := Industry(p)
 
 	// Is this a new project or is it ongoing?
 	if p.IsBuilding {

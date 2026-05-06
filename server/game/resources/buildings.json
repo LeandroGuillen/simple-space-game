@@ -2,11 +2,15 @@
   "buildings": [
     {
       "name": "Capitol",
+      "description": "Administrative heart of the empire. Placeholder capital building for now.",
+      "icon": "🏛️",
       "cost": 100,
       "maintenance": 1
     },
     {
       "name": "Automated Factory",
+      "description": "Robotic assembly lines that add flat production and improve each worker's industrial output.",
+      "icon": "🏭",
       "cost": 60,
       "maintenance": 1,
       "effects": [
@@ -20,6 +24,8 @@
     },
     {
       "name": "Hydroponic Farm",
+      "description": "Orbital and controlled-environment farming that provides extra food for the colony.",
+      "icon": "🌾",
       "cost": 60,
       "maintenance": 1,
       "effects": [

@@ -2,8 +2,8 @@ package server
 
 import (
 	"net/http"
-	"ssg/ws"
 	"ssg/game"
+	"ssg/ws"
 	"sync"
 	"time"
 

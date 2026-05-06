@@ -8,11 +8,20 @@ export type ShipDesignForm = {
   fuelCell: string;
 };
 
+export type BuildingEffectViewModel = {
+  name: string;
+  description: string;
+  bonus: number;
+};
+
 export type BuildingViewModel = {
   id: number;
   name: string;
+  description: string;
+  icon: string;
   cost: number;
   maintenance: number;
+  effects: BuildingEffectViewModel[];
 };
 
 export type PlanetViewModel = {

@@ -32,11 +32,15 @@ export type ApiEffect = {
   industryBonus?: number;
   flatIndustryBonus?: number;
   flatAgricultureBonus?: number;
+  scienceBonus?: number;
+  flatScienceBonus?: number;
 };
 
 export type ApiBuilding = {
   id?: number;
   name?: string;
+  description?: string;
+  icon?: string;
   cost?: number;
   maintenance?: number;
   effects?: ApiEffect[];

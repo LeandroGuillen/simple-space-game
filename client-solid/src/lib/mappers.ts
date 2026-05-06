@@ -3,6 +3,7 @@ import type {
   ApiBuilding,
   ApiComputer,
   ApiDrive,
+  ApiEffect,
   ApiFuelCell,
   ApiGame,
   ApiHullSize,
@@ -148,8 +149,29 @@ function mapBuilding(building: ApiBuilding): BuildingViewModel {
   return {
     id: building.id ?? 0,
     name: building.name ?? 'Unknown building',
+    description: building.description ?? '',
+    icon: building.icon ?? '🏗️',
     cost: building.cost ?? 0,
     maintenance: building.maintenance ?? 0,
+    effects: building.effects?.map(mapBuildingEffect) ?? [],
+  };
+}
+
+function mapBuildingEffect(effect: ApiEffect) {
+  if (effect.name) {
+    return {
+      name: effect.name,
+      description: effect.description ?? '',
+      bonus: effect.bonus ?? 0,
+    };
+  }
+
+  const dynamicNames = ['industryBonus', 'flatIndustryBonus', 'flatAgricultureBonus', 'scienceBonus', 'flatScienceBonus'] as const;
+  const name = dynamicNames.find((candidate) => effect[candidate] !== undefined) ?? 'unknown';
+  return {
+    name,
+    description: effect.description ?? '',
+    bonus: name === 'unknown' ? 0 : (effect[name] ?? 0),
   };
 }
 
