@@ -26,6 +26,7 @@
 
 .feature-header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: flex-start;
   gap: 24px;
@@ -82,6 +83,44 @@
         font-size: 0.75rem;
       }
     }
+
+    & .income-metric {
+      position: relative;
+      cursor: help;
+      width: fit-content;
+      align-items: center;
+    }
+
+    & .income-value {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 20px;
+
+      & .income-icon {
+        color: inherit;
+        font-size: 0.9rem;
+        letter-spacing: 0;
+        text-transform: none;
+      }
+    }
+
+    & .income-metric:hover .income-tooltip {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    & .income-tooltip {
+      top: calc(100% + 8px);
+      left: 0;
+      z-index: 30;
+    }
+
+  }
+
+  & > .construction-panel {
+    flex: 0 1 420px;
+    min-width: 320px;
   }
 
   & .planet-info {
@@ -194,9 +233,10 @@
 }
 
 .construction-panel {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 8px;
 }
 
 .construction-widget {
@@ -207,9 +247,9 @@
   color: var(--text);
   display: grid;
   grid-template-columns: auto 1fr auto;
-  gap: 14px;
+  gap: 12px;
   align-items: center;
-  padding: 14px;
+  padding: 10px 12px;
   cursor: pointer;
   text-align: left;
 }
@@ -220,14 +260,14 @@
 }
 
 .construction-widget-icon {
-  width: 52px;
-  height: 52px;
+  width: 42px;
+  height: 42px;
   display: grid;
   place-items: center;
-  border-radius: 14px;
+  border-radius: var(--radius-sm);
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--rule);
-  font-size: 30px;
+  font-size: 24px;
 }
 
 .construction-detail-icon {
@@ -243,12 +283,12 @@
 }
 
 .construction-widget-body strong {
-  font-size: 1.05rem;
+  font-size: 0.95rem;
 }
 
 .construction-muted {
   color: var(--text-dim);
-  font-size: 0.82rem;
+  font-size: 0.76rem;
 }
 
 .construction-widget-action {
@@ -261,7 +301,7 @@
 
 .construction-progress {
   overflow: hidden;
-  height: 10px;
+  height: 8px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--rule);
@@ -280,13 +320,24 @@
   justify-content: space-between;
   gap: 12px;
   color: var(--text-dim);
-  font-size: 0.78rem;
+  font-size: 0.74rem;
+  min-height: 1em;
 }
 
 .construction-chooser {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 50;
+  width: min(620px, calc(100vw - 40px));
   display: grid;
   grid-template-columns: minmax(180px, 0.8fr) minmax(240px, 1.2fr);
   gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elev);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.34);
 }
 
 .construction-project-list {
@@ -368,8 +419,29 @@
   font-weight: 700;
 }
 
+.construction-chooser-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
+
 @media (max-width: 720px) {
   .construction-chooser {
     grid-template-columns: 1fr;
+    left: 0;
+    right: auto;
+    width: 100%;
+  }
+
+  .feature-header {
+    flex-direction: column;
+    align-items: stretch;
+
+    & > .construction-panel {
+      width: 100%;
+      min-width: 0;
+    }
   }
 }

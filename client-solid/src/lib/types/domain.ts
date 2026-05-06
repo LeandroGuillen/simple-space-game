@@ -52,6 +52,13 @@ export type PlanetViewModel = {
     produced_per_scientist: number;
     produced_per_building: number;
   };
+  income: {
+    taxes: number;
+    buildings: number;
+    tradeGoods: number;
+    maintenance: number;
+    total: number;
+  };
   currentProject: BuildingViewModel | null;
   buildQueue: BuildingViewModel[];
   buildings: BuildingViewModel[];

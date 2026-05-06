@@ -23,6 +23,66 @@ func TestGame_TurnBasic(t *testing.T) {
 	assert.Equal(t, g.CurrentTurn, int64(3504))
 }
 
+func TestGame_TurnAddsColonyIncomeToTreasury(t *testing.T) {
+	g, _ := game.NewGame("test_player", 1, "")
+	player := g.Players[0]
+	planet := g.Galaxy.Stars[0].Planets[0]
+	planet.Population = 8000
+	planet.Food.Farmers = 4
+	planet.Industry.Workers = 7
+	planet.Science.Scientists = 1
+	planet.MineralClass = model.PlanetMineralAbundant
+	planet.Buildings = []model.Building{
+		{Name: "Automated Factory", Maintenance: 1},
+		{Name: "Hydroponic Farm", Maintenance: 1},
+	}
+
+	err := g.Turn(1, model.Commands{})
+
+	assert.NoError(t, err)
+	assert.Equal(t, int64(16), planet.Income.Total)
+	assert.Equal(t, int64(16), player.Treasury)
+	assert.Equal(t, int64(8), planet.Income.Taxes)
+	assert.Equal(t, int64(10), planet.Income.TradeGoods)
+	assert.Equal(t, int64(2), planet.Income.Maintenance)
+}
+
+func TestGame_TurnIncomeExcludesTradeGoodsWhileBuilding(t *testing.T) {
+	g, _ := game.NewGame("test_player", 1, "")
+	player := g.Players[0]
+	planet := g.Galaxy.Stars[0].Planets[0]
+	err := g.BuildOnPlanet(planet.ID, 1, g.Resources.Buildings[1].ID)
+	assert.NoError(t, err)
+
+	err = g.Turn(1, model.Commands{})
+
+	assert.NoError(t, err)
+	assert.Equal(t, int64(8), planet.Income.Taxes)
+	assert.Equal(t, int64(0), planet.Income.TradeGoods)
+	assert.Equal(t, int64(8), planet.Income.Total)
+	assert.Equal(t, int64(8), player.Treasury)
+}
+
+func TestTradeGoodsFromOutputUsesIndustryAndFoodSurplus(t *testing.T) {
+	assert.Equal(t, int64(4), game.TradeGoodsFromOutput(8, 0))
+	assert.Equal(t, int64(4), game.TradeGoodsFromOutput(8, -2))
+	assert.Equal(t, int64(5), game.TradeGoodsFromOutput(8, 2))
+	assert.Equal(t, int64(6), game.TradeGoodsFromOutput(9, 5))
+}
+
+func TestFoodSurplusSubtractsConsumedPopulationFood(t *testing.T) {
+	planet := &model.Planet{
+		Population: 8000,
+		Food: model.PlanetFoodOutput{
+			Farmers:             4,
+			ProducedPerFarmer:   2,
+			ProducedPerBuilding: 0,
+		},
+	}
+
+	assert.Equal(t, int64(0), game.FoodSurplus(planet))
+}
+
 func TestGame_Turn_AppliesPopulationGrowth(t *testing.T) {
 	g, _ := game.NewGame("test_player", 1, "")
 
@@ -31,7 +91,7 @@ func TestGame_Turn_AppliesPopulationGrowth(t *testing.T) {
 
 	err := g.Turn(1, model.Commands{})
 	assert.NoError(t, err)
-	assert.Equal(t, int64(7873), planet.Population)
+	assert.Equal(t, int64(8073), planet.Population)
 }
 
 func TestGame_TurnWithMovePopulationCommand(t *testing.T) {

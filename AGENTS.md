@@ -46,3 +46,5 @@ Pull requests should include a brief description, commands run, linked issues if
 ## Agent-Specific Instructions
 
 Do not rewrite generated enum string files unless the enum source changes. Treat `server/game/resources/*.json` as gameplay data: keep edits minimal, valid JSON, and covered by loader or behavior tests where practical.
+
+For frontend work, use `npm run build` to verify compilation. Do not start a dev server by default; if runtime verification is needed, first try the already-running server and only start one if none is available.

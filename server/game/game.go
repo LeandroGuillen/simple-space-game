@@ -81,7 +81,9 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 	}
 
 	// empire turn processing
-	player.Treasury += 2
+	for _, colony := range colonyList {
+		player.Treasury += colony.Income.Total
+	}
 	g.CurrentTurn += 1
 	return nil
 }
@@ -104,9 +106,11 @@ func (g *Game) CreateCapitalPlanet(ownerID, planetID uint) error {
 
 	planet.Owner = ownerID
 	planet.Population = 8000
+	planet.Food.Farmers = 4
 	planet.Industry.Workers = 3
-	planet.Food.Farmers = 2
-	planet.Science.Scientists = 3
+	planet.Science.Scientists = 1
+	hydratePlanetOutputs(planet)
+	hydratePlanetIncome(planet)
 
 	// TODO add building functionality
 	//AddBuilding(planet, g.Resources.Buildings[0])
@@ -164,6 +168,8 @@ func (g *Game) BuildOnPlanet(planetID, ownerID, buildingID uint) error {
 		planet.CurrentProject = Building{}
 		planet.IsBuilding = false
 		planet.BuildBucket = 0
+		hydratePlanetOutputs(planet)
+		hydratePlanetIncome(planet)
 		return nil
 	}
 
@@ -188,6 +194,8 @@ func (g *Game) BuildOnPlanet(planetID, ownerID, buildingID uint) error {
 	planet.CurrentProject = building
 	planet.IsBuilding = true
 	planet.BuildBucket = building.Cost
+	hydratePlanetOutputs(planet)
+	hydratePlanetIncome(planet)
 
 	return nil
 }

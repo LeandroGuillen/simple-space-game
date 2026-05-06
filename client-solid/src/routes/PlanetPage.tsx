@@ -1,5 +1,5 @@
 import { useParams } from '@solidjs/router';
-import { createMemo, Show } from 'solid-js';
+import { createMemo, For, Show } from 'solid-js';
 import { ConstructionPanel } from '../components/ConstructionPanel';
 import { PlanetVisual } from '../components/PlanetVisual';
 import { PopulationPanel } from '../components/PopulationPanel';
@@ -39,6 +39,52 @@ export function PlanetPage() {
 
     return Math.floor(basicIncrement - foodLackPenalty);
   });
+  const incomeBreakdown = createMemo(() => {
+    const current = planet();
+    if (!current) {
+      return { taxes: 0, buildings: 0, tradeGoods: 0, maintenance: 0, total: 0 };
+    }
+
+    let farmers = current.food.farmers;
+    let workers = current.industry.workers;
+    for (const move of state.pendingCommands.movePopulation.filter((cmd) => cmd.planetId === current.id)) {
+      if (move.to === 'farmers') {
+        farmers += move.count;
+      }
+      if (move.from === 'farmers') {
+        farmers -= move.count;
+      }
+      if (move.to === 'workers') {
+        workers += move.count;
+      }
+      if (move.from === 'workers') {
+        workers -= move.count;
+      }
+    }
+
+    const food = Math.max(0, farmers) * current.food.produced_per_farmer + current.food.produced_per_building;
+    const foodSurplus = Math.max(0, food - Math.floor(current.population / 1000));
+    const industry = Math.max(0, workers) * current.industry.produced_per_worker + current.industry.produced_per_building;
+    const tradeGoods = current.isBuilding ? 0 : Math.floor(foodSurplus / 2) + Math.floor(industry / 2);
+    const total = current.income.taxes + current.income.buildings + tradeGoods - current.income.maintenance;
+
+    return {
+      taxes: current.income.taxes,
+      buildings: current.income.buildings,
+      tradeGoods,
+      maintenance: current.income.maintenance,
+      total,
+    };
+  });
+  const incomeIcons = createMemo(() => {
+    const total = Math.max(0, incomeBreakdown().total);
+    const bags = Math.floor(total / 10);
+    const coins = total % 10;
+    return [
+      ...Array.from({ length: bags }, () => '💰'),
+      ...Array.from({ length: coins }, () => '🪙'),
+    ];
+  });
 
   return (
     <Show when={planet()} fallback={<section class='panel'>Planet not found.</section>}>
@@ -65,9 +111,35 @@ export function PlanetPage() {
                     <span class='starving-warning'>{projectedPopGrowth()} this turn</span>
                   </Show>
                 </article>
-                <article class='metric-card'>
+                <article class='metric-card income-metric' aria-label={`Income ${incomeBreakdown().total} BC`}>
                   <span>Income</span>
-                  <strong>50 BC</strong>
+                  <div class='income-value'>
+                    <For each={incomeIcons()}>
+                      {(icon) => <span class='pop-stat-icon income-icon'>{icon}</span>}
+                    </For>
+                  </div>
+                  <div class='pop-output-tooltip income-tooltip'>
+                    <div class='pop-output-tooltip-row pop-output-tooltip-row--total'>
+                      <span>Total income:</span>
+                      <strong>{incomeBreakdown().total} BC</strong>
+                    </div>
+                    <div class='pop-output-tooltip-row'>
+                      <span>Taxes:</span>
+                      <strong>{incomeBreakdown().taxes} BC</strong>
+                    </div>
+                    <div class='pop-output-tooltip-row'>
+                      <span>Buildings:</span>
+                      <strong>{incomeBreakdown().buildings} BC</strong>
+                    </div>
+                    <div class='pop-output-tooltip-row'>
+                      <span>Trade Goods:</span>
+                      <strong>{incomeBreakdown().tradeGoods} BC</strong>
+                    </div>
+                    <div class='pop-output-tooltip-row'>
+                      <span>Maintenance:</span>
+                      <strong>-{incomeBreakdown().maintenance} BC</strong>
+                    </div>
+                  </div>
                 </article>
                 <article class='metric-card'>
                   <span>Morale</span>
@@ -79,10 +151,10 @@ export function PlanetPage() {
                   </div>
                 </article>
               </div>
+              <ConstructionPanel planet={currentPlanet()} />
             </div>
           </section>
 
-          <ConstructionPanel planet={currentPlanet()} />
           <PopulationPanel planet={currentPlanet()} />
         </section>
       )}

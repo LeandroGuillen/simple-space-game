@@ -115,6 +115,7 @@ function mapPlanet(planet: ApiPlanet): PlanetViewModel {
     food: planet.food,
     industry: planet.industry,
     science: planet.science,
+    income: mapIncome(planet),
     marines: planet.marines,
     armor: planet.armor,
     currentProject: hasBuildingName(planet.current_project) ? mapBuilding(planet.current_project) : null,
@@ -129,6 +130,38 @@ function mapPlanet(planet: ApiPlanet): PlanetViewModel {
 
 function hasBuildingName(building: ApiBuilding | undefined): building is ApiBuilding {
   return Boolean(building?.name);
+}
+
+function mapIncome(planet: ApiPlanet) {
+  if (planet.income) {
+    return {
+      taxes: planet.income.taxes,
+      buildings: planet.income.buildings,
+      tradeGoods: planet.income.trade_goods,
+      maintenance: planet.income.maintenance,
+      total: planet.income.total,
+    };
+  }
+
+  const taxes = Math.floor(planet.population / 1000);
+  const food = planet.food.farmers * planet.food.produced_per_farmer + planet.food.produced_per_building;
+  const foodSurplus = Math.max(0, food - taxes);
+  const industry = planet.industry.workers * planet.industry.produced_per_worker + planet.industry.produced_per_building;
+  const tradeGoods = planet.is_building ? 0 : Math.floor(foodSurplus / 2) + Math.floor(industry / 2);
+  const maintenance = (planet.buildings ?? []).reduce((total, building) => total + (building.maintenance ?? 0), 0);
+  const buildings = (planet.buildings ?? []).reduce(
+    (total, building) =>
+      total + (building.effects ?? []).reduce((effectTotal, effect) => effectTotal + (effect.name === 'income' ? (effect.bonus ?? 0) : 0), 0),
+    0,
+  );
+
+  return {
+    taxes,
+    buildings,
+    tradeGoods,
+    maintenance,
+    total: taxes + buildings + tradeGoods - maintenance,
+  };
 }
 
 function mapShipDesign(ship: ApiShipDesign, isCommon: boolean): ShipDesignViewModel {

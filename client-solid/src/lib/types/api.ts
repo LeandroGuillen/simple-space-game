@@ -72,6 +72,13 @@ export type ApiPlanet = {
     produced_per_scientist: number;
     produced_per_building: number;
   };
+  income?: {
+    taxes: number;
+    buildings: number;
+    trade_goods: number;
+    maintenance: number;
+    total: number;
+  };
   marines: number;
   armor: number;
   current_project?: ApiBuilding;

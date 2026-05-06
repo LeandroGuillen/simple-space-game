@@ -282,19 +282,6 @@ export function PopulationPanel(props: PopulationPanelProps) {
       <p class='eyebrow'>Population</p>
 
       <div class={`pop-grid ${isDragging() ? 'is-dragging' : ''}`}>
-        <div class='pop-stats-row'>
-          <div class='pop-stat'>
-            <span class='pop-stat-label'>Income</span>
-            <div class='pop-stat-icons'>
-              <span class='pop-stat-icon income-icon'>🪙</span>
-              <span class='pop-stat-icon income-icon'>🪙</span>
-              <span class='pop-stat-icon income-icon'>🪙</span>
-              <span class='pop-stat-icon income-icon'>💰</span>
-              <span class='pop-stat-icon income-icon'>💰</span>
-            </div>
-          </div>
-        </div>
-
         <div class={`pop-row ${isDragging() ? 'pop-row--drag-active' : ''}`}>
           <span class='pop-stat-label'>Food</span>
           <div class='pop-output pop-output--food'>

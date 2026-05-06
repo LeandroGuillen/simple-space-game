@@ -62,6 +62,7 @@ func planetTurn(p *Planet, commands Commands) error {
 		// if nothing to work on, save production
 		p.IndustryStack += industryProduced
 	}
+	hydratePlanetIncome(p)
 
 	return nil
 }
