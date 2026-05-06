@@ -23,7 +23,7 @@ func TestGame_TurnBasic(t *testing.T) {
 	assert.Equal(t, g.CurrentTurn, int64(3504))
 }
 
-func TestGame_Turn_GrowsPopulation(t *testing.T) {
+func TestGame_Turn_AppliesPopulationGrowth(t *testing.T) {
 	g, _ := game.NewGame("test_player", 1, "")
 
 	planet := g.Galaxy.Stars[0].Planets[0]
@@ -31,7 +31,7 @@ func TestGame_Turn_GrowsPopulation(t *testing.T) {
 
 	err := g.Turn(1, model.Commands{})
 	assert.NoError(t, err)
-	assert.Equal(t, int64(8040), planet.Population)
+	assert.Equal(t, int64(7873), planet.Population)
 }
 
 func TestGame_TurnWithMovePopulationCommand(t *testing.T) {
@@ -84,11 +84,11 @@ func TestGame_TurnPopUnitIncrease(t *testing.T) {
 		scientistsExpected int64
 	}{
 		{"1 farmer increased", 3999, 3, 4, 1, 1, 1, 1},
-		{"1 worker increased", 7999, 2, 2, 3, 4, 2, 2},
-		{"1 scientist increased", 7999, 2, 2, 2, 2, 3, 4},
+		{"worker unchanged after food penalty", 7999, 2, 2, 3, 3, 2, 2},
+		{"scientist unchanged after food penalty", 7999, 2, 2, 2, 2, 3, 3},
 		{"no increase", 3199, 3, 3, 1, 1, 1, 1},
-		{"all being equal, defaults to workers", 9999, 3, 3, 3, 4, 3, 3},
-		{"farmers and scientists are max, increase farmers", 9999, 3, 4, 2, 2, 3, 3},
+		{"all being equal, no increase after food penalty", 9999, 3, 3, 3, 3, 3, 3},
+		{"farmers and scientists unchanged after food penalty", 9999, 3, 3, 2, 2, 3, 3},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.description, func(t *testing.T) {

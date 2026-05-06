@@ -1,12 +1,15 @@
 package game
 
 import (
+	"fmt"
 	"math"
 	. "ssg/model"
 )
 
-func planetTurn(p *Planet, commands Commands) {
-	applyMovePopulationCommands(p, commands.MovePopulation)
+func planetTurn(p *Planet, commands Commands) error {
+	if err := applyMovePopulationCommands(p, commands.MovePopulation); err != nil {
+		return err
+	}
 	hydratePlanetOutputs(p)
 
 	// population growth calculations
@@ -59,10 +62,31 @@ func planetTurn(p *Planet, commands Commands) {
 		// if nothing to work on, save production
 		p.IndustryStack += industryProduced
 	}
+
+	return nil
 }
 
-func applyMovePopulationCommands(planet *Planet, commands []MovePopulationCommand) {
+func applyMovePopulationCommands(planet *Planet, commands []MovePopulationCommand) error {
 	for _, cmd := range commands {
+		if cmd.PlanetID != planet.ID {
+			continue
+		}
+		if cmd.Count <= 0 {
+			return fmt.Errorf("population move count must be positive on planet %d", cmd.PlanetID)
+		}
+		if cmd.From == cmd.To {
+			continue
+		}
+		if !isPopCategory(cmd.From) {
+			return fmt.Errorf("unknown source population category %q on planet %d", cmd.From, cmd.PlanetID)
+		}
+		if !isPopCategory(cmd.To) {
+			return fmt.Errorf("unknown target population category %q on planet %d", cmd.To, cmd.PlanetID)
+		}
+		if populationCount(planet, cmd.From) < cmd.Count {
+			return fmt.Errorf("not enough %s on planet %d", cmd.From, cmd.PlanetID)
+		}
+
 		switch cmd.From {
 		case PopCategoryFarmers:
 			planet.Food.Farmers -= cmd.Count
@@ -80,5 +104,28 @@ func applyMovePopulationCommands(planet *Planet, commands []MovePopulationComman
 		case PopCategoryScientists:
 			planet.Science.Scientists += cmd.Count
 		}
+	}
+	return nil
+}
+
+func isPopCategory(category PopCategory) bool {
+	switch category {
+	case PopCategoryFarmers, PopCategoryWorkers, PopCategoryScientists:
+		return true
+	default:
+		return false
+	}
+}
+
+func populationCount(p *Planet, category PopCategory) int64 {
+	switch category {
+	case PopCategoryFarmers:
+		return p.Food.Farmers
+	case PopCategoryWorkers:
+		return p.Industry.Workers
+	case PopCategoryScientists:
+		return p.Science.Scientists
+	default:
+		return 0
 	}
 }
