@@ -79,6 +79,7 @@ export type ApiPlanet = {
     maintenance: number;
     total: number;
   };
+  pollution?: number;
   marines: number;
   armor: number;
   current_project?: ApiBuilding;

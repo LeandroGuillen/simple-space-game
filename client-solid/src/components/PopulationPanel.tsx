@@ -1,6 +1,12 @@
 import { createMemo, createSignal, For } from 'solid-js';
 import type { MovePopulationCommand } from '../lib/types/commands';
 import type { PlanetViewModel } from '../lib/types/domain';
+import {
+  getPlanetIndustryForWorkers,
+  getPlanetPollutionDivisor,
+  getPlanetPollutionForWorkers,
+  getPlanetPollutionSize,
+} from '../lib/utils';
 import { useAppContext } from '../state/app-context';
 
 type PopCategory = 'farmers' | 'workers' | 'scientists';
@@ -184,9 +190,30 @@ export function PopulationPanel(props: PopulationPanelProps) {
     );
   };
 
-  const getIndustryOutput = () => getOutputIcons(getOutputBreakdown('workers').total, '⚡', '🔧');
+  const getIndustryOutput = () => getOutputIcons(getPlanetIndustryForWorkers(props.planet, getPopCount('workers')), '⚡', '🔧');
   const getScienceOutput = () => getOutputIcons(getOutputBreakdown('scientists').total, '🔬', '🧫');
   const getTotalPopUnits = () => getPopCount('farmers') + getPopCount('workers') + getPopCount('scientists');
+  const getPollutionDivisor = () => getPlanetPollutionDivisor(props.planet);
+  const getPollutionPlanetSize = () => getPlanetPollutionSize(props.planet);
+  const getPollution = () => getPlanetPollutionForWorkers(props.planet, getPopCount('workers'));
+  const renderPollutionIcons = () => {
+    const pollution = getPollution();
+    if (pollution === 0) {
+      return null;
+    }
+    const tens = Math.floor(pollution / 10);
+    const ones = pollution % 10;
+    return (
+      <>
+        <For each={Array.from({ length: tens })}>
+          {() => <span class='pollution-output-icon'>🌫</span>}
+        </For>
+        <For each={Array.from({ length: ones })}>
+          {() => <span class='pollution-output-icon'>☁</span>}
+        </For>
+      </>
+    );
+  };
 
   const renderFoodOutput = () => {
     const produced = getOutputBreakdown('farmers').total;
@@ -326,11 +353,24 @@ export function PopulationPanel(props: PopulationPanelProps) {
         <div class={`pop-row ${isDragging() ? 'pop-row--drag-active' : ''}`}>
           <span class='pop-stat-label'>Industry</span>
           <div class='pop-output'>
-            {getIndustryOutput()}
+            <span>{getIndustryOutput()}</span>
+            {getPollution() > 0 && (
+              <span class='pollution-output-icons' aria-label={`${getPollution()} pollution`}>
+                {renderPollutionIcons()}
+              </span>
+            )}
             <div class='pop-output-tooltip'>
               <div class='pop-output-tooltip-row pop-output-tooltip-row--total'>
-                <span>Total industry produced:</span>
+                <span>Final industry output:</span>
+                <strong>{getPlanetIndustryForWorkers(props.planet, getPopCount('workers'))}</strong>
+              </div>
+              <div class='pop-output-tooltip-row'>
+                <span>Gross industry produced:</span>
                 <strong>{getOutputBreakdown('workers').total}</strong>
+              </div>
+              <div class='pop-output-tooltip-row'>
+                <span>Pollution:</span>
+                <strong>-{getPollution()}</strong>
               </div>
               <div class='pop-output-tooltip-row'>
                 <span>From workers:</span>
@@ -339,6 +379,14 @@ export function PopulationPanel(props: PopulationPanelProps) {
               <div class='pop-output-tooltip-row'>
                 <span>From buildings:</span>
                 <strong>{getOutputBreakdown('workers').fromBuildings}</strong>
+              </div>
+              <div class='pop-output-tooltip-row pop-output-tooltip-row--detail'>
+                <span>Planet absorption:</span>
+                <strong>{getPollutionPlanetSize()}</strong>
+              </div>
+              <div class='pop-output-tooltip-row pop-output-tooltip-row--detail'>
+                <span>Cleanup divisor:</span>
+                <strong>{getPollutionDivisor()}×</strong>
               </div>
               {renderBuildingContributionRows('workers')}
             </div>

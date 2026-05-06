@@ -59,6 +59,7 @@ export type PlanetViewModel = {
     maintenance: number;
     total: number;
   };
+  pollution: number;
   currentProject: BuildingViewModel | null;
   buildQueue: BuildingViewModel[];
   buildings: BuildingViewModel[];

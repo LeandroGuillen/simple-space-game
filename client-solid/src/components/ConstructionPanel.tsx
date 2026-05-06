@@ -1,6 +1,7 @@
 import { createMemo, createSignal, For, onCleanup, onMount, Show } from 'solid-js';
 
 import type { BuildingViewModel, PlanetViewModel } from '../lib/types/domain';
+import { getPlanetIndustryForWorkers } from '../lib/utils';
 import { useAppContext } from '../state/app-context';
 
 type ConstructionPanelProps = {
@@ -59,9 +60,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     }
     return Math.max(0, farmers);
   });
-  const industryPerTurn = createMemo(
-    () => projectedWorkers() * props.planet.industry.produced_per_worker + props.planet.industry.produced_per_building,
-  );
+  const industryPerTurn = createMemo(() => getPlanetIndustryForWorkers(props.planet, projectedWorkers()));
   const foodPerTurn = createMemo(
     () => projectedFarmers() * props.planet.food.produced_per_farmer + props.planet.food.produced_per_building,
   );
@@ -113,6 +112,15 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
 
   async function buildSelectedProject() {
     await changeBuilding(props.planet.id, selectedProject().id);
+    setIsChoosing(false);
+  }
+
+  async function buildProject(project: BuildingViewModel) {
+    if (project.id !== 0 && builtBuildingIds().has(project.id)) {
+      return;
+    }
+    setSelectedProjectId(project.id);
+    await changeBuilding(props.planet.id, project.id);
     setIsChoosing(false);
   }
 
@@ -169,6 +177,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
                   class={`construction-project-option ${selectedProject().id === project.id ? 'is-selected' : ''}`}
                   disabled={state.isBusy}
                   onClick={() => selectProject(project)}
+                  onDblClick={() => void buildProject(project)}
                 >
                   <span>{project.icon}</span>
                   <span>{project.name}</span>

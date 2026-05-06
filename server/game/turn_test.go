@@ -40,10 +40,10 @@ func TestGame_TurnAddsColonyIncomeToTreasury(t *testing.T) {
 	err := g.Turn(1, model.Commands{})
 
 	assert.NoError(t, err)
-	assert.Equal(t, int64(16), planet.Income.Total)
-	assert.Equal(t, int64(16), player.Treasury)
+	assert.Equal(t, int64(12), planet.Income.Total)
+	assert.Equal(t, int64(12), player.Treasury)
 	assert.Equal(t, int64(8), planet.Income.Taxes)
-	assert.Equal(t, int64(10), planet.Income.TradeGoods)
+	assert.Equal(t, int64(6), planet.Income.TradeGoods)
 	assert.Equal(t, int64(2), planet.Income.Maintenance)
 }
 
@@ -59,8 +59,8 @@ func TestGame_TurnIncomeExcludesTradeGoodsWhileBuilding(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, int64(8), planet.Income.Taxes)
 	assert.Equal(t, int64(0), planet.Income.TradeGoods)
-	assert.Equal(t, int64(8), planet.Income.Total)
-	assert.Equal(t, int64(8), player.Treasury)
+	assert.Equal(t, int64(7), planet.Income.Total)
+	assert.Equal(t, int64(7), player.Treasury)
 }
 
 func TestTradeGoodsFromOutputUsesIndustryAndFoodSurplus(t *testing.T) {

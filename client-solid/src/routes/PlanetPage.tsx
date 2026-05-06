@@ -3,7 +3,7 @@ import { createMemo, For, Show } from 'solid-js';
 import { ConstructionPanel } from '../components/ConstructionPanel';
 import { PlanetVisual } from '../components/PlanetVisual';
 import { PopulationPanel } from '../components/PopulationPanel';
-import { findPlanet, labelForEnvironment, labelForGravity, labelForMinerals, labelForSize } from '../lib/utils';
+import { findPlanet, getPlanetIndustryForWorkers, labelForEnvironment, labelForGravity, labelForMinerals, labelForSize } from '../lib/utils';
 import { useAppContext } from '../state/app-context';
 
 export function PlanetPage() {
@@ -64,7 +64,7 @@ export function PlanetPage() {
 
     const food = Math.max(0, farmers) * current.food.produced_per_farmer + current.food.produced_per_building;
     const foodSurplus = Math.max(0, food - Math.floor(current.population / 1000));
-    const industry = Math.max(0, workers) * current.industry.produced_per_worker + current.industry.produced_per_building;
+    const industry = getPlanetIndustryForWorkers(current, workers);
     const tradeGoods = current.isBuilding ? 0 : Math.floor(foodSurplus / 2) + Math.floor(industry / 2);
     const total = current.income.taxes + current.income.buildings + tradeGoods - current.income.maintenance;
 

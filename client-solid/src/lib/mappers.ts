@@ -116,6 +116,7 @@ function mapPlanet(planet: ApiPlanet): PlanetViewModel {
     industry: planet.industry,
     science: planet.science,
     income: mapIncome(planet),
+    pollution: planet.pollution ?? 0,
     marines: planet.marines,
     armor: planet.armor,
     currentProject: hasBuildingName(planet.current_project) ? mapBuilding(planet.current_project) : null,
@@ -146,7 +147,8 @@ function mapIncome(planet: ApiPlanet) {
   const taxes = Math.floor(planet.population / 1000);
   const food = planet.food.farmers * planet.food.produced_per_farmer + planet.food.produced_per_building;
   const foodSurplus = Math.max(0, food - taxes);
-  const industry = planet.industry.workers * planet.industry.produced_per_worker + planet.industry.produced_per_building;
+  const grossIndustry = planet.industry.workers * planet.industry.produced_per_worker + planet.industry.produced_per_building;
+  const industry = Math.max(0, grossIndustry - mapPlanetPollution(planet, planet.industry.workers));
   const tradeGoods = planet.is_building ? 0 : Math.floor(foodSurplus / 2) + Math.floor(industry / 2);
   const maintenance = (planet.buildings ?? []).reduce((total, building) => total + (building.maintenance ?? 0), 0);
   const buildings = (planet.buildings ?? []).reduce(
@@ -162,6 +164,17 @@ function mapIncome(planet: ApiPlanet) {
     maintenance,
     total: taxes + buildings + tradeGoods - maintenance,
   };
+}
+
+function mapPlanetPollution(planet: ApiPlanet, workers: number) {
+  const buildingNames = (planet.buildings ?? []).map((building) => (building.name ?? '').toLowerCase());
+  const hasProcessor = buildingNames.includes('pollution processor');
+  const hasRenewer = buildingNames.includes('atmospheric renewer');
+  const divisor = hasProcessor && hasRenewer ? 8 : hasRenewer ? 4 : hasProcessor ? 2 : 1;
+  const hasNanoDisassemblers = buildingNames.includes('nano disassemblers');
+  const pollutionSize = planet.size * 2 * (hasNanoDisassemblers ? 2 : 1);
+  const dirtyProduction = Math.max(0, workers) * planet.industry.produced_per_worker;
+  return Math.max(0, Math.ceil((dirtyProduction / divisor - pollutionSize) / 2));
 }
 
 function mapShipDesign(ship: ApiShipDesign, isCommon: boolean): ShipDesignViewModel {

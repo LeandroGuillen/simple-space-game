@@ -29,6 +29,7 @@ describe('mapGame', () => {
                 food: { farmers: 2, produced_per_farmer: 2, produced_per_building: 0 },
                 industry: { workers: 3, produced_per_worker: 3, produced_per_building: 0 },
                 science: { scientists: 3, produced_per_scientist: 3, produced_per_building: 0 },
+                pollution: 2,
                 marines: 0,
                 armor: 0,
                 current_project: {
@@ -103,6 +104,7 @@ describe('mapGame', () => {
     expect(game.players[0]?.raceName).toBe('Human')
     expect(game.galaxy.stars[0]?.ownedPlanets).toBe(1)
     expect(game.galaxy.stars[0]?.planets[0]?.maxPopulation).toBe(16000)
+    expect(game.galaxy.stars[0]?.planets[0]?.pollution).toBe(2)
     expect(game.galaxy.stars[0]?.planets[0]?.currentProject?.name).toBe('Automated Factory')
     expect(game.galaxy.stars[0]?.planets[0]?.currentProject?.icon).toBe('🏭')
     expect(game.galaxy.stars[0]?.planets[0]?.currentProject?.effects).toEqual([

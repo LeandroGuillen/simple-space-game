@@ -46,4 +46,6 @@ func hydratePlanetOutputs(p *model.Planet) {
 		ProducedPerScientist: sciencePerScientist,
 		ProducedPerBuilding:  scienceFromBuildings,
 	}
+
+	hydratePlanetPollution(p)
 }

@@ -100,7 +100,37 @@ export function getPrimaryPlayer(game?: GameViewModel | null) {
 }
 
 export function getPlanetIndustry(planet: PlanetViewModel) {
-  return planet.industry.workers * planet.industry.produced_per_worker + planet.industry.produced_per_building;
+  return getPlanetIndustryForWorkers(planet, planet.industry.workers);
+}
+
+export function getPlanetGrossIndustryForWorkers(planet: PlanetViewModel, workers: number) {
+  return Math.max(0, workers) * planet.industry.produced_per_worker + planet.industry.produced_per_building;
+}
+
+export function getPlanetPollutionDivisor(planet: PlanetViewModel) {
+  const hasProcessor = planet.buildings.some((building) => building.name.toLowerCase() === "pollution processor");
+  const hasRenewer = planet.buildings.some((building) => building.name.toLowerCase() === "atmospheric renewer");
+  if (hasProcessor && hasRenewer) return 8;
+  if (hasRenewer) return 4;
+  if (hasProcessor) return 2;
+  return 1;
+}
+
+export function getPlanetPollutionSize(planet: PlanetViewModel) {
+  const hasNanoDisassemblers = planet.buildings.some((building) => building.name.toLowerCase() === "nano disassemblers");
+  return planet.size * 2 * (hasNanoDisassemblers ? 2 : 1);
+}
+
+export function getPlanetPollutionForWorkers(planet: PlanetViewModel, workers: number) {
+  const dirtyProduction = Math.max(0, workers) * planet.industry.produced_per_worker;
+  const raw = (dirtyProduction / getPlanetPollutionDivisor(planet) - getPlanetPollutionSize(planet)) / 2;
+  return Math.max(0, Math.ceil(raw));
+}
+
+export function getPlanetIndustryForWorkers(planet: PlanetViewModel, workers: number) {
+  const grossIndustry = getPlanetGrossIndustryForWorkers(planet, workers);
+  const pollution = getPlanetPollutionForWorkers(planet, workers);
+  return Math.max(0, grossIndustry - pollution);
 }
 
 export function getColonyRows(game?: GameViewModel | null): ColonyRow[] {

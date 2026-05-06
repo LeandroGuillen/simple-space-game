@@ -3,6 +3,14 @@ package game
 import . "ssg/model"
 
 func Industry(p *Planet) int64 {
+	netIndustry := GrossIndustry(p) - Pollution(p)
+	if netIndustry < 0 {
+		return 0
+	}
+	return netIndustry
+}
+
+func GrossIndustry(p *Planet) int64 {
 	// TODO add morale, tech, racial traits, etc. to this industry effort
 	var industryBonus int64 = 0
 	var flatIndustryBonus int64 = 0

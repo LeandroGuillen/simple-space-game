@@ -18,6 +18,18 @@ func TestNewGame(t *testing.T) {
 	assert.Equal(t, g.Players[0].Name, playerName, "player name is set up")
 }
 
+func TestNewGame_BuildsCapitolOnFirstPlanet(t *testing.T) {
+	g, err := game.NewGame("test_player", 1, "#FFFFFF")
+	assert.NoError(t, err)
+
+	planet := g.Galaxy.Stars[0].Planets[0]
+
+	assert.Len(t, planet.Buildings, 1)
+	assert.Equal(t, "Capitol", planet.Buildings[0].Name)
+	assert.Equal(t, g.Resources.Buildings[0].ID, planet.Buildings[0].ID)
+	assert.Equal(t, int64(1), planet.Income.Maintenance)
+}
+
 func TestGame_VisibleSystems_AreScopedPerPlayerExploration(t *testing.T) {
 	g, _ := game.NewGame("test_player", 2, "#FFFFFF")
 
@@ -150,15 +162,26 @@ func TestGame_ConstructingBuilding_CompletesAfterProductionCostIsCovered(t *test
 	err = g.Turn(1, model.Commands{})
 	assert.NoError(t, err)
 	assert.True(t, planet.IsBuilding)
-	assert.Equal(t, int64(30), planet.BuildBucket)
-	assert.Empty(t, planet.Buildings)
+	assert.Equal(t, int64(42), planet.BuildBucket)
+	assert.Len(t, planet.Buildings, 1)
+	assert.Equal(t, "Capitol", planet.Buildings[0].Name)
+
+	err = g.Turn(1, model.Commands{})
+	assert.NoError(t, err)
+	assert.True(t, planet.IsBuilding)
+	assert.Equal(t, int64(24), planet.BuildBucket)
+
+	err = g.Turn(1, model.Commands{})
+	assert.NoError(t, err)
+	assert.True(t, planet.IsBuilding)
+	assert.Equal(t, int64(6), planet.BuildBucket)
 
 	err = g.Turn(1, model.Commands{})
 	assert.NoError(t, err)
 	assert.False(t, planet.IsBuilding)
 	assert.Equal(t, int64(0), planet.BuildBucket)
-	assert.Len(t, planet.Buildings, 1)
-	assert.Equal(t, "Automated Factory", planet.Buildings[0].Name)
+	assert.Len(t, planet.Buildings, 2)
+	assert.Equal(t, "Automated Factory", planet.Buildings[1].Name)
 }
 
 func TestGame_BuildOnPlanet_TradeGoodsClearsCurrentProject(t *testing.T) {

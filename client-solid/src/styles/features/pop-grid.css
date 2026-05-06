@@ -69,6 +69,7 @@
   position: relative;
   display: flex;
   align-items: center;
+  gap: 8px;
   min-height: 32px;
   font-size: 1.15rem;
   letter-spacing: 0.05em;
@@ -100,6 +101,20 @@
 .food-output-icon--deficit {
   position: relative;
   filter: contrast(0.3) hue-rotate(-75deg);
+}
+
+.pollution-output-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  color: #9aa3a6;
+  font-size: 0.95rem;
+  letter-spacing: 0;
+}
+
+.pollution-output-icon {
+  line-height: 1;
+  filter: saturate(0.65);
 }
 
 

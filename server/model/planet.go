@@ -16,10 +16,11 @@ type Planet struct {
 	Population        int64 `json:"population"`
 	LastTurnPopGrowth int64 `json:"last_turn_pop_growth"`
 
-	Industry PlanetIndustryOutput `json:"industry"`
-	Food     PlanetFoodOutput     `json:"food"`
-	Science  PlanetScienceOutput  `json:"science"`
-	Income   PlanetIncomeOutput   `json:"income"`
+	Industry  PlanetIndustryOutput `json:"industry"`
+	Food      PlanetFoodOutput     `json:"food"`
+	Science   PlanetScienceOutput  `json:"science"`
+	Income    PlanetIncomeOutput   `json:"income"`
+	Pollution int64                `json:"pollution"`
 
 	Marines int64 `json:"marines"`
 	Armored int64 `json:"armor"`

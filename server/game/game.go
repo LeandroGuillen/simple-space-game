@@ -109,13 +109,22 @@ func (g *Game) CreateCapitalPlanet(ownerID, planetID uint) error {
 	planet.Food.Farmers = 4
 	planet.Industry.Workers = 3
 	planet.Science.Scientists = 1
+	if len(g.Resources.Buildings) > 0 {
+		addBuiltBuilding(planet, g.Resources.Buildings[0])
+	}
 	hydratePlanetOutputs(planet)
 	hydratePlanetIncome(planet)
 
-	// TODO add building functionality
-	//AddBuilding(planet, g.Resources.Buildings[0])
-
 	return nil
+}
+
+func addBuiltBuilding(planet *Planet, building Building) {
+	for _, built := range planet.Buildings {
+		if built.ID == building.ID {
+			return
+		}
+	}
+	planet.Buildings = append(planet.Buildings, building)
 }
 
 func (g *Game) ColonizePlanet(ownerID, planetID uint) error {
