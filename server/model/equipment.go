@@ -42,6 +42,7 @@ type Shield struct {
 
 type ShipSystem struct {
 	Name             string `json:"name"`
-	BeamAttackBonus  int64  `json:"beam_attack_bonus"`
-	BeamDefenseBonus int64  `json:"beam_defense_bonus"`
+	Description      string `json:"description,omitempty"`
+	BeamAttackBonus  int64  `json:"beam_attack_bonus,omitempty"`
+	BeamDefenseBonus int64  `json:"beam_defense_bonus,omitempty"`
 }

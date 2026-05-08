@@ -165,6 +165,13 @@ export type ApiFuelCell = {
   autonomy: number;
 };
 
+export type ApiShipSystem = {
+  name: string;
+  description?: string;
+  beam_attack_bonus?: number;
+  beam_defense_bonus?: number;
+};
+
 export type ApiShipDesign = {
   name: string;
   weapons?: ApiWeapon[];
@@ -227,6 +234,9 @@ export type ApiTech = {
 
 export type ApiResources = {
   ship_parts: ApiShipParts;
+  ship_system_collection?: {
+    ship_systems: ApiShipSystem[];
+  };
   building_collection?: {
     buildings: ApiBuilding[];
   };

@@ -133,5 +133,10 @@
     "name": "Doom Star Construction",
     "description": "Enables construction of Doom Star-class ships.",
     "grants": { "unlocks": { "hull_sizes": ["Doomstar"] } }
+  },
+  {
+    "name": "Moleculatronic Computer",
+    "description": "Advanced moleculatronic battle computer.",
+    "grants": { "unlocks": { "computers": ["Moleculatronic"] } }
   }
 ]

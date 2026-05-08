@@ -1,0 +1,116 @@
+{
+  "ship_systems": [
+    {
+      "name": "Reinforced Hull",
+      "description": "Significantly increases ship structural strength."
+    },
+    {
+      "name": "Heavy Armor",
+      "description": "Strong armor plating for ships and starbases."
+    },
+    {
+      "name": "Battle Pods",
+      "description": "Increases internal space on ships."
+    },
+    {
+      "name": "Troop Pods",
+      "description": "Increases marine capacity on ships."
+    },
+    {
+      "name": "Survival Pods",
+      "description": "Protects ship leaders when their ship is destroyed."
+    },
+    {
+      "name": "Fast Missile Racks",
+      "description": "Allows ships to fire missiles twice per combat turn."
+    },
+    {
+      "name": "Advanced Damage Control",
+      "description": "Improves post-combat ship repair."
+    },
+    {
+      "name": "Anti-Missile Rockets",
+      "description": "Ship point-defense weapon specialized against missiles."
+    },
+    {
+      "name": "Fighter Bays",
+      "description": "Allows ships to carry and launch interceptor fighters."
+    },
+    {
+      "name": "Assault Shuttles",
+      "description": "Enables automatic boarding of enemy ships and starbases."
+    },
+    {
+      "name": "Bomber Bays",
+      "description": "Allows ships to carry and launch bombers."
+    },
+    {
+      "name": "Heavy Fighters",
+      "description": "Allows ships to carry and launch heavy fighters."
+    },
+    {
+      "name": "Emissions Guidance System",
+      "description": "Improves missile targeting by tracking enemy ship emissions."
+    },
+    {
+      "name": "Rangemaster Targeting Unit",
+      "description": "Improves long-range weapon targeting accuracy."
+    },
+    {
+      "name": "Structural Analyzer",
+      "description": "No description provided"
+    },
+    {
+      "name": "Achilles Targeting Unit",
+      "description": "No description provided"
+    },
+    {
+      "name": "Battle Scanner",
+      "description": "No description provided"
+    },
+    {
+      "name": "Multi-Phased Shields",
+      "description": "No description provided"
+    },
+    {
+      "name": "Lightning Field",
+      "description": "No description provided"
+    },
+    {
+      "name": "Multi-Wave ECM Jammer",
+      "description": "No description provided"
+    },
+    {
+      "name": "Hard Shields",
+      "description": "No description provided"
+    },
+    {
+      "name": "Wide Area Jammer",
+      "description": "No description provided"
+    },
+    {
+      "name": "Displacement Device",
+      "description": "No description provided"
+    },
+    {
+      "name": "Subspace Teleporter",
+      "description": "No description provided"
+    },
+    {
+      "name": "Phasing Cloak",
+      "description": "No description provided"
+    },
+    {
+      "name": "Stealth Field",
+      "description": "No description provided"
+    },
+    {
+      "name": "Time Warp Facilitator",
+      "description": "No description provided"
+    },
+    {
+      "name": "Inertial Stabilizer",
+      "description": "No description provided"
+    }
+  ]
+}

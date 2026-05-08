@@ -36,6 +36,68 @@ func TestPlanetIncomeIncludesBuildingMaintenance(t *testing.T) {
 	assert.Equal(t, int64(7), income.Total)
 }
 
+func TestPlanetIncomeBonusesStackAdditively(t *testing.T) {
+	g := &Game{
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{
+				Buildings: []model.Building{
+					{
+						Name:        "Space Port",
+						Maintenance: 1,
+						Grants:      model.Grants{Modifiers: []model.Modifier{{Name: "income_bonus", Value: 0.5}}},
+					},
+					{
+						Name:        "Stock Exchange",
+						Maintenance: 2,
+						Grants:      model.Grants{Modifiers: []model.Modifier{{Name: "income_bonus", Value: 1}}},
+					},
+				},
+			},
+		},
+	}
+	planet := &model.Planet{
+		Population: 10000,
+		Buildings:  []string{"Space Port", "Stock Exchange"},
+		IsBuilding: true,
+	}
+
+	income := PlanetIncome(g, planet, 0)
+
+	assert.Equal(t, int64(10), income.Taxes)
+	assert.Equal(t, int64(3), income.Maintenance)
+	assert.Equal(t, int64(22), income.Total)
+}
+
+func TestPlanetIncomeIncludesResearchedTechBonuses(t *testing.T) {
+	g := &Game{
+		Players: []*model.Player{
+			{
+				ID:              1,
+				ResearchedTechs: []string{"Galactic Currency Exchange"},
+			},
+		},
+		Resources: &Resources{
+			TechTree: &model.TechTree{
+				AllTechs: []model.Tech{
+					{
+						Name:   "Galactic Currency Exchange",
+						Grants: model.Grants{Modifiers: []model.Modifier{{Name: "income_bonus", Value: 0.5}}},
+					},
+				},
+			},
+		},
+	}
+	planet := &model.Planet{
+		Owner:      1,
+		Population: 10000,
+		IsBuilding: true,
+	}
+
+	income := PlanetIncome(g, planet, 0)
+
+	assert.Equal(t, int64(15), income.Total)
+}
+
 func TestPlanetIncomeTradeGoodsRounding(t *testing.T) {
 	tests := []struct {
 		name             string

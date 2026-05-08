@@ -1,4 +1,17 @@
 [
+  { "name": "High Energy Focus", "description": "No description provided" },
+  { "name": "Hyper-X Capacitors", "description": "No description provided" },
+  { "name": "Inertial Nullifier", "description": "No description provided" },
+  { "name": "Scout Lab", "description": "No description provided" },
+  { "name": "Security Stations", "description": "No description provided" },
+  { "name": "Transporters", "description": "No description provided" },
+  { "name": "Shield Capacitor", "description": "No description provided" },
+  { "name": "Megafluxers", "description": "No description provided" },
+  { "name": "ECM Jammer", "description": "No description provided" },
+  { "name": "Energy Absorber", "description": "No description provided" },
+  { "name": "Cloaking Device", "description": "No description provided" },
+  { "name": "Augmented Engines", "description": "No description provided" },
+  { "name": "Automated Repair Unit", "description": "No description provided" },
   {
     "name": "Reinforced Hull",
     "description": "Significantly increases ship structural strength.",
@@ -33,5 +46,85 @@
     "name": "Advanced Damage Control",
     "description": "Improves post-combat ship repair.",
     "grants": { "unlocks": { "ship_systems": ["Advanced Damage Control"] } }
+  },
+  {
+    "name": "Emissions Guidance System",
+    "description": "Improves missile targeting by tracking enemy ship emissions.",
+    "grants": { "unlocks": { "ship_systems": ["Emissions Guidance System"] } }
+  },
+  {
+    "name": "Rangemaster Targeting Unit",
+    "description": "Improves long-range weapon targeting accuracy.",
+    "grants": { "unlocks": { "ship_systems": ["Rangemaster Targeting Unit"] } }
+  },
+  {
+    "name": "Structural Analyzer",
+    "description": "No description provided",
+    "grants": { "unlocks": { "ship_systems": ["Structural Analyzer"] } }
+  },
+  {
+    "name": "Achilles Targeting Unit",
+    "description": "No description provided",
+    "grants": { "unlocks": { "ship_systems": ["Achilles Targeting Unit"] } }
+  },
+  {
+    "name": "Battle Scanner",
+    "description": "No description provided",
+    "grants": { "unlocks": { "ship_systems": ["Battle Scanner"] } }
+  },
+  {
+    "name": "Multi-Phased Shields",
+    "description": "No description provided",
+    "grants": { "unlocks": { "ship_systems": ["Multi-Phased Shields"] } }
+  },
+  {
+    "name": "Lightning Field",
+    "description": "No description provided",
+    "grants": { "unlocks": { "ship_systems": ["Lightning Field"] } }
+  },
+  {
+    "name": "Multi-Wave ECM Jammer",
+    "description": "No description provided",
+    "grants": { "unlocks": { "ship_systems": ["Multi-Wave ECM Jammer"] } }
+  },
+  {
+    "name": "Hard Shields",
+    "description": "No description provided",
+    "grants": { "unlocks": { "ship_systems": ["Hard Shields"] } }
+  },
+  {
+    "name": "Wide Area Jammer",
+    "description": "No description provided",
+    "grants": { "unlocks": { "ship_systems": ["Wide Area Jammer"] } }
+  },
+  {
+    "name": "Displacement Device",
+    "description": "No description provided",
+    "grants": { "unlocks": { "ship_systems": ["Displacement Device"] } }
+  },
+  {
+    "name": "Subspace Teleporter",
+    "description": "No description provided",
+    "grants": { "unlocks": { "ship_systems": ["Subspace Teleporter"] } }
+  },
+  {
+    "name": "Phasing Cloak",
+    "description": "No description provided",
+    "grants": { "unlocks": { "ship_systems": ["Phasing Cloak"] } }
+  },
+  {
+    "name": "Stealth Field",
+    "description": "No description provided",
+    "grants": { "unlocks": { "ship_systems": ["Stealth Field"] } }
+  },
+  {
+    "name": "Time Warp Facilitator",
+    "description": "No description provided",
+    "grants": { "unlocks": { "ship_systems": ["Time Warp Facilitator"] } }
+  },
+  {
+    "name": "Inertial Stabilizer",
+    "description": "No description provided",
+    "grants": { "unlocks": { "ship_systems": ["Inertial Stabilizer"] } }
   }
 ]

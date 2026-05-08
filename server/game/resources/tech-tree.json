@@ -295,40 +295,53 @@
         },
         {
           "name": "Positronics",
-          "cost": 650,
+          "cost": 900,
           "available_techs": [
+            "Positronic Computer",
             "Planetary Supercomputer",
-            "Holo Simulator",
-            "Battle Computer"
-          ]
-        },
-        {
-          "name": "Cybertronics",
-          "cost": 1150,
-          "available_techs": [
-            "Cybertronic Computer",
-            "Autolab",
-            "ECM Jammer Mk II"
+            "Holo Simulator"
           ]
         },
         {
           "name": "Artificial Consciousness",
-          "cost": 2000,
+          "cost": 1500,
           "available_techs": [
-            "Android Workers",
-            "Sentient Computer",
-            "Cyborg Factory"
+            "Emissions Guidance System",
+            "Rangemaster Targeting Unit",
+            "Cyber Security Link"
           ]
         },
         {
-          "name": "Hyper-Consciousness",
-          "cost": 3500,
-          "available_techs": ["Hyper-Conscious Computer", "AI Colony Ship"]
+          "name": "Cybertronics",
+          "cost": 2750,
+          "available_techs": [
+            "Cybertronic Computer",
+            "Autolab",
+            "Structural Analyzer"
+          ]
         },
         {
-          "name": "Nanoelectronics",
+          "name": "Cybertechnics",
+          "cost": 3500,
+          "available_techs": [
+            "Android Farmers",
+            "Android Workers",
+            "Android Scientists"
+          ]
+        },
+        {
+          "name": "Galactic Networking",
+          "cost": 4500,
+          "available_techs": ["Virtual Reality Network", "Galactic Cybernet"]
+        },
+        {
+          "name": "Moleculatronics",
           "cost": 6000,
-          "available_techs": ["Nano Computer"]
+          "available_techs": [
+            "Pleasure Dome",
+            "Moleculatronic Computer",
+            "Achilles Targeting Unit"
+          ]
         }
       ]
     },
@@ -342,31 +355,46 @@
         },
         {
           "name": "Advanced Biology",
-          "cost": 250,
-          "available_techs": ["Soil Enrichment", "Cloning Center"]
-        },
-        {
-          "name": "Genetic Engineering",
-          "cost": 650,
-          "available_techs": ["Bio Toxin", "Bio Enhancement", "Bio Suppressant"]
-        },
-        {
-          "name": "Evolutionary Genetics",
-          "cost": 1150,
+          "cost": 400,
           "available_techs": [
-            "Evolutionary Mutation",
-            "Genetic Engineering Lab"
+            "Soil Enrichment",
+            "Cloning Center",
+            "Death Spores"
           ]
         },
         {
-          "name": "Cyber Biology",
-          "cost": 2000,
-          "available_techs": ["Cyborging", "Bio-Androids"]
+          "name": "Genetic Engineering",
+          "cost": 900,
+          "available_techs": ["Telepathic Training", "Microbiotics"]
         },
         {
-          "name": "Sub-Atomic Biology",
+          "name": "Genetic Mutations",
+          "cost": 1150,
+          "available_techs": ["Terraforming"]
+        },
+        {
+          "name": "Macro Genetics",
+          "cost": 1500,
+          "available_techs": ["Subterranean Farms", "Weather Controller"]
+        },
+        {
+          "name": "Evolutionary Genetics",
+          "cost": 2750,
+          "available_techs": ["Psionics", "Heightened Intelligence"]
+        },
+        {
+          "name": "Artificial Life",
           "cost": 4500,
-          "available_techs": ["Universal Antidote", "Immortality"]
+          "available_techs": ["Bio Terminator", "Universal Antidote"]
+        },
+        {
+          "name": "Trans Genetics",
+          "cost": 7500,
+          "available_techs": [
+            "Biomorphic Fungi",
+            "Gaia Transformation",
+            "Evolutionary Mutation"
+          ]
         }
       ]
     },
@@ -380,38 +408,70 @@
           "available_techs": ["Laser Cannon", "Laser Rifle", "Space Scanner"]
         },
         {
-          "name": "Advanced Physics",
+          "name": "Fusion Physics",
           "cost": 150,
-          "available_techs": ["Gauss Cannon", "Hyper-X Ray", "Subspace Scanner"]
+          "available_techs": ["Fusion Beam", "Fusion Rifle"]
         },
         {
-          "name": "Particle Physics",
-          "cost": 400,
+          "name": "Tachyon Physics",
+          "cost": 250,
           "available_techs": [
-            "Particle Beam",
-            "Neutron Blaster",
-            "Inertial Nullifier"
+            "Tachyon Communications",
+            "Tachyon Scanner",
+            "Battle Scanner"
           ]
         },
         {
-          "name": "High Energy Physics",
+          "name": "Neutrino Physics",
           "cost": 900,
-          "available_techs": ["Phasor", "Auto Blaster", "Graviton Beam"]
+          "available_techs": ["Neutron Blaster", "Neutron Scanner"]
+        },
+        {
+          "name": "Artificial Gravity",
+          "cost": 1150,
+          "available_techs": [
+            "Tractor Beam",
+            "Graviton Beam",
+            "Gravity Generator"
+          ]
+        },
+        {
+          "name": "Subspace Physics",
+          "cost": 1500,
+          "available_techs": ["Subspace Communications", "Jump Gate"]
+        },
+        {
+          "name": "Multi-Phased Physics",
+          "cost": 2000,
+          "available_techs": ["Phasors", "Phasor Rifle", "Multi-Phased Shields"]
         },
         {
           "name": "Plasma Physics",
-          "cost": 2000,
-          "available_techs": ["Plasma Cannon", "Plasma Rifle", "Stasis Field"]
+          "cost": 3500,
+          "available_techs": ["Plasma Cannon", "Plasma Rifle", "Plasma Web"]
         },
         {
-          "name": "Graviton Physics",
-          "cost": 3500,
-          "available_techs": ["Graviton Cannon", "Disruptor Cannon", "Pulsar"]
+          "name": "Multi-Dimensional Physics",
+          "cost": 4500,
+          "available_techs": ["Disruptor Cannon", "Dimensional Portal"]
+        },
+        {
+          "name": "Hyper-Dimensional Physics",
+          "cost": 4500,
+          "available_techs": [
+            "Hyperspace Communications",
+            "Mauler Device",
+            "Sensors"
+          ]
         },
         {
           "name": "Temporal Physics",
-          "cost": 6000,
-          "available_techs": ["Temporal Field", "Mauler Device"]
+          "cost": 15000,
+          "available_techs": [
+            "Time Warp Facilitator",
+            "Stellar Converter",
+            "Star Gate"
+          ]
         }
       ]
     },
@@ -424,33 +484,77 @@
           "available_techs": ["Class I Shield", "Mass Driver", "ECM Jammer"]
         },
         {
-          "name": "Electromagnetic Fields",
+          "name": "Gravitic Fields",
           "cost": 650,
           "available_techs": [
-            "Class III Shield",
-            "Gauss Cannon Mk II",
-            "Cloaking Device"
+            "Anti-Grav Harness",
+            "Inertial Stabilizer",
+            "Gyro Destabilizer"
           ]
         },
         {
-          "name": "High Energy Fields",
-          "cost": 1150,
-          "available_techs": ["Class V Shield", "Personal Deflector Shield"]
+          "name": "Magneto Gravitics",
+          "cost": 900,
+          "available_techs": [
+            "Class III Shield",
+            "Planetary Radiation Shield",
+            "Warp Dissipator"
+          ]
         },
         {
-          "name": "Plasma Fields",
+          "name": "Electromagnetic Refraction",
+          "cost": 1500,
+          "available_techs": [
+            "Stealth Field",
+            "Personal Shield",
+            "Stealth Suit"
+          ]
+        },
+        {
+          "name": "Warp Fields",
           "cost": 2000,
-          "available_techs": ["Class VII Shield", "Black Hole Generator"]
+          "available_techs": ["Pulsar", "Warp Interdictor", "Lightning Field"]
         },
         {
-          "name": "Multi-Phased Fields",
+          "name": "Subspace Fields",
+          "cost": 2750,
+          "available_techs": [
+            "Class V Shield",
+            "Multi-Wave ECM Jammer",
+            "Gauss Cannon"
+          ]
+        },
+        {
+          "name": "Distortion Fields",
           "cost": 3500,
-          "available_techs": ["Class X Shield", "Phasor Rifle", "Stasis Shield"]
+          "available_techs": ["Cloaking Device", "Stasis Field", "Hard Shields"]
         },
         {
-          "name": "Hyper-Advanced Fields",
-          "cost": 6000,
-          "available_techs": ["Class XV Shield", "Inertial Nullifier Mk II"]
+          "name": "Quantum Fields",
+          "cost": 4500,
+          "available_techs": [
+            "Class VII Shield",
+            "Planetary Flux Shield",
+            "Wide Area Jammer"
+          ]
+        },
+        {
+          "name": "Transwarp Fields",
+          "cost": 7500,
+          "available_techs": [
+            "Displacement Device",
+            "Subspace Teleporter",
+            "Inertial Nullifier"
+          ]
+        },
+        {
+          "name": "Temporal Fields",
+          "cost": 15000,
+          "available_techs": [
+            "Class X Shield",
+            "Planetary Barrier Shield",
+            "Phasing Cloak"
+          ]
         }
       ]
     }

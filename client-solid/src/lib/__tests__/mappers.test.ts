@@ -72,6 +72,14 @@ describe('mapGame', () => {
           fuel_cells: [],
           shields: [],
         },
+        ship_system_collection: {
+          ship_systems: [
+            {
+              name: 'Reinforced Hull',
+              description: 'Significantly increases ship structural strength.',
+            },
+          ],
+        },
         building_collection: {
           buildings: [
             {
@@ -113,6 +121,7 @@ describe('mapGame', () => {
     expect(game.players[0]?.available.buildings).toEqual(['Colony Base', 'Automated Factory'])
     expect(game.players[0]?.available.drives).toEqual(['Nuclear'])
     expect(game.players[0]?.availableBuildings).toEqual(['Colony Base', 'Automated Factory'])
+    expect(game.resources.shipSystemCollection.shipSystems[0]?.name).toBe('Reinforced Hull')
     expect(game.galaxy.stars[0]?.ownedPlanets).toBe(1)
     expect(game.galaxy.stars[0]?.planets[0]?.maxPopulation).toBe(16000)
     expect(game.galaxy.stars[0]?.planets[0]?.pollution).toBe(2)

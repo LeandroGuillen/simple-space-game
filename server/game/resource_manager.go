@@ -3,12 +3,14 @@ package game
 import (
 	_ "embed"
 	"encoding/json"
+	"errors"
 	"fmt"
 	. "ssg/model"
 )
 
 type Resources struct {
 	*ShipPartsCollection  `json:"ship_parts"`
+	*ShipSystemCollection `json:"ship_system_collection"`
 	*BuildingCollection   `json:"building_collection"`
 	*ModifierCollection   `json:"modifier_collection"`
 	*NameCollection       `json:"name_collection"`
@@ -24,6 +26,10 @@ type ShipPartsCollection struct {
 	Computers []Computer `json:"computers"`
 	FuelCells []FuelCell `json:"fuel_cells"`
 	Shields   []Shield   `json:"shields"`
+}
+
+type ShipSystemCollection struct {
+	ShipSystems []ShipSystem `json:"ship_systems"`
 }
 
 type BuildingCollection struct {
@@ -53,6 +59,9 @@ type ResourceManager struct {
 
 //go:embed resources/equipment.json
 var equipmentFile []byte
+
+//go:embed resources/ship-systems.json
+var shipSystemsFile []byte
 
 //go:embed resources/buildings.json
 var buildingsFile []byte
@@ -103,6 +112,12 @@ func (r *ResourceManager) loadDataFromFiles() error {
 		FuelCells: shipPartsCollection.FuelCells,
 		Shields:   shipPartsCollection.Shields,
 	}
+
+	var shipSystemCollection ShipSystemCollection
+	if err := json.Unmarshal(shipSystemsFile, &shipSystemCollection); err != nil {
+		return err
+	}
+	r.ShipSystemCollection = &shipSystemCollection
 
 	var buildingCollection BuildingCollection
 	if err := json.Unmarshal(buildingsFile, &buildingCollection); err != nil {
@@ -231,20 +246,21 @@ func loadTechDefinitions(files ...[]byte) ([]Tech, error) {
 }
 
 func (r *ResourceManager) validateTechDefinitions() error {
+	var validationErrors []error
 	techNames := make(map[string]bool)
 	for _, tech := range r.TechTree.AllTechs {
 		techNames[tech.Name] = true
 		if err := r.validateUnlocks(tech.Name, tech.Grants.Unlocks); err != nil {
-			return err
+			validationErrors = append(validationErrors, err)
 		}
 		if err := r.validateModifiers("tech", tech.Name, tech.Grants.Modifiers); err != nil {
-			return err
+			validationErrors = append(validationErrors, err)
 		}
 	}
 
 	for _, building := range r.Buildings {
 		if err := r.validateModifiers("building", building.Name, building.Grants.Modifiers); err != nil {
-			return err
+			validationErrors = append(validationErrors, err)
 		}
 	}
 
@@ -252,21 +268,22 @@ func (r *ResourceManager) validateTechDefinitions() error {
 		for _, level := range subject.Levels {
 			for _, techName := range level.AvailableTechs {
 				if !techNames[techName] {
-					return fmt.Errorf("tech tree references undefined tech %q", techName)
+					validationErrors = append(validationErrors, fmt.Errorf("tech tree references undefined tech %q", techName))
 				}
 			}
 		}
 	}
-	return nil
+	return errors.Join(validationErrors...)
 }
 
 func (r *ResourceManager) validateModifiers(sourceType, sourceName string, modifiers []Modifier) error {
+	var validationErrors []error
 	for _, modifier := range modifiers {
 		if !modifierDefinitionExists(r.Modifiers, modifier.Name) {
-			return fmt.Errorf("%s %q grants undefined modifier %q", sourceType, sourceName, modifier.Name)
+			validationErrors = append(validationErrors, fmt.Errorf("%s %q grants undefined modifier %q", sourceType, sourceName, modifier.Name))
 		}
 	}
-	return nil
+	return errors.Join(validationErrors...)
 }
 
 func modifierDefinitionExists(modifiers []ModifierDefinition, name string) bool {
@@ -279,47 +296,53 @@ func modifierDefinitionExists(modifiers []ModifierDefinition, name string) bool 
 }
 
 func (r *ResourceManager) validateUnlocks(techName string, unlocks Unlocks) error {
+	var validationErrors []error
 	for _, name := range unlocks.Buildings {
 		if !buildingExists(r.Buildings, name) {
-			return fmt.Errorf("tech %q unlocks missing building %q", techName, name)
+			validationErrors = append(validationErrors, fmt.Errorf("tech %q unlocks missing building %q", techName, name))
 		}
 	}
 	for _, name := range unlocks.HullSizes {
 		if !hullSizeExists(r.HullSizes, name) {
-			return fmt.Errorf("tech %q unlocks missing hull size %q", techName, name)
+			validationErrors = append(validationErrors, fmt.Errorf("tech %q unlocks missing hull size %q", techName, name))
 		}
 	}
 	for _, name := range unlocks.Drives {
 		if !driveExists(r.Drives, name) {
-			return fmt.Errorf("tech %q unlocks missing drive %q", techName, name)
+			validationErrors = append(validationErrors, fmt.Errorf("tech %q unlocks missing drive %q", techName, name))
 		}
 	}
 	for _, name := range unlocks.Armors {
 		if !armorExists(r.Armors, name) {
-			return fmt.Errorf("tech %q unlocks missing armor %q", techName, name)
+			validationErrors = append(validationErrors, fmt.Errorf("tech %q unlocks missing armor %q", techName, name))
 		}
 	}
 	for _, name := range unlocks.Computers {
 		if !computerExists(r.Computers, name) {
-			return fmt.Errorf("tech %q unlocks missing computer %q", techName, name)
+			validationErrors = append(validationErrors, fmt.Errorf("tech %q unlocks missing computer %q", techName, name))
 		}
 	}
 	for _, name := range unlocks.FuelCells {
 		if !fuelCellExists(r.FuelCells, name) {
-			return fmt.Errorf("tech %q unlocks missing fuel cell %q", techName, name)
+			validationErrors = append(validationErrors, fmt.Errorf("tech %q unlocks missing fuel cell %q", techName, name))
 		}
 	}
 	for _, name := range unlocks.Shields {
 		if !shieldExists(r.Shields, name) {
-			return fmt.Errorf("tech %q unlocks missing shield %q", techName, name)
+			validationErrors = append(validationErrors, fmt.Errorf("tech %q unlocks missing shield %q", techName, name))
 		}
 	}
 	for _, name := range unlocks.Beams {
 		if !beamExists(r.Beams, name) {
-			return fmt.Errorf("tech %q unlocks missing beam %q", techName, name)
+			validationErrors = append(validationErrors, fmt.Errorf("tech %q unlocks missing beam %q", techName, name))
 		}
 	}
-	return nil
+	for _, name := range unlocks.ShipSystems {
+		if !shipSystemExists(r.ShipSystems, name) {
+			validationErrors = append(validationErrors, fmt.Errorf("tech %q unlocks missing ship system %q", techName, name))
+		}
+	}
+	return errors.Join(validationErrors...)
 }
 
 func buildingExists(buildings []Building, name string) bool {
@@ -388,6 +411,15 @@ func shieldExists(shields []Shield, name string) bool {
 func beamExists(beams []Beam, name string) bool {
 	for _, beam := range beams {
 		if beam.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
+func shipSystemExists(shipSystems []ShipSystem, name string) bool {
+	for _, shipSystem := range shipSystems {
+		if shipSystem.Name == name {
 			return true
 		}
 	}

@@ -20,6 +20,11 @@
     "grants": { "unlocks": { "buildings": ["Space Port"] } }
   },
   {
+    "name": "Stock Exchange",
+    "description": "",
+    "grants": { "unlocks": { "buildings": ["Stock Exchange"] } }
+  },
+  {
     "name": "Armor Barracks",
     "description": "Produces armored ground units.",
     "grants": { "unlocks": { "buildings": ["Armor Barracks"] } }
@@ -76,5 +81,126 @@
     "name": "Artemis System Net",
     "description": "Network of space mines that damages ships attacking any colony in the system.",
     "grants": { "unlocks": { "buildings": ["Artemis System Net"] } }
+  },
+  {
+    "name": "Galactic Cybernet",
+    "description": "No description provided",
+    "grants": { "unlocks": { "buildings": ["Galactic Cybernet"] } }
+  },
+  {
+    "name": "Pleasure Dome",
+    "description": "No description provided",
+    "grants": { "unlocks": { "buildings": ["Pleasure Dome"] } }
+  },
+  {
+    "name": "Terraforming",
+    "description": "No description provided",
+    "grants": { "unlocks": { "buildings": ["Terraforming"] } }
+  },
+  {
+    "name": "Subterranean Farms",
+    "description": "No description provided",
+    "grants": { "unlocks": { "buildings": ["Subterranean Farms"] } }
+  },
+  {
+    "name": "Weather Controller",
+    "description": "No description provided",
+    "grants": { "unlocks": { "buildings": ["Weather Controller"] } }
+  },
+  {
+    "name": "Gaia Transformation",
+    "description": "No description provided",
+    "grants": { "unlocks": { "buildings": ["Gaia Transformation"] } }
+  },
+  {
+    "name": "Gravity Generator",
+    "description": "No description provided",
+    "grants": { "unlocks": { "buildings": ["Gravity Generator"] } }
+  },
+  {
+    "name": "Dimensional Portal",
+    "description": "No description provided",
+    "grants": { "unlocks": { "buildings": ["Dimensional Portal"] } }
+  },
+  {
+    "name": "Warp Interdictor",
+    "description": "No description provided",
+    "grants": { "unlocks": { "buildings": ["Warp Interdictor"] } }
+  },
+  {
+    "name": "Warp Dissipator",
+    "description": "No description provided",
+    "grants": { "unlocks": { "buildings": ["Warp Dissipator"] } }
+  },
+  {
+    "name": "Planetary Radiation Shield",
+    "description": "No description provided",
+    "grants": { "unlocks": { "buildings": ["Planetary Radiation Shield"] } }
+  },
+  {
+    "name": "Planetary Flux Shield",
+    "description": "No description provided",
+    "grants": { "unlocks": { "buildings": ["Planetary Flux Shield"] } }
+  },
+  {
+    "name": "Planetary Barrier Shield",
+    "description": "No description provided",
+    "grants": { "unlocks": { "buildings": ["Planetary Barrier Shield"] } }
+  },
+  {
+    "name": "Artificial Planet Construction",
+    "grants": { "unlocks": { "buildings": ["Artificial Planet Construction"] } }
+  },
+  {
+    "name": "Food Replicators",
+    "grants": { "unlocks": { "buildings": ["Food Replicators"] } }
+  },
+  {
+    "name": "Pollution Processor",
+    "grants": { "unlocks": { "buildings": ["Pollution Processor"] } }
+  },
+  {
+    "name": "Atmospheric Renewer",
+    "grants": { "unlocks": { "buildings": ["Atmospheric Renewer"] } }
+  },
+  {
+    "name": "Alien Management Center",
+    "grants": { "unlocks": { "buildings": ["Alien Management Center"] } }
+  },
+  {
+    "name": "Astro University",
+    "grants": { "unlocks": { "buildings": ["Astro University"] } }
+  },
+  {
+    "name": "Planetary Supercomputer",
+    "grants": { "unlocks": { "buildings": ["Planetary Supercomputer"] } }
+  },
+  {
+    "name": "Holo Simulator",
+    "grants": { "unlocks": { "buildings": ["Holo Simulator"] } }
+  },
+  {
+    "name": "Autolab",
+    "grants": { "unlocks": { "buildings": ["Autolab"] } }
+  },
+  {
+    "name": "Android Farmers",
+    "grants": { "unlocks": { "buildings": ["Android Farmers"] } }
+  },
+  {
+    "name": "Android Workers",
+    "grants": { "unlocks": { "buildings": ["Android Workers"] } }
+  },
+  {
+    "name": "Android Scientists",
+    "grants": { "unlocks": { "buildings": ["Android Scientists"] } }
+  },
+  {
+    "name": "Biospheres",
+    "grants": { "unlocks": { "buildings": ["Biospheres"] } }
+  },
+  {
+    "name": "Cloning Center",
+    "grants": { "unlocks": { "buildings": ["Cloning Center"] } }
   }
 ]

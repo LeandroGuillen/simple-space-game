@@ -1,4 +1,27 @@
 [
+  { "name": "Ion Pulse Cannon", "description": "No description provided" },
+  { "name": "Mass Driver", "description": "No description provided" },
+  { "name": "Mauler Device", "description": "No description provided" },
+  { "name": "Neutronium Bomb", "description": "No description provided" },
+  { "name": "Neutron Blaster", "description": "No description provided" },
+  { "name": "Nuclear Bomb", "description": "No description provided" },
+  { "name": "Plasma Cannon", "description": "No description provided" },
+  { "name": "Nuclear Missile", "description": "No description provided" },
+  { "name": "Zeon Missile", "description": "No description provided" },
+  { "name": "Particle Beam", "description": "No description provided" },
+  { "name": "Pulson Missile", "description": "No description provided" },
+  { "name": "Plasma Torpedo", "description": "No description provided" },
+  { "name": "Stasis Field", "description": "No description provided" },
+  { "name": "Proton Torpedo", "description": "No description provided" },
+  { "name": "Phasor", "description": "No description provided" },
+  { "name": "Merculite Missile", "description": "No description provided" },
+  { "name": "Gauss Cannon", "description": "No description provided" },
+  { "name": "Graviton Beam", "description": "No description provided" },
+  { "name": "Disruptor Cannon", "description": "No description provided" },
+  { "name": "Black Hole Generator", "description": "No description provided" },
+  { "name": "Anti-Matter Bomb", "description": "No description provided" },
+  { "name": "Anti-Matter Torpedoes", "description": "No description provided" },
+  { "name": "Fusion Bomb", "description": "No description provided" },
   {
     "name": "Laser Cannon",
     "description": "Basic beam weapon.",
@@ -28,5 +51,45 @@
     "name": "Heavy Fighters",
     "description": "Allows ships to carry and launch heavy fighters.",
     "grants": { "unlocks": { "ship_systems": ["Heavy Fighters"] } }
+  },
+  {
+    "name": "Death Spores",
+    "description": "No description provided",
+    "grants": { "unlocks": { "beams": ["Death Spores"] } }
+  },
+  {
+    "name": "Bio Terminator",
+    "description": "No description provided",
+    "grants": { "unlocks": { "beams": ["Bio Terminator"] } }
+  },
+  {
+    "name": "Fusion Beam",
+    "description": "No description provided",
+    "grants": { "unlocks": { "beams": ["Fusion Beam"] } }
+  },
+  {
+    "name": "Tractor Beam",
+    "description": "No description provided",
+    "grants": { "unlocks": { "beams": ["Tractor Beam"] } }
+  },
+  {
+    "name": "Phasors",
+    "description": "No description provided",
+    "grants": { "unlocks": { "beams": ["Phasors"] } }
+  },
+  {
+    "name": "Plasma Web",
+    "description": "No description provided",
+    "grants": { "unlocks": { "beams": ["Plasma Web"] } }
+  },
+  {
+    "name": "Stellar Converter",
+    "description": "No description provided",
+    "grants": { "unlocks": { "beams": ["Stellar Converter"] } }
+  },
+  {
+    "name": "Gyro Destabilizer",
+    "description": "No description provided",
+    "grants": { "unlocks": { "beams": ["Gyro Destabilizer"] } }
   }
 ]

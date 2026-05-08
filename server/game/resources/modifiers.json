@@ -1,16 +1,16 @@
 {
   "modifiers": [
     {
-      "name": "morale_multiplier",
-      "description": "Multiplies colony morale.",
-      "scope": "COLONY",
+      "name": "morale_bonus",
+      "description": "Improves colony morale.",
+      "scope": "PLANET",
       "stat": "morale",
-      "operation": "MULTIPLY"
+      "operation": "ADD_PERCENT"
     },
     {
       "name": "scanner_range",
       "description": "Adds scanner range.",
-      "scope": "COLONY",
+      "scope": "PLANET",
       "stat": "scanner_range",
       "operation": "ADD"
     },
@@ -20,6 +20,13 @@
       "scope": "EMPIRE",
       "stat": "command_points",
       "operation": "ADD"
+    },
+    {
+      "name": "environment_bonus",
+      "description": "Reduces pollution.",
+      "scope": "PLANET",
+      "stat": "pollution",
+      "operation": "ADD_PERCENT"
     },
     {
       "name": "max_ship_size_bonus",
@@ -45,7 +52,7 @@
     {
       "name": "marine_production",
       "description": "Adds marine production.",
-      "scope": "COLONY",
+      "scope": "PLANET",
       "stat": "marine_production",
       "operation": "ADD"
     },
@@ -101,21 +108,28 @@
     {
       "name": "income_flat",
       "description": "Adds fixed colony income.",
-      "scope": "COLONY",
+      "scope": "PLANET",
       "stat": "income",
       "operation": "ADD"
     },
     {
+      "name": "income_bonus",
+      "description": "Adds a percentage bonus to colony income.",
+      "scope": "PLANET",
+      "stat": "income",
+      "operation": "ADD_PERCENT"
+    },
+    {
       "name": "armored_production",
       "description": "Adds armored unit production.",
-      "scope": "COLONY",
+      "scope": "PLANET",
       "stat": "armored_production",
       "operation": "ADD"
     },
     {
       "name": "interceptor",
       "description": "Adds interceptor capacity.",
-      "scope": "COLONY",
+      "scope": "PLANET",
       "stat": "interceptor",
       "operation": "ADD"
     },

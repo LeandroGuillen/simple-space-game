@@ -7,8 +7,8 @@
       "unlocks": {
         "buildings": ["Capitol", "Colony Base", "Star Base", "Marine Barracks"],
         "hull_sizes": ["Frigate", "Destroyer", "Cruiser", "Battleship"],
-        "drives": ["None"],
-        "armors": ["None"],
+        "drives": ["None", "Nuclear"],
+        "armors": ["None", "Titanium"],
         "computers": ["None"],
         "fuel_cells": ["None"],
         "shields": ["None"]

@@ -11,6 +11,7 @@ import type {
   ApiPlayer,
   ApiShield,
   ApiShipDesign,
+  ApiShipSystem,
   ApiStar,
   ApiTech,
   ApiTechLevel,
@@ -30,6 +31,7 @@ import type {
   PlayerViewModel,
   ShieldViewModel,
   ShipDesignViewModel,
+  ShipSystemViewModel,
   StarSummary,
   TechLevelViewModel,
   TechSubjectViewModel,
@@ -71,6 +73,10 @@ export function mapGame(apiGame: ApiGame): GameViewModel {
         computers: apiGame.resources.ship_parts.computers.map(mapComputer),
         fuelCells: apiGame.resources.ship_parts.fuel_cells.map(mapFuelCell),
         shields: apiGame.resources.ship_parts.shields.map(mapShield),
+      },
+      shipSystemCollection: {
+        shipSystems:
+          apiGame.resources.ship_system_collection?.ship_systems?.map(mapShipSystem) ?? [],
       },
       buildingCollection: {
         buildings,
@@ -342,6 +348,15 @@ function mapShipDesign(
     hullSize: mapHullSize(ship.hull_size),
     fuelCell: mapFuelCell(ship.fuel_cell),
     isCommon,
+  };
+}
+
+function mapShipSystem(shipSystem: ApiShipSystem): ShipSystemViewModel {
+  return {
+    name: shipSystem.name,
+    description: shipSystem.description ?? "",
+    beamAttackBonus: shipSystem.beam_attack_bonus ?? 0,
+    beamDefenseBonus: shipSystem.beam_defense_bonus ?? 0,
   };
 }
 

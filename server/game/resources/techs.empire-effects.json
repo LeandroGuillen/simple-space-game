@@ -1,142 +1,89 @@
 [
-  { "name": "AI Colony Ship", "description": "No description provided" },
   {
     "name": "Advanced City Planning",
     "description": "Increases the maximum population of every colony.",
     "grants": { "modifiers": [{ "name": "max_population", "value": 5000 }] }
   },
   {
-    "name": "Alien Management Center",
-    "description": "No description provided"
-  },
-  { "name": "Android Workers", "description": "No description provided" },
-  { "name": "Anti-Matter Bomb", "description": "No description provided" },
-  { "name": "Anti-Matter Torpedoes", "description": "No description provided" },
-  {
-    "name": "Artificial Planet Construction",
-    "description": "No description provided"
-  },
-  { "name": "Astro University", "description": "No description provided" },
-  { "name": "Atmospheric Renewer", "description": "No description provided" },
-  { "name": "Augmented Engines", "description": "No description provided" },
-  { "name": "Auto Blaster", "description": "No description provided" },
-  { "name": "Autolab", "description": "No description provided" },
-  { "name": "Automated Repair Unit", "description": "No description provided" },
-  { "name": "Battle Computer", "description": "No description provided" },
-  {
     "name": "Battleoids",
     "description": "Enables robotic ground combat units."
   },
-  { "name": "Bio Enhancement", "description": "No description provided" },
-  { "name": "Bio Suppressant", "description": "No description provided" },
-  { "name": "Bio Toxin", "description": "No description provided" },
-  { "name": "Bio-Androids", "description": "No description provided" },
-  { "name": "Biospheres", "description": "No description provided" },
-  { "name": "Black Hole Generator", "description": "No description provided" },
-  { "name": "Class XV Shield", "description": "No description provided" },
-  { "name": "Cloaking Device", "description": "No description provided" },
-  { "name": "Cloning Center", "description": "No description provided" },
   { "name": "Colony Ship", "description": "No description provided" },
   { "name": "Confederation", "description": "No description provided" },
-  { "name": "Cyborg Factory", "description": "No description provided" },
-  { "name": "Cyborging", "description": "No description provided" },
   {
     "name": "Dauntless Guidance System",
     "description": "No description provided"
   },
-  { "name": "Disruptor Cannon", "description": "No description provided" },
-  { "name": "ECM Jammer", "description": "No description provided" },
-  { "name": "ECM Jammer Mk II", "description": "No description provided" },
-  { "name": "Energy Absorber", "description": "No description provided" },
   { "name": "Evolutionary Mutation", "description": "No description provided" },
   { "name": "Extended Fuel Tanks", "description": "No description provided" },
   { "name": "Federation", "description": "No description provided" },
-  { "name": "Food Replicators", "description": "No description provided" },
   { "name": "Freighters", "description": "No description provided" },
-  { "name": "Fusion Bomb", "description": "No description provided" },
   {
     "name": "Galactic Currency Exchange",
-    "description": "No description provided"
+    "description": "Improves income across the empire.",
+    "grants": { "modifiers": [{ "name": "income_bonus", "value": 0.5 }] }
   },
   { "name": "Galactic Unification", "description": "No description provided" },
-  { "name": "Gauss Cannon", "description": "No description provided" },
-  { "name": "Gauss Cannon Mk II", "description": "No description provided" },
-  {
-    "name": "Genetic Engineering Lab",
-    "description": "No description provided"
-  },
-  { "name": "Graviton Beam", "description": "No description provided" },
-  { "name": "Graviton Cannon", "description": "No description provided" },
-  { "name": "High Energy Focus", "description": "No description provided" },
-  { "name": "Holo Simulator", "description": "No description provided" },
-  {
-    "name": "Hyper-Conscious Computer",
-    "description": "No description provided"
-  },
-  { "name": "Hyper-X Capacitors", "description": "No description provided" },
-  { "name": "Hyper-X Ray", "description": "No description provided" },
-  { "name": "Immortality", "description": "No description provided" },
   { "name": "Imperium", "description": "No description provided" },
-  { "name": "Inertial Nullifier", "description": "No description provided" },
-  {
-    "name": "Inertial Nullifier Mk II",
-    "description": "No description provided"
-  },
-  { "name": "Ion Pulse Cannon", "description": "No description provided" },
+
   { "name": "Laser Rifle", "description": "No description provided" },
-  { "name": "Mass Driver", "description": "No description provided" },
-  { "name": "Mauler Device", "description": "No description provided" },
-  { "name": "Megafluxers", "description": "No description provided" },
-  { "name": "Merculite Missile", "description": "No description provided" },
+  { "name": "Fusion Rifle", "description": "No description provided" },
+  { "name": "Phasor Rifle", "description": "No description provided" },
+  { "name": "Plasma Rifle", "description": "No description provided" },
+
   {
     "name": "Microlite Construction",
     "description": "No description provided"
   },
-  { "name": "Nano Computer", "description": "No description provided" },
   { "name": "Nano Disassemblers", "description": "No description provided" },
   { "name": "Neural Scanner", "description": "No description provided" },
-  { "name": "Neutron Blaster", "description": "No description provided" },
-  { "name": "Neutronium Bomb", "description": "No description provided" },
-  { "name": "Nuclear Bomb", "description": "No description provided" },
-  { "name": "Nuclear Missile", "description": "No description provided" },
   { "name": "Outpost Ship", "description": "No description provided" },
-  { "name": "Particle Beam", "description": "No description provided" },
-  {
-    "name": "Personal Deflector Shield",
-    "description": "No description provided"
-  },
-  { "name": "Phasor", "description": "No description provided" },
-  { "name": "Phasor Rifle", "description": "No description provided" },
-  {
-    "name": "Planetary Supercomputer",
-    "description": "No description provided"
-  },
-  { "name": "Plasma Cannon", "description": "No description provided" },
-  { "name": "Plasma Rifle", "description": "No description provided" },
-  { "name": "Plasma Torpedo", "description": "No description provided" },
-  { "name": "Pollution Processor", "description": "No description provided" },
   {
     "name": "Powered Armor",
     "description": "Improves marine ground combat effectiveness."
   },
-  { "name": "Proton Torpedo", "description": "No description provided" },
   { "name": "Pulsar", "description": "No description provided" },
-  { "name": "Pulson Missile", "description": "No description provided" },
-  { "name": "Scout Lab", "description": "No description provided" },
-  { "name": "Security Stations", "description": "No description provided" },
-  { "name": "Sentient Computer", "description": "No description provided" },
-  { "name": "Shield Capacitor", "description": "No description provided" },
-  { "name": "Soil Enrichment", "description": "No description provided" },
   { "name": "Space Academy", "description": "No description provided" },
   { "name": "Space Scanner", "description": "No description provided" },
-  { "name": "Stasis Field", "description": "No description provided" },
-  { "name": "Stasis Shield", "description": "No description provided" },
   { "name": "Stock Exchange", "description": "No description provided" },
-  { "name": "Subspace Scanner", "description": "No description provided" },
-  { "name": "Temporal Field", "description": "No description provided" },
   { "name": "Transport", "description": "No description provided" },
-  { "name": "Transporters", "description": "No description provided" },
   { "name": "Universal Antidote", "description": "No description provided" },
   { "name": "Xeno Psychology", "description": "No description provided" },
-  { "name": "Zeon Missile", "description": "No description provided" }
+  { "name": "Cyber Security Link", "description": "No description provided" },
+  { "name": "Personal Shield", "description": "No description provided" },
+  { "name": "Stealth Suit", "description": "No description provided" },
+  {
+    "name": "Virtual Reality Network",
+    "description": "No description provided",
+    "grants": {
+      "modifiers": [{ "name": "morale_bonus", "value": 0.2 }]
+    }
+  },
+  { "name": "Telepathic Training", "description": "No description provided" },
+  { "name": "Microbiotics", "description": "No description provided" },
+  { "name": "Psionics", "description": "No description provided" },
+  {
+    "name": "Heightened Intelligence",
+    "description": "No description provided",
+    "grants": { "modifiers": [{ "name": "science_per_scientist", "value": 1 }] }
+  },
+  { "name": "Biomorphic Fungi", "description": "No description provided" },
+  {
+    "name": "Tachyon Communications",
+    "description": "No description provided"
+  },
+  { "name": "Tachyon Scanner", "description": "No description provided" },
+  { "name": "Neutron Scanner", "description": "No description provided" },
+  {
+    "name": "Subspace Communications",
+    "description": "No description provided"
+  },
+  { "name": "Jump Gate", "description": "No description provided" },
+  {
+    "name": "Hyperspace Communications",
+    "description": "No description provided"
+  },
+  { "name": "Star Gate", "description": "No description provided" },
+  { "name": "Sensors", "description": "No description provided" },
+  { "name": "Anti-Grav Harness", "description": "No description provided" }
 ]

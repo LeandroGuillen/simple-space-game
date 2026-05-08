@@ -33,11 +33,11 @@ type Tech struct {
 	Maintenance int64    `json:"maintenance,omitempty"`
 	BuiltOn     []string `json:"built_on,omitempty"`
 	Unique      bool     `json:"unique,omitempty"`
-	Grants      Grants   `json:"grants,omitempty"`
+	Grants      Grants   `json:"grants"`
 }
 
 type Grants struct {
-	Unlocks   Unlocks    `json:"unlocks,omitempty"`
+	Unlocks   Unlocks    `json:"unlocks"`
 	Modifiers []Modifier `json:"modifiers,omitempty"`
 }
 

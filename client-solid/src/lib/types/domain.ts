@@ -211,6 +211,13 @@ export type ShipDesignViewModel = {
   isCommon: boolean;
 };
 
+export type ShipSystemViewModel = {
+  name: string;
+  description: string;
+  beamAttackBonus: number;
+  beamDefenseBonus: number;
+};
+
 export type ResourcesViewModel = {
   shipParts: {
     hullSizes: HullSizeViewModel[];
@@ -219,6 +226,9 @@ export type ResourcesViewModel = {
     computers: ComputerViewModel[];
     fuelCells: FuelCellViewModel[];
     shields: ShieldViewModel[];
+  };
+  shipSystemCollection: {
+    shipSystems: ShipSystemViewModel[];
   };
   buildingCollection: {
     buildings: BuildingViewModel[];
