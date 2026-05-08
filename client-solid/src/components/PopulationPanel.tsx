@@ -1,15 +1,15 @@
-import { createMemo, createSignal, For } from 'solid-js';
-import type { MovePopulationCommand } from '../lib/types/commands';
-import type { PlanetViewModel } from '../lib/types/domain';
+import { createMemo, createSignal, For } from "solid-js";
+import type { MovePopulationCommand } from "../lib/types/commands";
+import type { PlanetViewModel } from "../lib/types/domain";
 import {
   getPlanetIndustryForWorkers,
   getPlanetPollutionDivisor,
   getPlanetPollutionForWorkers,
   getPlanetPollutionSize,
-} from '../lib/utils';
-import { useAppContext } from '../state/app-context';
+} from "../lib/utils";
+import { useAppContext } from "../state/app-context";
 
-type PopCategory = 'farmers' | 'workers' | 'scientists';
+type PopCategory = "farmers" | "workers" | "scientists";
 
 type OutputBreakdown = {
   total: number;
@@ -24,15 +24,15 @@ type BuildingContribution = {
 };
 
 const POP_LABELS: Record<PopCategory, string> = {
-  farmers: 'Farmer',
-  workers: 'Worker',
-  scientists: 'Scientist',
+  farmers: "Farmer",
+  workers: "Worker",
+  scientists: "Scientist",
 };
 
 const POP_COLORS: Record<PopCategory, string> = {
-  farmers: '#b59a58',
-  workers: '#5a8cb8',
-  scientists: '#9eb8a8',
+  farmers: "#b59a58",
+  workers: "#5a8cb8",
+  scientists: "#9eb8a8",
 };
 
 type PopulationPanelProps = {
@@ -44,7 +44,9 @@ export function PopulationPanel(props: PopulationPanelProps) {
   const [draggedCount, setDraggedCount] = createSignal(0);
   const [dragSource, setDragSource] = createSignal<PopCategory | null>(null);
   const pendingMoves = createMemo(() =>
-    state.pendingCommands.movePopulation.filter((cmd) => cmd.planetId === props.planet.id),
+    state.pendingCommands.movePopulation.filter(
+      (cmd) => cmd.planetId === props.planet.id,
+    ),
   );
 
   const isDragging = () => draggedCount() > 0;
@@ -52,13 +54,13 @@ export function PopulationPanel(props: PopulationPanelProps) {
   const getPopCount = (cat: PopCategory) => {
     let base = 0;
     switch (cat) {
-      case 'farmers':
+      case "farmers":
         base = props.planet.food.farmers;
         break;
-      case 'workers':
+      case "workers":
         base = props.planet.industry.workers;
         break;
-      case 'scientists':
+      case "scientists":
         base = props.planet.science.scientists;
         break;
     }
@@ -73,24 +75,35 @@ export function PopulationPanel(props: PopulationPanelProps) {
     return Math.max(0, base);
   };
 
-  const getOutputIcons = (count: number, tensIcon: string, onesIcon: string): string => {
+  const getOutputIcons = (
+    count: number,
+    tensIcon: string,
+    onesIcon: string,
+  ): string => {
     const tens = Math.floor(count / 10);
     const ones = count % 10;
     const icons: string[] = [];
     for (let i = 0; i < tens; i++) icons.push(tensIcon);
     for (let i = 0; i < ones; i++) icons.push(onesIcon);
-    return icons.join(' ');
+    return icons.join(" ");
   };
 
   const getBuildingEffectBonus = (effectName: string) =>
     props.planet.buildings.reduce(
-      (sum, building) => sum + building.effects.reduce((effectSum, effect) => effectSum + (effect.name === effectName ? effect.bonus : 0), 0),
+      (sum, building) =>
+        sum +
+        building.effects.reduce(
+          (effectSum, effect) =>
+            effectSum + (effect.name === effectName ? effect.bonus : 0),
+          0,
+        ),
       0,
     );
 
   const getOutputBreakdown = (cat: PopCategory): OutputBreakdown => {
-    if (cat === 'farmers') {
-      const fromPopulation = getPopCount('farmers') * props.planet.food.produced_per_farmer;
+    if (cat === "farmers") {
+      const fromPopulation =
+        getPopCount("farmers") * props.planet.food.produced_per_farmer;
       const fromBuildings = props.planet.food.produced_per_building;
       return {
         total: fromPopulation + fromBuildings,
@@ -98,21 +111,31 @@ export function PopulationPanel(props: PopulationPanelProps) {
         fromBuildings,
       };
     }
-    if (cat === 'workers') {
-      const perWorkerBuildingBonus = getBuildingEffectBonus('industryBonus');
-      const basePerWorker = Math.max(0, props.planet.industry.produced_per_worker - perWorkerBuildingBonus);
-      const fromPopulation = getPopCount('workers') * basePerWorker;
-      const fromBuildings = props.planet.industry.produced_per_building + getPopCount('workers') * perWorkerBuildingBonus;
+    if (cat === "workers") {
+      const perWorkerBuildingBonus = getBuildingEffectBonus("industryBonus");
+      const basePerWorker = Math.max(
+        0,
+        props.planet.industry.produced_per_worker - perWorkerBuildingBonus,
+      );
+      const fromPopulation = getPopCount("workers") * basePerWorker;
+      const fromBuildings =
+        props.planet.industry.produced_per_building +
+        getPopCount("workers") * perWorkerBuildingBonus;
       return {
         total: fromPopulation + fromBuildings,
         fromPopulation,
         fromBuildings,
       };
     }
-    const perScientistBuildingBonus = getBuildingEffectBonus('scienceBonus');
-    const basePerScientist = Math.max(0, props.planet.science.produced_per_scientist - perScientistBuildingBonus);
-    const fromPopulation = getPopCount('scientists') * basePerScientist;
-    const fromBuildings = props.planet.science.produced_per_building + getPopCount('scientists') * perScientistBuildingBonus;
+    const perScientistBuildingBonus = getBuildingEffectBonus("scienceBonus");
+    const basePerScientist = Math.max(
+      0,
+      props.planet.science.produced_per_scientist - perScientistBuildingBonus,
+    );
+    const fromPopulation = getPopCount("scientists") * basePerScientist;
+    const fromBuildings =
+      props.planet.science.produced_per_building +
+      getPopCount("scientists") * perScientistBuildingBonus;
     return {
       total: fromPopulation + fromBuildings,
       fromPopulation,
@@ -120,43 +143,45 @@ export function PopulationPanel(props: PopulationPanelProps) {
     };
   };
 
-  const getBuildingContributions = (cat: PopCategory): BuildingContribution[] => {
+  const getBuildingContributions = (
+    cat: PopCategory,
+  ): BuildingContribution[] => {
     const workerCount = getPopCount(cat);
     const contributions: BuildingContribution[] = [];
     for (const building of props.planet.buildings) {
       for (const effect of building.effects) {
-        if (cat === 'farmers' && effect.name === 'flatAgricultureBonus') {
+        if (cat === "farmers" && effect.name === "flatFoodBonus") {
           contributions.push({
             buildingName: building.name,
-            label: 'flat food',
+            label: "flat food",
             total: effect.bonus,
           });
         }
-        if (cat === 'workers' && effect.name === 'industryBonus') {
+        if (cat === "workers" && effect.name === "industryBonus") {
           contributions.push({
             buildingName: building.name,
             label: `+${effect.bonus} per worker × ${workerCount}`,
             total: effect.bonus * workerCount,
           });
         }
-        if (cat === 'workers' && effect.name === 'flatIndustryBonus') {
+        if (cat === "workers" && effect.name === "flatIndustryBonus") {
           contributions.push({
             buildingName: building.name,
-            label: 'flat industry',
+            label: "flat industry",
             total: effect.bonus,
           });
         }
-        if (cat === 'scientists' && effect.name === 'scienceBonus') {
+        if (cat === "scientists" && effect.name === "scienceBonus") {
           contributions.push({
             buildingName: building.name,
             label: `+${effect.bonus} per scientist × ${workerCount}`,
             total: effect.bonus * workerCount,
           });
         }
-        if (cat === 'scientists' && effect.name === 'flatScienceBonus') {
+        if (cat === "scientists" && effect.name === "flatScienceBonus") {
           contributions.push({
             buildingName: building.name,
-            label: 'flat science',
+            label: "flat science",
             total: effect.bonus,
           });
         }
@@ -169,7 +194,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
     const contributions = getBuildingContributions(cat);
     if (contributions.length === 0) {
       return (
-        <div class='pop-output-tooltip-row pop-output-tooltip-row--detail'>
+        <div class="pop-output-tooltip-row pop-output-tooltip-row--detail">
           <span>No building bonuses</span>
           <strong>0</strong>
         </div>
@@ -180,8 +205,10 @@ export function PopulationPanel(props: PopulationPanelProps) {
       <>
         <For each={contributions}>
           {(contribution) => (
-            <div class='pop-output-tooltip-row pop-output-tooltip-row--detail'>
-              <span>{contribution.buildingName}: {contribution.label}</span>
+            <div class="pop-output-tooltip-row pop-output-tooltip-row--detail">
+              <span>
+                {contribution.buildingName}: {contribution.label}
+              </span>
               <strong>+{contribution.total}</strong>
             </div>
           )}
@@ -190,12 +217,20 @@ export function PopulationPanel(props: PopulationPanelProps) {
     );
   };
 
-  const getIndustryOutput = () => getOutputIcons(getPlanetIndustryForWorkers(props.planet, getPopCount('workers')), '⚡', '🔧');
-  const getScienceOutput = () => getOutputIcons(getOutputBreakdown('scientists').total, '🔬', '🧫');
-  const getTotalPopUnits = () => getPopCount('farmers') + getPopCount('workers') + getPopCount('scientists');
+  const getIndustryOutput = () =>
+    getOutputIcons(
+      getPlanetIndustryForWorkers(props.planet, getPopCount("workers")),
+      "⚡",
+      "🔧",
+    );
+  const getScienceOutput = () =>
+    getOutputIcons(getOutputBreakdown("scientists").total, "🔬", "🧫");
+  const getTotalPopUnits = () =>
+    getPopCount("farmers") + getPopCount("workers") + getPopCount("scientists");
   const getPollutionDivisor = () => getPlanetPollutionDivisor(props.planet);
   const getPollutionPlanetSize = () => getPlanetPollutionSize(props.planet);
-  const getPollution = () => getPlanetPollutionForWorkers(props.planet, getPopCount('workers'));
+  const getPollution = () =>
+    getPlanetPollutionForWorkers(props.planet, getPopCount("workers"));
   const renderPollutionIcons = () => {
     const pollution = getPollution();
     if (pollution === 0) {
@@ -206,17 +241,17 @@ export function PopulationPanel(props: PopulationPanelProps) {
     return (
       <>
         <For each={Array.from({ length: tens })}>
-          {() => <span class='pollution-output-icon'>🌫</span>}
+          {() => <span class="pollution-output-icon">🌫</span>}
         </For>
         <For each={Array.from({ length: ones })}>
-          {() => <span class='pollution-output-icon'>☁</span>}
+          {() => <span class="pollution-output-icon">☁</span>}
         </For>
       </>
     );
   };
 
   const renderFoodOutput = () => {
-    const produced = getOutputBreakdown('farmers').total;
+    const produced = getOutputBreakdown("farmers").total;
     const required = getTotalPopUnits();
     const consumed = Math.min(produced, required);
     const surplus = Math.max(0, produced - required);
@@ -228,14 +263,20 @@ export function PopulationPanel(props: PopulationPanelProps) {
         <>
           <For each={Array.from({ length: tens })}>
             {() => (
-              <span class={`food-output-icon ${outlined ? 'food-output-icon--deficit' : ''}`} data-icon='🌾'>
+              <span
+                class={`food-output-icon ${outlined ? "food-output-icon--deficit" : ""}`}
+                data-icon="🌾"
+              >
                 🌾
               </span>
             )}
           </For>
           <For each={Array.from({ length: ones })}>
             {() => (
-              <span class={`food-output-icon ${outlined ? 'food-output-icon--deficit' : ''}`} data-icon='🌱'>
+              <span
+                class={`food-output-icon ${outlined ? "food-output-icon--deficit" : ""}`}
+                data-icon="🌱"
+              >
                 🌱
               </span>
             )}
@@ -245,23 +286,27 @@ export function PopulationPanel(props: PopulationPanelProps) {
     };
 
     return (
-      <div class='food-output-icons'>
+      <div class="food-output-icons">
         {renderFoodIcons(consumed)}
-        {surplus > 0 && <span class='food-output-gap' aria-hidden='true' />}
+        {surplus > 0 && <span class="food-output-gap" aria-hidden="true" />}
         {renderFoodIcons(surplus)}
         {renderFoodIcons(deficit, true)}
       </div>
     );
   };
 
-  const handleDragStart = (e: DragEvent, category: PopCategory, index: number) => {
+  const handleDragStart = (
+    e: DragEvent,
+    category: PopCategory,
+    index: number,
+  ) => {
     const count = getPopCount(category);
     const toDrag = index === count - 1 ? 1 : count - index;
     setDraggedCount(toDrag);
     setDragSource(category);
     const label = POP_LABELS[category];
-    const ghost = document.createElement('div');
-    ghost.className = 'drag-ghost';
+    const ghost = document.createElement("div");
+    ghost.className = "drag-ghost";
     ghost.textContent = `${toDrag} ${label}`;
     ghost.style.cssText = `
       position: absolute;
@@ -278,7 +323,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
     document.body.appendChild(ghost);
     e.dataTransfer?.setDragImage(ghost, 30, 15);
     requestAnimationFrame(() => document.body.removeChild(ghost));
-    e.dataTransfer!.effectAllowed = 'move';
+    e.dataTransfer!.effectAllowed = "move";
   };
 
   const handleDragEnd = () => {
@@ -289,7 +334,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
   const handleDrop = (e: DragEvent, to: PopCategory) => {
     e.preventDefault();
     const dropZone = e.currentTarget as HTMLDivElement | null;
-    dropZone?.classList.remove('drag-over');
+    dropZone?.classList.remove("drag-over");
     const source = dragSource();
     const count = draggedCount();
     if (!source || count === 0 || source === to) return;
@@ -305,148 +350,160 @@ export function PopulationPanel(props: PopulationPanelProps) {
   };
 
   return (
-    <section class='panel'>
-      <p class='eyebrow'>Population</p>
+    <section class="panel">
+      <p class="eyebrow">Population</p>
 
-      <div class={`pop-grid ${isDragging() ? 'is-dragging' : ''}`}>
-        <div class={`pop-row ${isDragging() ? 'pop-row--drag-active' : ''}`}>
-          <span class='pop-stat-label'>Food</span>
-          <div class='pop-output pop-output--food'>
+      <div class={`pop-grid ${isDragging() ? "is-dragging" : ""}`}>
+        <div class={`pop-row ${isDragging() ? "pop-row--drag-active" : ""}`}>
+          <span class="pop-stat-label">Food</span>
+          <div class="pop-output pop-output--food">
             {renderFoodOutput()}
-            <div class='pop-output-tooltip'>
-              <div class='pop-output-tooltip-row pop-output-tooltip-row--total'>
+            <div class="pop-output-tooltip">
+              <div class="pop-output-tooltip-row pop-output-tooltip-row--total">
                 <span>Total food produced:</span>
-                <strong>{getOutputBreakdown('farmers').total}</strong>
+                <strong>{getOutputBreakdown("farmers").total}</strong>
               </div>
-              <div class='pop-output-tooltip-row'>
+              <div class="pop-output-tooltip-row">
                 <span>From farmers:</span>
-                <strong>{getOutputBreakdown('farmers').fromPopulation}</strong>
+                <strong>{getOutputBreakdown("farmers").fromPopulation}</strong>
               </div>
-              <div class='pop-output-tooltip-row'>
+              <div class="pop-output-tooltip-row">
                 <span>From buildings:</span>
-                <strong>{getOutputBreakdown('farmers').fromBuildings}</strong>
+                <strong>{getOutputBreakdown("farmers").fromBuildings}</strong>
               </div>
-              {renderBuildingContributionRows('farmers')}
+              {renderBuildingContributionRows("farmers")}
             </div>
           </div>
           <div
-            class='pop-units-row'
+            class="pop-units-row"
             onDragOver={(e) => {
               e.preventDefault();
-              e.currentTarget.classList.add('drag-over');
+              e.currentTarget.classList.add("drag-over");
             }}
-            onDragLeave={(e) => e.currentTarget.classList.remove('drag-over')}
-            onDrop={(e) => handleDrop(e, 'farmers')}
+            onDragLeave={(e) => e.currentTarget.classList.remove("drag-over")}
+            onDrop={(e) => handleDrop(e, "farmers")}
           >
-            {Array.from({ length: getPopCount('farmers') }).map((_, idx) => (
+            {Array.from({ length: getPopCount("farmers") }).map((_, idx) => (
               <button
-                class='pop-unit'
+                class="pop-unit"
                 style={{ background: POP_COLORS.farmers }}
                 draggable={true}
-                onDragStart={(e) => handleDragStart(e, 'farmers', idx)}
+                onDragStart={(e) => handleDragStart(e, "farmers", idx)}
                 onDragEnd={handleDragEnd}
               />
             ))}
           </div>
         </div>
 
-        <div class={`pop-row ${isDragging() ? 'pop-row--drag-active' : ''}`}>
-          <span class='pop-stat-label'>Industry</span>
-          <div class='pop-output'>
+        <div class={`pop-row ${isDragging() ? "pop-row--drag-active" : ""}`}>
+          <span class="pop-stat-label">Industry</span>
+          <div class="pop-output">
             <span>{getIndustryOutput()}</span>
             {getPollution() > 0 && (
-              <span class='pollution-output-icons' aria-label={`${getPollution()} pollution`}>
+              <span
+                class="pollution-output-icons"
+                aria-label={`${getPollution()} pollution`}
+              >
                 {renderPollutionIcons()}
               </span>
             )}
-            <div class='pop-output-tooltip'>
-              <div class='pop-output-tooltip-row pop-output-tooltip-row--total'>
+            <div class="pop-output-tooltip">
+              <div class="pop-output-tooltip-row pop-output-tooltip-row--total">
                 <span>Final industry output:</span>
-                <strong>{getPlanetIndustryForWorkers(props.planet, getPopCount('workers'))}</strong>
+                <strong>
+                  {getPlanetIndustryForWorkers(
+                    props.planet,
+                    getPopCount("workers"),
+                  )}
+                </strong>
               </div>
-              <div class='pop-output-tooltip-row'>
+              <div class="pop-output-tooltip-row">
                 <span>Gross industry produced:</span>
-                <strong>{getOutputBreakdown('workers').total}</strong>
+                <strong>{getOutputBreakdown("workers").total}</strong>
               </div>
-              <div class='pop-output-tooltip-row'>
+              <div class="pop-output-tooltip-row">
                 <span>Pollution:</span>
                 <strong>-{getPollution()}</strong>
               </div>
-              <div class='pop-output-tooltip-row'>
+              <div class="pop-output-tooltip-row">
                 <span>From workers:</span>
-                <strong>{getOutputBreakdown('workers').fromPopulation}</strong>
+                <strong>{getOutputBreakdown("workers").fromPopulation}</strong>
               </div>
-              <div class='pop-output-tooltip-row'>
+              <div class="pop-output-tooltip-row">
                 <span>From buildings:</span>
-                <strong>{getOutputBreakdown('workers').fromBuildings}</strong>
+                <strong>{getOutputBreakdown("workers").fromBuildings}</strong>
               </div>
-              <div class='pop-output-tooltip-row pop-output-tooltip-row--detail'>
+              <div class="pop-output-tooltip-row pop-output-tooltip-row--detail">
                 <span>Planet absorption:</span>
                 <strong>{getPollutionPlanetSize()}</strong>
               </div>
-              <div class='pop-output-tooltip-row pop-output-tooltip-row--detail'>
+              <div class="pop-output-tooltip-row pop-output-tooltip-row--detail">
                 <span>Cleanup divisor:</span>
                 <strong>{getPollutionDivisor()}×</strong>
               </div>
-              {renderBuildingContributionRows('workers')}
+              {renderBuildingContributionRows("workers")}
             </div>
           </div>
           <div
-            class='pop-units-row'
+            class="pop-units-row"
             onDragOver={(e) => {
               e.preventDefault();
-              e.currentTarget.classList.add('drag-over');
+              e.currentTarget.classList.add("drag-over");
             }}
-            onDragLeave={(e) => e.currentTarget.classList.remove('drag-over')}
-            onDrop={(e) => handleDrop(e, 'workers')}
+            onDragLeave={(e) => e.currentTarget.classList.remove("drag-over")}
+            onDrop={(e) => handleDrop(e, "workers")}
           >
-            {Array.from({ length: getPopCount('workers') }).map((_, idx) => (
+            {Array.from({ length: getPopCount("workers") }).map((_, idx) => (
               <button
-                class='pop-unit'
+                class="pop-unit"
                 style={{ background: POP_COLORS.workers }}
                 draggable={true}
-                onDragStart={(e) => handleDragStart(e, 'workers', idx)}
+                onDragStart={(e) => handleDragStart(e, "workers", idx)}
                 onDragEnd={handleDragEnd}
               />
             ))}
           </div>
         </div>
 
-        <div class={`pop-row ${isDragging() ? 'pop-row--drag-active' : ''}`}>
-          <span class='pop-stat-label'>Science</span>
-          <div class='pop-output'>
+        <div class={`pop-row ${isDragging() ? "pop-row--drag-active" : ""}`}>
+          <span class="pop-stat-label">Science</span>
+          <div class="pop-output">
             {getScienceOutput()}
-            <div class='pop-output-tooltip'>
-              <div class='pop-output-tooltip-row pop-output-tooltip-row--total'>
+            <div class="pop-output-tooltip">
+              <div class="pop-output-tooltip-row pop-output-tooltip-row--total">
                 <span>Total science produced:</span>
-                <strong>{getOutputBreakdown('scientists').total}</strong>
+                <strong>{getOutputBreakdown("scientists").total}</strong>
               </div>
-              <div class='pop-output-tooltip-row'>
+              <div class="pop-output-tooltip-row">
                 <span>From scientists:</span>
-                <strong>{getOutputBreakdown('scientists').fromPopulation}</strong>
+                <strong>
+                  {getOutputBreakdown("scientists").fromPopulation}
+                </strong>
               </div>
-              <div class='pop-output-tooltip-row'>
+              <div class="pop-output-tooltip-row">
                 <span>From buildings:</span>
-                <strong>{getOutputBreakdown('scientists').fromBuildings}</strong>
+                <strong>
+                  {getOutputBreakdown("scientists").fromBuildings}
+                </strong>
               </div>
-              {renderBuildingContributionRows('scientists')}
+              {renderBuildingContributionRows("scientists")}
             </div>
           </div>
           <div
-            class='pop-units-row'
+            class="pop-units-row"
             onDragOver={(e) => {
               e.preventDefault();
-              e.currentTarget.classList.add('drag-over');
+              e.currentTarget.classList.add("drag-over");
             }}
-            onDragLeave={(e) => e.currentTarget.classList.remove('drag-over')}
-            onDrop={(e) => handleDrop(e, 'scientists')}
+            onDragLeave={(e) => e.currentTarget.classList.remove("drag-over")}
+            onDrop={(e) => handleDrop(e, "scientists")}
           >
-            {Array.from({ length: getPopCount('scientists') }).map((_, idx) => (
+            {Array.from({ length: getPopCount("scientists") }).map((_, idx) => (
               <button
-                class='pop-unit'
+                class="pop-unit"
                 style={{ background: POP_COLORS.scientists }}
                 draggable={true}
-                onDragStart={(e) => handleDragStart(e, 'scientists', idx)}
+                onDragStart={(e) => handleDragStart(e, "scientists", idx)}
                 onDragEnd={handleDragEnd}
               />
             ))}
@@ -454,9 +511,9 @@ export function PopulationPanel(props: PopulationPanelProps) {
         </div>
       </div>
 
-      <div class='list-block'>
-        <p class='eyebrow'>Installed Buildings</p>
-        <ul class='compact-list'>
+      <div class="list-block">
+        <p class="eyebrow">Installed Buildings</p>
+        <ul class="compact-list">
           {props.planet.buildings.map((building) => (
             <li>
               <strong>{building.name}</strong>

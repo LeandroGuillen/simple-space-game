@@ -1,47 +1,51 @@
 package game
 
 import (
-	"ssg/model"
+	. "ssg/model"
 )
 
-func hydratePlanetOutputs(p *model.Planet) {
+func hydratePlanetOutputs(game *Game, p *Planet) {
 	foodPerFarmer := int64(2)
 	foodFromBuildings := int64(0)
-	industryPerWorker := model.IndustryPerMineralClass(p.MineralClass)
+	industryPerWorker := IndustryPerMineralClass(p.MineralClass)
 	industryFromBuildings := int64(0)
 	sciencePerScientist := int64(3)
 	scienceFromBuildings := int64(0)
 
-	for _, building := range p.Buildings {
-		for _, effect := range building.Effects {
-			switch effect.Name {
-			case "flatAgricultureBonus":
-				foodFromBuildings += effect.Bonus
-			case "industryBonus":
-				industryPerWorker += effect.Bonus
-			case "flatIndustryBonus":
-				industryFromBuildings += effect.Bonus
-			case "scienceBonus":
-				sciencePerScientist += effect.Bonus
-			case "flatScienceBonus":
-				scienceFromBuildings += effect.Bonus
+	for _, buildingName := range p.Buildings {
+		if building, err := getBuildingFromName(game, buildingName); err == nil {
+			for _, effect := range building.Effects {
+				switch effect.Name {
+				case "foodBonus":
+					foodPerFarmer += effect.Bonus
+				case "flatFoodBonus":
+					foodFromBuildings += effect.Bonus
+				case "industryBonus":
+					industryPerWorker += effect.Bonus
+				case "flatIndustryBonus":
+					industryFromBuildings += effect.Bonus
+				case "scienceBonus":
+					sciencePerScientist += effect.Bonus
+				case "flatScienceBonus":
+					scienceFromBuildings += effect.Bonus
+				}
 			}
 		}
 	}
 
-	p.Food = model.PlanetFoodOutput{
+	p.Food = PlanetFoodOutput{
 		Farmers:             p.Food.Farmers,
 		ProducedPerFarmer:   foodPerFarmer,
 		ProducedPerBuilding: foodFromBuildings,
 	}
 
-	p.Industry = model.PlanetIndustryOutput{
+	p.Industry = PlanetIndustryOutput{
 		Workers:             p.Industry.Workers,
 		ProducedPerWorker:   industryPerWorker,
 		ProducedPerBuilding: industryFromBuildings,
 	}
 
-	p.Science = model.PlanetScienceOutput{
+	p.Science = PlanetScienceOutput{
 		Scientists:           p.Science.Scientists,
 		ProducedPerScientist: sciencePerScientist,
 		ProducedPerBuilding:  scienceFromBuildings,

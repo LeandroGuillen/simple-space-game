@@ -6,15 +6,24 @@ import (
 	. "ssg/model"
 )
 
-func planetTurn(p *Planet, commands Commands) error {
-	if err := applyMovePopulationCommands(p, commands.MovePopulation); err != nil {
-		return err
+func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error {
+
+	hydratePlanetOutputs(game, p)
+
+	// population movement
+	if commands.MovePopulation != nil {
+		newTotal := commands.MovePopulation.Farmers + commands.MovePopulation.Workers + commands.MovePopulation.Scientists
+		if newTotal > p.Population {
+			return fmt.Errorf("bad pop movement: too many units")
+		}
+		p.Food.Farmers = commands.MovePopulation.Farmers
+		p.Industry.Workers = commands.MovePopulation.Workers
+		p.Science.Scientists = commands.MovePopulation.Scientists
 	}
-	hydratePlanetOutputs(p)
 
 	// population growth calculations
 	oldPopulation := p.Population
-	growth := PopulationGrowth(p)
+	growth := PopulationGrowth(p.Population, p.Food.ProducedPerBuilding, p.Food.ProducedPerFarmer, p.Food.Farmers, MaxPop(p))
 	p.Population += growth
 	p.LastTurnPopGrowth = growth
 
@@ -42,18 +51,44 @@ func planetTurn(p *Planet, commands Commands) error {
 		}
 	}
 
-	industryProduced := Industry(p)
+	// industry output
+	grossIndustry := p.Industry.ProducedPerBuilding + p.Industry.Workers*p.Industry.ProducedPerWorker
+	industryProduced := grossIndustry - Pollution(p)
 
-	// Is this a new project or is it ongoing?
+	var buildingName string
+	for _, buildCommand := range commands.Build {
+		if buildCommand.PlanetID == p.ID {
+			buildingName = buildCommand.Building
+		}
+	}
+	if buildingName == "" && !(p.IsBuilding && p.CurrentProject != "") {
+		p.CurrentProject = "Trade Goods"
+		p.IsBuilding = false
+		p.BuildBucket = 0
+	} else if buildingName == "Trade Goods" {
+		p.CurrentProject = "Trade Goods"
+		p.IsBuilding = false
+		p.BuildBucket = 0
+	} else if buildingName != "" {
+		if !Build(p, buildingName, player.Available.Buildings, game) {
+			p.CurrentProject = "Trade Goods"
+			p.IsBuilding = false
+			p.BuildBucket = 0
+		}
+	}
+
+	hydratePlanetIncome(game, p, industryProduced)
+
+	// Advance build project
 	if p.IsBuilding {
 		nextBucket := p.BuildBucket - industryProduced
 		if nextBucket <= 0 {
 			// project is complete
 			p.Buildings = append(p.Buildings, p.CurrentProject)
 			p.IsBuilding = false
-			p.IndustryStack += p.BuildBucket
+			p.IndustryStack += -nextBucket
 			p.BuildBucket = 0
-			p.CurrentProject = Building{}
+			p.CurrentProject = ""
 		} else {
 			// project is not complete
 			p.BuildBucket = nextBucket
@@ -62,71 +97,45 @@ func planetTurn(p *Planet, commands Commands) error {
 		// if nothing to work on, save production
 		p.IndustryStack += industryProduced
 	}
-	hydratePlanetIncome(p)
 
 	return nil
 }
 
-func applyMovePopulationCommands(planet *Planet, commands []MovePopulationCommand) error {
-	for _, cmd := range commands {
-		if cmd.PlanetID != planet.ID {
-			continue
-		}
-		if cmd.Count <= 0 {
-			return fmt.Errorf("population move count must be positive on planet %d", cmd.PlanetID)
-		}
-		if cmd.From == cmd.To {
-			continue
-		}
-		if !isPopCategory(cmd.From) {
-			return fmt.Errorf("unknown source population category %q on planet %d", cmd.From, cmd.PlanetID)
-		}
-		if !isPopCategory(cmd.To) {
-			return fmt.Errorf("unknown target population category %q on planet %d", cmd.To, cmd.PlanetID)
-		}
-		if populationCount(planet, cmd.From) < cmd.Count {
-			return fmt.Errorf("not enough %s on planet %d", cmd.From, cmd.PlanetID)
-		}
-
-		switch cmd.From {
-		case PopCategoryFarmers:
-			planet.Food.Farmers -= cmd.Count
-		case PopCategoryWorkers:
-			planet.Industry.Workers -= cmd.Count
-		case PopCategoryScientists:
-			planet.Science.Scientists -= cmd.Count
-		}
-
-		switch cmd.To {
-		case PopCategoryFarmers:
-			planet.Food.Farmers += cmd.Count
-		case PopCategoryWorkers:
-			planet.Industry.Workers += cmd.Count
-		case PopCategoryScientists:
-			planet.Science.Scientists += cmd.Count
+func Build(p *Planet, buildingName string, availableBuildings []string, game *Game) bool {
+	// is the building already built on this planet
+	found := false
+	for _, buildingInPlanet := range p.Buildings {
+		if buildingName == buildingInPlanet {
+			found = true
+			break
 		}
 	}
-	return nil
-}
 
-func isPopCategory(category PopCategory) bool {
-	switch category {
-	case PopCategoryFarmers, PopCategoryWorkers, PopCategoryScientists:
-		return true
-	default:
+	// does the player have the tech to build this?
+	known := false
+	for _, availableBuilding := range availableBuildings {
+		if buildingName == availableBuilding {
+			known = true
+			break
+		}
+	}
+
+	if found || !known {
 		return false
 	}
-}
 
-func populationCount(p *Planet, category PopCategory) int64 {
-	switch category {
-	case PopCategoryFarmers:
-		return p.Food.Farmers
-	case PopCategoryWorkers:
-		return p.Industry.Workers
-	case PopCategoryScientists:
-		return p.Science.Scientists
-	default:
-		return 0
+	building, err := getBuildingFromName(game, buildingName)
+	if err != nil {
+		return false
 	}
+
+	if p.IsBuilding && p.CurrentProject == buildingName {
+		return true
+	}
+
+	p.CurrentProject = buildingName
+	p.IsBuilding = true
+	p.BuildBucket = building.Cost
+
+	return true
 }

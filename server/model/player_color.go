@@ -1,6 +1,9 @@
 package model
 
-import "fmt"
+import (
+	"fmt"
+	"slices"
+)
 
 const MaxPlayers = 8
 
@@ -16,12 +19,7 @@ var PlayerColors = []string{
 }
 
 func IsValidPlayerColor(color string) bool {
-	for _, candidate := range PlayerColors {
-		if candidate == color {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(PlayerColors, color)
 }
 
 func DefaultPlayerColor() string {

@@ -2,9 +2,67 @@
   "buildings": [
     {
       "name": "Capitol",
-      "description": "Administrative heart of the empire. Placeholder capital building for now.",
+      "description": "Central government building of the empire.",
       "icon": "🏛️",
       "cost": 100,
+      "maintenance": 1,
+      "built_on": "PLANET",
+      "unique": true,
+      "effects": [{ "morale": 1.2 }]
+    },
+    {
+      "name": "Colony Base",
+      "description": "Enables a colony to colonize another planet in the same star system.",
+      "built_on": "PLANET",
+      "cost": 200,
+      "maintenance": 0
+    },
+    {
+      "name": "Star Base",
+      "description": "Orbital defensive satellite that provides planet defense and scanning.",
+      "built_on": "PLANET",
+      "effects": [
+        { "scanner_range": 3 },
+        { "command_points": 1 },
+        { "max_ship_size_bonus": 2 }
+      ],
+      "cost": 400,
+      "maintenance": 2
+    },
+    {
+      "name": "Battlestation",
+      "description": "Upgraded orbital starbase.",
+      "built_on": "PLANET",
+      "effects": [
+        { "scanner_range": 4 },
+        { "command_points": 2 },
+        { "max_ship_size_bonus": 2 },
+        { "fleet_defense": 25 },
+        { "fleet_attack": 25 }
+      ],
+      "cost": 1000,
+      "maintenance": 3
+    },
+    {
+      "name": "Star Fortress",
+      "description": "Upgraded orbital starbase.",
+      "built_on": "PLANET",
+      "effects": [
+        { "scanner_range": 5 },
+        { "command_points": 3 },
+        { "max_ship_size_bonus": 2 },
+        { "fleet_defense": 50 },
+        { "fleet_attack": 50 }
+      ],
+      "cost": 2500,
+      "maintenance": 4
+    },
+    {
+      "name": "Marine Barracks",
+      "description": "Produces Marines and enables planetary invasions.",
+      "built_on": "PLANET",
+      "effects": [{ "marine_production": 1 }, { "marine_hit_points": 1 }],
+      "cost": 60,
       "maintenance": 1
     },
     {
@@ -13,14 +71,7 @@
       "icon": "🏭",
       "cost": 60,
       "maintenance": 1,
-      "effects": [
-        {
-          "industryBonus": 1
-        },
-        {
-          "flatIndustryBonus": 5
-        }
-      ]
+      "effects": [{ "industryBonus": 1 }, { "flatIndustryBonus": 5 }]
     },
     {
       "name": "Hydroponic Farm",
@@ -28,11 +79,89 @@
       "icon": "🌾",
       "cost": 60,
       "maintenance": 1,
+      "effects": [{ "flatFoodBonus": 2 }]
+    },
+    {
+      "name": "Missile Base",
+      "description": "Ground-based planetary missile defense.",
+      "built_on": "PLANET",
+      "cost": 120,
+      "maintenance": 2
+    },
+    {
+      "name": "Space Port",
+      "description": "Advanced orbital facility that boosts colony income.",
+      "built_on": "PLANET",
+      "effects": [{ "income": 1.5 }],
+      "cost": 80,
+      "maintenance": 1
+    },
+    {
+      "name": "Armor Barracks",
+      "description": "Produces armored ground units.",
+      "built_on": "PLANET",
+      "effects": [{ "armored_production": 1 }],
+      "cost": 150,
+      "maintenance": 2
+    },
+    {
+      "name": "Fighter Garrison",
+      "description": "Orbital fighter defense for colonies.",
+      "built_on": "PLANET",
+      "effects": [{ "interceptor": 10 }],
+      "cost": 150,
+      "maintenance": 2
+    },
+    {
+      "name": "Robo-Miners",
+      "description": "Advanced mining facility.",
+      "built_on": "PLANET",
+      "effects": [{ "industry": 10 }, { "industry_per_worker": 2 }],
+      "cost": 150,
+      "maintenance": 2
+    },
+    {
+      "name": "Ground Batteries",
+      "description": "Powerful planetary beam defense system.",
+      "built_on": "PLANET",
+      "cost": 200,
+      "maintenance": 2
+    },
+    {
+      "name": "Recyclotron",
+      "description": "Converts population into production with no pollution.",
+      "built_on": "PLANET",
+      "effects": [{ "industry_per_colonist": 1 }],
+      "cost": 200,
+      "maintenance": 3
+    },
+    {
+      "name": "Robotic Factory",
+      "description": "Converts population into production with no pollution.",
+      "built_on": "PLANET",
       "effects": [
-        {
-          "flatAgricultureBonus": 2
-        }
-      ]
+        { "industry_ultrapoor": 5 },
+        { "industry_poor": 8 },
+        { "industry_abundant": 10 },
+        { "industry_rich": 15 },
+        { "industry_ultrarich": 20 }
+      ],
+      "cost": 200,
+      "maintenance": 3
+    },
+    {
+      "name": "Artemis System Net",
+      "description": "Network of space mines that damages ships attacking any colony in the system.",
+      "built_on": "PLANET",
+      "effects": [
+        { "scanner_range": 5 },
+        { "command_points": 3 },
+        { "max_ship_size_bonus": 2 },
+        { "fleet_defense": 50 },
+        { "fleet_attack": 50 }
+      ],
+      "cost": 1000,
+      "maintenance": 5
     }
   ]
 }

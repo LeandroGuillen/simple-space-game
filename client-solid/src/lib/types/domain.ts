@@ -93,10 +93,18 @@ export type PlayerViewModel = {
   treasury: number;
   taxRate: number;
   researchPoints: number;
+  knownTechs: string[];
+  availableBuildings: string[];
+  currentResearch: ResearchProjectViewModel | null;
   fleets: number[];
   freighters: number;
   freightersUsed: number;
   shipDesigns: ShipDesignViewModel[];
+};
+
+export type ResearchProjectViewModel = {
+  subject: string;
+  progress: number;
 };
 
 export type PlayerColorOptions = {
@@ -172,6 +180,36 @@ export type ResourcesViewModel = {
   shipDesignCollection: {
     shipDesigns: ShipDesignViewModel[];
   };
+  techTree: TechTreeViewModel;
+  techCollection: {
+    techs: TechViewModel[];
+  };
+};
+
+export type TechTreeViewModel = {
+  subjects: TechSubjectViewModel[];
+};
+
+export type TechSubjectViewModel = {
+  name: string;
+  levels: TechLevelViewModel[];
+};
+
+export type TechLevelViewModel = {
+  name: string;
+  cost: number;
+  forceAll: boolean;
+  availableTechs: string[];
+};
+
+export type TechViewModel = {
+  name: string;
+  description: string;
+  cost: number;
+  maintenance: number;
+  effects: unknown;
+  builtOn: string[];
+  unique: boolean;
 };
 
 export type GameViewModel = {

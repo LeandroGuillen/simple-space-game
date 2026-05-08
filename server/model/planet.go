@@ -27,9 +27,8 @@ type Planet struct {
 
 	// building
 
-	CurrentProject Building   `json:"current_project"`
-	BuildQueue     []Building `json:"build_queue"`
-	Buildings      []Building `json:"buildings"`
+	CurrentProject string   `json:"current_project"`
+	Buildings      []string `json:"buildings"`
 	// IndustryStack contains the leftover production of a planet.
 	IndustryStack int64 `json:"industry_stack"`
 	// BuildBucket represents the production that is left for the current project to complete.

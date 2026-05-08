@@ -1,68 +1,53 @@
 package game
 
-import "ssg/model"
+import (
+	"ssg/model"
+)
 
-func hydratePlanetIncome(p *model.Planet) {
-	p.Income = PlanetIncome(p)
+func hydratePlanetIncome(game *Game, p *model.Planet, industryProduced int64) {
+	p.Income = PlanetIncome(game, p, industryProduced)
 }
 
-func PlanetIncome(p *model.Planet) model.PlanetIncomeOutput {
-	taxes := TaxIncome(p)
-	buildings := BuildingIncome(p)
-	tradeGoods := TradeGoodsIncome(p)
-	maintenance := MaintenanceCost(p)
+func PlanetIncome(game *Game, planet *model.Planet, industryProduced int64) model.PlanetIncomeOutput {
+	taxes := planet.Population / 1000
 
-	return model.PlanetIncomeOutput{
-		Taxes:       taxes,
-		Buildings:   buildings,
-		TradeGoods:  tradeGoods,
-		Maintenance: maintenance,
-		Total:       taxes + buildings + tradeGoods - maintenance,
-	}
-}
-
-func TaxIncome(p *model.Planet) int64 {
-	return p.Population / 1000
-}
-
-func BuildingIncome(p *model.Planet) int64 {
-	var income int64
-	for _, building := range p.Buildings {
-		for _, effect := range building.Effects {
-			if effect.Name == "income" {
-				income += effect.Bonus
+	var incomeFromBuildings int64
+	for _, buildingName := range planet.Buildings {
+		if building, err := getBuildingFromName(game, buildingName); err == nil {
+			for _, effect := range building.Effects {
+				if effect.Name == "income" {
+					incomeFromBuildings += effect.Bonus
+				}
 			}
 		}
 	}
-	return income
-}
 
-func TradeGoodsIncome(p *model.Planet) int64 {
-	if p.IsBuilding {
-		return 0
+	var tradeGoods int64 = 0
+	if !planet.IsBuilding {
+		food := planet.Food.Farmers*planet.Food.ProducedPerFarmer + planet.Food.ProducedPerBuilding
+		foodSurplus := food - planet.Population/1000
+		tradeGoods = maxInt64(0, industryProduced)/2 + maxInt64(0, foodSurplus)/2
 	}
-	return TradeGoodsFromOutput(Industry(p), FoodSurplus(p))
-}
 
-func TradeGoodsFromOutput(industry, foodSurplus int64) int64 {
-	if foodSurplus < 0 {
-		foodSurplus = 0
-	}
-	return industry/2 + foodSurplus/2
-}
-
-func MaintenanceCost(p *model.Planet) int64 {
 	var maintenance int64
-	for _, building := range p.Buildings {
-		maintenance += building.Maintenance
+	for _, buildingName := range planet.Buildings {
+		if building, err := getBuildingFromName(game, buildingName); err == nil {
+			maintenance += building.Maintenance
+		}
 	}
-	return maintenance
+
+	return model.PlanetIncomeOutput{
+		Taxes:       taxes,
+		Buildings:   incomeFromBuildings,
+		TradeGoods:  tradeGoods,
+		Maintenance: maintenance,
+		Total:       taxes + incomeFromBuildings + tradeGoods - maintenance,
+	}
 }
 
-func Food(p *model.Planet) int64 {
-	return p.Food.Farmers*p.Food.ProducedPerFarmer + p.Food.ProducedPerBuilding
-}
-
-func FoodSurplus(p *model.Planet) int64 {
-	return Food(p) - p.Population/1000
+func maxInt64(left, right int64) int64 {
+	if left > right {
+		return left
+	}
+	return right
 }

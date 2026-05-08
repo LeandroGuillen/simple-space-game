@@ -5,8 +5,8 @@ import { ApiClient, parseGameUpdate } from '../lib/api';
 import { mapGame, mapPlayerColorOptions } from '../lib/mappers';
 import type { ApiGameListItem } from '../lib/types/api';
 import type { GameViewModel, PlayerColorOptions, ShipDesignForm } from '../lib/types/domain';
-import type { MovePopulationCommand } from '../lib/types/commands';
-import { getColonyRows, getPrimaryPlayer, normalizeServerUrl, toWebSocketUrl } from '../lib/utils';
+import type { MovePopulationCommand, PendingCommands, TurnCommands } from '../lib/types/commands';
+import { findPlanet, getColonyRows, getPrimaryPlayer, normalizeServerUrl, toWebSocketUrl } from '../lib/utils';
 
 type ConnectionStatus = 'idle' | 'checking' | 'connected' | 'error';
 
@@ -23,9 +23,7 @@ type AppState = {
   isBusy: boolean;
   error: string;
   info: string;
-  pendingCommands: {
-    movePopulation: MovePopulationCommand[];
-  };
+  pendingCommands: PendingCommands;
 };
 
 type AppContextValue = {
@@ -38,7 +36,7 @@ type AppContextValue = {
   createGame: (playerName: string, numStars: number, playerColor: string) => Promise<string>;
   selectGame: (gameId: string) => Promise<void>;
   refreshGame: () => Promise<void>;
-  changeBuilding: (planetId: number, buildingId: number) => Promise<void>;
+  changeBuilding: (planetId: number, buildingId: number) => void;
   addMovePopulationCommand: (command: MovePopulationCommand) => void;
   colonize: (planetId: number) => Promise<void>;
   exploreStar: (starId: number) => Promise<void>;
@@ -72,6 +70,7 @@ export function AppProvider(props: ParentProps) {
     error: '',
     info: '',
     pendingCommands: {
+      build: [],
       movePopulation: [],
     },
   });
@@ -201,20 +200,31 @@ export function AppProvider(props: ParentProps) {
     }
   }
 
-  async function changeBuilding(planetId: number, buildingId: number) {
-    if (!api() || !state.session.selectedGameId) {
+  function changeBuilding(planetId: number, buildingId: number) {
+    if (!state.game) {
       return;
     }
-    setBusy(true, 'Queuing build project');
     clearError();
-    try {
-      await api()!.buildOnPlanet(state.session.selectedGameId, planetId, buildingId);
-      setState('info', 'Waiting for server update...');
-    } catch (error) {
-      setBusy(false, '');
-      setState('error', error instanceof Error ? error.message : 'Unable to change building.');
-      throw error;
+
+    const selectedBuilding = state.game.resources.buildingCollection.buildings.find(
+      (building) => building.id === buildingId,
+    );
+    const nextBuildCommands = state.pendingCommands.build.filter((command) => command.planetId !== planetId);
+
+    if (buildingId === 0) {
+      nextBuildCommands.push({
+        planetId,
+        building: 'Trade Goods',
+      });
+    } else if (selectedBuilding) {
+      nextBuildCommands.push({
+        planetId,
+        building: selectedBuilding.name,
+      });
     }
+
+    setState('pendingCommands', 'build', nextBuildCommands);
+    setState('info', buildingId === 0 ? 'Trade Goods queued for next turn' : 'Build project queued for next turn');
   }
 
   function addMovePopulationCommand(command: MovePopulationCommand) {
@@ -244,9 +254,11 @@ export function AppProvider(props: ParentProps) {
     setBusy(true, 'Ending turn');
     clearError();
     try {
-      await api()!.endTurn(state.session.selectedGameId, state.pendingCommands);
-      setState('pendingCommands', { movePopulation: [] });
-      setState('info', 'Waiting for server update...');
+      await api()!.endTurn(state.session.selectedGameId, toTurnCommands(state.pendingCommands, state.game));
+      const rawGame = await api()!.getGame(state.session.selectedGameId);
+      setState('pendingCommands', { build: [], movePopulation: [] });
+      setState('game', mapGame(rawGame));
+      setBusy(false, 'Turn complete');
     } catch (error) {
       setBusy(false, '');
       setState('error', error instanceof Error ? error.message : 'Unable to complete turn.');
@@ -362,6 +374,46 @@ export function AppProvider(props: ParentProps) {
   };
 
   return <AppContext.Provider value={value}>{props.children}</AppContext.Provider>;
+}
+
+function toTurnCommands(commands: PendingCommands, game: GameViewModel | null): TurnCommands {
+  const turnCommands: TurnCommands = {
+    build: commands.build,
+  };
+
+  if (commands.selectResearch) {
+    turnCommands.selectResearch = commands.selectResearch;
+  }
+
+  const [firstMove] = commands.movePopulation;
+  if (!firstMove || !game) {
+    return turnCommands;
+  }
+
+  const planet = findPlanet(game, firstMove.planetId);
+  if (!planet) {
+    return turnCommands;
+  }
+
+  const totals = {
+    farmers: planet.food.farmers,
+    workers: planet.industry.workers,
+    scientists: planet.science.scientists,
+  };
+
+  for (const move of commands.movePopulation.filter((command) => command.planetId === firstMove.planetId)) {
+    totals[move.from] -= move.count;
+    totals[move.to] += move.count;
+  }
+
+  turnCommands.movePopulation = {
+    planetId: firstMove.planetId,
+    farmers: Math.max(0, totals.farmers),
+    workers: Math.max(0, totals.workers),
+    scientists: Math.max(0, totals.scientists),
+  };
+
+  return turnCommands;
 }
 
 export function useAppContext() {

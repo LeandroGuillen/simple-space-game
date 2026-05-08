@@ -6,13 +6,26 @@ import { useAppContext } from "../state/app-context";
 type SortKey = "name" | "starName" | "population" | "industry";
 
 export function ColoniesPage() {
-  const { colonies, state, changeBuilding } = useAppContext();
-const [filter, setFilter] = createSignal("");
+  const { colonies, state, currentPlayer, changeBuilding } = useAppContext();
+  const [filter, setFilter] = createSignal("");
   const [sortKey, setSortKey] = createSignal<SortKey>("name");
   const [sortAsc, setSortAsc] = createSignal(true);
   const buildingOptions = createMemo(
-    () => state.game?.resources.buildingCollection.buildings ?? [],
+    () => {
+      const availableBuildingNames = new Set(currentPlayer()?.availableBuildings ?? []);
+      return state.game?.resources.buildingCollection.buildings.filter((building) =>
+        availableBuildingNames.has(building.name),
+      ) ?? [];
+    },
   );
+  const planetForRow = (planetId: number) =>
+    state.game?.galaxy.stars
+      .flatMap((star) => star.planets)
+      .find((planet) => planet.id === planetId);
+  const buildableOptions = (planetId: number) => {
+    const builtBuildingNames = new Set(planetForRow(planetId)?.buildings.map((building) => building.name) ?? []);
+    return buildingOptions().filter((building) => !builtBuildingNames.has(building.name));
+  };
 
   const rows = createMemo(() => {
     const needle = filter().trim().toLowerCase();
@@ -34,6 +47,17 @@ const [filter, setFilter] = createSignal("");
     });
     return sorted;
   });
+
+  const selectedProjectId = (planetId: number) => {
+    const pendingBuild = state.pendingCommands.build.find((command) => command.planetId === planetId);
+    if (pendingBuild) {
+      return buildingOptions().find((building) => building.name === pendingBuild.building)?.id ?? "";
+    }
+
+    return (
+      planetForRow(planetId)?.currentProject?.id ?? ""
+    );
+  };
 
   function toggleSort(nextKey: SortKey) {
     if (sortKey() === nextKey) {
@@ -118,21 +142,13 @@ const [filter, setFilter] = createSignal("");
                   </label>
                   <select
                     id={`project-${row.id}`}
-                    value={
-                      state.game?.galaxy.stars
-                        .flatMap((star) => star.planets)
-                        .find((planet) => planet.id === row.id)?.currentProject
-                        ?.id ?? ""
-                    }
+                    value={selectedProjectId(row.id)}
                     onChange={(event) =>
-                      void changeBuilding(
-                        row.id,
-                        Number(event.currentTarget.value),
-                      )
+                      changeBuilding(row.id, Number(event.currentTarget.value))
                     }
                   >
                     <option value="">Select building...</option>
-                    {buildingOptions().map((building) => (
+                    {buildableOptions(row.id).map((building) => (
                       <option value={building.id}>{building.name}</option>
                     ))}
                   </select>

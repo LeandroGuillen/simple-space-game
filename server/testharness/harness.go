@@ -33,7 +33,8 @@ type TestServer struct {
 func NewTestServer(t *testing.T) *TestServer {
 	t.Helper()
 
-	s := serverpkg.NewServer()
+	s, err := serverpkg.NewServer()
+	require.NoError(t, err)
 	httpServer := httptest.NewServer(s.Handler())
 	t.Cleanup(httpServer.Close)
 

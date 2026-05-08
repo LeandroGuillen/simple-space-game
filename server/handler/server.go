@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 	"ssg/game"
 	"ssg/ws"
@@ -12,10 +13,11 @@ import (
 )
 
 type Server struct {
-	GameList map[string]*game.Game
-	router   *gin.Engine
-	hub      *ws.Hub
-	hubOnce  sync.Once
+	GameList        map[string]*game.Game
+	ResourceManager *game.ResourceManager
+	router          *gin.Engine
+	hub             *ws.Hub
+	hubOnce         sync.Once
 }
 
 func (s *Server) GetGame(id string) *game.Game {
@@ -29,7 +31,13 @@ func AddGameState(s *Server) gin.HandlerFunc {
 	}
 }
 
-func NewServer() *Server {
+func NewServer() (*Server, error) {
+	var resourceManager *game.ResourceManager
+	var err error
+	if resourceManager, err = game.NewResourceManager(); err != nil {
+		return nil, fmt.Errorf("cannot load resources: %v", err)
+	}
+
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
@@ -42,7 +50,8 @@ func NewServer() *Server {
 	}))
 
 	server := &Server{
-		GameList: make(map[string]*game.Game),
+		GameList:        make(map[string]*game.Game),
+		ResourceManager: resourceManager,
 	}
 
 	server.hub = ws.NewHub(server)
@@ -52,7 +61,7 @@ func NewServer() *Server {
 
 	server.router = r
 	server.startHub()
-	return server
+	return server, nil
 }
 
 func (s *Server) registerRoutes(r *gin.Engine) {
@@ -63,7 +72,6 @@ func (s *Server) registerRoutes(r *gin.Engine) {
 	r.GET("/games/:gameID", GetGame)
 
 	r.POST("/colonies", GetColonyList)
-	r.POST("/colonies/build", BuildOnPlanet)
 
 	r.POST("/action/:owner/colonize/:planet", ColonizePlanet)
 	r.POST("/action/:owner/explore/:star", ExploreStar)

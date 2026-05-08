@@ -19,20 +19,32 @@ const TRADE_GOODS: BuildingViewModel = {
 };
 
 export function ConstructionPanel(props: ConstructionPanelProps) {
-  const { state, changeBuilding } = useAppContext();
+  const { state, currentPlayer, changeBuilding } = useAppContext();
   const [isChoosing, setIsChoosing] = createSignal(false);
   const [selectedProjectId, setSelectedProjectId] = createSignal<number | null>(null);
   let panelRef: HTMLElement | undefined;
 
   const builtBuildingIds = createMemo(() => new Set(props.planet.buildings.map((building) => building.id)));
+  const availableBuildingNames = createMemo(() => new Set(currentPlayer()?.availableBuildings ?? []));
+  const buildableProjects = createMemo(() =>
+    state.game?.resources.buildingCollection.buildings.filter(
+      (project) => availableBuildingNames().has(project.name) && !builtBuildingIds().has(project.id),
+    ) ?? [],
+  );
   const availableProjects = createMemo(() => [
     TRADE_GOODS,
-    ...(state.game?.resources.buildingCollection.buildings.filter((project) => !builtBuildingIds().has(project.id)) ?? []),
+    ...buildableProjects(),
   ]);
   const pendingMoves = createMemo(() =>
     state.pendingCommands.movePopulation.filter((cmd) => cmd.planetId === props.planet.id),
   );
-  const activeProject = createMemo(() => props.planet.currentProject ?? TRADE_GOODS);
+  const pendingBuild = createMemo(() =>
+    state.pendingCommands.build.find((cmd) => cmd.planetId === props.planet.id),
+  );
+  const activeProject = createMemo(() => {
+    const pendingProject = availableProjects().find((project) => project.name === pendingBuild()?.building);
+    return pendingProject ?? props.planet.currentProject ?? TRADE_GOODS;
+  });
   const selectedProject = createMemo(
     () => availableProjects().find((project) => project.id === (selectedProjectId() ?? activeProject().id)) ?? TRADE_GOODS,
   );
@@ -111,7 +123,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   }
 
   async function buildSelectedProject() {
-    await changeBuilding(props.planet.id, selectedProject().id);
+    changeBuilding(props.planet.id, selectedProject().id);
     setIsChoosing(false);
   }
 
@@ -120,7 +132,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
       return;
     }
     setSelectedProjectId(project.id);
-    await changeBuilding(props.planet.id, project.id);
+    changeBuilding(props.planet.id, project.id);
     setIsChoosing(false);
   }
 

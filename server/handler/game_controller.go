@@ -43,20 +43,19 @@ func NewGame(c *gin.Context) {
 	rawServer, exists := c.Get("server")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "server object was not created",
-		})
-		return
-	}
-
-	g, err := game.NewGame(req.PlayerName, req.NumStars, req.PlayerColor)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status":  "error",
-			"message": fmt.Sprintf("error creating game: %s", err.Error()),
+			"message": "could not get server reference",
 		})
 		return
 	}
 	server := rawServer.(*Server)
+
+	g, err := game.NewGame(server.ResourceManager, req.PlayerName, req.NumStars, req.PlayerColor)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": fmt.Sprintf("error creating game: %s", err.Error()),
+		})
+		return
+	}
 	server.GameList[g.ID] = g
 
 	c.JSON(http.StatusOK, gin.H{"ok": true, "gameID": g.ID})

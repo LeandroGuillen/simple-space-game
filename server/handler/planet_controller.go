@@ -108,25 +108,3 @@ func ExploreStar(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"game": visible})
 }
-
-func BuildOnPlanet(c *gin.Context) {
-	var req BuildOnPlanetRequest
-	if err := c.Bind(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-		return
-	}
-
-	g, s, err := getGameHandle(c, req.GameID)
-	if err != nil {
-		return
-	}
-
-	if err := g.BuildOnPlanet(req.PlanetID, req.OwnerID, *req.BuildingID); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-		return
-	}
-
-	s.hub.BroadcastGameUpdate(g)
-
-	c.JSON(http.StatusOK, gin.H{"ok": true})
-}

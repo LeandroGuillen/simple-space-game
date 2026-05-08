@@ -1,20 +1,22 @@
 package model
 
-type PopCategory string
-
-const (
-	PopCategoryFarmers    PopCategory = "farmers"
-	PopCategoryWorkers    PopCategory = "workers"
-	PopCategoryScientists PopCategory = "scientists"
-)
-
+type BuildCommand struct {
+	PlanetID uint   `json:"planetId"`
+	Building string `json:"building"`
+}
 type MovePopulationCommand struct {
-	PlanetID uint        `json:"planetId"`
-	From     PopCategory `json:"from"`
-	To       PopCategory `json:"to"`
-	Count    int64       `json:"count"`
+	PlanetID   uint  `json:"planetId"`
+	Farmers    int64 `json:"farmers"`
+	Workers    int64 `json:"workers"`
+	Scientists int64 `json:"scientists"`
+}
+
+type SelectResearchCommand struct {
+	TechName string `json:"tech_name"`
 }
 
 type Commands struct {
-	MovePopulation []MovePopulationCommand `json:"movePopulation"`
+	Build          []*BuildCommand        `json:"build"`
+	MovePopulation *MovePopulationCommand `json:"movePopulation,omitempty"`
+	SelectResearch *SelectResearchCommand `json:"selectResearch,omitempty"`
 }

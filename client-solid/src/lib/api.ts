@@ -7,7 +7,7 @@ import type {
   ApiStatusResponse,
 } from './types/api';
 import type { ShipDesignForm } from './types/domain';
-import type { MovePopulationCommand } from './types/commands';
+import type { TurnCommands } from './types/commands';
 import { normalizeServerUrl } from './utils';
 
 type JsonHeaders = Record<string, string>;
@@ -100,27 +100,13 @@ export class ApiClient {
     return readJson<unknown[]>(response);
   }
 
-  async endTurn(gameId: string, commands: { movePopulation: MovePopulationCommand[] }) {
+  async endTurn(gameId: string, commands: TurnCommands) {
     const response = await fetch(`${this.baseUrl}/turn`, {
       method: 'POST',
       headers: this.headers(gameId),
       body: JSON.stringify({
         game_id: gameId,
         commands,
-      }),
-    });
-    return readJson<{ ok: boolean }>(response);
-  }
-
-  async buildOnPlanet(gameId: string, planetId: number, buildingId: number) {
-    const response = await fetch(`${this.baseUrl}/colonies/build`, {
-      method: 'POST',
-      headers: this.headers(gameId),
-      body: JSON.stringify({
-        game_id: gameId,
-        owner_id: this.playerId,
-        planet_id: planetId,
-        building_id: buildingId,
       }),
     });
     return readJson<{ ok: boolean }>(response);

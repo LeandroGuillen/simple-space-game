@@ -2,10 +2,12 @@ package game
 
 import (
 	"fmt"
-	"ssg/model"
+	"slices"
+	. "ssg/model"
+	"strings"
 )
 
-func (g *Game) getPlayer(ID uint) (*model.Player, error) {
+func (g *Game) getPlayer(ID uint) (*Player, error) {
 	for _, player := range g.Players {
 		if player.ID == ID {
 			return player, nil
@@ -14,7 +16,7 @@ func (g *Game) getPlayer(ID uint) (*model.Player, error) {
 	return nil, fmt.Errorf("player with ID %d not found", ID)
 }
 
-func (g *Game) getPlanet(ID uint) (*model.Planet, error) {
+func (g *Game) getPlanet(ID uint) (*Planet, error) {
 	for _, star := range g.Galaxy.Stars {
 		for _, planet := range star.Planets {
 			if planet.ID == ID {
@@ -25,11 +27,36 @@ func (g *Game) getPlanet(ID uint) (*model.Planet, error) {
 	return nil, fmt.Errorf("planet with ID %d not found", ID)
 }
 
-func (g *Game) getStar(ID uint) (*model.Star, error) {
+func (g *Game) getStar(ID uint) (*Star, error) {
 	for _, star := range g.Galaxy.Stars {
 		if star.ID == ID {
 			return star, nil
 		}
 	}
 	return nil, fmt.Errorf("star with ID %d not found", ID)
+}
+
+func buildOnPlanet(planet *Planet, buildingName string) {
+	if slices.Contains(planet.Buildings, buildingName) {
+		return
+	}
+	planet.Buildings = append(planet.Buildings, buildingName)
+}
+
+func hasBuilding(p *Planet, buildingName string) bool {
+	for _, building := range p.Buildings {
+		if strings.EqualFold(building, buildingName) {
+			return true
+		}
+	}
+	return false
+}
+
+func getBuildingFromName(g *Game, name string) (Building, error) {
+	for _, building := range g.Resources.Buildings {
+		if building.Name == name {
+			return building, nil
+		}
+	}
+	return Building{}, fmt.Errorf("building %s not found", name)
 }

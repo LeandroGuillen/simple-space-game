@@ -31,7 +31,7 @@ export type ApiEffect = {
   bonus?: number;
   industryBonus?: number;
   flatIndustryBonus?: number;
-  flatAgricultureBonus?: number;
+  flatFoodBonus?: number;
   scienceBonus?: number;
   flatScienceBonus?: number;
 };
@@ -82,9 +82,9 @@ export type ApiPlanet = {
   pollution?: number;
   marines: number;
   armor: number;
-  current_project?: ApiBuilding;
-  build_queue?: ApiBuilding[] | null;
-  buildings?: ApiBuilding[] | null;
+  current_project?: ApiBuilding | string;
+  build_queue?: (ApiBuilding | string)[] | null;
+  buildings?: (ApiBuilding | string)[] | null;
   industry_stack: number;
   build_bucket: number;
   is_building: boolean;
@@ -179,6 +179,32 @@ export type ApiShipParts = {
   shields: ApiShield[];
 };
 
+export type ApiTechLevel = {
+  name: string;
+  cost: number;
+  force_all?: boolean;
+  available_techs: string[];
+};
+
+export type ApiTechSubject = {
+  name: string;
+  levels: ApiTechLevel[];
+};
+
+export type ApiTechTree = {
+  subjects: ApiTechSubject[];
+};
+
+export type ApiTech = {
+  name: string;
+  description?: string;
+  cost?: number;
+  maintenance?: number;
+  effects?: unknown;
+  built_on?: string[];
+  unique?: boolean;
+};
+
 export type ApiResources = {
   ship_parts: ApiShipParts;
   building_collection?: {
@@ -187,6 +213,10 @@ export type ApiResources = {
   ship_design_collection?: {
     ship_design_defs?: ApiShipDesignDef[];
     ship_designs: ApiShipDesign[];
+  };
+  tech_tree?: ApiTechTree;
+  tech_collection?: {
+    techs: ApiTech[];
   };
 };
 
@@ -198,10 +228,20 @@ export type ApiPlayer = {
   treasury: number;
   tax_rate: number;
   research_points: number;
+  known_techs?: string[] | null;
+  current_research?: ApiResearchProject;
+  available?: {
+    buildings?: string[] | null;
+  };
   fleets?: number[] | null;
   freighters: number;
   freighters_used: number;
   ship_designs?: ApiShipDesign[] | null;
+};
+
+export type ApiResearchProject = {
+  subject: string;
+  progress: number;
 };
 
 export type ApiPlayerColorOptions = {

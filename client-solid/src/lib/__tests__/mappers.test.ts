@@ -32,20 +32,9 @@ describe('mapGame', () => {
                 pollution: 2,
                 marines: 0,
                 armor: 0,
-                current_project: {
-                  id: 1,
-                  name: 'Automated Factory',
-                  description: 'Robotic assembly lines.',
-                  icon: '🏭',
-                  cost: 60,
-                  maintenance: 1,
-                  effects: [
-                    { name: 'industryBonus', bonus: 1 },
-                    { flatIndustryBonus: 5 },
-                  ],
-                },
+                current_project: 'Automated Factory',
                 build_queue: null,
-                buildings: null,
+                buildings: ['Capitol', 'Star Base'],
                 industry_stack: 0,
                 build_bucket: 60,
                 is_building: true,
@@ -63,6 +52,9 @@ describe('mapGame', () => {
           treasury: 24,
           tax_rate: 0,
           research_points: 5,
+          available: {
+            buildings: ['Colony Base', 'Automated Factory'],
+          },
           fleets: [1],
           freighters: 1,
           freighters_used: 0,
@@ -81,13 +73,28 @@ describe('mapGame', () => {
         building_collection: {
           buildings: [
             {
-              id: 1,
               name: 'Automated Factory',
               description: 'Robotic assembly lines.',
               icon: '🏭',
               cost: 60,
               maintenance: 1,
               effects: [{ flatIndustryBonus: 5 }],
+            },
+            {
+              name: 'Capitol',
+              description: 'Central government building.',
+              icon: '🏛️',
+              cost: 0,
+              maintenance: 0,
+              effects: [],
+            },
+            {
+              name: 'Star Base',
+              description: 'Orbital command station.',
+              icon: '🛰️',
+              cost: 200,
+              maintenance: 2,
+              effects: [],
             },
           ],
         },
@@ -102,14 +109,21 @@ describe('mapGame', () => {
     expect(game.id).toBe('game-1')
     expect(game.currentTurn).toBe(3500)
     expect(game.players[0]?.raceName).toBe('Human')
+    expect(game.players[0]?.availableBuildings).toEqual(['Colony Base', 'Automated Factory'])
     expect(game.galaxy.stars[0]?.ownedPlanets).toBe(1)
     expect(game.galaxy.stars[0]?.planets[0]?.maxPopulation).toBe(16000)
     expect(game.galaxy.stars[0]?.planets[0]?.pollution).toBe(2)
     expect(game.galaxy.stars[0]?.planets[0]?.currentProject?.name).toBe('Automated Factory')
+    expect(game.galaxy.stars[0]?.planets[0]?.currentProject?.id).toBe(1)
     expect(game.galaxy.stars[0]?.planets[0]?.currentProject?.icon).toBe('🏭')
     expect(game.galaxy.stars[0]?.planets[0]?.currentProject?.effects).toEqual([
-      { name: 'industryBonus', description: '', bonus: 1 },
       { name: 'flatIndustryBonus', description: '', bonus: 5 },
     ])
+    expect(game.galaxy.stars[0]?.planets[0]?.buildings.map((building) => building.name)).toEqual([
+      'Capitol',
+      'Star Base',
+    ])
+    expect(game.galaxy.stars[0]?.planets[0]?.income.maintenance).toBe(2)
+    expect(game.galaxy.stars[0]?.planets[0]?.income.total).toBe(6)
   })
 })

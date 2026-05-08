@@ -2,6 +2,7 @@ package model
 
 type TechTree struct {
 	Subjects []TechSubject `json:"subjects"`
+	AllTechs []Tech        `json:"all_techs"`
 }
 
 type TechSubject struct {
@@ -14,6 +15,11 @@ type TechLevel struct {
 	Cost           uint64   `json:"cost"`
 	ForceAll       bool     `json:"force_all,omitempty"`
 	AvailableTechs []string `json:"available_techs"`
+}
+
+type ResearchProject struct {
+	Subject  string `json:"subject"`
+	Progress uint64 `json:"progress"`
 }
 
 type Tech struct {

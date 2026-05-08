@@ -7,9 +7,11 @@ type Player struct {
 
 	Race `json:"race"`
 
-	Treasury       int64   `json:"treasury"`
-	TaxRate        float64 `json:"tax_rate"`
-	ResearchPoints uint    `json:"research_points"`
+	Treasury        int64            `json:"treasury"`
+	TaxRate         float64          `json:"tax_rate"`
+	ResearchPoints  uint64           `json:"research_points"`
+	CurrentResearch *ResearchProject `json:"current_research,omitempty"`
+	Available       AvailableTech    `json:"available"`
 
 	Fleets         []uint `json:"fleets"`
 	Freighters     uint   `json:"freighters"`
@@ -17,4 +19,8 @@ type Player struct {
 
 	ShipDesigns   []ShipDesign `json:"ship_designs"`
 	ExploredStars []uint       `json:"explored_stars"`
+}
+
+type AvailableTech struct {
+	Buildings []string `json:"buildings"`
 }

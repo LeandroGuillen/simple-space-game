@@ -64,6 +64,12 @@ var beamsFile []byte
 //go:embed resources/tech-tree.json
 var techTreeFile []byte
 
+//go:embed resources/techs.json
+var techsFile []byte
+
+//go:embed resources/techs.construction.json
+var constructionTechsFile []byte
+
 func (r *ResourceManager) loadDataFromFiles() error {
 	var shipPartsCollection ShipPartsCollection
 	if err := json.Unmarshal(equipmentFile, &shipPartsCollection); err != nil {
@@ -81,9 +87,6 @@ func (r *ResourceManager) loadDataFromFiles() error {
 	var buildingCollection BuildingCollection
 	if err := json.Unmarshal(buildingsFile, &buildingCollection); err != nil {
 		return err
-	}
-	for i := range buildingCollection.Buildings {
-		buildingCollection.Buildings[i].ID = uint(i + 1)
 	}
 	r.BuildingCollection = &buildingCollection
 
@@ -155,15 +158,46 @@ func (r *ResourceManager) loadDataFromFiles() error {
 	}
 	r.TechTree = &techTree
 
+	techs, err := loadTechDefinitions(constructionTechsFile)
+	if err != nil {
+		return err
+	}
+	r.TechTree.AllTechs = techs
+
 	return nil
 }
 
-func NewResourceManager(g *Game) (*ResourceManager, error) {
+func loadTechDefinitions(files ...[]byte) ([]Tech, error) {
+	techsByName := make(map[string]Tech)
+	orderedNames := make([]string, 0)
+	for _, file := range files {
+		var techs []Tech
+		if err := json.Unmarshal(file, &techs); err != nil {
+			return nil, err
+		}
+		for _, tech := range techs {
+			if tech.Name == "" {
+				continue
+			}
+			if _, exists := techsByName[tech.Name]; !exists {
+				orderedNames = append(orderedNames, tech.Name)
+			}
+			techsByName[tech.Name] = tech
+		}
+	}
+
+	techs := make([]Tech, 0, len(orderedNames))
+	for _, name := range orderedNames {
+		techs = append(techs, techsByName[name])
+	}
+	return techs, nil
+}
+
+func NewResourceManager() (*ResourceManager, error) {
 	rm := &ResourceManager{}
 	if err := rm.loadDataFromFiles(); err != nil {
 		return nil, err
 	}
-	g.Resources = rm.Resources
 	return rm, nil
 }
 

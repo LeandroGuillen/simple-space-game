@@ -2,7 +2,6 @@ package game
 
 import (
 	"math"
-	"strings"
 
 	"ssg/model"
 )
@@ -30,8 +29,8 @@ func Pollution(p *model.Planet) int64 {
 }
 
 func pollutionDivisor(p *model.Planet) int64 {
-	hasProcessor := hasBuildingNamed(p, "Pollution Processor")
-	hasRenewer := hasBuildingNamed(p, "Atmospheric Renewer")
+	hasProcessor := hasBuilding(p, "Pollution Processor")
+	hasRenewer := hasBuilding(p, "Atmospheric Renewer")
 	if hasProcessor && hasRenewer {
 		return 8
 	}
@@ -46,17 +45,8 @@ func pollutionDivisor(p *model.Planet) int64 {
 
 func pollutionPlanetSize(p *model.Planet) int64 {
 	size := int64(p.Size) * 2
-	if hasBuildingNamed(p, "Nano Disassemblers") {
+	if hasBuilding(p, "Nano Disassemblers") {
 		size *= 2
 	}
 	return size
-}
-
-func hasBuildingNamed(p *model.Planet, name string) bool {
-	for _, building := range p.Buildings {
-		if strings.EqualFold(building.Name, name) {
-			return true
-		}
-	}
-	return false
 }

@@ -62,10 +62,11 @@ export function PlanetPage() {
       }
     }
 
+    const hasPendingBuild = state.pendingCommands.build.some((cmd) => cmd.planetId === current.id);
     const food = Math.max(0, farmers) * current.food.produced_per_farmer + current.food.produced_per_building;
     const foodSurplus = Math.max(0, food - Math.floor(current.population / 1000));
     const industry = getPlanetIndustryForWorkers(current, workers);
-    const tradeGoods = current.isBuilding ? 0 : Math.floor(foodSurplus / 2) + Math.floor(industry / 2);
+    const tradeGoods = current.isBuilding || hasPendingBuild ? 0 : Math.floor(foodSurplus / 2) + Math.floor(industry / 2);
     const total = current.income.taxes + current.income.buildings + tradeGoods - current.income.maintenance;
 
     return {

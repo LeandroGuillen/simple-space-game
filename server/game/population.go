@@ -17,13 +17,13 @@ func MaxPop(p *Planet) int64 {
 }
 
 // PopulationGrowth returns the per-turn population delta for a planet.
-func PopulationGrowth(p *Planet) int64 {
-	if p.Population <= 0 {
+func PopulationGrowth(population, foodPerBuilding, foodPerFarmer, numFarmers, maxPop int64) int64 {
+	if population <= 0 {
 		return 0
 	}
 
-	planet_capacity := float64(MaxPop(p) / 1000)
-	pop_units := math.Floor(float64(p.Population / 1000))
+	planet_capacity := float64(maxPop / 1000)
+	pop_units := math.Floor(float64(population / 1000))
 	free_space := planet_capacity - pop_units
 	basic_increment := math.Floor(math.Sqrt(2000 * pop_units * free_space / planet_capacity))
 
@@ -39,7 +39,7 @@ func PopulationGrowth(p *Planet) int64 {
 	cloning_bonus := float64(0) // TODO if present, +100
 
 	// enough food? check for starvation
-	total_food_produced := float64(p.Food.ProducedPerBuilding + (p.Food.ProducedPerFarmer * p.Food.Farmers))
+	total_food_produced := float64(foodPerBuilding + (foodPerFarmer * numFarmers))
 	food_lack := pop_units - total_food_produced
 	var food_lack_penalty float64
 	if food_lack > 0 {

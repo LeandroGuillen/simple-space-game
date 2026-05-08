@@ -13,7 +13,7 @@
       "description": "Bonus food per farmer."
     },
     {
-      "name": "flatAgricultureBonus",
+      "name": "flatFoodBonus",
       "description": "Generates a fixed amount of food."
     }
   ]

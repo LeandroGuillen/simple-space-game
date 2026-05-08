@@ -12,16 +12,14 @@ type Turnable interface {
 }
 
 type Game struct {
-	Galaxy      Galaxy    `json:"galaxy"`
-	Players     []*Player `json:"players"`
-	ID          string    `json:"id"`
-	CurrentTurn int64     `json:"current_turn"`
-	Resources   Resources `json:"resources"`
-
-	resourceManager *ResourceManager
+	Galaxy      Galaxy     `json:"galaxy"`
+	Players     []*Player  `json:"players"`
+	ID          string     `json:"id"`
+	CurrentTurn int64      `json:"current_turn"`
+	Resources   *Resources `json:"resources"`
 }
 
-func NewGame(playerName string, numStars uint, playerColor string) (*Game, error) {
+func NewGame(resources *ResourceManager, playerName string, numStars uint, playerColor string) (*Game, error) {
 	if playerColor == "" {
 		playerColor = DefaultPlayerColor()
 	}
@@ -29,23 +27,20 @@ func NewGame(playerName string, numStars uint, playerColor string) (*Game, error
 		return nil, fmt.Errorf("invalid player color %q", playerColor)
 	}
 
+	firstPlayerID := uint(1)
+	player1 := NewPlayer(firstPlayerID, playerName, playerColor)
 	g := &Game{
-		Galaxy: NewGalaxy(numStars),
-		Players: []*Player{
-			{ID: 1, Name: playerName, Color: playerColor},
-		},
+		Galaxy:      NewGalaxy(numStars),
+		Players:     []*Player{player1},
 		ID:          uuid.New().String(),
 		CurrentTurn: 3500,
-		Resources:   Resources{},
-	}
-	if rm, err := NewResourceManager(g); err != nil {
-		return nil, err
-	} else {
-		g.resourceManager = rm
+		Resources:   &resources.Resources,
 	}
 
-	_ = g.CreateCapitalPlanet(1, 1)
-	_ = g.ExploreStar(1, 1)
+	_ = g.CreateCapitalPlanet(firstPlayerID)
+	_ = g.ExploreStar(firstPlayerID, 1)
+
+	g.research(player1, "Automated Factory")
 
 	return g, nil
 }
@@ -69,34 +64,46 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 		return err
 	}
 
+	if commands.SelectResearch != nil {
+		if err := g.selectResearch(player, *commands.SelectResearch); err != nil {
+			return err
+		}
+	}
+
 	// colonies turn processing
 	colonyList, err := g.GetColonyList(playerID)
 	if err != nil {
 		return err
 	}
+	totalIncome := int64(0)
+	totalResearch := int64(0)
 	for _, colony := range colonyList {
-		if err := planetTurn(colony, commands); err != nil {
+		if err := planetTurn(colony, commands, player, g); err != nil {
 			return err
 		}
+		totalIncome += colony.Income.Total
+		totalResearch += colony.Science.Scientists*colony.Science.ProducedPerScientist + colony.Science.ProducedPerBuilding
 	}
 
 	// empire turn processing
-	for _, colony := range colonyList {
-		player.Treasury += colony.Income.Total
-	}
+	player.Treasury += totalIncome
+
 	g.CurrentTurn += 1
 	return nil
 }
 
-func (g *Game) CreateCapitalPlanet(ownerID, planetID uint) error {
+func (g *Game) CreateCapitalPlanet(ownerID uint) error {
 	if _, err := g.getPlayer(ownerID); err != nil {
 		return err
 	}
 
-	planet, err := g.getPlanet(planetID)
+	// TODO find a better way to get the first planet
+	planet, err := g.getPlanet(1)
 	if err != nil {
 		return err
 	}
+
+	planet.Owner = ownerID
 
 	// default capital terran world
 	planet.Environment = PlanetEnvironmentTerran
@@ -104,27 +111,20 @@ func (g *Game) CreateCapitalPlanet(ownerID, planetID uint) error {
 	planet.MineralClass = PlanetMineralAbundant
 	planet.Gravity = PlanetGravityNormal
 
-	planet.Owner = ownerID
+	// population setup
 	planet.Population = 8000
 	planet.Food.Farmers = 4
 	planet.Industry.Workers = 3
 	planet.Science.Scientists = 1
-	if len(g.Resources.Buildings) > 0 {
-		addBuiltBuilding(planet, g.Resources.Buildings[0])
-	}
-	hydratePlanetOutputs(planet)
-	hydratePlanetIncome(planet)
+
+	buildOnPlanet(planet, "Capitol")
+	buildOnPlanet(planet, "Star Base")
+	buildOnPlanet(planet, "Marine Barracks")
+
+	hydratePlanetOutputs(g, planet)
+	hydratePlanetIncome(g, planet, 0)
 
 	return nil
-}
-
-func addBuiltBuilding(planet *Planet, building Building) {
-	for _, built := range planet.Buildings {
-		if built.ID == building.ID {
-			return
-		}
-	}
-	planet.Buildings = append(planet.Buildings, building)
 }
 
 func (g *Game) ColonizePlanet(ownerID, planetID uint) error {
@@ -160,55 +160,6 @@ func (g *Game) GetColonyList(playerID uint) ([]*Planet, error) {
 	return colonyList, nil
 }
 
-func (g *Game) BuildOnPlanet(planetID, ownerID, buildingID uint) error {
-	if _, err := g.getPlayer(ownerID); err != nil {
-		return err
-	}
-
-	planet, err := g.getPlanet(planetID)
-	if err != nil {
-		return err
-	}
-	if planet.Owner != ownerID {
-		return fmt.Errorf("planet %d is not owned by player %d", planetID, ownerID)
-	}
-
-	if buildingID == 0 {
-		planet.CurrentProject = Building{}
-		planet.IsBuilding = false
-		planet.BuildBucket = 0
-		hydratePlanetOutputs(planet)
-		hydratePlanetIncome(planet)
-		return nil
-	}
-
-	var building Building
-	found := false
-	for _, candidate := range g.Resources.Buildings {
-		if candidate.ID == buildingID {
-			building = candidate
-			found = true
-			break
-		}
-	}
-	if !found {
-		return fmt.Errorf("building with id %d does not exist", buildingID)
-	}
-	for _, built := range planet.Buildings {
-		if built.ID == building.ID {
-			return fmt.Errorf("building %s is already built on planet %d", building.Name, planetID)
-		}
-	}
-
-	planet.CurrentProject = building
-	planet.IsBuilding = true
-	planet.BuildBucket = building.Cost
-	hydratePlanetOutputs(planet)
-	hydratePlanetIncome(planet)
-
-	return nil
-}
-
 func (g *Game) GetShipDesignsList(playerID uint) ([]*ShipDesign, error) {
 	if player, err := g.getPlayer(playerID); err != nil {
 		return nil, err
@@ -233,10 +184,6 @@ func (g *Game) CreateShipDesign(
 	armorName,
 	hullSizeName,
 	fuelCellName string) error {
-
-	if err := g.resourceManager.canICreateThisDesign(driveName, computerName, shieldName, armorName, hullSizeName, fuelCellName); err != nil {
-		return err
-	}
 
 	parts := g.Resources.ShipPartsCollection
 
@@ -288,10 +235,6 @@ func (g *Game) UpdateShipDesign(
 	hullSizeName,
 	fuelCellName string) error {
 
-	if err := g.resourceManager.canICreateThisDesign(driveName, computerName, shieldName, armorName, hullSizeName, fuelCellName); err != nil {
-		return err
-	}
-
 	parts := g.Resources.ShipPartsCollection
 
 	// I can ignore errors here because I just checked that all part names are valid
@@ -324,60 +267,3 @@ func (g *Game) UpdateShipDesign(
 
 	return fmt.Errorf("cannot update, did not find a design with name %q", name)
 }
-
-// func (g *Game) ApplyMovePopulationCommands(playerID uint, commands []MovePopulationCommand) error {
-// 	for _, cmd := range commands {
-// 		planet, err := g.getPlanet(cmd.PlanetID)
-// 		if err != nil {
-// 			return err
-// 		}
-// 		if planet.Owner != playerID {
-// 			return fmt.Errorf("planet %d not owned by player %d", cmd.PlanetID, playerID)
-// 		}
-
-// 		fromCount := g.getPopulationCount(planet, cmd.From)
-// 		if fromCount < cmd.Count {
-// 			return fmt.Errorf("not enough %s on planet %d", cmd.From, cmd.PlanetID)
-// 		}
-
-// 		totalPop := planet.Food.Farmers + planet.Industry.Workers + planet.Science.Scientists + planet.Marines
-// 		newTotalPop := totalPop - cmd.Count + cmd.Count
-// 		maxPop := MaxPop(planet)
-// 		if newTotalPop > maxPop {
-// 			return fmt.Errorf("population %d exceeds max %d on planet %d", newTotalPop, maxPop, cmd.PlanetID)
-// 		}
-
-// 		planet.Population = newTotalPop
-
-// 		switch cmd.From {
-// 		case PopCategoryFarmers:
-// 			planet.Food.Farmers -= cmd.Count
-// 		case PopCategoryWorkers:
-// 			planet.Industry.Workers -= cmd.Count
-// 		case PopCategoryScientists:
-// 			planet.Science.Scientists -= cmd.Count
-// 		}
-
-// 		switch cmd.To {
-// 		case PopCategoryFarmers:
-// 			planet.Food.Farmers += cmd.Count
-// 		case PopCategoryWorkers:
-// 			planet.Industry.Workers += cmd.Count
-// 		case PopCategoryScientists:
-// 			planet.Science.Scientists += cmd.Count
-// 		}
-// 	}
-// 	return nil
-// }
-
-// func (g *Game) getPopulationCount(p *Planet, cat PopCategory) int64 {
-// 	switch cat {
-// 	case PopCategoryFarmers:
-// 		return p.Food.Farmers
-// 	case PopCategoryWorkers:
-// 		return p.Industry.Workers
-// 	case PopCategoryScientists:
-// 		return p.Science.Scientists
-// 	}
-// 	return 0
-// }
