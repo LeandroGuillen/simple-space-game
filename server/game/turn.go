@@ -21,9 +21,23 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 		p.Science.Scientists = commands.MovePopulation.Scientists
 	}
 
+	maxPop := MaxPop(game, p, player)
+	p.MaxPopulation = maxPop
+	if p.Population > maxPop {
+		p.Population = maxPop
+		capAssignedPopulation(p)
+	}
+
 	// population growth calculations
 	oldPopulation := p.Population
-	growth := PopulationGrowth(p.Population, p.Food.ProducedPerBuilding, p.Food.ProducedPerFarmer, p.Food.Farmers, MaxPop(p))
+	growth := PopulationGrowth(
+		p.Population,
+		p.Food.ProducedPerBuilding,
+		p.Food.ProducedPerFarmer,
+		p.Food.Farmers,
+		maxPop,
+		PopulationGrowthBonus(game, p),
+	)
 	p.Population += growth
 	p.LastTurnPopGrowth = growth
 
@@ -33,7 +47,7 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 	}
 
 	// capping population to planet max
-	if maxPop := MaxPop(p); p.Population > maxPop {
+	if p.Population > maxPop {
 		p.Population = maxPop
 	}
 
@@ -50,6 +64,7 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 			p.Science.Scientists += popIncrease
 		}
 	}
+	capAssignedPopulation(p)
 
 	// industry output
 	industryProduced := PlanetIndustryProduced(p)
@@ -98,6 +113,22 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 	}
 
 	return nil
+}
+
+func capAssignedPopulation(p *Planet) {
+	maxAssignedPopulation := p.Population / 1000
+	for p.Food.Farmers+p.Industry.Workers+p.Science.Scientists > maxAssignedPopulation {
+		switch {
+		case p.Industry.Workers >= p.Food.Farmers && p.Industry.Workers >= p.Science.Scientists && p.Industry.Workers > 0:
+			p.Industry.Workers--
+		case p.Food.Farmers >= p.Industry.Workers && p.Food.Farmers >= p.Science.Scientists && p.Food.Farmers > 0:
+			p.Food.Farmers--
+		case p.Science.Scientists > 0:
+			p.Science.Scientists--
+		default:
+			return
+		}
+	}
 }
 
 func Build(p *Planet, buildingName string, availableBuildings []string, game *Game) bool {

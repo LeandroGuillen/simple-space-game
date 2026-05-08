@@ -3,7 +3,7 @@ import { createMemo, For, Show } from 'solid-js';
 import { ConstructionPanel } from '../components/ConstructionPanel';
 import { PlanetVisual } from '../components/PlanetVisual';
 import { PopulationPanel } from '../components/PopulationPanel';
-import { findPlanet, getPlanetProjectedIncome, labelForEnvironment, labelForGravity, labelForMinerals, labelForSize } from '../lib/utils';
+import { findPlanet, getPlanetProjectedIncome, getPlanetProjectedPopulationGrowth, labelForEnvironment, labelForGravity, labelForMinerals, labelForSize } from '../lib/utils';
 import { useAppContext } from '../state/app-context';
 
 export function PlanetPage() {
@@ -12,32 +12,7 @@ export function PlanetPage() {
   const planet = () => findPlanet(state.game, Number(params.planetId));
   const projectedPopGrowth = createMemo(() => {
     const current = planet();
-    if (!current || current.population <= 0) {
-      return 0;
-    }
-
-    let farmers = current.food.farmers;
-    for (const move of state.pendingCommands.movePopulation.filter((cmd) => cmd.planetId === current.id)) {
-      if (move.to === 'farmers') {
-        farmers += move.count;
-      }
-      if (move.from === 'farmers') {
-        farmers -= move.count;
-      }
-    }
-    farmers = Math.max(0, farmers);
-
-    const planetCapacity = Math.floor(current.maxPopulation / 1000);
-    const popUnits = Math.floor(current.population / 1000);
-    const freeSpace = planetCapacity - popUnits;
-    const basicIncrement = planetCapacity > 0 && freeSpace > 0
-      ? Math.floor(Math.sqrt((2000 * popUnits * freeSpace) / planetCapacity))
-      : 0;
-    const foodProduced = farmers * current.food.produced_per_farmer + current.food.produced_per_building;
-    const foodLack = popUnits - foodProduced;
-    const foodLackPenalty = foodLack > 0 ? 50 * foodLack : 0;
-
-    return Math.floor(basicIncrement - foodLackPenalty);
+    return current ? getPlanetProjectedPopulationGrowth(current, state.pendingCommands) : 0;
   });
   const incomeBreakdown = createMemo(() => {
     const current = planet();

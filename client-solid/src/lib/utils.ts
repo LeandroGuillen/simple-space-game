@@ -169,6 +169,37 @@ export function getPlanetProjectedIncome(planet: PlanetViewModel, pendingCommand
   };
 }
 
+export function getPlanetProjectedPopulationGrowth(planet: PlanetViewModel, pendingCommands?: PendingCommands) {
+  if (planet.population <= 0) {
+    return 0;
+  }
+
+  const allocation = getProjectedWorkerAllocation(planet, pendingCommands?.movePopulation ?? []);
+  const planetCapacity = Math.floor(planet.maxPopulation / 1000);
+  const popUnits = Math.floor(Math.min(planet.population, planet.maxPopulation) / 1000);
+  const freeSpace = planetCapacity - popUnits;
+  const basicIncrement = planetCapacity > 0 && freeSpace > 0
+    ? Math.floor(Math.sqrt((2000 * popUnits * freeSpace) / planetCapacity))
+    : 0;
+  const foodProduced =
+    allocation.farmers * planet.food.produced_per_farmer +
+    planet.food.produced_per_building;
+  const foodLack = popUnits - foodProduced;
+  const foodLackPenalty = foodLack > 0 ? 50 * foodLack : 0;
+  const flatGrowthBonus = planet.buildings.reduce(
+    (sum, building) =>
+      sum +
+      building.modifiers.reduce(
+        (modifierSum, modifier) =>
+          modifierSum + (modifier.name === "population_growth" ? modifier.bonus : 0),
+        0,
+      ),
+    0,
+  );
+
+  return Math.floor(basicIncrement + flatGrowthBonus - foodLackPenalty);
+}
+
 export function getColonyRows(game?: GameViewModel | null, pendingCommands?: PendingCommands): ColonyRow[] {
   if (!game) {
     return [];

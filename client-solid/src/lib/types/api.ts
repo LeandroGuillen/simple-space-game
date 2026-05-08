@@ -74,6 +74,7 @@ export type ApiPlanet = {
   gravity: number;
   environment: number;
   population: number;
+  max_population?: number;
   last_turn_pop_growth: number;
   food: {
     farmers: number;

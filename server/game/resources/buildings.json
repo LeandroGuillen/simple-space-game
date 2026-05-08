@@ -429,6 +429,15 @@
       "name": "Artificial Planet Construction",
       "description": "No description provided"
     },
-    { "name": "Cloning Center", "description": "No description provided" }
+    {
+      "name": "Cloning Center",
+      "description": "No description provided",
+      "built_on": "PLANET",
+      "grants": {
+        "modifiers": [{ "name": "population_growth", "value": 100 }]
+      },
+      "cost": 100,
+      "maintenance": 2
+    }
   ]
 }

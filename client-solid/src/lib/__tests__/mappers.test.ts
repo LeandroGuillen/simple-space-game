@@ -25,6 +25,7 @@ describe('mapGame', () => {
                 gravity: 2,
                 environment: 11,
                 population: 8000,
+                max_population: 18000,
                 last_turn_pop_growth: 0,
                 food: { farmers: 2, produced_per_farmer: 2, produced_per_building: 0 },
                 industry: { workers: 3, produced_per_worker: 3, produced_per_building: 0 },
@@ -123,7 +124,7 @@ describe('mapGame', () => {
     expect(game.players[0]?.availableBuildings).toEqual(['Colony Base', 'Automated Factory'])
     expect(game.resources.shipSystemCollection.shipSystems[0]?.name).toBe('Reinforced Hull')
     expect(game.galaxy.stars[0]?.ownedPlanets).toBe(1)
-    expect(game.galaxy.stars[0]?.planets[0]?.maxPopulation).toBe(16000)
+    expect(game.galaxy.stars[0]?.planets[0]?.maxPopulation).toBe(18000)
     expect(game.galaxy.stars[0]?.planets[0]?.pollution).toBe(2)
     expect(game.galaxy.stars[0]?.planets[0]?.currentProject?.name).toBe('Automated Factory')
     expect(game.galaxy.stars[0]?.planets[0]?.currentProject?.id).toBe(1)

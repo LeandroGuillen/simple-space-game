@@ -5,7 +5,33 @@ import (
 	. "ssg/model"
 )
 
-func MaxPop(p *Planet) int64 {
+func MaxPop(game *Game, p *Planet, player *Player) int64 {
+	maxPop := baseMaxPop(p)
+
+	if game != nil && game.Resources != nil && game.Resources.BuildingCollection != nil {
+		for _, buildingName := range p.Buildings {
+			if building, err := getBuildingFromName(game, buildingName); err == nil {
+				maxPop += maxPopulationModifiers(building.Grants.Modifiers)
+			}
+		}
+	}
+
+	if game != nil && game.Resources != nil && game.Resources.TechTree != nil && player != nil {
+		for _, techName := range player.ResearchedTechs {
+			if tech, ok := game.findTechDefinition(techName); ok {
+				maxPop += maxPopulationModifiers(tech.Grants.Modifiers)
+			}
+		}
+	}
+
+	return maxPop
+}
+
+func hydratePlanetPopulationCapacity(game *Game, p *Planet, player *Player) {
+	p.MaxPopulation = MaxPop(game, p, player)
+}
+
+func baseMaxPop(p *Planet) int64 {
 	// TODO should take into account other factors
 	// Planetary Env.:  Gaia Terran Arid Swamp Other
 	// Tiny              5     4     3    2     1     <-- The table shows how
@@ -16,8 +42,43 @@ func MaxPop(p *Planet) int64 {
 	return int64(p.Size*4) * 1000
 }
 
+func maxPopulationModifiers(modifiers []Modifier) int64 {
+	var maxPop int64
+	for _, modifier := range modifiers {
+		if modifier.Name == "max_population" {
+			maxPop += int64(modifier.Value)
+		}
+	}
+	return maxPop
+}
+
+func PopulationGrowthBonus(game *Game, p *Planet) int64 {
+	var growthBonus int64
+	if game == nil || game.Resources == nil || game.Resources.BuildingCollection == nil {
+		return growthBonus
+	}
+
+	for _, buildingName := range p.Buildings {
+		if building, err := getBuildingFromName(game, buildingName); err == nil {
+			growthBonus += populationGrowthModifiers(building.Grants.Modifiers)
+		}
+	}
+
+	return growthBonus
+}
+
+func populationGrowthModifiers(modifiers []Modifier) int64 {
+	var growthBonus int64
+	for _, modifier := range modifiers {
+		if modifier.Name == "population_growth" {
+			growthBonus += int64(modifier.Value)
+		}
+	}
+	return growthBonus
+}
+
 // PopulationGrowth returns the per-turn population delta for a planet.
-func PopulationGrowth(population, foodPerBuilding, foodPerFarmer, numFarmers, maxPop int64) int64 {
+func PopulationGrowth(population, foodPerBuilding, foodPerFarmer, numFarmers, maxPop, flatGrowthBonus int64) int64 {
 	if population <= 0 {
 		return 0
 	}
@@ -35,9 +96,6 @@ func PopulationGrowth(population, foodPerBuilding, foodPerFarmer, numFarmers, ma
 	all_bonuses := race_bonus + medicine_bonus + housing_bonus
 	population_growth := math.Floor(basic_increment * (100 + all_bonuses) / 100)
 
-	// building bonuses
-	cloning_bonus := float64(0) // TODO if present, +100
-
 	// enough food? check for starvation
 	total_food_produced := float64(foodPerBuilding + (foodPerFarmer * numFarmers))
 	food_lack := pop_units - total_food_produced
@@ -46,7 +104,7 @@ func PopulationGrowth(population, foodPerBuilding, foodPerFarmer, numFarmers, ma
 		food_lack_penalty = 50 * food_lack
 	}
 
-	population_increment := population_growth + cloning_bonus - food_lack_penalty
+	population_increment := population_growth + float64(flatGrowthBonus) - food_lack_penalty
 
 	return int64(population_increment)
 }

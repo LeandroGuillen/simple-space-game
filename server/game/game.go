@@ -95,7 +95,8 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 }
 
 func (g *Game) CreateCapitalPlanet(ownerID uint) error {
-	if _, err := g.getPlayer(ownerID); err != nil {
+	player, err := g.getPlayer(ownerID)
+	if err != nil {
 		return err
 	}
 
@@ -124,6 +125,7 @@ func (g *Game) CreateCapitalPlanet(ownerID uint) error {
 	buildOnPlanet(planet, "Marine Barracks")
 
 	hydratePlanetOutputs(g, planet)
+	hydratePlanetPopulationCapacity(g, planet, player)
 	hydratePlanetIncome(g, planet, 0)
 
 	return nil
@@ -147,7 +149,8 @@ func (g *Game) ColonizePlanet(ownerID, planetID uint) error {
 
 // GetColonyList returns a list of planets that have a colony owned by given player.
 func (g *Game) GetColonyList(playerID uint) ([]*Planet, error) {
-	if _, err := g.getPlayer(playerID); err != nil {
+	player, err := g.getPlayer(playerID)
+	if err != nil {
 		return nil, err
 	}
 
@@ -155,6 +158,7 @@ func (g *Game) GetColonyList(playerID uint) ([]*Planet, error) {
 	for _, star := range g.Galaxy.Stars {
 		for _, planet := range star.Planets {
 			if planet.Owner == playerID {
+				hydratePlanetPopulationCapacity(g, planet, player)
 				colonyList = append(colonyList, planet)
 			}
 		}

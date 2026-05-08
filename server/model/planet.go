@@ -14,6 +14,7 @@ type Planet struct {
 
 	// population
 	Population        int64 `json:"population"`
+	MaxPopulation     int64 `json:"max_population"`
 	LastTurnPopGrowth int64 `json:"last_turn_pop_growth"`
 
 	Industry  PlanetIndustryOutput `json:"industry"`
