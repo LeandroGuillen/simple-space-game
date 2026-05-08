@@ -52,8 +52,7 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 	}
 
 	// industry output
-	grossIndustry := p.Industry.ProducedPerBuilding + p.Industry.Workers*p.Industry.ProducedPerWorker
-	industryProduced := grossIndustry - Pollution(p)
+	industryProduced := PlanetIndustryProduced(p)
 
 	var buildingName string
 	for _, buildCommand := range commands.Build {

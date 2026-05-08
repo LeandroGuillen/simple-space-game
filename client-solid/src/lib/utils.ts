@@ -104,7 +104,11 @@ export function getPlanetIndustry(planet: PlanetViewModel) {
 }
 
 export function getPlanetGrossIndustryForWorkers(planet: PlanetViewModel, workers: number) {
-  return Math.max(0, workers) * planet.industry.produced_per_worker + planet.industry.produced_per_building;
+  return (
+    Math.max(0, workers) * planet.industry.produced_per_worker +
+    planet.industry.produced_per_building +
+    Math.floor(planet.population / 1000) * planet.industry.produced_per_colonist
+  );
 }
 
 export function getPlanetPollutionDivisor(planet: PlanetViewModel) {

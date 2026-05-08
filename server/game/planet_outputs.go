@@ -9,6 +9,7 @@ func hydratePlanetOutputs(game *Game, p *Planet) {
 	foodFromBuildings := int64(0)
 	industryPerWorker := IndustryPerMineralClass(p.MineralClass)
 	industryFromBuildings := int64(0)
+	industryPerColonist := int64(0)
 	sciencePerScientist := int64(3)
 	scienceFromBuildings := int64(0)
 
@@ -24,6 +25,8 @@ func hydratePlanetOutputs(game *Game, p *Planet) {
 					industryPerWorker += int64(modifier.Value)
 				case "industry_flat":
 					industryFromBuildings += int64(modifier.Value)
+				case "industry_per_colonist":
+					industryPerColonist += int64(modifier.Value)
 				case "science_per_scientist":
 					sciencePerScientist += int64(modifier.Value)
 				case "science_flat":
@@ -43,6 +46,7 @@ func hydratePlanetOutputs(game *Game, p *Planet) {
 		Workers:             p.Industry.Workers,
 		ProducedPerWorker:   industryPerWorker,
 		ProducedPerBuilding: industryFromBuildings,
+		ProducedPerColonist: industryPerColonist,
 	}
 
 	p.Science = PlanetScienceOutput{
@@ -52,4 +56,21 @@ func hydratePlanetOutputs(game *Game, p *Planet) {
 	}
 
 	hydratePlanetPollution(p)
+}
+
+func PlanetGrossIndustry(p *Planet) int64 {
+	return p.Industry.Workers*p.Industry.ProducedPerWorker +
+		p.Industry.ProducedPerBuilding +
+		colonistUnits(p)*p.Industry.ProducedPerColonist
+}
+
+func PlanetIndustryProduced(p *Planet) int64 {
+	return PlanetGrossIndustry(p) - Pollution(p)
+}
+
+func colonistUnits(p *Planet) int64 {
+	if p.Population <= 0 {
+		return 0
+	}
+	return p.Population / 1000
 }

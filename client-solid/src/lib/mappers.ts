@@ -230,7 +230,10 @@ function mapPlanet(
     population: planet.population,
     last_turn_pop_growth: planet.last_turn_pop_growth,
     food: planet.food,
-    industry: planet.industry,
+    industry: {
+      ...planet.industry,
+      produced_per_colonist: planet.industry.produced_per_colonist ?? 0,
+    },
     science: planet.science,
     income: mapIncome(planet, buildings),
     pollution: planet.pollution ?? 0,
@@ -284,7 +287,9 @@ function mapIncome(planet: ApiPlanet, buildingsOnPlanet: BuildingViewModel[]) {
   const foodSurplus = Math.max(0, food - taxes);
   const grossIndustry =
     planet.industry.workers * planet.industry.produced_per_worker +
-    planet.industry.produced_per_building;
+    planet.industry.produced_per_building +
+    Math.floor(planet.population / 1000) *
+      (planet.industry.produced_per_colonist ?? 0);
   const industry = Math.max(
     0,
     grossIndustry - mapPlanetPollution(planet, planet.industry.workers),

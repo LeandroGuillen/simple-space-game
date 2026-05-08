@@ -46,6 +46,7 @@ type PlanetIndustryOutput struct {
 	Workers             int64 `json:"workers"`
 	ProducedPerWorker   int64 `json:"produced_per_worker"`
 	ProducedPerBuilding int64 `json:"produced_per_building"`
+	ProducedPerColonist int64 `json:"produced_per_colonist"`
 }
 
 type PlanetScienceOutput struct {

@@ -84,6 +84,7 @@ export type ApiPlanet = {
     workers: number;
     produced_per_worker: number;
     produced_per_building: number;
+    produced_per_colonist?: number;
   };
   science: {
     scientists: number;

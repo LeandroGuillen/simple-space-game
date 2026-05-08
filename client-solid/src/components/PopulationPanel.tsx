@@ -120,7 +120,9 @@ export function PopulationPanel(props: PopulationPanelProps) {
       const fromPopulation = getPopCount("workers") * basePerWorker;
       const fromBuildings =
         props.planet.industry.produced_per_building +
-        getPopCount("workers") * perWorkerBuildingBonus;
+        getPopCount("workers") * perWorkerBuildingBonus +
+        Math.floor(props.planet.population / 1000) *
+          props.planet.industry.produced_per_colonist;
       return {
         total: fromPopulation + fromBuildings,
         fromPopulation,
@@ -169,6 +171,14 @@ export function PopulationPanel(props: PopulationPanelProps) {
             buildingName: building.name,
             label: "flat industry",
             total: modifier.bonus,
+          });
+        }
+        if (cat === "workers" && modifier.name === "industry_per_colonist") {
+          const colonistCount = Math.floor(props.planet.population / 1000);
+          contributions.push({
+            buildingName: building.name,
+            label: `+${modifier.bonus} per colonist × ${colonistCount}`,
+            total: modifier.bonus * colonistCount,
           });
         }
         if (cat === "scientists" && modifier.name === "science_per_scientist") {
