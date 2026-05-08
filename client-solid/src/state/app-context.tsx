@@ -86,7 +86,7 @@ export function AppProvider(props: ParentProps) {
   );
 
   const currentPlayer = createMemo(() => getPrimaryPlayer(state.game));
-  const colonies = createMemo(() => getColonyRows(state.game));
+  const colonies = createMemo(() => getColonyRows(state.game, state.pendingCommands));
 
   function clearError() {
     setState('error', '');

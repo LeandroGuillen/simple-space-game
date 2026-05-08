@@ -56,11 +56,12 @@ type PlanetScienceOutput struct {
 }
 
 type PlanetIncomeOutput struct {
-	Taxes       int64 `json:"taxes"`
-	Buildings   int64 `json:"buildings"`
-	TradeGoods  int64 `json:"trade_goods"`
-	Maintenance int64 `json:"maintenance"`
-	Total       int64 `json:"total"`
+	Taxes       int64   `json:"taxes"`
+	Buildings   int64   `json:"buildings"`
+	TradeGoods  int64   `json:"trade_goods"`
+	Maintenance int64   `json:"maintenance"`
+	Total       int64   `json:"total"`
+	Bonus       float64 `json:"bonus"`
 }
 
 //go:generate stringer -type=PlanetMineral

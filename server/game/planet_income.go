@@ -59,6 +59,7 @@ func PlanetIncome(game *Game, planet *model.Planet, industryProduced int64) mode
 		TradeGoods:  tradeGoods,
 		Maintenance: maintenance,
 		Total:       totalIncome,
+		Bonus:       incomeBonus,
 	}
 }
 

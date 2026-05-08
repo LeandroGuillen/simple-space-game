@@ -202,5 +202,9 @@
   {
     "name": "Cloning Center",
     "grants": { "unlocks": { "buildings": ["Cloning Center"] } }
+  },
+  {
+    "name": "Soil Enrichment",
+    "grants": { "unlocks": { "buildings": ["Soil Enrichment"] } }
   }
 ]

@@ -97,6 +97,7 @@ export type ApiPlanet = {
     trade_goods: number;
     maintenance: number;
     total: number;
+    bonus?: number;
   };
   pollution?: number;
   marines: number;

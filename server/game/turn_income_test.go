@@ -32,6 +32,49 @@ func TestTurnAddsIncomeToTreasuryEveryTurn(t *testing.T) {
 	require.Greater(t, player.Treasury, firstTurnTreasury)
 }
 
+func TestTurnSubtractsNegativeIncomeFromTreasury(t *testing.T) {
+	g := &Game{
+		Players: []*model.Player{
+			{
+				ID:       1,
+				Treasury: 10,
+			},
+		},
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{
+				Buildings: []model.Building{
+					{Name: "High Maintenance Building", Maintenance: 4},
+				},
+			},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{
+					Planets: []*model.Planet{
+						{
+							ID:          1,
+							Owner:       1,
+							Population:  1000,
+							Size:        model.PlanetSizeMedium,
+							Buildings:   []string{"High Maintenance Building"},
+							IsBuilding:  true,
+							BuildBucket: 100,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	require.NoError(t, g.Turn(1, model.Commands{}))
+
+	colonies, err := g.GetColonyList(1)
+	require.NoError(t, err)
+	require.Len(t, colonies, 1)
+	assert.Equal(t, int64(-3), colonies[0].Income.Total)
+	assert.Equal(t, int64(7), g.Players[0].Treasury)
+}
+
 func TestTurnStartsConstructionWithBuildingCostAndNoTradeGoods(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)

@@ -277,6 +277,7 @@ function mapIncome(planet: ApiPlanet, buildingsOnPlanet: BuildingViewModel[]) {
       tradeGoods: planet.income.trade_goods,
       maintenance: planet.income.maintenance,
       total: planet.income.total,
+      bonus: planet.income.bonus ?? 0,
     };
   }
 
@@ -318,6 +319,7 @@ function mapIncome(planet: ApiPlanet, buildingsOnPlanet: BuildingViewModel[]) {
     tradeGoods,
     maintenance,
     total: taxes + buildings + tradeGoods - maintenance,
+    bonus: 0,
   };
 }
 

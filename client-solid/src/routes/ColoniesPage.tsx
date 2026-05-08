@@ -1,9 +1,10 @@
 import { A } from "@solidjs/router";
 import { createMemo, createSignal } from "solid-js";
 
+import { formatSignedBc } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
 
-type SortKey = "name" | "starName" | "population" | "industry";
+type SortKey = "name" | "starName" | "population" | "industry" | "income";
 
 export function ColoniesPage() {
   const { colonies, state, currentPlayer, changeBuilding } = useAppContext();
@@ -120,6 +121,14 @@ export function ColoniesPage() {
                   Industry
                 </button>
               </th>
+              <th>
+                <button
+                  class="sort-button"
+                  onClick={() => toggleSort("income")}
+                >
+                  Income
+                </button>
+              </th>
               <th>Project</th>
               <th>Action</th>
             </tr>
@@ -136,6 +145,9 @@ export function ColoniesPage() {
                 <td>{row.workers}</td>
                 <td>{row.scientists}</td>
                 <td>{row.industry}</td>
+                <td classList={{ "numeric-negative": row.income < 0 }}>
+                  {formatSignedBc(row.income)}
+                </td>
                 <td>
                   <label class="sr-only" for={`project-${row.id}`}>
                     Set project for {row.name}

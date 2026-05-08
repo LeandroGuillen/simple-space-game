@@ -88,6 +88,7 @@ export type PlanetViewModel = {
     tradeGoods: number;
     maintenance: number;
     total: number;
+    bonus: number;
   };
   pollution: number;
   currentProject: BuildingViewModel | null;
@@ -292,5 +293,6 @@ export type ColonyRow = {
   workers: number;
   scientists: number;
   industry: number;
+  income: number;
   currentProject: string;
 };

@@ -66,6 +66,7 @@ func TestPlanetIncomeBonusesStackAdditively(t *testing.T) {
 	assert.Equal(t, int64(10), income.Taxes)
 	assert.Equal(t, int64(3), income.Maintenance)
 	assert.Equal(t, int64(22), income.Total)
+	assert.Equal(t, 1.5, income.Bonus)
 }
 
 func TestPlanetIncomeIncludesResearchedTechBonuses(t *testing.T) {
@@ -96,6 +97,7 @@ func TestPlanetIncomeIncludesResearchedTechBonuses(t *testing.T) {
 	income := PlanetIncome(g, planet, 0)
 
 	assert.Equal(t, int64(15), income.Total)
+	assert.Equal(t, 0.5, income.Bonus)
 }
 
 func TestPlanetIncomeTradeGoodsRounding(t *testing.T) {

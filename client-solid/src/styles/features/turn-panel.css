@@ -44,6 +44,10 @@
   &--accent strong {
     color: var(--gold);
   }
+
+  &--negative strong {
+    color: var(--danger);
+  }
 }
 
 .turn-actions {

@@ -3,7 +3,7 @@ import { createMemo, For, Show } from 'solid-js';
 import { ConstructionPanel } from '../components/ConstructionPanel';
 import { PlanetVisual } from '../components/PlanetVisual';
 import { PopulationPanel } from '../components/PopulationPanel';
-import { findPlanet, getPlanetIndustryForWorkers, labelForEnvironment, labelForGravity, labelForMinerals, labelForSize } from '../lib/utils';
+import { findPlanet, getPlanetProjectedIncome, labelForEnvironment, labelForGravity, labelForMinerals, labelForSize } from '../lib/utils';
 import { useAppContext } from '../state/app-context';
 
 export function PlanetPage() {
@@ -42,40 +42,10 @@ export function PlanetPage() {
   const incomeBreakdown = createMemo(() => {
     const current = planet();
     if (!current) {
-      return { taxes: 0, buildings: 0, tradeGoods: 0, maintenance: 0, total: 0 };
+      return { taxes: 0, buildings: 0, tradeGoods: 0, maintenance: 0, total: 0, bonus: 0 };
     }
 
-    let farmers = current.food.farmers;
-    let workers = current.industry.workers;
-    for (const move of state.pendingCommands.movePopulation.filter((cmd) => cmd.planetId === current.id)) {
-      if (move.to === 'farmers') {
-        farmers += move.count;
-      }
-      if (move.from === 'farmers') {
-        farmers -= move.count;
-      }
-      if (move.to === 'workers') {
-        workers += move.count;
-      }
-      if (move.from === 'workers') {
-        workers -= move.count;
-      }
-    }
-
-    const hasPendingBuild = state.pendingCommands.build.some((cmd) => cmd.planetId === current.id);
-    const food = Math.max(0, farmers) * current.food.produced_per_farmer + current.food.produced_per_building;
-    const foodSurplus = Math.max(0, food - Math.floor(current.population / 1000));
-    const industry = getPlanetIndustryForWorkers(current, workers);
-    const tradeGoods = current.isBuilding || hasPendingBuild ? 0 : Math.floor(foodSurplus / 2) + Math.floor(industry / 2);
-    const total = current.income.taxes + current.income.buildings + tradeGoods - current.income.maintenance;
-
-    return {
-      taxes: current.income.taxes,
-      buildings: current.income.buildings,
-      tradeGoods,
-      maintenance: current.income.maintenance,
-      total,
-    };
+    return getPlanetProjectedIncome(current, state.pendingCommands);
   });
   const incomeIcons = createMemo(() => {
     const total = Math.max(0, incomeBreakdown().total);
@@ -112,12 +82,23 @@ export function PlanetPage() {
                     <span class='starving-warning'>{projectedPopGrowth()} this turn</span>
                   </Show>
                 </article>
-                <article class='metric-card income-metric' aria-label={`Income ${incomeBreakdown().total} BC`}>
+                <article
+                  class='metric-card income-metric'
+                  classList={{ 'income-metric--negative': incomeBreakdown().total < 0 }}
+                  aria-label={`Income ${incomeBreakdown().total} BC`}
+                >
                   <span>Income</span>
                   <div class='income-value'>
-                    <For each={incomeIcons()}>
-                      {(icon) => <span class='pop-stat-icon income-icon'>{icon}</span>}
-                    </For>
+                    <Show
+                      when={incomeBreakdown().total < 0}
+                      fallback={
+                        <For each={incomeIcons()}>
+                          {(icon) => <span class='pop-stat-icon income-icon'>{icon}</span>}
+                        </For>
+                      }
+                    >
+                      <strong>{incomeBreakdown().total} BC</strong>
+                    </Show>
                   </div>
                   <div class='pop-output-tooltip income-tooltip'>
                     <div class='pop-output-tooltip-row pop-output-tooltip-row--total'>
@@ -136,6 +117,12 @@ export function PlanetPage() {
                       <span>Trade Goods:</span>
                       <strong>{incomeBreakdown().tradeGoods} BC</strong>
                     </div>
+                    <Show when={incomeBreakdown().bonus !== 0}>
+                      <div class='pop-output-tooltip-row'>
+                        <span>Income bonus:</span>
+                        <strong>+{Math.round(incomeBreakdown().bonus * 100)}%</strong>
+                      </div>
+                    </Show>
                     <div class='pop-output-tooltip-row'>
                       <span>Maintenance:</span>
                       <strong>-{incomeBreakdown().maintenance} BC</strong>

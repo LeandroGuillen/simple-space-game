@@ -1,4 +1,9 @@
 import type {
+  PendingCommands,
+  MovePopulationCommand,
+  BuildCommand,
+} from "./types/commands";
+import type {
   ColonyRow,
   GameViewModel,
   PlanetViewModel,
@@ -137,7 +142,34 @@ export function getPlanetIndustryForWorkers(planet: PlanetViewModel, workers: nu
   return Math.max(0, grossIndustry - pollution);
 }
 
-export function getColonyRows(game?: GameViewModel | null): ColonyRow[] {
+export function getPlanetProjectedIncome(planet: PlanetViewModel, pendingCommands?: PendingCommands) {
+  const population = getProjectedWorkerAllocation(planet, pendingCommands?.movePopulation ?? []);
+  const pendingBuild = getPendingBuild(planet.id, pendingCommands?.build ?? []);
+  const food =
+    population.farmers * planet.food.produced_per_farmer +
+    planet.food.produced_per_building;
+  const foodSurplus = Math.max(0, food - Math.floor(planet.population / 1000));
+  const industry = getPlanetIndustryForWorkers(planet, population.workers);
+  const producesTradeGoods =
+    pendingBuild?.building === "Trade Goods" ||
+    (!planet.isBuilding && !pendingBuild);
+  const tradeGoods = producesTradeGoods
+    ? Math.floor(foodSurplus / 2) + Math.floor(industry / 2)
+    : 0;
+  const gross = planet.income.taxes + planet.income.buildings + tradeGoods;
+  const total = Math.trunc(gross * (1 + planet.income.bonus)) - planet.income.maintenance;
+
+  return {
+    taxes: planet.income.taxes,
+    buildings: planet.income.buildings,
+    tradeGoods,
+    maintenance: planet.income.maintenance,
+    total,
+    bonus: planet.income.bonus,
+  };
+}
+
+export function getColonyRows(game?: GameViewModel | null, pendingCommands?: PendingCommands): ColonyRow[] {
   if (!game) {
     return [];
   }
@@ -155,9 +187,47 @@ export function getColonyRows(game?: GameViewModel | null): ColonyRow[] {
         workers: planet.industry.workers,
         scientists: planet.science.scientists,
         industry: getPlanetIndustry(planet),
+        income: getPlanetProjectedIncome(planet, pendingCommands).total,
         currentProject: planet.currentProject?.name || "Idle",
       })),
   );
+}
+
+export function getEmpireIncome(game?: GameViewModel | null, playerId = 1, pendingCommands?: PendingCommands) {
+  if (!game) {
+    return 0;
+  }
+  return game.galaxy.stars
+    .flatMap((star) => star.planets)
+    .filter((planet) => planet.owner === playerId)
+    .reduce((total, planet) => total + getPlanetProjectedIncome(planet, pendingCommands).total, 0);
+}
+
+export function formatSignedBc(value: number) {
+  return `${value > 0 ? "+" : ""}${value} BC`;
+}
+
+function getProjectedWorkerAllocation(planet: PlanetViewModel, moves: MovePopulationCommand[]) {
+  const totals = {
+    farmers: planet.food.farmers,
+    workers: planet.industry.workers,
+    scientists: planet.science.scientists,
+  };
+
+  for (const move of moves.filter((cmd) => cmd.planetId === planet.id)) {
+    totals[move.from] -= move.count;
+    totals[move.to] += move.count;
+  }
+
+  return {
+    farmers: Math.max(0, totals.farmers),
+    workers: Math.max(0, totals.workers),
+    scientists: Math.max(0, totals.scientists),
+  };
+}
+
+function getPendingBuild(planetId: number, builds: BuildCommand[]) {
+  return builds.find((cmd) => cmd.planetId === planetId);
 }
 
 export function findStar(

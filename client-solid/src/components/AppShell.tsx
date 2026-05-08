@@ -10,7 +10,7 @@ import { Portal } from "solid-js/web";
 import { APP_VERSION } from "../lib/app-meta";
 import type { MovePopulationCommand } from "../lib/types/commands";
 import type { GameViewModel, PlayerViewModel, TechLevelViewModel, TechSubjectViewModel } from "../lib/types/domain";
-import { gameIdShort } from "../lib/utils";
+import { formatSignedBc, gameIdShort, getEmpireIncome } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
 
 const gameNavItems = [
@@ -283,6 +283,9 @@ export function AppShell(props: RouteSectionProps) {
   const playerResearchPerTurn = createMemo(() =>
     researchPerTurn(state.game, currentPlayer(), state.pendingCommands.movePopulation),
   );
+  const empireIncome = createMemo(() =>
+    getEmpireIncome(state.game, currentPlayer()?.id ?? state.session.playerId, state.pendingCommands),
+  );
   const queuedResearchName = createMemo(
     () => state.pendingCommands.selectResearch?.tech_name,
   );
@@ -458,6 +461,14 @@ export function AppShell(props: RouteSectionProps) {
                     <div class="turn-stat turn-stat--accent">
                       <span>Treasury</span>
                       <strong>{currentPlayer()?.treasury ?? 0} BC</strong>
+                    </div>
+
+                    <div
+                      class="turn-stat"
+                      classList={{ "turn-stat--negative": empireIncome() < 0 }}
+                    >
+                      <span>Income</span>
+                      <strong>{formatSignedBc(empireIncome())}</strong>
                     </div>
 
                     <button

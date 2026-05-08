@@ -101,8 +101,13 @@
         color: inherit;
         font-size: 0.9rem;
         letter-spacing: 0;
-        text-transform: none;
+          text-transform: none;
       }
+    }
+
+    & .income-metric--negative .income-value strong,
+    & .income-metric--negative .income-tooltip .pop-output-tooltip-row--total strong {
+      color: var(--danger);
     }
 
     & .income-metric:hover .income-tooltip {
