@@ -20,6 +20,7 @@ type AppState = {
   games: ApiGameListItem[];
   playerColorOptions: PlayerColorOptions;
   game: GameViewModel | null;
+  debugMode: boolean;
   isBusy: boolean;
   error: string;
   info: string;
@@ -39,6 +40,7 @@ type AppContextValue = {
   changeBuilding: (planetId: number, buildingId: number) => void;
   addMovePopulationCommand: (command: MovePopulationCommand) => void;
   selectResearch: (command: SelectResearchCommand) => void;
+  enableDebugMode: () => Promise<void>;
   colonize: (planetId: number) => Promise<void>;
   exploreStar: (starId: number) => Promise<void>;
   endTurn: () => Promise<void>;
@@ -50,7 +52,6 @@ const STORAGE_KEYS = {
   serverUrl: 'client-solid.serverUrl',
   selectedGameId: 'client-solid.selectedGameId',
 };
-
 const AppContext = createContext<AppContextValue>();
 
 export function AppProvider(props: ParentProps) {
@@ -73,6 +74,7 @@ export function AppProvider(props: ParentProps) {
       colors: ['#FFFFFF'],
     },
     game: null,
+    debugMode: false,
     isBusy: false,
     error: '',
     info: '',
@@ -240,6 +242,28 @@ export function AppProvider(props: ParentProps) {
     setState('info', 'Research project queued for next turn');
   }
 
+  async function enableDebugMode() {
+    if (state.debugMode) {
+      return;
+    }
+    if (!api() || !state.session.selectedGameId) {
+      return;
+    }
+    setBusy(true, 'Enabling debug mode');
+    clearError();
+    setState('pendingCommands', 'selectResearch', undefined);
+    try {
+      const response = await api()!.debugResearchAllTechs(state.session.selectedGameId);
+      setState('debugMode', true);
+      setState('game', mapGame(response.game));
+      setBusy(false, 'Debug mode enabled');
+    } catch (error) {
+      setBusy(false, '');
+      setState('error', error instanceof Error ? error.message : 'Unable to enable debug mode.');
+      throw error;
+    }
+  }
+
   async function colonize(planetId: number) {
     if (!api() || !state.session.selectedGameId) {
       return;
@@ -377,6 +401,7 @@ export function AppProvider(props: ParentProps) {
     changeBuilding,
     addMovePopulationCommand,
     selectResearch,
+    enableDebugMode,
     colonize,
     exploreStar,
     endTurn,

@@ -22,6 +22,8 @@ const gameNavItems = [
 
 const REPO_PLACEHOLDER_HREF =
   "https://github.com/leandroguillen/simple-space-game";
+const HYPER_ADVANCED_RESEARCH_PREFIX = "Hyper Advanced";
+const HYPER_ADVANCED_RESEARCH_COMMAND_PREFIX = `${HYPER_ADVANCED_RESEARCH_PREFIX} `;
 
 function isGameCommandPath(pathname: string) {
   return (
@@ -61,6 +63,7 @@ type ResearchChoice = {
   label: string;
   techNames: string[];
   forceAll: boolean;
+  isHyperAdvanced: boolean;
 };
 
 type ResearchGroup = {
@@ -145,14 +148,39 @@ function isLevelComplete(player: PlayerViewModel, level: TechLevelViewModel) {
   return level.availableTechs.every((tech) => knownTechs.has(tech.toLowerCase()));
 }
 
-function researchChoices(game: GameViewModel | null, player: PlayerViewModel | null): ResearchChoice[] {
+function researchChoices(
+  game: GameViewModel | null,
+  player: PlayerViewModel | null,
+  hyperAdvancedLevels: Record<string, number>,
+): ResearchChoice[] {
   if (!game || !player) {
     return [];
   }
   return game.resources.techTree.subjects.flatMap((subject): ResearchChoice[] => {
     const level = subject.levels.find((candidate) => !isLevelComplete(player, candidate));
     if (!level) {
-      return [];
+      const completedHyperAdvancedLevels = hyperAdvancedLevels[subject.name] ?? 0;
+      const nextHyperAdvancedLevel = completedHyperAdvancedLevels + 1;
+      const lastRealLevelCost = subject.levels.at(-1)?.cost ?? 0;
+      const cost = lastRealLevelCost * 2 ** nextHyperAdvancedLevel;
+      const commandTechName = `${HYPER_ADVANCED_RESEARCH_COMMAND_PREFIX}${subject.name}`;
+      const label = `${HYPER_ADVANCED_RESEARCH_PREFIX} ${nextHyperAdvancedLevel}`;
+      return [
+        {
+          subject,
+          level: {
+            name: label,
+            cost,
+            forceAll: false,
+            availableTechs: [label],
+          },
+          commandTechName,
+          label,
+          techNames: [label],
+          forceAll: false,
+          isHyperAdvanced: true,
+        },
+      ];
     }
     if (level.forceAll) {
       return [
@@ -163,6 +191,7 @@ function researchChoices(game: GameViewModel | null, player: PlayerViewModel | n
           label: level.name,
           techNames: level.availableTechs,
           forceAll: true,
+          isHyperAdvanced: false,
         },
       ];
     }
@@ -176,13 +205,18 @@ function researchChoices(game: GameViewModel | null, player: PlayerViewModel | n
         label: techName,
         techNames: [techName],
         forceAll: false,
+        isHyperAdvanced: false,
       }));
   });
 }
 
-function researchGroups(game: GameViewModel | null, player: PlayerViewModel | null): ResearchGroup[] {
+function researchGroups(
+  game: GameViewModel | null,
+  player: PlayerViewModel | null,
+  hyperAdvancedLevels: Record<string, number>,
+): ResearchGroup[] {
   const groups = new Map<string, ResearchGroup>();
-  for (const choice of researchChoices(game, player)) {
+  for (const choice of researchChoices(game, player, hyperAdvancedLevels)) {
     const key = `${choice.subject.name}\n${choice.level.name}`;
     const group = groups.get(key);
     if (group) {
@@ -219,11 +253,11 @@ function formatResearchTurns(level: TechLevelViewModel | null, accumulatedRp: nu
   if (!level) {
     return "";
   }
-  if (accumulatedRp >= level.cost) {
-    return "ready";
-  }
   if (rpPerTurn <= 0) {
     return "no research";
+  }
+  if (accumulatedRp >= level.cost) {
+    return "ready";
   }
   const remainingCost = Math.max(0, level.cost - accumulatedRp);
   return `~${Math.max(1, Math.ceil(remainingCost / rpPerTurn))} turns`;
@@ -232,7 +266,7 @@ function formatResearchTurns(level: TechLevelViewModel | null, accumulatedRp: nu
 export function AppShell(props: RouteSectionProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { state, currentPlayer, endTurn, selectResearch } = useAppContext();
+  const { state, currentPlayer, enableDebugMode, endTurn, selectResearch } = useAppContext();
   const [isResearchOpen, setIsResearchOpen] = createSignal(false);
   const [recentBreakthroughs, setRecentBreakthroughs] = createSignal<string[]>([]);
   let previousKnownTechs: Set<string> | null = null;
@@ -261,8 +295,16 @@ export function AppShell(props: RouteSectionProps) {
       currentResearch?.subject
     );
   });
+  const hyperAdvancedLevels = createMemo(() => currentPlayer()?.hyperAdvanced ?? {});
+  const availableResearchGroups = createMemo(() =>
+    researchGroups(state.game, currentPlayer(), hyperAdvancedLevels()),
+  );
   const activeResearchLevel = createMemo(() =>
-    findResearchLevel(state.game, activeResearchName()),
+    findResearchLevel(state.game, activeResearchName()) ??
+    availableResearchGroups()
+      .flatMap((group) => group.choices)
+      .find((choice) => choice.commandTechName === activeResearchName())?.level ??
+    null,
   );
   const hasSelectedResearch = createMemo(() => Boolean(activeResearchName()));
   const researchTurnsText = createMemo(() =>
@@ -271,9 +313,6 @@ export function AppShell(props: RouteSectionProps) {
       currentPlayer()?.researchPoints ?? 0,
       playerResearchPerTurn(),
     ),
-  );
-  const availableResearchGroups = createMemo(() =>
-    researchGroups(state.game, currentPlayer()),
   );
 
   createEffect(() => {
@@ -350,6 +389,14 @@ export function AppShell(props: RouteSectionProps) {
         >
           github
         </a>
+        <button
+          type="button"
+          class="app-debug-link"
+          onClick={() => void enableDebugMode()}
+          disabled={state.debugMode || state.isBusy}
+        >
+          debug mode: {state.debugMode ? "on" : "off"}
+        </button>
       </header>
 
       <Show
@@ -501,7 +548,9 @@ export function AppShell(props: RouteSectionProps) {
                         <span>{group.subject.name}</span>
                         <strong>{group.level.cost}RP</strong>
                       </span>
-                      <span class="research-level-name">{group.level.name}</span>
+                      <Show when={!group.choices.every((choice) => choice.isHyperAdvanced)}>
+                        <span class="research-level-name">{group.level.name}</span>
+                      </Show>
                       <div class="research-tech-list">
                         <For each={group.choices}>
                           {(choice) => (
@@ -511,6 +560,7 @@ export function AppShell(props: RouteSectionProps) {
                               classList={{
                                 "is-selected": activeResearchName() === choice.commandTechName,
                                 "is-bundle": choice.forceAll,
+                                "is-hyper-advanced": choice.isHyperAdvanced,
                               }}
                               disabled={state.isBusy}
                               onClick={() => chooseResearch(choice)}

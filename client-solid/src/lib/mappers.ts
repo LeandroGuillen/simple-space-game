@@ -120,6 +120,7 @@ function mapPlayer(player: ApiPlayer): PlayerViewModel {
     taxRate: player.tax_rate,
     researchPoints: player.research_points,
     researchedTechs: player.researched_techs ?? [],
+    hyperAdvanced: player.hyper_advanced ?? {},
     available,
     availableBuildings: available.buildings,
     currentResearch: player.current_research

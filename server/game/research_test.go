@@ -119,6 +119,86 @@ func TestCanChangeResearchWithoutLosingAccumulatedPoints(t *testing.T) {
 	assert.Equal(t, uint64(46), player.ResearchPoints)
 }
 
+func TestHyperAdvancedResearchRequiresCompletedSubject(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, "Ada", 4, model.DefaultPlayerColor())
+	require.NoError(t, err)
+
+	player := g.Players[0]
+	err = g.Turn(player.ID, model.Commands{
+		SelectResearch: &model.SelectResearchCommand{TechName: "Hyper Advanced Construction"},
+	})
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "requires completed subject")
+}
+
+func TestHyperAdvancedResearchDoesNotCompleteWithoutResearchPoints(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, "Ada", 4, model.DefaultPlayerColor())
+	require.NoError(t, err)
+
+	player := g.Players[0]
+	researchSubject(g, player, "Construction")
+	player.ResearchPoints = 0
+	require.NoError(t, g.selectResearch(player, model.SelectResearchCommand{TechName: "Hyper Advanced Construction"}))
+
+	require.NoError(t, g.applyResearch(player, 0))
+
+	require.NotNil(t, player.CurrentResearch)
+	assert.Equal(t, uint64(0), player.HyperAdvanced["Construction"])
+	assert.Equal(t, uint64(0), player.ResearchPoints)
+}
+
+func TestHyperAdvancedResearchDoesNotCompleteFromBankedResearchWithoutNewResearch(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, "Ada", 4, model.DefaultPlayerColor())
+	require.NoError(t, err)
+
+	player := g.Players[0]
+	researchSubject(g, player, "Construction")
+	cost, ok := g.hyperAdvancedResearchCost(player, "Construction")
+	require.True(t, ok)
+	player.ResearchPoints = cost
+	require.NoError(t, g.selectResearch(player, model.SelectResearchCommand{TechName: "Hyper Advanced Construction"}))
+
+	require.NoError(t, g.applyResearch(player, 0))
+
+	require.NotNil(t, player.CurrentResearch)
+	assert.Equal(t, uint64(0), player.HyperAdvanced["Construction"])
+	assert.Equal(t, cost, player.ResearchPoints)
+}
+
+func TestHyperAdvancedResearchCompletesAndDoublesNextCost(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, "Ada", 4, model.DefaultPlayerColor())
+	require.NoError(t, err)
+
+	player := g.Players[0]
+	researchSubject(g, player, "Construction")
+	cost, ok := g.hyperAdvancedResearchCost(player, "Construction")
+	require.True(t, ok)
+
+	require.NoError(t, g.selectResearch(player, model.SelectResearchCommand{TechName: "Hyper Advanced Construction"}))
+	require.NoError(t, g.applyResearch(player, cost))
+
+	assert.Nil(t, player.CurrentResearch)
+	assert.Equal(t, uint64(1), player.HyperAdvanced["Construction"])
+	assert.Equal(t, uint64(0), player.ResearchPoints)
+
+	nextCost, ok := g.hyperAdvancedResearchCost(player, "Construction")
+	require.True(t, ok)
+	assert.Equal(t, cost*2, nextCost)
+}
+
 func TestCapitalDoesNotStartWithColonyBaseBuilt(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)
@@ -133,6 +213,20 @@ func TestCapitalDoesNotStartWithColonyBaseBuilt(t *testing.T) {
 	assert.NotContains(t, colonies[0].Buildings, "Colony Base")
 	assert.Contains(t, colonies[0].Buildings, "Capitol")
 	assert.Contains(t, colonies[0].Buildings, "Star Base")
+}
+
+func researchSubject(g *Game, player *model.Player, subjectName string) {
+	for _, subject := range g.Resources.TechTree.Subjects {
+		if subject.Name != subjectName {
+			continue
+		}
+		for _, level := range subject.Levels {
+			for _, techName := range level.AvailableTechs {
+				g.research(player, techName)
+			}
+		}
+		return
+	}
 }
 
 func countStrings(values []string, needle string) int {

@@ -36,7 +36,8 @@
   letter-spacing: 0.02em;
 }
 
-.app-repo-link {
+.app-repo-link,
+.app-debug-link {
   font-size: 0.74rem;
   color: var(--accent);
   border-bottom: 1px solid transparent;
@@ -48,6 +49,27 @@
   &:hover {
     color: var(--gold);
     border-bottom-color: currentColor;
+  }
+}
+
+.app-debug-link {
+  appearance: none;
+  padding: 0 0 1px;
+  border-top: 0;
+  border-right: 0;
+  border-left: 0;
+  background: transparent;
+  font-family: inherit;
+  line-height: inherit;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+    color: var(--text-mute);
+  }
+
+  &:disabled:hover {
+    border-bottom-color: transparent;
   }
 }
 

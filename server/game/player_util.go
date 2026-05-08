@@ -12,6 +12,7 @@ func NewPlayer(ID uint, playerName, playerColor string) *Player {
 		Name:            playerName,
 		Color:           playerColor,
 		ResearchedTechs: []string{startingColonyInfrastructureTech},
+		HyperAdvanced:   map[string]uint64{},
 		Treasury:        10,
 	}
 }

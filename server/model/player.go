@@ -7,12 +7,13 @@ type Player struct {
 
 	Race `json:"race"`
 
-	Treasury        int64            `json:"treasury"`
-	TaxRate         float64          `json:"tax_rate"`
-	ResearchPoints  uint64           `json:"research_points"`
-	CurrentResearch *ResearchProject `json:"current_research,omitempty"`
-	ResearchedTechs []string         `json:"researched_techs,omitempty"`
-	Available       AvailableTech    `json:"available"`
+	Treasury        int64             `json:"treasury"`
+	TaxRate         float64           `json:"tax_rate"`
+	ResearchPoints  uint64            `json:"research_points"`
+	CurrentResearch *ResearchProject  `json:"current_research,omitempty"`
+	ResearchedTechs []string          `json:"researched_techs,omitempty"`
+	HyperAdvanced   map[string]uint64 `json:"hyper_advanced,omitempty"`
+	Available       AvailableTech     `json:"available"`
 
 	Fleets         []uint `json:"fleets"`
 	Freighters     uint   `json:"freighters"`

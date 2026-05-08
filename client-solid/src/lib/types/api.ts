@@ -252,6 +252,7 @@ export type ApiPlayer = {
   tax_rate: number;
   research_points: number;
   researched_techs?: string[] | null;
+  hyper_advanced?: Record<string, number> | null;
   current_research?: ApiResearchProject;
   available?: {
     buildings?: string[] | null;

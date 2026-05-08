@@ -123,6 +123,7 @@ export type PlayerViewModel = {
   taxRate: number;
   researchPoints: number;
   researchedTechs: string[];
+  hyperAdvanced: Record<string, number>;
   available: PlayerAvailabilityViewModel;
   availableBuildings: string[];
   currentResearch: ResearchProjectViewModel | null;

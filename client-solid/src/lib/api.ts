@@ -134,6 +134,17 @@ export class ApiClient {
     return readJson<{ game: ApiGame }>(response);
   }
 
+  async debugResearchAllTechs(gameId: string) {
+    const response = await fetch(`${this.baseUrl}/debug/research-all`, {
+      method: 'POST',
+      headers: this.headers(gameId),
+      body: JSON.stringify({
+        game_id: gameId,
+      }),
+    });
+    return readJson<{ game: ApiGame }>(response);
+  }
+
   async saveShipDesign(gameId: string, form: ShipDesignForm, mode: 'create' | 'update') {
     const response = await fetch(`${this.baseUrl}/resources/shipdesigns`, {
       method: mode === 'create' ? 'POST' : 'PUT',
