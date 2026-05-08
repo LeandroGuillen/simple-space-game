@@ -18,8 +18,11 @@ type TechLevel struct {
 }
 
 type ResearchProject struct {
-	Subject  string `json:"subject"`
-	Progress uint64 `json:"progress"`
+	Subject   string   `json:"subject"`
+	TechName  string   `json:"tech_name,omitempty"`
+	TechNames []string `json:"tech_names,omitempty"`
+	LevelName string   `json:"level_name,omitempty"`
+	Progress  uint64   `json:"progress"`
 }
 
 type Tech struct {

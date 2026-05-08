@@ -6,12 +6,20 @@
         {
           "name": "Advanced Engineering",
           "cost": 80,
-          "available_techs": ["Anti-Missile Rockets", "Fighter Bays", "Reinforced Hull"]
+          "available_techs": [
+            "Anti-Missile Rockets",
+            "Fighter Bays",
+            "Reinforced Hull"
+          ]
         },
         {
           "name": "Advanced Construction",
           "cost": 150,
-          "available_techs": ["Automated Factory", "Missile Base", "Heavy Armor"]
+          "available_techs": [
+            "Automated Factory",
+            "Missile Base",
+            "Heavy Armor"
+          ]
         },
         {
           "name": "Capsule Construction",
@@ -21,7 +29,11 @@
         {
           "name": "Astro Engineering",
           "cost": 400,
-          "available_techs": ["Space Port", "Armor Barracks", "Fighter Garrison"]
+          "available_techs": [
+            "Space Port",
+            "Armor Barracks",
+            "Fighter Garrison"
+          ]
         },
         {
           "name": "Robotics",
@@ -31,17 +43,29 @@
         {
           "name": "Servo Mechanics",
           "cost": 900,
-          "available_techs": ["Fast Missile Racks", "Advanced Damage Control", "Assault Shuttles"]
+          "available_techs": [
+            "Fast Missile Racks",
+            "Advanced Damage Control",
+            "Assault Shuttles"
+          ]
         },
         {
           "name": "Astro Construction",
           "cost": 1150,
-          "available_techs": ["Titan Construction", "Ground Batteries", "Battleoids"]
+          "available_techs": [
+            "Titan Construction",
+            "Ground Batteries",
+            "Battleoids"
+          ]
         },
         {
           "name": "Advanced Manufacturing",
           "cost": 1500,
-          "available_techs": ["Recyclotron", "Automated Repair Unit", "Artificial Planet Construction"]
+          "available_techs": [
+            "Recyclotron",
+            "Automated Repair Unit",
+            "Artificial Planet Construction"
+          ]
         },
         {
           "name": "Advanced Robotics",
@@ -56,7 +80,11 @@
         {
           "name": "Superscalar Construction",
           "cost": 6000,
-          "available_techs": ["Star Fortress", "Advanced City Planning", "Heavy Fighters"]
+          "available_techs": [
+            "Star Fortress",
+            "Advanced City Planning",
+            "Heavy Fighters"
+          ]
         },
         {
           "name": "Planetoid Construction",
@@ -83,17 +111,29 @@
         {
           "name": "Advanced Fusion",
           "cost": 250,
-          "available_techs": ["Fusion Drive", "Fusion Bomb", "Augmented Engines"]
+          "available_techs": [
+            "Fusion Drive",
+            "Fusion Bomb",
+            "Augmented Engines"
+          ]
         },
         {
           "name": "Ion Fission",
           "cost": 900,
-          "available_techs": ["Ion Drive", "Ion Pulse Cannon", "Shield Capacitor"]
+          "available_techs": [
+            "Ion Drive",
+            "Ion Pulse Cannon",
+            "Shield Capacitor"
+          ]
         },
         {
           "name": "Anti-Matter Fission",
           "cost": 2000,
-          "available_techs": ["Anti-Matter Drive", "Anti-Matter Torpedoes", "Anti-Matter Bomb"]
+          "available_techs": [
+            "Anti-Matter Drive",
+            "Anti-Matter Torpedoes",
+            "Anti-Matter Bomb"
+          ]
         },
         {
           "name": "Matter-Energy Conversion",
@@ -103,17 +143,29 @@
         {
           "name": "High Energy Distribution",
           "cost": 3500,
-          "available_techs": ["High Energy Focus", "Energy Absorber", "Megafluxers"]
+          "available_techs": [
+            "High Energy Focus",
+            "Energy Absorber",
+            "Megafluxers"
+          ]
         },
         {
           "name": "Hyper-Dimensional Fission",
           "cost": 4500,
-          "available_techs": ["Proton Torpedo", "Hyper Drive", "Hyper-X Capacitors"]
+          "available_techs": [
+            "Proton Torpedo",
+            "Hyper Drive",
+            "Hyper-X Capacitors"
+          ]
         },
         {
           "name": "Interphased Fission",
           "cost": 10000,
-          "available_techs": ["Interphased Drive", "Plasma Torpedo", "Neutronium Bomb"]
+          "available_techs": [
+            "Interphased Drive",
+            "Plasma Torpedo",
+            "Neutronium Bomb"
+          ]
         }
       ]
     },
@@ -124,7 +176,12 @@
           "name": "Chemistry",
           "cost": 50,
           "force_all": true,
-          "available_techs": ["Nuclear Missile", "Standard Fuel Cells", "Extended Fuel Tanks", "Titanium Armor"]
+          "available_techs": [
+            "Nuclear Missile",
+            "Standard Fuel Cells",
+            "Extended Fuel Tanks",
+            "Titanium Armor"
+          ]
         },
         {
           "name": "Advanced Metallurgy",
@@ -139,17 +196,29 @@
         {
           "name": "Molecular Compression",
           "cost": 1150,
-          "available_techs": ["Pulson Missile", "Atmospheric Renewer", "Iridium Fuel Cells"]
+          "available_techs": [
+            "Pulson Missile",
+            "Atmospheric Renewer",
+            "Iridium Fuel Cells"
+          ]
         },
         {
           "name": "Nano Technology",
           "cost": 2000,
-          "available_techs": ["Nano Disassemblers", "Microlite Construction", "Zortrium Armor"]
+          "available_techs": [
+            "Nano Disassemblers",
+            "Microlite Construction",
+            "Zortrium Armor"
+          ]
         },
         {
           "name": "Molecular Manipulation",
           "cost": 4500,
-          "available_techs": ["Zeon Missile", "Neutronium Armor", "Uridium Fuel Cells"]
+          "available_techs": [
+            "Zeon Missile",
+            "Neutronium Armor",
+            "Uridium Fuel Cells"
+          ]
         },
         {
           "name": "Molecular Control",
@@ -184,7 +253,12 @@
         {
           "name": "Advanced Government",
           "cost": 4500,
-          "available_techs": ["Confederation", "Imperium", "Federation", "Galactic Unification"]
+          "available_techs": [
+            "Confederation",
+            "Imperium",
+            "Federation",
+            "Galactic Unification"
+          ]
         },
         {
           "name": "Galactic Economics",
@@ -204,27 +278,47 @@
         {
           "name": "Optronics",
           "cost": 150,
-          "available_techs": ["Research Laboratory", "Optronic Computer", "Dauntless Guidance System"]
+          "available_techs": [
+            "Research Lab",
+            "Optronic Computer",
+            "Dauntless Guidance System"
+          ]
         },
         {
           "name": "Artificial Intelligence",
           "cost": 400,
-          "available_techs": ["Neural Scanner", "Scout Lab", "Security Stations"]
+          "available_techs": [
+            "Neural Scanner",
+            "Scout Lab",
+            "Security Stations"
+          ]
         },
         {
           "name": "Positronics",
           "cost": 650,
-          "available_techs": ["Planetary Supercomputer", "Holo Simulator", "Battle Computer"]
+          "available_techs": [
+            "Planetary Supercomputer",
+            "Holo Simulator",
+            "Battle Computer"
+          ]
         },
         {
           "name": "Cybertronics",
           "cost": 1150,
-          "available_techs": ["Cybertronic Computer", "Autolab", "ECM Jammer Mk II"]
+          "available_techs": [
+            "Cybertronic Computer",
+            "Autolab",
+            "ECM Jammer Mk II"
+          ]
         },
         {
           "name": "Artificial Consciousness",
           "cost": 2000,
-          "available_techs": ["Android Workers", "Sentient Computer", "Cyborg Factory"]
+          "available_techs": [
+            "Android Workers",
+            "Sentient Computer",
+            "Cyborg Factory"
+          ]
         },
         {
           "name": "Hyper-Consciousness",
@@ -259,7 +353,10 @@
         {
           "name": "Evolutionary Genetics",
           "cost": 1150,
-          "available_techs": ["Evolutionary Mutation", "Genetic Engineering Lab"]
+          "available_techs": [
+            "Evolutionary Mutation",
+            "Genetic Engineering Lab"
+          ]
         },
         {
           "name": "Cyber Biology",
@@ -290,7 +387,11 @@
         {
           "name": "Particle Physics",
           "cost": 400,
-          "available_techs": ["Particle Beam", "Neutron Blaster", "Inertial Nullifier"]
+          "available_techs": [
+            "Particle Beam",
+            "Neutron Blaster",
+            "Inertial Nullifier"
+          ]
         },
         {
           "name": "High Energy Physics",
@@ -325,7 +426,11 @@
         {
           "name": "Electromagnetic Fields",
           "cost": 650,
-          "available_techs": ["Class III Shield", "Gauss Cannon Mk II", "Cloaking Device"]
+          "available_techs": [
+            "Class III Shield",
+            "Gauss Cannon Mk II",
+            "Cloaking Device"
+          ]
         },
         {
           "name": "High Energy Fields",

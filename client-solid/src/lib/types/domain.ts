@@ -104,6 +104,9 @@ export type PlayerViewModel = {
 
 export type ResearchProjectViewModel = {
   subject: string;
+  techName: string;
+  techNames: string[];
+  levelName: string;
   progress: number;
 };
 

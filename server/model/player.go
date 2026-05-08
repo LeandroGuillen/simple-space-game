@@ -11,6 +11,7 @@ type Player struct {
 	TaxRate         float64          `json:"tax_rate"`
 	ResearchPoints  uint64           `json:"research_points"`
 	CurrentResearch *ResearchProject `json:"current_research,omitempty"`
+	KnownTechs      []string         `json:"known_techs,omitempty"`
 	Available       AvailableTech    `json:"available"`
 
 	Fleets         []uint `json:"fleets"`

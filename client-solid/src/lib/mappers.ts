@@ -100,6 +100,9 @@ function mapPlayer(player: ApiPlayer): PlayerViewModel {
     currentResearch: player.current_research
       ? {
           subject: player.current_research.subject,
+          techName: player.current_research.tech_name ?? "",
+          techNames: player.current_research.tech_names ?? [],
+          levelName: player.current_research.level_name ?? "",
           progress: player.current_research.progress,
         }
       : null,

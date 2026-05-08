@@ -241,6 +241,9 @@ export type ApiPlayer = {
 
 export type ApiResearchProject = {
   subject: string;
+  tech_name?: string;
+  tech_names?: string[];
+  level_name?: string;
   progress: number;
 };
 

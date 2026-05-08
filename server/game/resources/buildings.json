@@ -116,7 +116,7 @@
       "name": "Robo-Miners",
       "description": "Advanced mining facility.",
       "built_on": "PLANET",
-      "effects": [{ "industry": 10 }, { "industry_per_worker": 2 }],
+      "effects": [{ "flatIndustryBonus": 10 }, { "industryBonus": 2 }],
       "cost": 150,
       "maintenance": 2
     },
@@ -146,6 +146,14 @@
         { "industry_rich": 15 },
         { "industry_ultrarich": 20 }
       ],
+      "cost": 200,
+      "maintenance": 3
+    },
+    {
+      "name": "Research Lab",
+      "description": "Improves research output of a colony.",
+      "built_on": "PLANET",
+      "effects": [{ "flatScienceBonus": 5 }, { "scienceBonus": 1 }],
       "cost": 200,
       "maintenance": 3
     },

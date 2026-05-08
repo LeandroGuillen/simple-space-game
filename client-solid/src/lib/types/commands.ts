@@ -11,7 +11,7 @@ export type BuildCommand = {
 };
 
 export type SelectResearchCommand = {
-  subject: string;
+  tech_name: string;
 };
 
 export type PendingCommands = {

@@ -5,7 +5,7 @@ import { ApiClient, parseGameUpdate } from '../lib/api';
 import { mapGame, mapPlayerColorOptions } from '../lib/mappers';
 import type { ApiGameListItem } from '../lib/types/api';
 import type { GameViewModel, PlayerColorOptions, ShipDesignForm } from '../lib/types/domain';
-import type { MovePopulationCommand, PendingCommands, TurnCommands } from '../lib/types/commands';
+import type { MovePopulationCommand, PendingCommands, SelectResearchCommand, TurnCommands } from '../lib/types/commands';
 import { findPlanet, getColonyRows, getPrimaryPlayer, normalizeServerUrl, toWebSocketUrl } from '../lib/utils';
 
 type ConnectionStatus = 'idle' | 'checking' | 'connected' | 'error';
@@ -38,6 +38,7 @@ type AppContextValue = {
   refreshGame: () => Promise<void>;
   changeBuilding: (planetId: number, buildingId: number) => void;
   addMovePopulationCommand: (command: MovePopulationCommand) => void;
+  selectResearch: (command: SelectResearchCommand) => void;
   colonize: (planetId: number) => Promise<void>;
   exploreStar: (starId: number) => Promise<void>;
   endTurn: () => Promise<void>;
@@ -53,6 +54,12 @@ const STORAGE_KEYS = {
 const AppContext = createContext<AppContextValue>();
 
 export function AppProvider(props: ParentProps) {
+  const emptyPendingCommands = (): PendingCommands => ({
+    build: [],
+    movePopulation: [],
+    selectResearch: undefined,
+  });
+
   const [state, setState] = createStore<AppState>({
     session: {
       serverUrl: '',
@@ -69,10 +76,7 @@ export function AppProvider(props: ParentProps) {
     isBusy: false,
     error: '',
     info: '',
-    pendingCommands: {
-      build: [],
-      movePopulation: [],
-    },
+    pendingCommands: emptyPendingCommands(),
   });
 
   const api = createMemo(() =>
@@ -231,6 +235,11 @@ export function AppProvider(props: ParentProps) {
     setState('pendingCommands', 'movePopulation', (cmds) => [...cmds, command]);
   }
 
+  function selectResearch(command: SelectResearchCommand) {
+    setState('pendingCommands', 'selectResearch', command);
+    setState('info', 'Research project queued for next turn');
+  }
+
   async function colonize(planetId: number) {
     if (!api() || !state.session.selectedGameId) {
       return;
@@ -256,7 +265,7 @@ export function AppProvider(props: ParentProps) {
     try {
       await api()!.endTurn(state.session.selectedGameId, toTurnCommands(state.pendingCommands, state.game));
       const rawGame = await api()!.getGame(state.session.selectedGameId);
-      setState('pendingCommands', { build: [], movePopulation: [] });
+      setState('pendingCommands', emptyPendingCommands());
       setState('game', mapGame(rawGame));
       setBusy(false, 'Turn complete');
     } catch (error) {
@@ -325,6 +334,7 @@ export function AppProvider(props: ParentProps) {
         const payload = parseGameUpdate(event.data);
         if (payload.game_update.id === state.session.selectedGameId) {
           setState('game', mapGame(payload.game_update));
+          setState('pendingCommands', emptyPendingCommands());
           setState({ isBusy: false, info: 'Live update received' });
         }
       } catch {
@@ -366,6 +376,7 @@ export function AppProvider(props: ParentProps) {
     refreshGame,
     changeBuilding,
     addMovePopulationCommand,
+    selectResearch,
     colonize,
     exploreStar,
     endTurn,

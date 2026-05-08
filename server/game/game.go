@@ -40,8 +40,6 @@ func NewGame(resources *ResourceManager, playerName string, numStars uint, playe
 	_ = g.CreateCapitalPlanet(firstPlayerID)
 	_ = g.ExploreStar(firstPlayerID, 1)
 
-	g.research(player1, "Automated Factory")
-
 	return g, nil
 }
 
@@ -87,6 +85,9 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 
 	// empire turn processing
 	player.Treasury += totalIncome
+	if err := g.applyResearch(player, uint64(max(totalResearch, 0))); err != nil {
+		return err
+	}
 
 	g.CurrentTurn += 1
 	return nil
