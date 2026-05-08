@@ -12,7 +12,7 @@ export function ColoniesPage() {
   const [sortAsc, setSortAsc] = createSignal(true);
   const buildingOptions = createMemo(
     () => {
-      const availableBuildingNames = new Set(currentPlayer()?.availableBuildings ?? []);
+      const availableBuildingNames = new Set(currentPlayer()?.available.buildings ?? []);
       return state.game?.resources.buildingCollection.buildings.filter((building) =>
         availableBuildingNames.has(building.name),
       ) ?? [];

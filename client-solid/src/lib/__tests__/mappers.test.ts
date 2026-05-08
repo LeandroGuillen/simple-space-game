@@ -52,8 +52,10 @@ describe('mapGame', () => {
           treasury: 24,
           tax_rate: 0,
           research_points: 5,
+          researched_techs: ['Starting Colony Infrastructure', 'Automated Factory'],
           available: {
             buildings: ['Colony Base', 'Automated Factory'],
+            drives: ['Nuclear'],
           },
           fleets: [1],
           freighters: 1,
@@ -78,7 +80,7 @@ describe('mapGame', () => {
               icon: '🏭',
               cost: 60,
               maintenance: 1,
-              effects: [{ flatIndustryBonus: 5 }],
+              grants: { modifiers: [{ name: 'industry_flat', value: 5 }] },
             },
             {
               name: 'Capitol',
@@ -86,7 +88,6 @@ describe('mapGame', () => {
               icon: '🏛️',
               cost: 0,
               maintenance: 0,
-              effects: [],
             },
             {
               name: 'Star Base',
@@ -94,7 +95,6 @@ describe('mapGame', () => {
               icon: '🛰️',
               cost: 200,
               maintenance: 2,
-              effects: [],
             },
           ],
         },
@@ -109,6 +109,9 @@ describe('mapGame', () => {
     expect(game.id).toBe('game-1')
     expect(game.currentTurn).toBe(3500)
     expect(game.players[0]?.raceName).toBe('Human')
+    expect(game.players[0]?.researchedTechs).toEqual(['Starting Colony Infrastructure', 'Automated Factory'])
+    expect(game.players[0]?.available.buildings).toEqual(['Colony Base', 'Automated Factory'])
+    expect(game.players[0]?.available.drives).toEqual(['Nuclear'])
     expect(game.players[0]?.availableBuildings).toEqual(['Colony Base', 'Automated Factory'])
     expect(game.galaxy.stars[0]?.ownedPlanets).toBe(1)
     expect(game.galaxy.stars[0]?.planets[0]?.maxPopulation).toBe(16000)
@@ -116,8 +119,8 @@ describe('mapGame', () => {
     expect(game.galaxy.stars[0]?.planets[0]?.currentProject?.name).toBe('Automated Factory')
     expect(game.galaxy.stars[0]?.planets[0]?.currentProject?.id).toBe(1)
     expect(game.galaxy.stars[0]?.planets[0]?.currentProject?.icon).toBe('🏭')
-    expect(game.galaxy.stars[0]?.planets[0]?.currentProject?.effects).toEqual([
-      { name: 'flatIndustryBonus', description: '', bonus: 5 },
+    expect(game.galaxy.stars[0]?.planets[0]?.currentProject?.modifiers).toEqual([
+      { name: 'industry_flat', description: '', bonus: 5 },
     ])
     expect(game.galaxy.stars[0]?.planets[0]?.buildings.map((building) => building.name)).toEqual([
       'Capitol',

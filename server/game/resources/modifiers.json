@@ -1,0 +1,172 @@
+{
+  "modifiers": [
+    {
+      "name": "morale_multiplier",
+      "description": "Multiplies colony morale.",
+      "scope": "COLONY",
+      "stat": "morale",
+      "operation": "MULTIPLY"
+    },
+    {
+      "name": "scanner_range",
+      "description": "Adds scanner range.",
+      "scope": "COLONY",
+      "stat": "scanner_range",
+      "operation": "ADD"
+    },
+    {
+      "name": "command_points",
+      "description": "Adds command points.",
+      "scope": "EMPIRE",
+      "stat": "command_points",
+      "operation": "ADD"
+    },
+    {
+      "name": "max_ship_size_bonus",
+      "description": "Increases the maximum supported ship size.",
+      "scope": "EMPIRE",
+      "stat": "max_ship_size",
+      "operation": "ADD"
+    },
+    {
+      "name": "fleet_defense",
+      "description": "Adds fleet defense bonus.",
+      "scope": "SHIP",
+      "stat": "defense",
+      "operation": "ADD"
+    },
+    {
+      "name": "fleet_attack",
+      "description": "Adds fleet attack bonus.",
+      "scope": "SHIP",
+      "stat": "attack",
+      "operation": "ADD"
+    },
+    {
+      "name": "marine_production",
+      "description": "Adds marine production.",
+      "scope": "COLONY",
+      "stat": "marine_production",
+      "operation": "ADD"
+    },
+    {
+      "name": "marine_hit_points",
+      "description": "Adds marine hit points.",
+      "scope": "GROUND_COMBAT",
+      "stat": "marine_hit_points",
+      "operation": "ADD"
+    },
+    {
+      "name": "industry_per_worker",
+      "description": "Adds production per worker.",
+      "scope": "PLANET",
+      "stat": "industry_per_worker",
+      "operation": "ADD"
+    },
+    {
+      "name": "industry_flat",
+      "description": "Adds fixed production.",
+      "scope": "PLANET",
+      "stat": "industry_flat",
+      "operation": "ADD"
+    },
+    {
+      "name": "food_per_farmer",
+      "description": "Adds food per farmer.",
+      "scope": "PLANET",
+      "stat": "food_per_farmer",
+      "operation": "ADD"
+    },
+    {
+      "name": "food_flat",
+      "description": "Adds fixed food.",
+      "scope": "PLANET",
+      "stat": "food_flat",
+      "operation": "ADD"
+    },
+    {
+      "name": "science_per_scientist",
+      "description": "Adds science per scientist.",
+      "scope": "PLANET",
+      "stat": "science_per_scientist",
+      "operation": "ADD"
+    },
+    {
+      "name": "science_flat",
+      "description": "Adds fixed science.",
+      "scope": "PLANET",
+      "stat": "science_flat",
+      "operation": "ADD"
+    },
+    {
+      "name": "income_flat",
+      "description": "Adds fixed colony income.",
+      "scope": "COLONY",
+      "stat": "income",
+      "operation": "ADD"
+    },
+    {
+      "name": "armored_production",
+      "description": "Adds armored unit production.",
+      "scope": "COLONY",
+      "stat": "armored_production",
+      "operation": "ADD"
+    },
+    {
+      "name": "interceptor",
+      "description": "Adds interceptor capacity.",
+      "scope": "COLONY",
+      "stat": "interceptor",
+      "operation": "ADD"
+    },
+    {
+      "name": "industry_per_colonist",
+      "description": "Adds production per colonist.",
+      "scope": "PLANET",
+      "stat": "industry_per_colonist",
+      "operation": "ADD"
+    },
+    {
+      "name": "industry_ultrapoor",
+      "description": "Adds fixed production on ultra poor planets.",
+      "scope": "PLANET",
+      "stat": "industry_ultrapoor",
+      "operation": "ADD"
+    },
+    {
+      "name": "industry_poor",
+      "description": "Adds fixed production on poor planets.",
+      "scope": "PLANET",
+      "stat": "industry_poor",
+      "operation": "ADD"
+    },
+    {
+      "name": "industry_abundant",
+      "description": "Adds fixed production on abundant planets.",
+      "scope": "PLANET",
+      "stat": "industry_abundant",
+      "operation": "ADD"
+    },
+    {
+      "name": "industry_rich",
+      "description": "Adds fixed production on rich planets.",
+      "scope": "PLANET",
+      "stat": "industry_rich",
+      "operation": "ADD"
+    },
+    {
+      "name": "industry_ultrarich",
+      "description": "Adds fixed production on ultra rich planets.",
+      "scope": "PLANET",
+      "stat": "industry_ultrarich",
+      "operation": "ADD"
+    },
+    {
+      "name": "max_population",
+      "description": "Adds maximum population.",
+      "scope": "PLANET",
+      "stat": "max_population",
+      "operation": "ADD"
+    }
+  ]
+}

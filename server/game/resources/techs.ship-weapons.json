@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Laser Cannon",
+    "description": "Basic beam weapon.",
+    "grants": { "unlocks": { "beams": ["Laser"] } }
+  },
+  {
+    "name": "Anti-Missile Rockets",
+    "description": "Ship point-defense weapon specialized against missiles.",
+    "grants": { "unlocks": { "ship_systems": ["Anti-Missile Rockets"] } }
+  },
+  {
+    "name": "Fighter Bays",
+    "description": "Allows ships to carry and launch interceptor fighters.",
+    "grants": { "unlocks": { "ship_systems": ["Fighter Bays"] } }
+  },
+  {
+    "name": "Assault Shuttles",
+    "description": "Enables automatic boarding of enemy ships and starbases.",
+    "grants": { "unlocks": { "ship_systems": ["Assault Shuttles"] } }
+  },
+  {
+    "name": "Bomber Bays",
+    "description": "Allows ships to carry and launch bombers.",
+    "grants": { "unlocks": { "ship_systems": ["Bomber Bays"] } }
+  },
+  {
+    "name": "Heavy Fighters",
+    "description": "Allows ships to carry and launch heavy fighters.",
+    "grants": { "unlocks": { "ship_systems": ["Heavy Fighters"] } }
+  }
+]

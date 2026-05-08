@@ -10,6 +10,7 @@ import (
 type Resources struct {
 	*ShipPartsCollection  `json:"ship_parts"`
 	*BuildingCollection   `json:"building_collection"`
+	*ModifierCollection   `json:"modifier_collection"`
 	*NameCollection       `json:"name_collection"`
 	*ShipDesignCollection `json:"ship_design_collection"`
 	*BeamCollection       `json:"beam_collection"`
@@ -27,6 +28,10 @@ type ShipPartsCollection struct {
 
 type BuildingCollection struct {
 	Buildings []Building `json:"buildings"`
+}
+
+type ModifierCollection struct {
+	Modifiers []ModifierDefinition `json:"modifiers"`
 }
 
 type NameCollection struct {
@@ -52,6 +57,9 @@ var equipmentFile []byte
 //go:embed resources/buildings.json
 var buildingsFile []byte
 
+//go:embed resources/modifiers.json
+var modifiersFile []byte
+
 //go:embed resources/names.json
 var namesFile []byte
 
@@ -64,11 +72,23 @@ var beamsFile []byte
 //go:embed resources/tech-tree.json
 var techTreeFile []byte
 
-//go:embed resources/techs.json
-var techsFile []byte
+//go:embed resources/techs.starting.json
+var startingTechsFile []byte
 
-//go:embed resources/techs.construction.json
-var constructionTechsFile []byte
+//go:embed resources/techs.buildings.json
+var buildingTechsFile []byte
+
+//go:embed resources/techs.ship-parts.json
+var shipPartTechsFile []byte
+
+//go:embed resources/techs.ship-weapons.json
+var shipWeaponTechsFile []byte
+
+//go:embed resources/techs.ship-systems.json
+var shipSystemTechsFile []byte
+
+//go:embed resources/techs.empire-effects.json
+var empireEffectTechsFile []byte
 
 func (r *ResourceManager) loadDataFromFiles() error {
 	var shipPartsCollection ShipPartsCollection
@@ -89,6 +109,12 @@ func (r *ResourceManager) loadDataFromFiles() error {
 		return err
 	}
 	r.BuildingCollection = &buildingCollection
+
+	var modifierCollection ModifierCollection
+	if err := json.Unmarshal(modifiersFile, &modifierCollection); err != nil {
+		return err
+	}
+	r.ModifierCollection = &modifierCollection
 
 	var nameCollection NameCollection
 	if err := json.Unmarshal(namesFile, &nameCollection); err != nil {
@@ -158,11 +184,21 @@ func (r *ResourceManager) loadDataFromFiles() error {
 	}
 	r.TechTree = &techTree
 
-	techs, err := loadTechDefinitions(constructionTechsFile)
+	techs, err := loadTechDefinitions(
+		startingTechsFile,
+		buildingTechsFile,
+		shipPartTechsFile,
+		shipWeaponTechsFile,
+		shipSystemTechsFile,
+		empireEffectTechsFile,
+	)
 	if err != nil {
 		return err
 	}
 	r.TechTree.AllTechs = techs
+	if err := r.validateTechDefinitions(); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -179,10 +215,11 @@ func loadTechDefinitions(files ...[]byte) ([]Tech, error) {
 			if tech.Name == "" {
 				continue
 			}
-			if _, exists := techsByName[tech.Name]; !exists {
-				orderedNames = append(orderedNames, tech.Name)
+			if _, exists := techsByName[tech.Name]; exists {
+				return nil, fmt.Errorf("duplicate tech definition %q", tech.Name)
 			}
 			techsByName[tech.Name] = tech
+			orderedNames = append(orderedNames, tech.Name)
 		}
 	}
 
@@ -191,6 +228,170 @@ func loadTechDefinitions(files ...[]byte) ([]Tech, error) {
 		techs = append(techs, techsByName[name])
 	}
 	return techs, nil
+}
+
+func (r *ResourceManager) validateTechDefinitions() error {
+	techNames := make(map[string]bool)
+	for _, tech := range r.TechTree.AllTechs {
+		techNames[tech.Name] = true
+		if err := r.validateUnlocks(tech.Name, tech.Grants.Unlocks); err != nil {
+			return err
+		}
+		if err := r.validateModifiers("tech", tech.Name, tech.Grants.Modifiers); err != nil {
+			return err
+		}
+	}
+
+	for _, building := range r.Buildings {
+		if err := r.validateModifiers("building", building.Name, building.Grants.Modifiers); err != nil {
+			return err
+		}
+	}
+
+	for _, subject := range r.TechTree.Subjects {
+		for _, level := range subject.Levels {
+			for _, techName := range level.AvailableTechs {
+				if !techNames[techName] {
+					return fmt.Errorf("tech tree references undefined tech %q", techName)
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func (r *ResourceManager) validateModifiers(sourceType, sourceName string, modifiers []Modifier) error {
+	for _, modifier := range modifiers {
+		if !modifierDefinitionExists(r.Modifiers, modifier.Name) {
+			return fmt.Errorf("%s %q grants undefined modifier %q", sourceType, sourceName, modifier.Name)
+		}
+	}
+	return nil
+}
+
+func modifierDefinitionExists(modifiers []ModifierDefinition, name string) bool {
+	for _, modifier := range modifiers {
+		if modifier.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
+func (r *ResourceManager) validateUnlocks(techName string, unlocks Unlocks) error {
+	for _, name := range unlocks.Buildings {
+		if !buildingExists(r.Buildings, name) {
+			return fmt.Errorf("tech %q unlocks missing building %q", techName, name)
+		}
+	}
+	for _, name := range unlocks.HullSizes {
+		if !hullSizeExists(r.HullSizes, name) {
+			return fmt.Errorf("tech %q unlocks missing hull size %q", techName, name)
+		}
+	}
+	for _, name := range unlocks.Drives {
+		if !driveExists(r.Drives, name) {
+			return fmt.Errorf("tech %q unlocks missing drive %q", techName, name)
+		}
+	}
+	for _, name := range unlocks.Armors {
+		if !armorExists(r.Armors, name) {
+			return fmt.Errorf("tech %q unlocks missing armor %q", techName, name)
+		}
+	}
+	for _, name := range unlocks.Computers {
+		if !computerExists(r.Computers, name) {
+			return fmt.Errorf("tech %q unlocks missing computer %q", techName, name)
+		}
+	}
+	for _, name := range unlocks.FuelCells {
+		if !fuelCellExists(r.FuelCells, name) {
+			return fmt.Errorf("tech %q unlocks missing fuel cell %q", techName, name)
+		}
+	}
+	for _, name := range unlocks.Shields {
+		if !shieldExists(r.Shields, name) {
+			return fmt.Errorf("tech %q unlocks missing shield %q", techName, name)
+		}
+	}
+	for _, name := range unlocks.Beams {
+		if !beamExists(r.Beams, name) {
+			return fmt.Errorf("tech %q unlocks missing beam %q", techName, name)
+		}
+	}
+	return nil
+}
+
+func buildingExists(buildings []Building, name string) bool {
+	for _, building := range buildings {
+		if building.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
+func hullSizeExists(hullSizes []HullSize, name string) bool {
+	for _, hullSize := range hullSizes {
+		if hullSize.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
+func driveExists(drives []Drive, name string) bool {
+	for _, drive := range drives {
+		if drive.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
+func armorExists(armors []Armor, name string) bool {
+	for _, armor := range armors {
+		if armor.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
+func computerExists(computers []Computer, name string) bool {
+	for _, computer := range computers {
+		if computer.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
+func fuelCellExists(fuelCells []FuelCell, name string) bool {
+	for _, fuelCell := range fuelCells {
+		if fuelCell.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
+func shieldExists(shields []Shield, name string) bool {
+	for _, shield := range shields {
+		if shield.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
+func beamExists(beams []Beam, name string) bool {
+	for _, beam := range beams {
+		if beam.Name == name {
+			return true
+		}
+	}
+	return false
 }
 
 func NewResourceManager() (*ResourceManager, error) {

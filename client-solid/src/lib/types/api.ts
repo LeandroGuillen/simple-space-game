@@ -24,16 +24,34 @@ export type ApiRace = {
   };
 };
 
-export type ApiEffect = {
-  id?: number;
+export type ApiModifier = {
+  name: string;
+  value?: number;
+};
+
+export type ApiUnlocks = {
+  buildings?: string[];
+  hull_sizes?: string[];
+  drives?: string[];
+  armors?: string[];
+  computers?: string[];
+  fuel_cells?: string[];
+  shields?: string[];
+  beams?: string[];
+  ship_systems?: string[];
+};
+
+export type ApiGrants = {
+  unlocks?: ApiUnlocks;
+  modifiers?: ApiModifier[];
+};
+
+export type ApiModifierDefinition = {
   name?: string;
   description?: string;
-  bonus?: number;
-  industryBonus?: number;
-  flatIndustryBonus?: number;
-  flatFoodBonus?: number;
-  scienceBonus?: number;
-  flatScienceBonus?: number;
+  scope?: string;
+  stat?: string;
+  operation?: string;
 };
 
 export type ApiBuilding = {
@@ -43,7 +61,7 @@ export type ApiBuilding = {
   icon?: string;
   cost?: number;
   maintenance?: number;
-  effects?: ApiEffect[];
+  grants?: ApiGrants;
 };
 
 export type ApiPlanet = {
@@ -193,22 +211,27 @@ export type ApiTechSubject = {
 
 export type ApiTechTree = {
   subjects: ApiTechSubject[];
+  all_techs?: ApiTech[];
 };
 
 export type ApiTech = {
   name: string;
   description?: string;
+  hidden?: boolean;
   cost?: number;
   maintenance?: number;
-  effects?: unknown;
   built_on?: string[];
   unique?: boolean;
+  grants?: ApiGrants;
 };
 
 export type ApiResources = {
   ship_parts: ApiShipParts;
   building_collection?: {
     buildings: ApiBuilding[];
+  };
+  modifier_collection?: {
+    modifiers: ApiModifierDefinition[];
   };
   ship_design_collection?: {
     ship_design_defs?: ApiShipDesignDef[];
@@ -228,10 +251,18 @@ export type ApiPlayer = {
   treasury: number;
   tax_rate: number;
   research_points: number;
-  known_techs?: string[] | null;
+  researched_techs?: string[] | null;
   current_research?: ApiResearchProject;
   available?: {
     buildings?: string[] | null;
+    hull_sizes?: string[] | null;
+    drives?: string[] | null;
+    armors?: string[] | null;
+    computers?: string[] | null;
+    fuel_cells?: string[] | null;
+    shields?: string[] | null;
+    beams?: string[] | null;
+    ship_systems?: string[] | null;
   };
   fleets?: number[] | null;
   freighters: number;

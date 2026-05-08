@@ -15,7 +15,21 @@ const TRADE_GOODS: BuildingViewModel = {
   icon: '💱',
   cost: 0,
   maintenance: 0,
-  effects: [],
+  grants: {
+    unlocks: {
+      buildings: [],
+      hullSizes: [],
+      drives: [],
+      armors: [],
+      computers: [],
+      fuelCells: [],
+      shields: [],
+      beams: [],
+      shipSystems: [],
+    },
+    modifiers: [],
+  },
+  modifiers: [],
 };
 
 export function ConstructionPanel(props: ConstructionPanelProps) {
@@ -25,7 +39,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   let panelRef: HTMLElement | undefined;
 
   const builtBuildingIds = createMemo(() => new Set(props.planet.buildings.map((building) => building.id)));
-  const availableBuildingNames = createMemo(() => new Set(currentPlayer()?.availableBuildings ?? []));
+  const availableBuildingNames = createMemo(() => new Set(currentPlayer()?.available.buildings ?? []));
   const buildableProjects = createMemo(() =>
     state.game?.resources.buildingCollection.buildings.filter(
       (project) => availableBuildingNames().has(project.name) && !builtBuildingIds().has(project.id),

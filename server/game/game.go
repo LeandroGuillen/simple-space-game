@@ -36,6 +36,7 @@ func NewGame(resources *ResourceManager, playerName string, numStars uint, playe
 		CurrentTurn: 3500,
 		Resources:   &resources.Resources,
 	}
+	g.hydratePlayerAvailability(player1)
 
 	_ = g.CreateCapitalPlanet(firstPlayerID)
 	_ = g.ExploreStar(firstPlayerID, 1)

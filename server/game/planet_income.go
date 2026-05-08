@@ -14,9 +14,9 @@ func PlanetIncome(game *Game, planet *model.Planet, industryProduced int64) mode
 	var incomeFromBuildings int64
 	for _, buildingName := range planet.Buildings {
 		if building, err := getBuildingFromName(game, buildingName); err == nil {
-			for _, effect := range building.Effects {
-				if effect.Name == "income" {
-					incomeFromBuildings += effect.Bonus
+			for _, modifier := range building.Grants.Modifiers {
+				if modifier.Name == "income_flat" {
+					incomeFromBuildings += int64(modifier.Value)
 				}
 			}
 		}

@@ -1,8 +1,9 @@
 package model
 
 type Race struct {
-	ID   uint   `json:"id"`
-	Name string `json:"name"`
+	ID     uint   `json:"id"`
+	Name   string `json:"name"`
+	Grants Grants `json:"grants"`
 
 	Stats struct {
 		PopulationGrowth int64

@@ -17,7 +17,7 @@ func TestPlanetIncomeIncludesBuildingMaintenance(t *testing.T) {
 					{
 						Name:        "Star Base",
 						Maintenance: 2,
-						Effects:     []model.Effect{{Name: "income", Bonus: 1}},
+						Grants:      model.Grants{Modifiers: []model.Modifier{{Name: "income_flat", Value: 1}}},
 					},
 				},
 			},

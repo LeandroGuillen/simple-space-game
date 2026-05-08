@@ -26,6 +26,7 @@ func TestResearchMakesBuildingAvailable(t *testing.T) {
 	assert.Contains(t, player.Available.Buildings, "Marine Barracks")
 	assert.Contains(t, player.Available.Buildings, "Automated Factory")
 	assert.Equal(t, 1, countStrings(player.Available.Buildings, "Automated Factory"))
+	assert.Contains(t, player.ResearchedTechs, "Automated Factory")
 }
 
 func TestTurnAccumulatesResearchPointsForSelectedBreakthrough(t *testing.T) {
@@ -67,8 +68,8 @@ func TestTurnCompletesSelectedTechAndSpendsAccumulatedResearch(t *testing.T) {
 	require.NoError(t, g.Turn(player.ID, model.Commands{}))
 
 	assert.Nil(t, player.CurrentResearch)
-	assert.Contains(t, player.KnownTechs, "Hydroponic Farm")
-	assert.NotContains(t, player.KnownTechs, "Biospheres")
+	assert.Contains(t, player.ResearchedTechs, "Hydroponic Farm")
+	assert.NotContains(t, player.ResearchedTechs, "Biospheres")
 	assert.Contains(t, player.Available.Buildings, "Hydroponic Farm")
 	assert.Equal(t, uint64(0), player.ResearchPoints)
 }
@@ -87,9 +88,10 @@ func TestTurnCompletesForceAllResearchAndUnlocksEveryTechInLevel(t *testing.T) {
 	}))
 
 	assert.Nil(t, player.CurrentResearch)
-	assert.Contains(t, player.KnownTechs, "Freighters")
-	assert.Contains(t, player.KnownTechs, "Nuclear Drive")
-	assert.Contains(t, player.KnownTechs, "Nuclear Bomb")
+	assert.Contains(t, player.ResearchedTechs, "Freighters")
+	assert.Contains(t, player.ResearchedTechs, "Nuclear Drive")
+	assert.Contains(t, player.ResearchedTechs, "Nuclear Bomb")
+	assert.Contains(t, player.Available.Drives, "Nuclear")
 	assert.Equal(t, uint64(0), player.ResearchPoints)
 }
 

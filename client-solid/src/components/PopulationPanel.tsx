@@ -88,13 +88,13 @@ export function PopulationPanel(props: PopulationPanelProps) {
     return icons.join(" ");
   };
 
-  const getBuildingEffectBonus = (effectName: string) =>
+  const getBuildingModifierBonus = (modifierName: string) =>
     props.planet.buildings.reduce(
       (sum, building) =>
         sum +
-        building.effects.reduce(
-          (effectSum, effect) =>
-            effectSum + (effect.name === effectName ? effect.bonus : 0),
+        building.modifiers.reduce(
+          (modifierSum, modifier) =>
+            modifierSum + (modifier.name === modifierName ? modifier.bonus : 0),
           0,
         ),
       0,
@@ -112,7 +112,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
       };
     }
     if (cat === "workers") {
-      const perWorkerBuildingBonus = getBuildingEffectBonus("industryBonus");
+      const perWorkerBuildingBonus = getBuildingModifierBonus("industry_per_worker");
       const basePerWorker = Math.max(
         0,
         props.planet.industry.produced_per_worker - perWorkerBuildingBonus,
@@ -127,7 +127,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
         fromBuildings,
       };
     }
-    const perScientistBuildingBonus = getBuildingEffectBonus("scienceBonus");
+    const perScientistBuildingBonus = getBuildingModifierBonus("science_per_scientist");
     const basePerScientist = Math.max(
       0,
       props.planet.science.produced_per_scientist - perScientistBuildingBonus,
@@ -149,40 +149,40 @@ export function PopulationPanel(props: PopulationPanelProps) {
     const workerCount = getPopCount(cat);
     const contributions: BuildingContribution[] = [];
     for (const building of props.planet.buildings) {
-      for (const effect of building.effects) {
-        if (cat === "farmers" && effect.name === "flatFoodBonus") {
+      for (const modifier of building.modifiers) {
+        if (cat === "farmers" && modifier.name === "food_flat") {
           contributions.push({
             buildingName: building.name,
             label: "flat food",
-            total: effect.bonus,
+            total: modifier.bonus,
           });
         }
-        if (cat === "workers" && effect.name === "industryBonus") {
+        if (cat === "workers" && modifier.name === "industry_per_worker") {
           contributions.push({
             buildingName: building.name,
-            label: `+${effect.bonus} per worker × ${workerCount}`,
-            total: effect.bonus * workerCount,
+            label: `+${modifier.bonus} per worker × ${workerCount}`,
+            total: modifier.bonus * workerCount,
           });
         }
-        if (cat === "workers" && effect.name === "flatIndustryBonus") {
+        if (cat === "workers" && modifier.name === "industry_flat") {
           contributions.push({
             buildingName: building.name,
             label: "flat industry",
-            total: effect.bonus,
+            total: modifier.bonus,
           });
         }
-        if (cat === "scientists" && effect.name === "scienceBonus") {
+        if (cat === "scientists" && modifier.name === "science_per_scientist") {
           contributions.push({
             buildingName: building.name,
-            label: `+${effect.bonus} per scientist × ${workerCount}`,
-            total: effect.bonus * workerCount,
+            label: `+${modifier.bonus} per scientist × ${workerCount}`,
+            total: modifier.bonus * workerCount,
           });
         }
-        if (cat === "scientists" && effect.name === "flatScienceBonus") {
+        if (cat === "scientists" && modifier.name === "science_flat") {
           contributions.push({
             buildingName: building.name,
             label: "flat science",
-            total: effect.bonus,
+            total: modifier.bonus,
           });
         }
       }

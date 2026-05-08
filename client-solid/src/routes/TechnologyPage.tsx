@@ -11,7 +11,9 @@ import { useAppContext } from "../state/app-context";
 type KnownTechEntry = {
   name: string;
   description: string;
+  cost: number;
   maintenance: number;
+  bonuses: string[];
   known: boolean;
   unavailable: boolean;
   source: "Building" | "Technology";
@@ -38,11 +40,7 @@ export function TechnologyPage() {
       return [];
     }
 
-    const knownNames = new Set(
-      [...player.knownTechs, ...player.availableBuildings].map((name) =>
-        name.toLowerCase(),
-      ),
-    );
+    const knownNames = new Set(player.researchedTechs.map((name) => name.toLowerCase()));
     const techByName = new Map(
       game.resources.techCollection.techs.map((tech) => [
         tech.name.toLowerCase(),
@@ -77,7 +75,10 @@ export function TechnologyPage() {
                     ) &&
                     !knownNames.has(techName.toLowerCase()),
                   techByName.get(techName.toLowerCase()),
-                  buildingByName.get(techName.toLowerCase()),
+                  findUnlockedBuilding(
+                    techByName.get(techName.toLowerCase()),
+                    buildingByName,
+                  ) ?? buildingByName.get(techName.toLowerCase()),
                 ),
               ),
           }))
@@ -170,12 +171,26 @@ export function TechnologyPage() {
                                   <p>{tech.description}</p>
                                 </Show>
                                 <dl class="technology-tech-facts">
+                                  <Show when={tech.cost > 0}>
+                                    <div>
+                                      <dt>Cost</dt>
+                                      <dd>{tech.cost} PP</dd>
+                                    </div>
+                                  </Show>
                                   <Show when={tech.maintenance > 0}>
                                     <div>
                                       <dt>Maintenance</dt>
                                       <dd>{tech.maintenance} BC/turn</dd>
                                     </div>
                                   </Show>
+                                  <For each={tech.bonuses}>
+                                    {(bonus) => (
+                                      <div>
+                                        <dt>Bonus</dt>
+                                        <dd>{bonus}</dd>
+                                      </div>
+                                    )}
+                                  </For>
                                 </dl>
                               </article>
                             )}
@@ -204,11 +219,34 @@ function knownTechEntry(
   return {
     name,
     description: normalizeDescription(tech?.description || building?.description || ""),
+    cost: building?.cost || tech?.cost || 0,
     maintenance: tech?.maintenance || building?.maintenance || 0,
+    bonuses: building?.modifiers.map(formatBonus) ?? tech?.grants.modifiers.map(formatBonus) ?? [],
     known,
     unavailable,
     source: building ? "Building" : "Technology",
   };
+}
+
+function findUnlockedBuilding(
+  tech: TechViewModel | undefined,
+  buildingByName: Map<string, BuildingViewModel>,
+) {
+  const buildingName = tech?.grants.unlocks.buildings[0];
+  return buildingName ? buildingByName.get(buildingName.toLowerCase()) : undefined;
+}
+
+function formatBonus(effect: { name: string; description?: string; bonus?: number; value?: number }) {
+  const value = effect.bonus ?? effect.value ?? 0;
+  const sign = value > 0 ? "+" : "";
+  return `${effect.description || humanizeModifierName(effect.name)} ${sign}${value}`;
+}
+
+function humanizeModifierName(name: string) {
+  return name
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }
 
 function normalizeDescription(description: string) {

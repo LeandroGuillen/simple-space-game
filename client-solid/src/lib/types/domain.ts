@@ -8,10 +8,38 @@ export type ShipDesignForm = {
   fuelCell: string;
 };
 
-export type BuildingEffectViewModel = {
+export type BuildingModifierViewModel = {
   name: string;
   description: string;
   bonus: number;
+};
+
+export type ModifierViewModel = {
+  name: string;
+  value: number;
+};
+
+export type GrantsViewModel = {
+  unlocks: {
+    buildings: string[];
+    hullSizes: string[];
+    drives: string[];
+    armors: string[];
+    computers: string[];
+    fuelCells: string[];
+    shields: string[];
+    beams: string[];
+    shipSystems: string[];
+  };
+  modifiers: ModifierViewModel[];
+};
+
+export type ModifierDefinitionViewModel = {
+  name: string;
+  description: string;
+  scope: string;
+  stat: string;
+  operation: string;
 };
 
 export type BuildingViewModel = {
@@ -21,7 +49,8 @@ export type BuildingViewModel = {
   icon: string;
   cost: number;
   maintenance: number;
-  effects: BuildingEffectViewModel[];
+  grants: GrantsViewModel;
+  modifiers: BuildingModifierViewModel[];
 };
 
 export type PlanetViewModel = {
@@ -93,13 +122,26 @@ export type PlayerViewModel = {
   treasury: number;
   taxRate: number;
   researchPoints: number;
-  knownTechs: string[];
+  researchedTechs: string[];
+  available: PlayerAvailabilityViewModel;
   availableBuildings: string[];
   currentResearch: ResearchProjectViewModel | null;
   fleets: number[];
   freighters: number;
   freightersUsed: number;
   shipDesigns: ShipDesignViewModel[];
+};
+
+export type PlayerAvailabilityViewModel = {
+  buildings: string[];
+  hullSizes: string[];
+  drives: string[];
+  armors: string[];
+  computers: string[];
+  fuelCells: string[];
+  shields: string[];
+  beams: string[];
+  shipSystems: string[];
 };
 
 export type ResearchProjectViewModel = {
@@ -180,6 +222,9 @@ export type ResourcesViewModel = {
   buildingCollection: {
     buildings: BuildingViewModel[];
   };
+  modifierCollection: {
+    modifiers: ModifierDefinitionViewModel[];
+  };
   shipDesignCollection: {
     shipDesigns: ShipDesignViewModel[];
   };
@@ -208,11 +253,12 @@ export type TechLevelViewModel = {
 export type TechViewModel = {
   name: string;
   description: string;
+  hidden: boolean;
   cost: number;
   maintenance: number;
-  effects: unknown;
   builtOn: string[];
   unique: boolean;
+  grants: GrantsViewModel;
 };
 
 export type GameViewModel = {

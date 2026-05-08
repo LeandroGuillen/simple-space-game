@@ -4,20 +4,14 @@ import (
 	. "ssg/model"
 )
 
-var defaultBuildings = []string{
-	"Capitol",
-	"Colony Base",
-	"Star Base",
-	"Marine Barracks",
-}
+const startingColonyInfrastructureTech = "Starting Colony Infrastructure"
 
 func NewPlayer(ID uint, playerName, playerColor string) *Player {
 	return &Player{
-		ID:    ID,
-		Name:  playerName,
-		Color: playerColor,
-		Available: AvailableTech{
-			Buildings: defaultBuildings,
-		},
+		ID:              ID,
+		Name:            playerName,
+		Color:           playerColor,
+		ResearchedTechs: []string{startingColonyInfrastructureTech},
+		Treasury:        10,
 	}
 }

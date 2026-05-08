@@ -14,20 +14,20 @@ func hydratePlanetOutputs(game *Game, p *Planet) {
 
 	for _, buildingName := range p.Buildings {
 		if building, err := getBuildingFromName(game, buildingName); err == nil {
-			for _, effect := range building.Effects {
-				switch effect.Name {
-				case "foodBonus":
-					foodPerFarmer += effect.Bonus
-				case "flatFoodBonus":
-					foodFromBuildings += effect.Bonus
-				case "industryBonus":
-					industryPerWorker += effect.Bonus
-				case "flatIndustryBonus":
-					industryFromBuildings += effect.Bonus
-				case "scienceBonus":
-					sciencePerScientist += effect.Bonus
-				case "flatScienceBonus":
-					scienceFromBuildings += effect.Bonus
+			for _, modifier := range building.Grants.Modifiers {
+				switch modifier.Name {
+				case "food_per_farmer":
+					foodPerFarmer += int64(modifier.Value)
+				case "food_flat":
+					foodFromBuildings += int64(modifier.Value)
+				case "industry_per_worker":
+					industryPerWorker += int64(modifier.Value)
+				case "industry_flat":
+					industryFromBuildings += int64(modifier.Value)
+				case "science_per_scientist":
+					sciencePerScientist += int64(modifier.Value)
+				case "science_flat":
+					scienceFromBuildings += int64(modifier.Value)
 				}
 			}
 		}

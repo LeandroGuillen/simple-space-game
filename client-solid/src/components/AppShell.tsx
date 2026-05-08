@@ -138,10 +138,7 @@ function isLevelComplete(player: PlayerViewModel, level: TechLevelViewModel) {
   if (level.availableTechs.length === 0) {
     return false;
   }
-  const knownTechs = new Set([
-    ...player.knownTechs.map((tech) => tech.toLowerCase()),
-    ...player.availableBuildings.map((tech) => tech.toLowerCase()),
-  ]);
+  const knownTechs = new Set(player.researchedTechs.map((tech) => tech.toLowerCase()));
   if (!level.forceAll) {
     return level.availableTechs.some((tech) => knownTechs.has(tech.toLowerCase()));
   }
@@ -169,10 +166,7 @@ function researchChoices(game: GameViewModel | null, player: PlayerViewModel | n
         },
       ];
     }
-    const knownTechs = new Set([
-      ...player.knownTechs.map((tech) => tech.toLowerCase()),
-      ...player.availableBuildings.map((tech) => tech.toLowerCase()),
-    ]);
+    const knownTechs = new Set(player.researchedTechs.map((tech) => tech.toLowerCase()));
     return level.availableTechs
       .filter((techName) => !knownTechs.has(techName.toLowerCase()))
       .map((techName) => ({
@@ -291,7 +285,7 @@ export function AppShell(props: RouteSectionProps) {
   createEffect(() => {
     const gameId = state.game?.id ?? "";
     const player = currentPlayer();
-    const knownTechs = player?.knownTechs ?? [];
+    const knownTechs = player?.researchedTechs ?? [];
     if (!gameId || !player) {
       previousKnownTechs = null;
       previousBreakthroughGameId = "";

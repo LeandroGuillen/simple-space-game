@@ -37,7 +37,7 @@ func (g *Game) selectResearch(player *Player, cmd SelectResearchCommand) error {
 	if !slices.Contains(level.AvailableTechs, cmd.TechName) {
 		return fmt.Errorf("tech %q is not selectable in research level %q", cmd.TechName, level.Name)
 	}
-	if isTechKnown(player, cmd.TechName) {
+	if isTechResearched(player, cmd.TechName) {
 		return fmt.Errorf("tech %q is already known", cmd.TechName)
 	}
 	if player.CurrentResearch != nil && player.CurrentResearch.TechName == cmd.TechName {
@@ -83,20 +83,10 @@ func (g *Game) research(player *Player, techName string) {
 }
 
 func researchTech(g *Game, player *Player, techName string) {
-	if !slices.Contains(player.KnownTechs, techName) {
-		player.KnownTechs = append(player.KnownTechs, techName)
+	if !slices.Contains(player.ResearchedTechs, techName) {
+		player.ResearchedTechs = append(player.ResearchedTechs, techName)
 	}
-	researchBuilding(g, player, techName)
-}
-
-func researchBuilding(g *Game, player *Player, techName string) {
-	if hasAvailableBuilding(player, techName) {
-		return
-	}
-	if _, err := getBuildingFromName(g, techName); err != nil {
-		return
-	}
-	player.Available.Buildings = append(player.Available.Buildings, techName)
+	g.hydratePlayerAvailability(player)
 }
 
 func hasAvailableBuilding(player *Player, buildingName string) bool {
@@ -131,19 +121,19 @@ func isResearchLevelComplete(player *Player, level TechLevel) bool {
 	}
 	if !level.ForceAll {
 		return slices.ContainsFunc(level.AvailableTechs, func(techName string) bool {
-			return isTechKnown(player, techName)
+			return isTechResearched(player, techName)
 		})
 	}
 	for _, techName := range level.AvailableTechs {
-		if !isTechKnown(player, techName) {
+		if !isTechResearched(player, techName) {
 			return false
 		}
 	}
 	return true
 }
 
-func isTechKnown(player *Player, techName string) bool {
-	return slices.Contains(player.KnownTechs, techName) || hasAvailableBuilding(player, techName)
+func isTechResearched(player *Player, techName string) bool {
+	return slices.Contains(player.ResearchedTechs, techName)
 }
 
 func selectedResearchTechs(project *ResearchProject) []string {
@@ -154,4 +144,13 @@ func selectedResearchTechs(project *ResearchProject) []string {
 		return []string{project.TechName}
 	}
 	return nil
+}
+
+func (g *Game) findTechDefinition(techName string) (Tech, bool) {
+	for _, tech := range g.Resources.TechTree.AllTechs {
+		if tech.Name == techName {
+			return tech, true
+		}
+	}
+	return Tech{}, false
 }

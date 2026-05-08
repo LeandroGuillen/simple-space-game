@@ -3,9 +3,9 @@ import type {
   ApiBuilding,
   ApiComputer,
   ApiDrive,
-  ApiEffect,
   ApiFuelCell,
   ApiGame,
+  ApiGrants,
   ApiHullSize,
   ApiPlanet,
   ApiPlayer,
@@ -24,6 +24,7 @@ import type {
   FuelCellViewModel,
   GameViewModel,
   HullSizeViewModel,
+  ModifierDefinitionViewModel,
   PlanetViewModel,
   PlayerColorOptions,
   PlayerViewModel,
@@ -40,9 +41,14 @@ export function mapGame(apiGame: ApiGame): GameViewModel {
   const playerColorById = new Map(
     players.map((player) => [player.id, player.color]),
   );
+  const modifiers =
+    apiGame.resources.modifier_collection?.modifiers?.map(mapModifierDefinition) ?? [];
+  const modifierByName = new Map(
+    modifiers.map((modifier) => [modifier.name.toLowerCase(), modifier]),
+  );
   const buildings =
     apiGame.resources.building_collection?.buildings?.map((building, index) =>
-      mapBuilding(building, index + 1),
+      mapBuilding(building, index + 1, modifierByName),
     ) ?? [];
   const buildingByName = new Map(
     buildings.map((building) => [building.name.toLowerCase(), building]),
@@ -69,6 +75,9 @@ export function mapGame(apiGame: ApiGame): GameViewModel {
       buildingCollection: {
         buildings,
       },
+      modifierCollection: {
+        modifiers,
+      },
       shipDesignCollection: {
         shipDesigns:
           apiGame.resources.ship_design_collection?.ship_designs?.map(
@@ -80,13 +89,28 @@ export function mapGame(apiGame: ApiGame): GameViewModel {
           apiGame.resources.tech_tree?.subjects?.map(mapTechSubject) ?? [],
       },
       techCollection: {
-        techs: apiGame.resources.tech_collection?.techs?.map(mapTech) ?? [],
+        techs:
+          apiGame.resources.tech_tree?.all_techs?.map(mapTech) ??
+          apiGame.resources.tech_collection?.techs?.map(mapTech) ??
+          [],
       },
     },
   };
 }
 
 function mapPlayer(player: ApiPlayer): PlayerViewModel {
+  const available = {
+    buildings: player.available?.buildings ?? [],
+    hullSizes: player.available?.hull_sizes ?? [],
+    drives: player.available?.drives ?? [],
+    armors: player.available?.armors ?? [],
+    computers: player.available?.computers ?? [],
+    fuelCells: player.available?.fuel_cells ?? [],
+    shields: player.available?.shields ?? [],
+    beams: player.available?.beams ?? [],
+    shipSystems: player.available?.ship_systems ?? [],
+  };
+
   return {
     id: player.id,
     name: player.name,
@@ -95,8 +119,9 @@ function mapPlayer(player: ApiPlayer): PlayerViewModel {
     treasury: player.treasury,
     taxRate: player.tax_rate,
     researchPoints: player.research_points,
-    knownTechs: player.known_techs ?? [],
-    availableBuildings: player.available?.buildings ?? [],
+    researchedTechs: player.researched_techs ?? [],
+    available,
+    availableBuildings: available.buildings,
     currentResearch: player.current_research
       ? {
           subject: player.current_research.subject,
@@ -134,11 +159,12 @@ function mapTech(tech: ApiTech): TechViewModel {
   return {
     name: tech.name,
     description: tech.description ?? "",
+    hidden: Boolean(tech.hidden),
     cost: tech.cost ?? 0,
     maintenance: tech.maintenance ?? 0,
-    effects: tech.effects ?? null,
     builtOn: tech.built_on ?? [],
     unique: Boolean(tech.unique),
+    grants: mapGrants(tech.grants),
   };
 }
 
@@ -266,9 +292,9 @@ function mapIncome(planet: ApiPlanet, buildingsOnPlanet: BuildingViewModel[]) {
   const buildings = buildingsOnPlanet.reduce(
     (total, building) =>
       total +
-      building.effects.reduce(
-        (effectTotal, effect) =>
-          effectTotal + (effect.name === "income" ? effect.bonus : 0),
+      building.modifiers.reduce(
+        (modifierTotal, modifier) =>
+          modifierTotal + (modifier.name === "income_flat" ? modifier.bonus : 0),
         0,
       ),
     0,
@@ -318,7 +344,12 @@ function mapShipDesign(
   };
 }
 
-function mapBuilding(building: ApiBuilding, fallbackId = 0): BuildingViewModel {
+function mapBuilding(
+  building: ApiBuilding,
+  fallbackId = 0,
+  modifierByName: Map<string, ModifierDefinitionViewModel> = new Map(),
+): BuildingViewModel {
+  const grants = mapGrants(building.grants);
   return {
     id: building.id ?? fallbackId,
     name: building.name ?? "Unknown building",
@@ -326,33 +357,58 @@ function mapBuilding(building: ApiBuilding, fallbackId = 0): BuildingViewModel {
     icon: building.icon ?? "🏗️",
     cost: building.cost ?? 0,
     maintenance: building.maintenance ?? 0,
-    effects: building.effects?.map(mapBuildingEffect) ?? [],
+    grants,
+    modifiers: grants.modifiers.map((modifier) =>
+      mapBuildingModifier(modifier, modifierByName),
+    ),
   };
 }
 
-function mapBuildingEffect(effect: ApiEffect) {
-  if (effect.name) {
-    return {
-      name: effect.name,
-      description: effect.description ?? "",
-      bonus: effect.bonus ?? 0,
-    };
-  }
-
-  const dynamicNames = [
-    "industryBonus",
-    "flatIndustryBonus",
-    "flatFoodBonus",
-    "scienceBonus",
-    "flatScienceBonus",
-  ] as const;
-  const name =
-    dynamicNames.find((candidate) => effect[candidate] !== undefined) ??
-    "unknown";
+function mapBuildingModifier(
+  modifier: { name: string; value: number },
+  modifierByName: Map<string, ModifierDefinitionViewModel>,
+) {
+  const definition = modifierByName.get(modifier.name.toLowerCase());
   return {
-    name,
-    description: effect.description ?? "",
-    bonus: name === "unknown" ? 0 : (effect[name] ?? 0),
+    name: modifier.name,
+    description: definition?.description ?? "",
+    bonus: modifier.value,
+  };
+}
+
+function mapModifierDefinition(modifier: {
+  name?: string;
+  description?: string;
+  scope?: string;
+  stat?: string;
+  operation?: string;
+}): ModifierDefinitionViewModel {
+  return {
+    name: modifier.name ?? "",
+    description: modifier.description ?? "",
+    scope: modifier.scope ?? "",
+    stat: modifier.stat ?? "",
+    operation: modifier.operation ?? "",
+  };
+}
+
+function mapGrants(grants: ApiGrants | undefined) {
+  return {
+    unlocks: {
+      buildings: grants?.unlocks?.buildings ?? [],
+      hullSizes: grants?.unlocks?.hull_sizes ?? [],
+      drives: grants?.unlocks?.drives ?? [],
+      armors: grants?.unlocks?.armors ?? [],
+      computers: grants?.unlocks?.computers ?? [],
+      fuelCells: grants?.unlocks?.fuel_cells ?? [],
+      shields: grants?.unlocks?.shields ?? [],
+      beams: grants?.unlocks?.beams ?? [],
+      shipSystems: grants?.unlocks?.ship_systems ?? [],
+    },
+    modifiers: grants?.modifiers?.map((modifier) => ({
+      name: modifier.name,
+      value: modifier.value ?? 0,
+    })) ?? [],
   };
 }
 

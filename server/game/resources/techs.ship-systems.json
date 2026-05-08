@@ -1,0 +1,37 @@
+[
+  {
+    "name": "Reinforced Hull",
+    "description": "Significantly increases ship structural strength.",
+    "grants": { "unlocks": { "ship_systems": ["Reinforced Hull"] } }
+  },
+  {
+    "name": "Heavy Armor",
+    "description": "Strong armor plating for ships and starbases.",
+    "grants": { "unlocks": { "ship_systems": ["Heavy Armor"] } }
+  },
+  {
+    "name": "Battle Pods",
+    "description": "Increases internal space on ships.",
+    "grants": { "unlocks": { "ship_systems": ["Battle Pods"] } }
+  },
+  {
+    "name": "Troop Pods",
+    "description": "Increases marine capacity on ships.",
+    "grants": { "unlocks": { "ship_systems": ["Troop Pods"] } }
+  },
+  {
+    "name": "Survival Pods",
+    "description": "Protects ship leaders when their ship is destroyed.",
+    "grants": { "unlocks": { "ship_systems": ["Survival Pods"] } }
+  },
+  {
+    "name": "Fast Missile Racks",
+    "description": "Allows ships to fire missiles twice per combat turn.",
+    "grants": { "unlocks": { "ship_systems": ["Fast Missile Racks"] } }
+  },
+  {
+    "name": "Advanced Damage Control",
+    "description": "Improves post-combat ship repair.",
+    "grants": { "unlocks": { "ship_systems": ["Advanced Damage Control"] } }
+  }
+]

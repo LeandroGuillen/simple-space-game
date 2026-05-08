@@ -1,0 +1,18 @@
+[
+  {
+    "name": "Starting Colony Infrastructure",
+    "description": "Basic infrastructure every empire begins with.",
+    "hidden": true,
+    "grants": {
+      "unlocks": {
+        "buildings": ["Capitol", "Colony Base", "Star Base", "Marine Barracks"],
+        "hull_sizes": ["Frigate", "Destroyer", "Cruiser", "Battleship"],
+        "drives": ["Nuclear"],
+        "armors": ["Titanium"],
+        "computers": ["None"],
+        "fuel_cells": ["Standard"],
+        "shields": ["None"]
+      }
+    }
+  }
+]

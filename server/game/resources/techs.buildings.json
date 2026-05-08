@@ -1,0 +1,80 @@
+[
+  {
+    "name": "Automated Factory",
+    "description": "Robotic assembly lines that improve colony industry.",
+    "grants": { "unlocks": { "buildings": ["Automated Factory"] } }
+  },
+  {
+    "name": "Hydroponic Farm",
+    "description": "Orbital and controlled-environment farming that provides extra food for the colony.",
+    "grants": { "unlocks": { "buildings": ["Hydroponic Farm"] } }
+  },
+  {
+    "name": "Missile Base",
+    "description": "Ground-based planetary missile defense.",
+    "grants": { "unlocks": { "buildings": ["Missile Base"] } }
+  },
+  {
+    "name": "Space Port",
+    "description": "Advanced orbital facility that boosts colony income.",
+    "grants": { "unlocks": { "buildings": ["Space Port"] } }
+  },
+  {
+    "name": "Armor Barracks",
+    "description": "Produces armored ground units.",
+    "grants": { "unlocks": { "buildings": ["Armor Barracks"] } }
+  },
+  {
+    "name": "Fighter Garrison",
+    "description": "Orbital fighter defense for colonies.",
+    "grants": { "unlocks": { "buildings": ["Fighter Garrison"] } }
+  },
+  {
+    "name": "Robo-Miners",
+    "description": "Advanced mining facility.",
+    "grants": { "unlocks": { "buildings": ["Robo-Miners"] } }
+  },
+  {
+    "name": "Battlestation",
+    "description": "Upgraded orbital starbase.",
+    "grants": { "unlocks": { "buildings": ["Battlestation"] } }
+  },
+  {
+    "name": "Ground Batteries",
+    "description": "Powerful planetary beam defense system.",
+    "grants": { "unlocks": { "buildings": ["Ground Batteries"] } }
+  },
+  {
+    "name": "Recyclotron",
+    "description": "Converts population into production with no pollution.",
+    "grants": { "unlocks": { "buildings": ["Recyclotron"] } }
+  },
+  {
+    "name": "Robotic Factory",
+    "description": "Advanced robotic colony production facility.",
+    "grants": { "unlocks": { "buildings": ["Robotic Factory"] } }
+  },
+  {
+    "name": "Research Lab",
+    "description": "Improves research output of a colony.",
+    "grants": { "unlocks": { "buildings": ["Research Lab"] } }
+  },
+  {
+    "name": "Deep Core Mine",
+    "description": "Super advanced mining facility."
+  },
+  {
+    "name": "Core Waste Dump",
+    "description": "Completely eliminates pollution penalties."
+  },
+  {
+    "name": "Star Fortress",
+    "description": "Major orbital defensive facility.",
+    "grants": { "unlocks": { "buildings": ["Star Fortress"] } }
+  },
+  {
+    "name": "Artemis System Net",
+    "description": "Network of space mines that damages ships attacking any colony in the system.",
+    "grants": { "unlocks": { "buildings": ["Artemis System Net"] } }
+  }
+]

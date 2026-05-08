@@ -1,0 +1,137 @@
+[
+  {
+    "name": "Nuclear Drive",
+    "description": "Basic interstellar propulsion.",
+    "grants": { "unlocks": { "drives": ["Nuclear"] } }
+  },
+  {
+    "name": "Fusion Drive",
+    "description": "Fusion-powered interstellar propulsion.",
+    "grants": { "unlocks": { "drives": ["Fusion"] } }
+  },
+  {
+    "name": "Ion Drive",
+    "description": "Ion-powered interstellar propulsion.",
+    "grants": { "unlocks": { "drives": ["Ion"] } }
+  },
+  {
+    "name": "Anti-Matter Drive",
+    "description": "Anti-matter interstellar propulsion.",
+    "grants": { "unlocks": { "drives": ["Anti-matter"] } }
+  },
+  {
+    "name": "Hyper Drive",
+    "description": "Hyper-dimensional interstellar propulsion.",
+    "grants": { "unlocks": { "drives": ["Hyper"] } }
+  },
+  {
+    "name": "Interphased Drive",
+    "description": "Interphased interstellar propulsion.",
+    "grants": { "unlocks": { "drives": ["Interphased"] } }
+  },
+  {
+    "name": "Titanium Armor",
+    "description": "Basic ship armor.",
+    "grants": { "unlocks": { "armors": ["Titanium"] } }
+  },
+  {
+    "name": "Tritanium Armor",
+    "description": "Improved ship armor.",
+    "grants": { "unlocks": { "armors": ["Tritanium"] } }
+  },
+  {
+    "name": "Zortrium Armor",
+    "description": "Advanced ship armor.",
+    "grants": { "unlocks": { "armors": ["Zortrium"] } }
+  },
+  {
+    "name": "Neutronium Armor",
+    "description": "Dense neutronium ship armor.",
+    "grants": { "unlocks": { "armors": ["Neutronium"] } }
+  },
+  {
+    "name": "Adamantium Armor",
+    "description": "Extremely strong ship armor.",
+    "grants": { "unlocks": { "armors": ["Adamantium"] } }
+  },
+  {
+    "name": "Electronic Computer",
+    "description": "Basic battle computer.",
+    "grants": { "unlocks": { "computers": ["Electronic"] } }
+  },
+  {
+    "name": "Optronic Computer",
+    "description": "Improved battle computer.",
+    "grants": { "unlocks": { "computers": ["Optronic"] } }
+  },
+  {
+    "name": "Positronic Computer",
+    "description": "Advanced battle computer.",
+    "grants": { "unlocks": { "computers": ["Positronic"] } }
+  },
+  {
+    "name": "Cybertronic Computer",
+    "description": "Cybertronic battle computer.",
+    "grants": { "unlocks": { "computers": ["Cybertronic"] } }
+  },
+  {
+    "name": "Standard Fuel Cells",
+    "description": "Basic fuel cells.",
+    "grants": { "unlocks": { "fuel_cells": ["Standard"] } }
+  },
+  {
+    "name": "Deuterium Fuel Cells",
+    "description": "Improved fuel cells.",
+    "grants": { "unlocks": { "fuel_cells": ["Deuterium"] } }
+  },
+  {
+    "name": "Iridium Fuel Cells",
+    "description": "Advanced fuel cells.",
+    "grants": { "unlocks": { "fuel_cells": ["Iridium"] } }
+  },
+  {
+    "name": "Uridium Fuel Cells",
+    "description": "Long-range fuel cells.",
+    "grants": { "unlocks": { "fuel_cells": ["Urridium"] } }
+  },
+  {
+    "name": "Thorium Fuel Cells",
+    "description": "Effectively unlimited-range fuel cells.",
+    "grants": { "unlocks": { "fuel_cells": ["Thorium"] } }
+  },
+  {
+    "name": "Class I Shield",
+    "description": "Basic shield generator.",
+    "grants": { "unlocks": { "shields": ["Class I"] } }
+  },
+  {
+    "name": "Class III Shield",
+    "description": "Improved shield generator.",
+    "grants": { "unlocks": { "shields": ["Class III"] } }
+  },
+  {
+    "name": "Class V Shield",
+    "description": "Advanced shield generator.",
+    "grants": { "unlocks": { "shields": ["Class V"] } }
+  },
+  {
+    "name": "Class VII Shield",
+    "description": "High-energy shield generator.",
+    "grants": { "unlocks": { "shields": ["Class VII"] } }
+  },
+  {
+    "name": "Class X Shield",
+    "description": "Powerful shield generator.",
+    "grants": { "unlocks": { "shields": ["Class X"] } }
+  },
+  {
+    "name": "Titan Construction",
+    "description": "Enables construction of Titan-class ships.",
+    "grants": { "unlocks": { "hull_sizes": ["Titan"] } }
+  },
+  {
+    "name": "Doom Star Construction",
+    "description": "Enables construction of Doom Star-class ships.",
+    "grants": { "unlocks": { "hull_sizes": ["Doomstar"] } }
+  }
+]

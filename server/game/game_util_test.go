@@ -18,8 +18,16 @@ func TestBuildOnPlanetAddsMissingBuilding(t *testing.T) {
 	assert.Equal(t, []string{"Capitol", "Star Base"}, planet.Buildings)
 }
 
-func TestNewPlayerStartsWithDefaultBuildingsAvailable(t *testing.T) {
-	player := NewPlayer(1, "Ada", model.DefaultPlayerColor())
+func TestNewGameStartsWithDefaultBuildingsAvailableFromStartingTech(t *testing.T) {
+	resources, err := NewResourceManager()
+	assert.NoError(t, err)
 
+	game, err := NewGame(resources, "Ada", 4, model.DefaultPlayerColor())
+	assert.NoError(t, err)
+
+	player := game.Players[0]
+	assert.Contains(t, player.ResearchedTechs, startingColonyInfrastructureTech)
 	assert.Equal(t, []string{"Capitol", "Colony Base", "Star Base", "Marine Barracks"}, player.Available.Buildings)
+	assert.Contains(t, player.Available.Drives, "Nuclear")
+	assert.Contains(t, player.Available.Armors, "Titanium")
 }
