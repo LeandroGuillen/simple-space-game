@@ -69,25 +69,47 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 	// industry output
 	industryProduced := PlanetIndustryProduced(p)
 
-	var buildingName string
-	for _, buildCommand := range commands.Build {
-		if buildCommand.PlanetID == p.ID {
-			buildingName = buildCommand.Building
+	var planetBuildCommand *BuildCommand
+	for _, command := range commands.Build {
+		if command.PlanetID == p.ID {
+			planetBuildCommand = command
+		}
+	}
+	buildingName := ""
+	if planetBuildCommand != nil {
+		buildingName = planetBuildCommand.Building
+		p.BuildQueue = sanitizeBuildQueue(p, planetBuildCommand.BuildQueue, player.Available.Buildings, game)
+		if buildingName != "" && len(p.BuildQueue) > 0 && p.BuildQueue[0] == buildingName {
+			p.BuildQueue = p.BuildQueue[1:]
+		}
+		if buildingName == "" && len(p.BuildQueue) > 0 {
+			buildingName = popNextQueuedBuild(p)
 		}
 	}
 	if buildingName == "" && !(p.IsBuilding && p.CurrentProject != "") {
-		p.CurrentProject = "Trade Goods"
-		p.IsBuilding = false
-		p.BuildBucket = 0
+		if len(p.BuildQueue) > 0 {
+			buildingName = popNextQueuedBuild(p)
+			if !Build(p, buildingName, player.Available.Buildings, game) {
+				p.CurrentProject = "Trade Goods"
+				p.IsBuilding = false
+				p.BuildBucket = 0
+			}
+		} else {
+			p.CurrentProject = "Trade Goods"
+			p.IsBuilding = false
+			p.BuildBucket = 0
+		}
 	} else if buildingName == "Trade Goods" {
 		p.CurrentProject = "Trade Goods"
 		p.IsBuilding = false
 		p.BuildBucket = 0
+		p.BuildQueue = nil
 	} else if buildingName != "" {
 		if !Build(p, buildingName, player.Available.Buildings, game) {
 			p.CurrentProject = "Trade Goods"
 			p.IsBuilding = false
 			p.BuildBucket = 0
+			p.BuildQueue = nil
 		}
 	}
 
@@ -103,6 +125,14 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 			p.IndustryStack += -nextBucket
 			p.BuildBucket = 0
 			p.CurrentProject = ""
+			if len(p.BuildQueue) > 0 {
+				nextProject := popNextQueuedBuild(p)
+				if !Build(p, nextProject, player.Available.Buildings, game) {
+					p.CurrentProject = "Trade Goods"
+					p.IsBuilding = false
+					p.BuildBucket = 0
+				}
+			}
 		} else {
 			// project is not complete
 			p.BuildBucket = nextBucket
@@ -129,6 +159,34 @@ func capAssignedPopulation(p *Planet) {
 			return
 		}
 	}
+}
+
+func sanitizeBuildQueue(p *Planet, buildQueue []string, availableBuildings []string, game *Game) []string {
+	queue := make([]string, 0, min(len(buildQueue), 10))
+	seen := make(map[string]bool)
+	for _, buildingName := range buildQueue {
+		if len(queue) >= 10 {
+			break
+		}
+		if buildingName == "" || buildingName == "Trade Goods" || seen[buildingName] {
+			continue
+		}
+		if !canBuild(p, buildingName, availableBuildings, game) {
+			continue
+		}
+		queue = append(queue, buildingName)
+		seen[buildingName] = true
+	}
+	return queue
+}
+
+func popNextQueuedBuild(p *Planet) string {
+	if len(p.BuildQueue) == 0 {
+		return ""
+	}
+	nextProject := p.BuildQueue[0]
+	p.BuildQueue = p.BuildQueue[1:]
+	return nextProject
 }
 
 func Build(p *Planet, buildingName string, availableBuildings []string, game *Game) bool {
@@ -168,4 +226,27 @@ func Build(p *Planet, buildingName string, availableBuildings []string, game *Ga
 	p.BuildBucket = building.Cost
 
 	return true
+}
+
+func canBuild(p *Planet, buildingName string, availableBuildings []string, game *Game) bool {
+	if p.IsBuilding && p.CurrentProject == buildingName {
+		return false
+	}
+	for _, buildingInPlanet := range p.Buildings {
+		if buildingName == buildingInPlanet {
+			return false
+		}
+	}
+	foundAvailable := false
+	for _, availableBuilding := range availableBuildings {
+		if buildingName == availableBuilding {
+			foundAvailable = true
+			break
+		}
+	}
+	if !foundAvailable {
+		return false
+	}
+	_, err := getBuildingFromName(game, buildingName)
+	return err == nil
 }

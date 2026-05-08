@@ -38,6 +38,7 @@ type AppContextValue = {
   selectGame: (gameId: string) => Promise<void>;
   refreshGame: () => Promise<void>;
   changeBuilding: (planetId: number, buildingId: number) => void;
+  changeBuildQueue: (planetId: number, buildingNames: string[]) => void;
   addMovePopulationCommand: (command: MovePopulationCommand) => void;
   selectResearch: (command: SelectResearchCommand) => void;
   enableDebugMode: () => Promise<void>;
@@ -233,6 +234,21 @@ export function AppProvider(props: ParentProps) {
     setState('info', buildingId === 0 ? 'Trade Goods queued for next turn' : 'Build project queued for next turn');
   }
 
+  function changeBuildQueue(planetId: number, buildingNames: string[]) {
+    const nextBuildCommands = state.pendingCommands.build.filter((command) => command.planetId !== planetId);
+    const planet = findPlanet(state.game, planetId);
+    const activeBuildingName = planet?.isBuilding && planet.currentProject
+      ? planet.currentProject.name
+      : buildingNames[0];
+    nextBuildCommands.push({
+      planetId,
+      building: activeBuildingName ?? '',
+      build_queue: buildingNames,
+    });
+    setState('pendingCommands', 'build', nextBuildCommands);
+    setState('info', buildingNames.length > 0 ? 'Build queue updated' : 'Build queue cleared');
+  }
+
   function addMovePopulationCommand(command: MovePopulationCommand) {
     setState('pendingCommands', 'movePopulation', (cmds) => [...cmds, command]);
   }
@@ -399,6 +415,7 @@ export function AppProvider(props: ParentProps) {
     selectGame,
     refreshGame,
     changeBuilding,
+    changeBuildQueue,
     addMovePopulationCommand,
     selectResearch,
     enableDebugMode,

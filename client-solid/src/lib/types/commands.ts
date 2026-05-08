@@ -8,6 +8,7 @@ export type MovePopulationCommand = {
 export type BuildCommand = {
   planetId: number;
   building: string;
+  build_queue?: string[];
 };
 
 export type SelectResearchCommand = {

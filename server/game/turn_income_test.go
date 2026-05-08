@@ -157,3 +157,145 @@ func TestTurnCanSwitchConstructionBackToTradeGoods(t *testing.T) {
 	assert.Equal(t, int64(0), colonies[0].BuildBucket)
 	assert.Greater(t, colonies[0].Income.TradeGoods, int64(0))
 }
+
+func TestTurnStoresBuildQueueAndStartsFirstProject(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, "Ada", 4, model.DefaultPlayerColor())
+	require.NoError(t, err)
+
+	player := g.Players[0]
+	player.Available.Buildings = append(player.Available.Buildings, "Automated Factory")
+
+	require.NoError(t, g.Turn(player.ID, model.Commands{
+		Build: []*model.BuildCommand{
+			{
+				PlanetID:   1,
+				Building:   "Colony Base",
+				BuildQueue: []string{"Colony Base", "Automated Factory"},
+			},
+		},
+	}))
+
+	colonies, err := g.GetColonyList(player.ID)
+	require.NoError(t, err)
+	require.NotEmpty(t, colonies)
+
+	assert.Equal(t, "Colony Base", colonies[0].CurrentProject)
+	assert.Equal(t, []string{"Automated Factory"}, colonies[0].BuildQueue)
+}
+
+func TestTurnStartsNextQueuedProjectAfterCompletion(t *testing.T) {
+	g := &Game{
+		Players: []*model.Player{
+			{
+				ID: 1,
+				Available: model.AvailableTech{
+					Buildings: []string{"Cheap Building", "Next Building"},
+				},
+			},
+		},
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{
+				Buildings: []model.Building{
+					{Name: "Cheap Building", Cost: 1},
+					{Name: "Next Building", Cost: 10},
+				},
+			},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{
+					Planets: []*model.Planet{
+						{
+							ID:             1,
+							Owner:          1,
+							Population:     1000,
+							Size:           model.PlanetSizeMedium,
+							MineralClass:   model.PlanetMineralAbundant,
+							CurrentProject: "Cheap Building",
+							IsBuilding:     true,
+							BuildBucket:    1,
+							BuildQueue:     []string{"Next Building"},
+							Industry: model.PlanetIndustryOutput{
+								Workers:           1,
+								ProducedPerWorker: 1,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	require.NoError(t, g.Turn(1, model.Commands{}))
+
+	colonies, err := g.GetColonyList(1)
+	require.NoError(t, err)
+	require.Len(t, colonies, 1)
+	assert.Contains(t, colonies[0].Buildings, "Cheap Building")
+	assert.Equal(t, "Next Building", colonies[0].CurrentProject)
+	assert.Empty(t, colonies[0].BuildQueue)
+	assert.True(t, colonies[0].IsBuilding)
+}
+
+func TestTurnCanUpdateQueueWithoutSwitchingCurrentProject(t *testing.T) {
+	g := &Game{
+		Players: []*model.Player{
+			{
+				ID: 1,
+				Available: model.AvailableTech{
+					Buildings: []string{"Current Building", "Queued Building"},
+				},
+			},
+		},
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{
+				Buildings: []model.Building{
+					{Name: "Current Building", Cost: 20},
+					{Name: "Queued Building", Cost: 10},
+				},
+			},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{
+					Planets: []*model.Planet{
+						{
+							ID:             1,
+							Owner:          1,
+							Population:     1000,
+							Size:           model.PlanetSizeMedium,
+							MineralClass:   model.PlanetMineralAbundant,
+							CurrentProject: "Current Building",
+							IsBuilding:     true,
+							BuildBucket:    20,
+							Industry: model.PlanetIndustryOutput{
+								Workers:           1,
+								ProducedPerWorker: 1,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	require.NoError(t, g.Turn(1, model.Commands{
+		Build: []*model.BuildCommand{
+			{
+				PlanetID:   1,
+				Building:   "Current Building",
+				BuildQueue: []string{"Queued Building"},
+			},
+		},
+	}))
+
+	colonies, err := g.GetColonyList(1)
+	require.NoError(t, err)
+	require.Len(t, colonies, 1)
+	assert.Equal(t, "Current Building", colonies[0].CurrentProject)
+	assert.Equal(t, []string{"Queued Building"}, colonies[0].BuildQueue)
+	assert.True(t, colonies[0].IsBuilding)
+}

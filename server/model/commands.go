@@ -1,8 +1,9 @@
 package model
 
 type BuildCommand struct {
-	PlanetID uint   `json:"planetId"`
-	Building string `json:"building"`
+	PlanetID   uint     `json:"planetId"`
+	Building   string   `json:"building"`
+	BuildQueue []string `json:"build_queue,omitempty"`
 }
 type MovePopulationCommand struct {
 	PlanetID   uint  `json:"planetId"`
