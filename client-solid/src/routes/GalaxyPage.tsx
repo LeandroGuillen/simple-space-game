@@ -183,10 +183,8 @@ export function GalaxyPage() {
     >
       <section class="page-grid galaxy-layout">
         <section class="panel map-panel">
-          <div class="section-header">
-            <p class="eyebrow">Galaxy Map</p>
-          </div>
           <GalaxyMap
+            gameId={state.session.selectedGameId || state.game?.id}
             stars={stars()}
             selectedStarId={selectedStar()?.id}
             onSelect={handleStarSelect}

@@ -1,8 +1,85 @@
+.galaxy-map-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.galaxy-map-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 3px;
+  min-height: 24px;
+}
+
+.galaxy-map-control {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+
+  &:hover {
+    border-color: var(--accent-strong);
+    background: var(--accent-soft);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    background: transparent;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+.galaxy-map-zoom-readout {
+  min-width: 38px;
+  margin-left: 3px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-align: right;
+}
+
+.galaxy-map-frame {
+  height: min(68vh, 620px);
+  min-height: 460px;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: #06101a;
+}
+
 .galaxy-map {
   width: 100%;
-  height: auto;
+  height: 100%;
   border-radius: var(--radius-md);
   display: block;
+  background: #06101a;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+.galaxy-map.is-dragging {
+  cursor: grabbing;
 }
 
 .galaxy-star {
@@ -72,5 +149,12 @@
 @keyframes fleetRouteDash {
   to {
     stroke-dashoffset: -20;
+  }
+}
+
+@media (max-width: 720px) {
+  .galaxy-map-frame {
+    height: 420px;
+    min-height: 360px;
   }
 }
