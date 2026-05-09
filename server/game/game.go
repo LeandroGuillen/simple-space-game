@@ -13,13 +13,14 @@ type Turnable interface {
 }
 
 type Game struct {
-	Galaxy      Galaxy     `json:"galaxy"`
-	Players     []*Player  `json:"players"`
-	ID          string     `json:"id"`
-	CurrentTurn int64      `json:"current_turn"`
-	CreatedAt   time.Time  `json:"created_at"`
-	LastTurnAt  *time.Time `json:"last_turn_at,omitempty"`
-	Resources   *Resources `json:"resources"`
+	Galaxy              Galaxy       `json:"galaxy"`
+	Players             []*Player    `json:"players"`
+	ID                  string       `json:"id"`
+	CurrentTurn         int64        `json:"current_turn"`
+	CreatedAt           time.Time    `json:"created_at"`
+	LastTurnAt          *time.Time   `json:"last_turn_at,omitempty"`
+	Resources           *Resources   `json:"resources"`
+	PendingColonyBases map[uint][]uint `json:"pending_colony_bases"`
 }
 
 func NewGame(resources *ResourceManager, playerName string, numStars uint, playerColor string) (*Game, error) {
@@ -34,12 +35,13 @@ func NewGame(resources *ResourceManager, playerName string, numStars uint, playe
 	player1 := NewPlayer(firstPlayerID, playerName, playerColor)
 	created := time.Now().UTC()
 	g := &Game{
-		Galaxy:      NewGalaxy(numStars),
-		Players:     []*Player{player1},
-		ID:          uuid.New().String(),
-		CurrentTurn: 3500,
-		CreatedAt:   created,
-		Resources:   &resources.Resources,
+		Galaxy:              NewGalaxy(numStars),
+		Players:             []*Player{player1},
+		ID:                  uuid.New().String(),
+		CurrentTurn:         3500,
+		CreatedAt:           created,
+		Resources:           &resources.Resources,
+		PendingColonyBases: make(map[uint][]uint),
 	}
 	g.hydratePlayerAvailability(player1)
 
@@ -87,6 +89,23 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 		}
 		totalIncome += colony.Income.Total
 		totalResearch += colony.Science.Scientists*colony.Science.ProducedPerScientist + colony.Science.ProducedPerBuilding
+	}
+
+	// process colonize command
+	if commands.Colonize != nil {
+		if g.PendingColonyBases == nil {
+			g.PendingColonyBases = make(map[uint][]uint)
+		}
+		pending := g.PendingColonyBases[playerID]
+		if len(pending) == 0 {
+			return fmt.Errorf("no pending colony base")
+		}
+		sourcePlanetID := pending[len(pending)-1]
+		g.PendingColonyBases[playerID] = pending[:len(pending)-1]
+
+		if err := g.ColonizePlanet(playerID, sourcePlanetID, commands.Colonize.PlanetID); err != nil {
+			return err
+		}
 	}
 
 	// empire turn processing
@@ -138,18 +157,36 @@ func (g *Game) CreateCapitalPlanet(ownerID uint) error {
 	return nil
 }
 
-func (g *Game) ColonizePlanet(ownerID, planetID uint) error {
+func (g *Game) ColonizePlanet(ownerID, sourcePlanetID, targetPlanetID uint) error {
 	if _, err := g.getPlayer(ownerID); err != nil {
 		return err
 	}
 
-	_, err := g.getPlanet(planetID)
+	target, err := g.getPlanet(targetPlanetID)
 	if err != nil {
 		return err
 	}
+	if target.Owner != 0 {
+		return fmt.Errorf("planet already colonized")
+	}
+	if target.Environment == PlanetEnvironmentGasGiant || target.Environment == PlanetEnvironmentAsteroidBelt {
+		return fmt.Errorf("cannot colonize this planet type")
+	}
 
-	// TODO add colonize functionality
-	//Colonize(planet, ownerID)
+	target.Owner = ownerID
+	target.Population = 1000
+
+	if target.Environment >= PlanetEnvironmentDesert {
+		target.Food.Farmers = 1
+	} else {
+		target.Industry.Workers = 1
+	}
+
+	target.CurrentProject = "Trade Goods"
+	target.IsBuilding = false
+	target.BuildBucket = 0
+
+	_ = sourcePlanetID
 
 	return nil
 }

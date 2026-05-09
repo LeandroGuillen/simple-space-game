@@ -57,7 +57,7 @@ func ColonizePlanet(c *gin.Context) {
 		return
 	}
 
-	if err := g.ColonizePlanet(uint(ownerID), uint(planetID)); err != nil {
+	if err := g.ColonizePlanet(uint(ownerID), uint(planetID), uint(planetID)); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}

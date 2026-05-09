@@ -318,3 +318,11 @@ export function starOwnershipSummary(star: StarSummary) {
   }
   return `${star.ownedPlanets} controlled world${star.ownedPlanets === 1 ? "" : "s"}`;
 }
+
+export function isPlanetSuitableForColonization(planet: PlanetViewModel): boolean {
+  return planet.owner === 0 && planet.environment !== 1 && planet.environment !== 2;
+}
+
+export function getSuitablePlanetsForColonization(star: StarSummary): PlanetViewModel[] {
+  return star.planets.filter(isPlanetSuitableForColonization);
+}

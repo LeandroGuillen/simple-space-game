@@ -10,7 +10,7 @@ import { Portal } from "solid-js/web";
 import { APP_VERSION } from "../lib/app-meta";
 import type { MovePopulationCommand } from "../lib/types/commands";
 import type { GameViewModel, PlayerViewModel, TechLevelViewModel, TechSubjectViewModel } from "../lib/types/domain";
-import { formatSignedBc, gameIdShort, getEmpireIncome } from "../lib/utils";
+import { formatSignedBc, gameIdShort, getEmpireIncome, isPlanetSuitableForColonization } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
 
 const gameNavItems = [
@@ -236,7 +236,7 @@ function formatResearchTurns(level: TechLevelViewModel | null, accumulatedRp: nu
 export function AppShell(props: RouteSectionProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { state, currentPlayer, enableDebugMode, endTurn, selectResearch } = useAppContext();
+  const { state, currentPlayer, enableDebugMode, endTurn, selectResearch, selectColonizeTarget, closeColonizeModal } = useAppContext();
   const [isResearchOpen, setIsResearchOpen] = createSignal(false);
   const [recentBreakthroughs, setRecentBreakthroughs] = createSignal<string[]>([]);
   let previousKnownTechs: Set<string> | null = null;
@@ -269,6 +269,11 @@ export function AppShell(props: RouteSectionProps) {
     );
   });
   const hyperAdvancedLevels = createMemo(() => currentPlayer()?.hyperAdvanced ?? {});
+  const colonizeModalPlanets = createMemo(() => {
+    const game = state.game;
+    if (!game) return [];
+    return game.galaxy.stars.flatMap((star) => star.planets.filter(isPlanetSuitableForColonization));
+  });
   const availableResearchGroups = createMemo(() =>
     researchGroups(state.game, currentPlayer(), hyperAdvancedLevels()),
   );
@@ -569,6 +574,71 @@ export function AppShell(props: RouteSectionProps) {
                   )}
                 </For>
               </div>
+            </section>
+          </div>
+        </Portal>
+      </Show>
+
+      <Show when={state.showColonizeModal}>
+        <Portal>
+          <div class="research-modal-backdrop" onClick={closeColonizeModal}>
+            <section
+              class="research-modal panel"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="colonize-modal-title"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div class="research-modal-header">
+                <div>
+                  <p class="eyebrow">Colony Base Ready</p>
+                  <h2 id="colonize-modal-title">Select Target Planet</h2>
+                </div>
+                <button class="secondary-button research-close-button" type="button" onClick={closeColonizeModal}>
+                  Close
+                </button>
+              </div>
+
+              <Show
+                when={colonizeModalPlanets().length > 0}
+                fallback={
+                  <div class="research-breakthrough-notice">
+                    <span>No suitable planets</span>
+                    <strong>Colony Base lost</strong>
+                  </div>
+                }
+              >
+                <div class="research-subject-grid">
+                  <For each={state.game?.galaxy.stars ?? []}>
+                    {(star) => {
+                      const starPlanets = () => star.planets.filter(isPlanetSuitableForColonization);
+                      return (
+                        <Show when={starPlanets().length > 0}>
+                          <article class="research-subject-card">
+                            <span class="research-subject-card-header">
+                              <span>{star.name}</span>
+                              <strong>{starPlanets().length} planet{starPlanets().length > 1 ? 's' : ''}</strong>
+                            </span>
+                            <div class="research-tech-list">
+                              <For each={starPlanets()}>
+                                {(planet) => (
+                                  <button
+                                    type="button"
+                                    class="research-tech-option"
+                                    onClick={() => selectColonizeTarget(planet.id)}
+                                  >
+                                    <span class="research-tech-option-item">{planet.name}</span>
+                                  </button>
+                                )}
+                              </For>
+                            </div>
+                          </article>
+                        </Show>
+                      );
+                    }}
+                  </For>
+                </div>
+              </Show>
             </section>
           </div>
         </Portal>

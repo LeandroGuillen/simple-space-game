@@ -2,7 +2,7 @@ import { createEffect, createMemo, createSignal, For, onCleanup, onMount, Show }
 import { Portal } from 'solid-js/web';
 
 import type { BuildingViewModel, PlanetViewModel, ShipDesignViewModel } from '../lib/types/domain';
-import { getPlanetIndustryForWorkers } from '../lib/utils';
+import { getPlanetIndustryForWorkers, findStar, getSuitablePlanetsForColonization } from '../lib/utils';
 import { useAppContext } from '../state/app-context';
 
 type ConstructionPanelProps = {
@@ -47,17 +47,29 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   let projectClickTimer: ReturnType<typeof setTimeout> | undefined;
   let dragClickTimer: ReturnType<typeof setTimeout> | undefined;
 
-  const builtBuildingIds = createMemo(() => new Set(props.planet.buildings.map((building) => building.id)));
+  const builtBuildingIds = createMemo(() => new Set(
+    props.planet.buildings
+      .filter((building) => building.name !== 'Colony Base')
+      .map((building) => building.id),
+  ));
   const availableBuildingNames = createMemo(() => new Set(currentPlayer()?.available.buildings ?? []));
   const buildableProjects = createMemo(() =>
     state.game?.resources.buildingCollection.buildings.filter(
-      (project) => availableBuildingNames().has(project.name) && !builtBuildingIds().has(project.id),
+      (project) => availableBuildingNames().has(project.name) && !builtBuildingIds().has(project.id) && project.name !== 'Colony Base',
     ) ?? [],
   );
-  const availableProjects = createMemo(() => [
-    TRADE_GOODS,
-    ...buildableProjects(),
-  ]);
+  const colonyBaseProject = createMemo(() =>
+    state.game?.resources.buildingCollection.buildings.find(
+      (project) => project.name === 'Colony Base' && availableBuildingNames().has(project.name),
+    ) ?? null,
+  );
+  const availableProjects = createMemo(() => {
+    const projects = [TRADE_GOODS, ...buildableProjects()];
+    if (colonyBaseProject()) {
+      projects.push(colonyBaseProject()!);
+    }
+    return projects;
+  });
   const projectByName = createMemo(() => new Map(availableProjects().map((project) => [project.name.toLowerCase(), project])));
   const pendingMoves = createMemo(() =>
     state.pendingCommands.movePopulation.filter((cmd) => cmd.planetId === props.planet.id),
@@ -88,6 +100,13 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   });
   const researchedTechs = createMemo(() => new Set(currentPlayer()?.researchedTechs ?? []));
   const availableHullSizes = createMemo(() => new Set(currentPlayer()?.available.hullSizes ?? []));
+  const currentStar = createMemo(() => findStar(state.game, props.planet.parentStar));
+  const suitablePlanetsForColonization = createMemo(() => {
+    const star = currentStar();
+    if (!star) return [];
+    return getSuitablePlanetsForColonization(star);
+  });
+  const hasSuitablePlanetsForColonization = createMemo(() => suitablePlanetsForColonization().length > 0);
   const shipDesigns = createMemo(() => {
     const designs = [
       ...(currentPlayer()?.shipDesigns ?? []),
@@ -110,15 +129,26 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     }
     return Array.from({ length: 6 }, (_, index) => uniqueByHull[index] ?? null);
   });
-  const sectionOneCommands = createMemo(() =>
-    [
+  const sectionOneCommands = createMemo(() => {
+    const commands = [
       specialCommand('Colony Base', 'Colony Base'),
       specialCommand('Freighter Fleet', 'Freighters'),
       specialCommand('Colony Ship', 'Colony Ship'),
       specialCommand('Outpost', 'Outpost Ship'),
       specialCommand('Transport', 'Transport'),
-    ].filter((command) => command.isAvailable),
-  );
+    ];
+    return commands
+      .map((command) => {
+        if (command.unlockName === 'Colony Base') {
+          const hasTech = command.isAvailable;
+          const hasPlanets = hasSuitablePlanetsForColonization();
+          const isAvailable = hasTech && hasPlanets;
+          return { ...command, isAvailable, hasSuitablePlanets: hasPlanets, hasTech };
+        }
+        return command;
+      })
+      .filter((command) => command.isAvailable || command.unlockName === 'Colony Base');
+  });
   const androidCommands = createMemo(() =>
     [
       specialCommand('Android Farmers', 'Android Farmers'),
@@ -208,7 +238,9 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   }
 
   function addProjectToQueue(project: BuildingViewModel): BuildingViewModel[] {
-    if (project.id !== 0 && builtBuildingIds().has(project.id)) {
+    // Colony Base can always be queued (even if already built - multiple are allowed)
+    const isColonyBase = project.name === 'Colony Base';
+    if (!isColonyBase && project.id !== 0 && builtBuildingIds().has(project.id)) {
       return queuedProjects();
     }
     setSelectedProjectId(project.id);
@@ -216,7 +248,8 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     if (projects.length >= 10) {
       return projects;
     }
-    if (project.id !== 0 && projects.some((queued) => queued.id === project.id)) {
+    // Allow multiple Colony Bases but prevent duplicate real buildings
+    if (!isColonyBase && project.id !== 0 && projects.some((queued) => queued.id === project.id)) {
       return projects;
     }
     const nextProjects = [...projects, project];
@@ -558,19 +591,51 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
                       <h3>Fleet Orders</h3>
                       <div class='construction-special-list'>
                         <For each={sectionOneCommands()}>
-                          {(command) => (
-                            <button
-                              type='button'
-                              class='construction-special-option'
-                              disabled={state.isBusy || !command.project}
-                              onMouseEnter={() => command.project && setHoveredProjectId(command.project.id)}
-                              onMouseLeave={() => command.project && setHoveredProjectId(null)}
-                              onClick={(event) => command.project && handleProjectClick(command.project, event)}
-                              onDblClick={() => command.project && handleProjectDoubleClick(command.project)}
-                            >
-                              <span>{command.label}</span>
-                            </button>
-                          )}
+                          {(command) => {
+                            const isColonyBase = command.unlockName === 'Colony Base';
+                            const hasSuitablePlanets = (command as any).hasSuitablePlanets;
+                            const hasTech = (command as any).hasTech;
+                            const colonyBaseDisabled = isColonyBase && !hasSuitablePlanets;
+                            const isDisabled = isColonyBase 
+                              ? (state.isBusy || colonyBaseDisabled || !hasTech)
+                              : (state.isBusy || !command.project);
+                            return (
+                              <button
+                                type='button'
+                                class='construction-special-option'
+                                disabled={isDisabled}
+                                onMouseEnter={() => !isColonyBase && command.project && setHoveredProjectId(command.project.id)}
+                                onMouseLeave={() => !isColonyBase && command.project && setHoveredProjectId(null)}
+                                onClick={(event) => {
+                                  if (isColonyBase) {
+                                    if (!colonyBaseDisabled && hasTech) {
+                                      const project = colonyBaseProject();
+                                      if (project) {
+                                        addProjectToQueue(project);
+                                      }
+                                    }
+                                  } else if (command.project) {
+                                    handleProjectClick(command.project, event);
+                                  }
+                                }}
+                                onDblClick={() => {
+                                  if (isColonyBase) {
+                                    if (!colonyBaseDisabled && hasTech) {
+                                      const project = colonyBaseProject();
+                                      if (project) {
+                                        addProjectToQueue(project);
+                                        confirmProject(project);
+                                      }
+                                    }
+                                  } else if (command.project) {
+                                    handleProjectDoubleClick(command.project);
+                                  }
+                                }}
+                              >
+                                <span>{isColonyBase && !hasSuitablePlanets ? 'No suitable planets' : command.label}</span>
+                              </button>
+                            );
+                          }}
                         </For>
                       </div>
                     </section>

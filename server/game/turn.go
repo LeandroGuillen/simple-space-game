@@ -120,11 +120,20 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 		nextBucket := p.BuildBucket - industryProduced
 		if nextBucket <= 0 {
 			// project is complete
-			p.Buildings = append(p.Buildings, p.CurrentProject)
+			completedProject := p.CurrentProject
+			p.Buildings = append(p.Buildings, completedProject)
 			p.IsBuilding = false
 			p.IndustryStack += -nextBucket
 			p.BuildBucket = 0
 			p.CurrentProject = ""
+
+			if completedProject == "Colony Base" {
+				if game.PendingColonyBases == nil {
+					game.PendingColonyBases = make(map[uint][]uint)
+				}
+				game.PendingColonyBases[player.ID] = append(game.PendingColonyBases[player.ID], p.ID)
+			}
+
 			if len(p.BuildQueue) > 0 {
 				nextProject := popNextQueuedBuild(p)
 				if !Build(p, nextProject, player.Available.Buildings, game) {

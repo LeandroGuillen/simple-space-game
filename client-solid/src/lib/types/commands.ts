@@ -15,10 +15,15 @@ export type SelectResearchCommand = {
   tech_name: string;
 };
 
+export type ColonizeCommand = {
+  planet_id: number;
+};
+
 export type PendingCommands = {
   build: BuildCommand[];
   movePopulation: MovePopulationCommand[];
   selectResearch?: SelectResearchCommand;
+  colonize?: ColonizeCommand;
 };
 
 export type TurnMovePopulationCommand = {
@@ -32,4 +37,5 @@ export type TurnCommands = {
   build: BuildCommand[];
   movePopulation?: TurnMovePopulationCommand;
   selectResearch?: SelectResearchCommand;
+  colonize?: ColonizeCommand;
 };

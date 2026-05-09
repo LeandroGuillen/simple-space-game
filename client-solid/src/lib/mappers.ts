@@ -56,7 +56,7 @@ export function mapGame(apiGame: ApiGame): GameViewModel {
     buildings.map((building) => [building.name.toLowerCase(), building]),
   );
 
-  return {
+return {
     id: apiGame.id,
     currentTurn: apiGame.current_turn,
     galaxy: {
@@ -101,6 +101,7 @@ export function mapGame(apiGame: ApiGame): GameViewModel {
           [],
       },
     },
+    pendingColonyBases: apiGame.pending_colony_bases ?? {},
   };
 }
 

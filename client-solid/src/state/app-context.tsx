@@ -5,7 +5,7 @@ import { ApiClient, parseGameUpdate } from '../lib/api';
 import { mapGame, mapPlayerColorOptions } from '../lib/mappers';
 import type { ApiGameListItem } from '../lib/types/api';
 import type { GameViewModel, PlayerColorOptions, ShipDesignForm } from '../lib/types/domain';
-import type { MovePopulationCommand, PendingCommands, SelectResearchCommand, TurnCommands } from '../lib/types/commands';
+import type { ColonizeCommand, MovePopulationCommand, PendingCommands, SelectResearchCommand, TurnCommands } from '../lib/types/commands';
 import { clearSessionLastSetupServerUrl } from '../lib/setup-session-storage';
 import { findPlanet, getColonyRows, getPrimaryPlayer, normalizeServerUrl, toWebSocketUrl } from '../lib/utils';
 
@@ -26,6 +26,8 @@ type AppState = {
   error: string;
   info: string;
   pendingCommands: PendingCommands;
+  pendingColonyBasePlanets: number[]; // planets where Colony Base completed
+  showColonizeModal: boolean;
 };
 
 type AppContextValue = {
@@ -41,6 +43,9 @@ type AppContextValue = {
   changeBuilding: (planetId: number, buildingId: number) => void;
   changeBuildQueue: (planetId: number, buildingNames: string[]) => void;
   addMovePopulationCommand: (command: MovePopulationCommand) => void;
+  addColonizeCommand: (command: ColonizeCommand) => void;
+  selectColonizeTarget: (planetId: number) => void;
+  closeColonizeModal: () => void;
   selectResearch: (command: SelectResearchCommand) => void;
   enableDebugMode: () => Promise<void>;
   colonize: (planetId: number) => Promise<void>;
@@ -61,6 +66,7 @@ export function AppProvider(props: ParentProps) {
     build: [],
     movePopulation: [],
     selectResearch: undefined,
+    colonize: undefined,
   });
 
   const [state, setState] = createStore<AppState>({
@@ -81,6 +87,8 @@ export function AppProvider(props: ParentProps) {
     error: '',
     info: '',
     pendingCommands: emptyPendingCommands(),
+    pendingColonyBasePlanets: [],
+    showColonizeModal: false,
   });
 
   const api = createMemo(() =>
@@ -255,6 +263,22 @@ export function AppProvider(props: ParentProps) {
     setState('pendingCommands', 'movePopulation', (cmds) => [...cmds, command]);
   }
 
+  function addColonizeCommand(command: ColonizeCommand) {
+    setState('pendingCommands', 'colonize', command);
+    setState('info', 'Colonize command queued for next turn');
+  }
+
+  function selectColonizeTarget(planetId: number) {
+    addColonizeCommand({ planet_id: planetId });
+    setState('showColonizeModal', false);
+    setState('pendingColonyBasePlanets', []);
+  }
+
+  function closeColonizeModal() {
+    setState('showColonizeModal', false);
+    setState('pendingColonyBasePlanets', []);
+  }
+
   function selectResearch(command: SelectResearchCommand) {
     setState('pendingCommands', 'selectResearch', command);
     setState('info', 'Research project queued for next turn');
@@ -307,8 +331,18 @@ export function AppProvider(props: ParentProps) {
     try {
       await api()!.endTurn(state.session.selectedGameId, toTurnCommands(state.pendingCommands, state.game));
       const rawGame = await api()!.getGame(state.session.selectedGameId);
+      const mappedGame = mapGame(rawGame);
       setState('pendingCommands', emptyPendingCommands());
-      setState('game', mapGame(rawGame));
+      setState('game', mappedGame);
+
+      // Check for pending colony bases
+      const playerId = state.session.playerId;
+      const pendingBases = mappedGame.pendingColonyBases[playerId] ?? [];
+      if (pendingBases.length > 0) {
+        setState('pendingColonyBasePlanets', pendingBases);
+        setState('showColonizeModal', true);
+      }
+
       setBusy(false, 'Turn complete');
     } catch (error) {
       setBusy(false, '');
@@ -419,6 +453,9 @@ export function AppProvider(props: ParentProps) {
     changeBuilding,
     changeBuildQueue,
     addMovePopulationCommand,
+    addColonizeCommand,
+    selectColonizeTarget,
+    closeColonizeModal,
     selectResearch,
     enableDebugMode,
     colonize,
@@ -438,6 +475,10 @@ function toTurnCommands(commands: PendingCommands, game: GameViewModel | null): 
 
   if (commands.selectResearch) {
     turnCommands.selectResearch = commands.selectResearch;
+  }
+
+  if (commands.colonize) {
+    turnCommands.colonize = commands.colonize;
   }
 
   const [firstMove] = commands.movePopulation;

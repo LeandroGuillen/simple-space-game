@@ -309,6 +309,7 @@ export type ApiGame = {
   created_at?: string | null;
   last_turn_at?: string | null;
   resources: ApiResources;
+  pending_colony_bases?: Record<number, number[]>; // playerID -> planetIDs
 };
 
 export type ApiGameUpdateMessage = {

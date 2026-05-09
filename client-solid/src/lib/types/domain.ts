@@ -280,6 +280,7 @@ export type GameViewModel = {
   galaxy: GalaxyViewModel;
   players: PlayerViewModel[];
   resources: ResourcesViewModel;
+  pendingColonyBases: Record<number, number[]>; // playerID -> planetIDs
 };
 
 export type ColonyRow = {
