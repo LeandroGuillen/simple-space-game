@@ -278,6 +278,15 @@ export function AppProvider(props: ParentProps) {
   }
 
   function addFleetMoveCommand(command: FleetMoveCommand) {
+    const fleet = state.game?.fleets.find((item) => item.id === command.fleet_id);
+    // Server rejects destination === fleet.StarID; treat it as cancelling a queued move (or aborting travel planning).
+    if (fleet && command.destination_star_id === fleet.starId) {
+      const hadPending = state.pendingCommands.fleetMove.some((cmd) => cmd.fleet_id === command.fleet_id);
+      const nextCommands = state.pendingCommands.fleetMove.filter((cmd) => cmd.fleet_id !== command.fleet_id);
+      setState('pendingCommands', 'fleetMove', nextCommands);
+      setState('info', hadPending ? 'Fleet move cancelled' : 'Fleet travel cancelled');
+      return;
+    }
     const nextCommands = state.pendingCommands.fleetMove.filter((cmd) => cmd.fleet_id !== command.fleet_id);
     nextCommands.push(command);
     setState('pendingCommands', 'fleetMove', nextCommands);

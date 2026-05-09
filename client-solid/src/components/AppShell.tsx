@@ -4,13 +4,31 @@ import {
   useNavigate,
   type RouteSectionProps,
 } from "@solidjs/router";
-import { For, Show, createEffect, createMemo, createSignal, onCleanup, onMount } from "solid-js";
+import {
+  For,
+  Show,
+  createEffect,
+  createMemo,
+  createSignal,
+  onCleanup,
+  onMount,
+} from "solid-js";
 import { Portal } from "solid-js/web";
 
 import { APP_VERSION } from "../lib/app-meta";
 import type { MovePopulationCommand } from "../lib/types/commands";
-import type { GameViewModel, PlayerViewModel, TechLevelViewModel, TechSubjectViewModel } from "../lib/types/domain";
-import { formatSignedBc, gameIdShort, getEmpireIncome, isPlanetSuitableForColonization } from "../lib/utils";
+import type {
+  GameViewModel,
+  PlayerViewModel,
+  TechLevelViewModel,
+  TechSubjectViewModel,
+} from "../lib/types/domain";
+import {
+  formatSignedBc,
+  gameIdShort,
+  getEmpireIncome,
+  isPlanetSuitableForColonization,
+} from "../lib/utils";
 import { useAppContext } from "../state/app-context";
 
 const gameNavItems = [
@@ -70,7 +88,11 @@ type ResearchGroup = {
   choices: ResearchChoice[];
 };
 
-function projectedScientists(planetId: number, baseScientists: number, moves: MovePopulationCommand[]) {
+function projectedScientists(
+  planetId: number,
+  baseScientists: number,
+  moves: MovePopulationCommand[],
+) {
   return Math.max(
     0,
     moves
@@ -101,7 +123,8 @@ function researchPerTurn(
     .reduce(
       (total, planet) =>
         total +
-        projectedScientists(planet.id, planet.science.scientists, moves) * planet.science.produced_per_scientist +
+        projectedScientists(planet.id, planet.science.scientists, moves) *
+          planet.science.produced_per_scientist +
         planet.science.produced_per_building,
       0,
     );
@@ -111,11 +134,17 @@ function isLevelComplete(player: PlayerViewModel, level: TechLevelViewModel) {
   if (level.availableTechs.length === 0) {
     return false;
   }
-  const knownTechs = new Set(player.researchedTechs.map((tech) => tech.toLowerCase()));
+  const knownTechs = new Set(
+    player.researchedTechs.map((tech) => tech.toLowerCase()),
+  );
   if (!level.forceAll) {
-    return level.availableTechs.some((tech) => knownTechs.has(tech.toLowerCase()));
+    return level.availableTechs.some((tech) =>
+      knownTechs.has(tech.toLowerCase()),
+    );
   }
-  return level.availableTechs.every((tech) => knownTechs.has(tech.toLowerCase()));
+  return level.availableTechs.every((tech) =>
+    knownTechs.has(tech.toLowerCase()),
+  );
 }
 
 function researchChoices(
@@ -126,58 +155,65 @@ function researchChoices(
   if (!game || !player) {
     return [];
   }
-  return game.resources.techTree.subjects.flatMap((subject): ResearchChoice[] => {
-    const level = subject.levels.find((candidate) => !isLevelComplete(player, candidate));
-    if (!level) {
-      const completedHyperAdvancedLevels = hyperAdvancedLevels[subject.name] ?? 0;
-      const nextHyperAdvancedLevel = completedHyperAdvancedLevels + 1;
-      const lastRealLevelCost = subject.levels.at(-1)?.cost ?? 0;
-      const cost = lastRealLevelCost * 2 ** nextHyperAdvancedLevel;
-      const commandTechName = `${HYPER_ADVANCED_RESEARCH_COMMAND_PREFIX}${subject.name}`;
-      const label = `${HYPER_ADVANCED_RESEARCH_PREFIX} ${nextHyperAdvancedLevel}`;
-      return [
-        {
-          subject,
-          level: {
-            name: label,
-            cost,
+  return game.resources.techTree.subjects.flatMap(
+    (subject): ResearchChoice[] => {
+      const level = subject.levels.find(
+        (candidate) => !isLevelComplete(player, candidate),
+      );
+      if (!level) {
+        const completedHyperAdvancedLevels =
+          hyperAdvancedLevels[subject.name] ?? 0;
+        const nextHyperAdvancedLevel = completedHyperAdvancedLevels + 1;
+        const lastRealLevelCost = subject.levels.at(-1)?.cost ?? 0;
+        const cost = lastRealLevelCost * 2 ** nextHyperAdvancedLevel;
+        const commandTechName = `${HYPER_ADVANCED_RESEARCH_COMMAND_PREFIX}${subject.name}`;
+        const label = `${HYPER_ADVANCED_RESEARCH_PREFIX} ${nextHyperAdvancedLevel}`;
+        return [
+          {
+            subject,
+            level: {
+              name: label,
+              cost,
+              forceAll: false,
+              availableTechs: [label],
+            },
+            commandTechName,
+            label,
+            techNames: [label],
             forceAll: false,
-            availableTechs: [label],
+            isHyperAdvanced: true,
           },
-          commandTechName,
-          label,
-          techNames: [label],
-          forceAll: false,
-          isHyperAdvanced: true,
-        },
-      ];
-    }
-    if (level.forceAll) {
-      return [
-        {
+        ];
+      }
+      if (level.forceAll) {
+        return [
+          {
+            subject,
+            level,
+            commandTechName: level.name,
+            label: level.name,
+            techNames: level.availableTechs,
+            forceAll: true,
+            isHyperAdvanced: false,
+          },
+        ];
+      }
+      const knownTechs = new Set(
+        player.researchedTechs.map((tech) => tech.toLowerCase()),
+      );
+      return level.availableTechs
+        .filter((techName) => !knownTechs.has(techName.toLowerCase()))
+        .map((techName) => ({
           subject,
           level,
-          commandTechName: level.name,
-          label: level.name,
-          techNames: level.availableTechs,
-          forceAll: true,
+          commandTechName: techName,
+          label: techName,
+          techNames: [techName],
+          forceAll: false,
           isHyperAdvanced: false,
-        },
-      ];
-    }
-    const knownTechs = new Set(player.researchedTechs.map((tech) => tech.toLowerCase()));
-    return level.availableTechs
-      .filter((techName) => !knownTechs.has(techName.toLowerCase()))
-      .map((techName) => ({
-        subject,
-        level,
-        commandTechName: techName,
-        label: techName,
-        techNames: [techName],
-        forceAll: false,
-        isHyperAdvanced: false,
-      }));
-  });
+        }));
+    },
+  );
 }
 
 function researchGroups(
@@ -202,16 +238,23 @@ function researchGroups(
   return [...groups.values()];
 }
 
-function findResearchLevel(game: GameViewModel | null, breakthroughName: string | undefined) {
+function findResearchLevel(
+  game: GameViewModel | null,
+  breakthroughName: string | undefined,
+) {
   if (!game || !breakthroughName) {
     return null;
   }
   for (const subject of game.resources.techTree.subjects) {
-    const exactLevel = subject.levels.find((level) => level.name === breakthroughName);
+    const exactLevel = subject.levels.find(
+      (level) => level.name === breakthroughName,
+    );
     if (exactLevel) {
       return exactLevel;
     }
-    const techLevel = subject.levels.find((level) => level.availableTechs.includes(breakthroughName));
+    const techLevel = subject.levels.find((level) =>
+      level.availableTechs.includes(breakthroughName),
+    );
     if (techLevel) {
       return techLevel;
     }
@@ -219,12 +262,16 @@ function findResearchLevel(game: GameViewModel | null, breakthroughName: string 
   return null;
 }
 
-function formatResearchTurns(level: TechLevelViewModel | null, accumulatedRp: number, rpPerTurn: number) {
+function formatResearchTurns(
+  level: TechLevelViewModel | null,
+  accumulatedRp: number,
+  rpPerTurn: number,
+) {
   if (!level) {
     return "";
   }
   if (rpPerTurn <= 0) {
-    return "no research";
+    return "";
   }
   if (accumulatedRp >= level.cost) {
     return "ready";
@@ -236,9 +283,19 @@ function formatResearchTurns(level: TechLevelViewModel | null, accumulatedRp: nu
 export function AppShell(props: RouteSectionProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { state, currentPlayer, enableDebugMode, endTurn, selectResearch, selectColonizeTarget, closeColonizeModal } = useAppContext();
+  const {
+    state,
+    currentPlayer,
+    enableDebugMode,
+    endTurn,
+    selectResearch,
+    selectColonizeTarget,
+    closeColonizeModal,
+  } = useAppContext();
   const [isResearchOpen, setIsResearchOpen] = createSignal(false);
-  const [recentBreakthroughs, setRecentBreakthroughs] = createSignal<string[]>([]);
+  const [recentBreakthroughs, setRecentBreakthroughs] = createSignal<string[]>(
+    [],
+  );
   let previousKnownTechs: Set<string> | null = null;
   let previousBreakthroughGameId = "";
   const sessionStatusDotClass = createMemo(
@@ -251,10 +308,18 @@ export function AppShell(props: RouteSectionProps) {
     campaignNavActiveHref(location.pathname),
   );
   const playerResearchPerTurn = createMemo(() =>
-    researchPerTurn(state.game, currentPlayer(), state.pendingCommands.movePopulation),
+    researchPerTurn(
+      state.game,
+      currentPlayer(),
+      state.pendingCommands.movePopulation,
+    ),
   );
   const empireIncome = createMemo(() =>
-    getEmpireIncome(state.game, currentPlayer()?.id ?? state.session.playerId, state.pendingCommands),
+    getEmpireIncome(
+      state.game,
+      currentPlayer()?.id ?? state.session.playerId,
+      state.pendingCommands,
+    ),
   );
   const queuedResearchName = createMemo(
     () => state.pendingCommands.selectResearch?.tech_name,
@@ -268,21 +333,27 @@ export function AppShell(props: RouteSectionProps) {
       currentResearch?.subject
     );
   });
-  const hyperAdvancedLevels = createMemo(() => currentPlayer()?.hyperAdvanced ?? {});
+  const hyperAdvancedLevels = createMemo(
+    () => currentPlayer()?.hyperAdvanced ?? {},
+  );
   const colonizeModalPlanets = createMemo(() => {
     const game = state.game;
     if (!game) return [];
-    return game.galaxy.stars.flatMap((star) => star.planets.filter(isPlanetSuitableForColonization));
+    return game.galaxy.stars.flatMap((star) =>
+      star.planets.filter(isPlanetSuitableForColonization),
+    );
   });
   const availableResearchGroups = createMemo(() =>
     researchGroups(state.game, currentPlayer(), hyperAdvancedLevels()),
   );
-  const activeResearchLevel = createMemo(() =>
-    findResearchLevel(state.game, activeResearchName()) ??
-    availableResearchGroups()
-      .flatMap((group) => group.choices)
-      .find((choice) => choice.commandTechName === activeResearchName())?.level ??
-    null,
+  const activeResearchLevel = createMemo(
+    () =>
+      findResearchLevel(state.game, activeResearchName()) ??
+      availableResearchGroups()
+        .flatMap((group) => group.choices)
+        .find((choice) => choice.commandTechName === activeResearchName())
+        ?.level ??
+      null,
   );
   const hasSelectedResearch = createMemo(() => Boolean(activeResearchName()));
   const researchTurnsText = createMemo(() =>
@@ -314,7 +385,9 @@ export function AppShell(props: RouteSectionProps) {
       return;
     }
 
-    const newTechs = knownTechs.filter((techName) => !previousKnownTechs?.has(techName));
+    const newTechs = knownTechs.filter(
+      (techName) => !previousKnownTechs?.has(techName),
+    );
     previousKnownTechs = new Set(knownTechs);
     if (newTechs.length === 0) {
       return;
@@ -467,7 +540,8 @@ export function AppShell(props: RouteSectionProps) {
                       <strong>
                         {playerResearchPerTurn()}RP
                         <Show when={researchTurnsText()}>
-                          {" "}{researchTurnsText()}
+                          {" "}
+                          {researchTurnsText()}
                         </Show>
                       </strong>
                     </button>
@@ -508,7 +582,10 @@ export function AppShell(props: RouteSectionProps) {
 
       <Show when={isResearchOpen()}>
         <Portal>
-          <div class="research-modal-backdrop" onClick={() => setIsResearchOpen(false)}>
+          <div
+            class="research-modal-backdrop"
+            onClick={() => setIsResearchOpen(false)}
+          >
             <section
               class="research-modal panel"
               role="dialog"
@@ -521,7 +598,11 @@ export function AppShell(props: RouteSectionProps) {
                   <p class="eyebrow">Research</p>
                   <h2 id="research-modal-title">Select Project</h2>
                 </div>
-                <button class="secondary-button research-close-button" type="button" onClick={() => setIsResearchOpen(false)}>
+                <button
+                  class="secondary-button research-close-button"
+                  type="button"
+                  onClick={() => setIsResearchOpen(false)}
+                >
                   Close
                 </button>
               </div>
@@ -539,15 +620,26 @@ export function AppShell(props: RouteSectionProps) {
                     <article
                       class="research-subject-card"
                       classList={{
-                        "is-selected": group.choices.some((choice) => activeResearchName() === choice.commandTechName),
+                        "is-selected": group.choices.some(
+                          (choice) =>
+                            activeResearchName() === choice.commandTechName,
+                        ),
                       }}
                     >
                       <span class="research-subject-card-header">
                         <span>{group.subject.name}</span>
                         <strong>{group.level.cost}RP</strong>
                       </span>
-                      <Show when={!group.choices.every((choice) => choice.isHyperAdvanced)}>
-                        <span class="research-level-name">{group.level.name}</span>
+                      <Show
+                        when={
+                          !group.choices.every(
+                            (choice) => choice.isHyperAdvanced,
+                          )
+                        }
+                      >
+                        <span class="research-level-name">
+                          {group.level.name}
+                        </span>
                       </Show>
                       <div class="research-tech-list">
                         <For each={group.choices}>
@@ -556,7 +648,9 @@ export function AppShell(props: RouteSectionProps) {
                               type="button"
                               class="research-tech-option"
                               classList={{
-                                "is-selected": activeResearchName() === choice.commandTechName,
+                                "is-selected":
+                                  activeResearchName() ===
+                                  choice.commandTechName,
                                 "is-bundle": choice.forceAll,
                                 "is-hyper-advanced": choice.isHyperAdvanced,
                               }}
@@ -564,7 +658,11 @@ export function AppShell(props: RouteSectionProps) {
                               onClick={() => chooseResearch(choice)}
                             >
                               <For each={choice.techNames}>
-                                {(techName) => <span class="research-tech-option-item">{techName}</span>}
+                                {(techName) => (
+                                  <span class="research-tech-option-item">
+                                    {techName}
+                                  </span>
+                                )}
                               </For>
                             </button>
                           )}
@@ -594,7 +692,11 @@ export function AppShell(props: RouteSectionProps) {
                   <p class="eyebrow">Colony Base Ready</p>
                   <h2 id="colonize-modal-title">Select Target Planet</h2>
                 </div>
-                <button class="secondary-button research-close-button" type="button" onClick={closeColonizeModal}>
+                <button
+                  class="secondary-button research-close-button"
+                  type="button"
+                  onClick={closeColonizeModal}
+                >
                   Close
                 </button>
               </div>
@@ -611,13 +713,17 @@ export function AppShell(props: RouteSectionProps) {
                 <div class="research-subject-grid">
                   <For each={state.game?.galaxy.stars ?? []}>
                     {(star) => {
-                      const starPlanets = () => star.planets.filter(isPlanetSuitableForColonization);
+                      const starPlanets = () =>
+                        star.planets.filter(isPlanetSuitableForColonization);
                       return (
                         <Show when={starPlanets().length > 0}>
                           <article class="research-subject-card">
                             <span class="research-subject-card-header">
                               <span>{star.name}</span>
-                              <strong>{starPlanets().length} planet{starPlanets().length > 1 ? 's' : ''}</strong>
+                              <strong>
+                                {starPlanets().length} planet
+                                {starPlanets().length > 1 ? "s" : ""}
+                              </strong>
                             </span>
                             <div class="research-tech-list">
                               <For each={starPlanets()}>
@@ -625,9 +731,13 @@ export function AppShell(props: RouteSectionProps) {
                                   <button
                                     type="button"
                                     class="research-tech-option"
-                                    onClick={() => selectColonizeTarget(planet.id)}
+                                    onClick={() =>
+                                      selectColonizeTarget(planet.id)
+                                    }
                                   >
-                                    <span class="research-tech-option-item">{planet.name}</span>
+                                    <span class="research-tech-option-item">
+                                      {planet.name}
+                                    </span>
                                   </button>
                                 )}
                               </For>

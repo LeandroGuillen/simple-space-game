@@ -52,3 +52,32 @@
   border-color: var(--gold);
   box-shadow: inset 0 0 0 1px rgba(213, 180, 111, 0.5);
 }
+
+.ship-design-modal {
+  width: min(640px, 100%);
+}
+
+.ship-design-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ship-design-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.fleet-list-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.fleet-list-header h2 {
+  margin: 0;
+}

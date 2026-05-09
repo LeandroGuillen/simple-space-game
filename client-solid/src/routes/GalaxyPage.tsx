@@ -115,6 +115,11 @@ export function GalaxyPage() {
     return routes;
   });
 
+  function exitFleetTravelMode() {
+    setTravelMode(null);
+    setSnappedStarId(null);
+  }
+
   function handleStarSelect(starId: number) {
     const mode = travelMode();
     if (!mode) {
@@ -122,6 +127,13 @@ export function GalaxyPage() {
       return;
     }
     if (starId === mode.originStarId) {
+      addFleetMoveCommand({
+        fleet_id: mode.fleetId,
+        destination_star_id: starId,
+        ship_indexes: mode.shipIndexes,
+      });
+      exitFleetTravelMode();
+      setSelectedStarId(starId);
       return;
     }
     addFleetMoveCommand({
@@ -130,8 +142,7 @@ export function GalaxyPage() {
       ship_indexes: mode.shipIndexes,
     });
     setSelectedStarId(starId);
-    setTravelMode(null);
-    setSnappedStarId(null);
+    exitFleetTravelMode();
   }
 
   return (
@@ -185,7 +196,29 @@ export function GalaxyPage() {
                   </button>
                 </Show>
                 <Show when={travelMode()}>
-                  <p class="eyebrow">Fleet travel mode active: select destination star</p>
+                  <div class="fleet-travel-mode-banner">
+                    <p class="eyebrow">
+                      Fleet travel mode: pick a destination star, or the star this fleet is at to cancel a queued move or
+                      stop planning
+                    </p>
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      onClick={() => {
+                        const m = travelMode();
+                        if (m) {
+                          addFleetMoveCommand({
+                            fleet_id: m.fleetId,
+                            destination_star_id: m.originStarId,
+                            ship_indexes: m.shipIndexes,
+                          });
+                        }
+                        exitFleetTravelMode();
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </Show>
 
                 <div class="planet-list">
