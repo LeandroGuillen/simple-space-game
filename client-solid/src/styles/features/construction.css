@@ -421,6 +421,17 @@
   white-space: nowrap;
 }
 
+.construction-status-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.construction-progress-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .construction-progress {
   overflow: hidden;
   height: 8px;
@@ -814,8 +825,9 @@
 
 .construction-autobuild--header {
   justify-content: flex-end;
-  padding: 2px 0;
+  padding: 0;
   color: var(--text-dim);
+  flex: 0 0 auto;
 }
 
 .construction-autobuild-switch {
@@ -876,6 +888,14 @@
 }
 
 @media (max-width: 720px) {
+  .construction-status-row {
+    flex-wrap: wrap;
+  }
+
+  .construction-progress-wrap {
+    flex-basis: 100%;
+  }
+
   .construction-modal-backdrop {
     align-items: stretch;
     padding: 12px;

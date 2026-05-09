@@ -665,6 +665,68 @@ func TestTurnCanUpdateQueueWithoutSwitchingCurrentProject(t *testing.T) {
 	assert.True(t, colonies[0].IsBuilding)
 }
 
+func TestTurnCanReplaceCurrentProjectAndKeepInvestedProduction(t *testing.T) {
+	g := &Game{
+		Players: []*model.Player{
+			{
+				ID: 1,
+				Available: model.AvailableTech{
+					Buildings: []string{"Current Building", "Replacement Building", "Queued Building"},
+				},
+			},
+		},
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{
+				Buildings: []model.Building{
+					{Name: "Current Building", Cost: 20},
+					{Name: "Replacement Building", Cost: 30},
+					{Name: "Queued Building", Cost: 10},
+				},
+			},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{
+					Planets: []*model.Planet{
+						{
+							ID:             1,
+							Owner:          1,
+							Population:     1000,
+							Size:           model.PlanetSizeMedium,
+							MineralClass:   model.PlanetMineralAbundant,
+							CurrentProject: "Current Building",
+							IsBuilding:     true,
+							BuildBucket:    15,
+							Industry: model.PlanetIndustryOutput{
+								Workers:           1,
+								ProducedPerWorker: 1,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	require.NoError(t, g.Turn(1, model.Commands{
+		Build: []*model.BuildCommand{
+			{
+				PlanetID:   1,
+				Building:   "Replacement Building",
+				BuildQueue: []string{"Queued Building"},
+			},
+		},
+	}))
+
+	colonies, err := g.GetColonyList(1)
+	require.NoError(t, err)
+	require.Len(t, colonies, 1)
+	assert.Equal(t, "Replacement Building", colonies[0].CurrentProject)
+	assert.Equal(t, int64(22), colonies[0].BuildBucket)
+	assert.Equal(t, []string{"Queued Building"}, colonies[0].BuildQueue)
+	assert.True(t, colonies[0].IsBuilding)
+}
+
 func TestBuildRejectsUniqueBuildingWhenOwnedElsewhere(t *testing.T) {
 	g := &Game{
 		Resources: &Resources{

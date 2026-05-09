@@ -250,11 +250,23 @@ func Build(p *Planet, buildingName string, availableBuildings []string, game *Ga
 		return false
 	}
 
+	investedProduction := currentBuildProgress(p, game)
 	p.CurrentProject = buildingName
 	p.IsBuilding = true
-	p.BuildBucket = building.Cost
+	p.BuildBucket = max(0, building.Cost-investedProduction)
 
 	return true
+}
+
+func currentBuildProgress(p *Planet, game *Game) int64 {
+	if !p.IsBuilding || p.CurrentProject == "" {
+		return 0
+	}
+	building, err := getBuildingFromName(game, p.CurrentProject)
+	if err != nil {
+		return 0
+	}
+	return max(0, building.Cost-p.BuildBucket)
 }
 
 func canBuild(p *Planet, buildingName string, availableBuildings []string, game *Game) bool {

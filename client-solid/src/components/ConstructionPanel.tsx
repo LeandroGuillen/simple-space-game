@@ -1,10 +1,26 @@
-import { createEffect, createMemo, createSignal, For, onCleanup, onMount, Show } from 'solid-js';
-import { Portal } from 'solid-js/web';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  onCleanup,
+  onMount,
+  Show,
+} from "solid-js";
+import { Portal } from "solid-js/web";
 
-import type { BuildingViewModel, PlanetViewModel, ShipDesignViewModel } from '../lib/types/domain';
-import { isAutobuildProject } from '../lib/construction';
-import { getPlanetIndustryForWorkers, findStar, getSuitablePlanetsForColonization } from '../lib/utils';
-import { useAppContext } from '../state/app-context';
+import type {
+  BuildingViewModel,
+  PlanetViewModel,
+  ShipDesignViewModel,
+} from "../lib/types/domain";
+import { isAutobuildProject } from "../lib/construction";
+import {
+  getPlanetIndustryForWorkers,
+  findStar,
+  getSuitablePlanetsForColonization,
+} from "../lib/utils";
+import { useAppContext } from "../state/app-context";
 
 type ConstructionPanelProps = {
   planet: PlanetViewModel;
@@ -12,9 +28,9 @@ type ConstructionPanelProps = {
 
 const TRADE_GOODS: BuildingViewModel = {
   id: 0,
-  name: 'Trade Goods',
-  description: 'Converts surplus colony output into treasury income.',
-  icon: '💱',
+  name: "Trade Goods",
+  description: "Converts surplus colony output into treasury income.",
+  icon: "💱",
   cost: 0,
   maintenance: 0,
   unique: false,
@@ -36,26 +52,46 @@ const TRADE_GOODS: BuildingViewModel = {
 };
 
 export function ConstructionPanel(props: ConstructionPanelProps) {
-  const { state, currentPlayer, changeBuilding, changeBuildQueue } = useAppContext();
+  const { state, currentPlayer, changeBuilding, changeBuildQueue } =
+    useAppContext();
   const [isChoosing, setIsChoosing] = createSignal(false);
-  const [selectedProjectId, setSelectedProjectId] = createSignal<number | null>(null);
-  const [autobuildByPlanet, setAutobuildByPlanet] = createSignal<Record<number, boolean>>({});
-  const [queuedProjects, setQueuedProjects] = createSignal<BuildingViewModel[]>([]);
-  const isAutobuildEnabled = createMemo(() => autobuildByPlanet()[props.planet.id] ?? false);
-  const [draggedQueueIndex, setDraggedQueueIndex] = createSignal<number | null>(null);
-  const [dragOverQueueIndex, setDragOverQueueIndex] = createSignal<number | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = createSignal<number | null>(
+    null,
+  );
+  const [autobuildByPlanet, setAutobuildByPlanet] = createSignal<
+    Record<number, boolean>
+  >({});
+  const [queuedProjects, setQueuedProjects] = createSignal<BuildingViewModel[]>(
+    [],
+  );
+  const isAutobuildEnabled = createMemo(
+    () => autobuildByPlanet()[props.planet.id] ?? false,
+  );
+  const [draggedQueueIndex, setDraggedQueueIndex] = createSignal<number | null>(
+    null,
+  );
+  const [dragOverQueueIndex, setDragOverQueueIndex] = createSignal<
+    number | null
+  >(null);
   const [isQueueDragging, setIsQueueDragging] = createSignal(false);
-  const [hoveredProjectId, setHoveredProjectId] = createSignal<number | null>(null);
+  const [hoveredProjectId, setHoveredProjectId] = createSignal<number | null>(
+    null,
+  );
   let modalRef: HTMLElement | undefined;
   let projectClickTimer: ReturnType<typeof setTimeout> | undefined;
   let dragClickTimer: ReturnType<typeof setTimeout> | undefined;
 
-  const builtBuildingIds = createMemo(() => new Set(
-    props.planet.buildings
-      .filter((building) => building.name !== 'Colony Base')
-      .map((building) => building.id),
-  ));
-  const availableBuildingNames = createMemo(() => new Set(currentPlayer()?.available.buildings ?? []));
+  const builtBuildingIds = createMemo(
+    () =>
+      new Set(
+        props.planet.buildings
+          .filter((building) => building.name !== "Colony Base")
+          .map((building) => building.id),
+      ),
+  );
+  const availableBuildingNames = createMemo(
+    () => new Set(currentPlayer()?.available.buildings ?? []),
+  );
   const uniqueBuildingsLockedElsewhere = createMemo(() => {
     const playerId = currentPlayer()?.id;
     if (!playerId) return new Set<string>();
@@ -82,20 +118,27 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     }
     return locked;
   });
-  const buildableProjects = createMemo(() =>
-    state.game?.resources.buildingCollection.buildings.filter(
-      (project) =>
-        availableBuildingNames().has(project.name) &&
-        !builtBuildingIds().has(project.id) &&
-        project.name !== 'Colony Base' &&
-        (!project.unique || !uniqueBuildingsLockedElsewhere().has(project.name)),
-    ) ?? [],
+  const buildableProjects = createMemo(
+    () =>
+      state.game?.resources.buildingCollection.buildings.filter(
+        (project) =>
+          availableBuildingNames().has(project.name) &&
+          !builtBuildingIds().has(project.id) &&
+          project.name !== "Colony Base" &&
+          (!project.unique ||
+            !uniqueBuildingsLockedElsewhere().has(project.name)),
+      ) ?? [],
   );
-  const autobuildProjects = createMemo(() => buildableProjects().filter(isAutobuildProject));
-  const colonyBaseProject = createMemo(() =>
-    state.game?.resources.buildingCollection.buildings.find(
-      (project) => project.name === 'Colony Base' && availableBuildingNames().has(project.name),
-    ) ?? null,
+  const autobuildProjects = createMemo(() =>
+    buildableProjects().filter(isAutobuildProject),
+  );
+  const colonyBaseProject = createMemo(
+    () =>
+      state.game?.resources.buildingCollection.buildings.find(
+        (project) =>
+          project.name === "Colony Base" &&
+          availableBuildingNames().has(project.name),
+      ) ?? null,
   );
   const availableProjects = createMemo(() => {
     const projects = [TRADE_GOODS, ...buildableProjects()];
@@ -104,44 +147,76 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     }
     return projects;
   });
-  const buildingListProjects = createMemo(() => [TRADE_GOODS, ...buildableProjects()]);
-  const projectByName = createMemo(() => new Map(availableProjects().map((project) => [project.name.toLowerCase(), project])));
+  const buildingListProjects = createMemo(() => [
+    TRADE_GOODS,
+    ...buildableProjects(),
+  ]);
+  const projectByName = createMemo(
+    () =>
+      new Map(
+        availableProjects().map((project) => [
+          project.name.toLowerCase(),
+          project,
+        ]),
+      ),
+  );
   const pendingMoves = createMemo(() =>
-    state.pendingCommands.movePopulation.filter((cmd) => cmd.planetId === props.planet.id),
+    state.pendingCommands.movePopulation.filter(
+      (cmd) => cmd.planetId === props.planet.id,
+    ),
   );
   const pendingBuild = createMemo(() =>
     state.pendingCommands.build.find((cmd) => cmd.planetId === props.planet.id),
   );
   const pendingQueuedProjects = createMemo(() => {
     const command = pendingBuild();
-    const queueNames = command?.build_queue ?? (command?.building ? [command.building] : []);
+    const queueNames = command
+      ? [command.building, ...(command.build_queue ?? [])]
+      : [];
     return queueNames
+      .filter(Boolean)
       .map((name) => projectByName().get(name.toLowerCase()) ?? null)
       .filter((project): project is BuildingViewModel => Boolean(project));
   });
   const activeProject = createMemo(() => {
-    const pendingProject = availableProjects().find((project) => project.name === pendingBuild()?.building);
+    const pendingProject = availableProjects().find(
+      (project) => project.name === pendingBuild()?.building,
+    );
     return pendingProject ?? props.planet.currentProject ?? TRADE_GOODS;
   });
   const selectedProject = createMemo(
-    () => availableProjects().find((project) => project.id === (selectedProjectId() ?? activeProject().id)) ?? TRADE_GOODS,
+    () =>
+      availableProjects().find(
+        (project) => project.id === (selectedProjectId() ?? activeProject().id),
+      ) ?? TRADE_GOODS,
   );
   const previewProject = createMemo(
-    () => availableProjects().find((project) => project.id === hoveredProjectId()) ?? selectedProject(),
+    () =>
+      availableProjects().find(
+        (project) => project.id === hoveredProjectId(),
+      ) ?? selectedProject(),
   );
   const queueSlots = createMemo(() => {
     const queued = queuedProjects().slice(0, 10);
     return Array.from({ length: 10 }, (_, index) => queued[index] ?? null);
   });
-  const researchedTechs = createMemo(() => new Set(currentPlayer()?.researchedTechs ?? []));
-  const availableHullSizes = createMemo(() => new Set(currentPlayer()?.available.hullSizes ?? []));
-  const currentStar = createMemo(() => findStar(state.game, props.planet.parentStar));
+  const researchedTechs = createMemo(
+    () => new Set(currentPlayer()?.researchedTechs ?? []),
+  );
+  const availableHullSizes = createMemo(
+    () => new Set(currentPlayer()?.available.hullSizes ?? []),
+  );
+  const currentStar = createMemo(() =>
+    findStar(state.game, props.planet.parentStar),
+  );
   const suitablePlanetsForColonization = createMemo(() => {
     const star = currentStar();
     if (!star) return [];
     return getSuitablePlanetsForColonization(star);
   });
-  const hasSuitablePlanetsForColonization = createMemo(() => suitablePlanetsForColonization().length > 0);
+  const hasSuitablePlanetsForColonization = createMemo(
+    () => suitablePlanetsForColonization().length > 0,
+  );
   const shipDesigns = createMemo(() => {
     const designs = [
       ...(currentPlayer()?.shipDesigns ?? []),
@@ -151,7 +226,10 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     const uniqueByHull: ShipDesignViewModel[] = [];
     for (const design of designs) {
       const hullName = design.hullSize.name;
-      if (availableHullSizes().size > 0 && !availableHullSizes().has(hullName)) {
+      if (
+        availableHullSizes().size > 0 &&
+        !availableHullSizes().has(hullName)
+      ) {
         continue;
       }
       if (!seenHullSizes.has(hullName)) {
@@ -166,67 +244,110 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   });
   const sectionOneCommands = createMemo(() => {
     const commands = [
-      specialCommand('Colony Base', 'Colony Base'),
-      specialCommand('Freighter Fleet', 'Freighters'),
-      specialCommand('Colony Ship', 'Colony Ship'),
-      specialCommand('Outpost', 'Outpost Ship'),
-      specialCommand('Transport', 'Transport'),
+      specialCommand("Colony Base", "Colony Base"),
+      specialCommand("Freighter Fleet", "Freighters"),
+      specialCommand("Colony Ship", "Colony Ship"),
+      specialCommand("Outpost", "Outpost Ship"),
+      specialCommand("Transport", "Transport"),
     ];
     return commands
       .map((command) => {
-        if (command.unlockName === 'Colony Base') {
+        if (command.unlockName === "Colony Base") {
           const hasTech = command.isAvailable;
           const hasPlanets = hasSuitablePlanetsForColonization();
           const isAvailable = hasTech && hasPlanets;
-          return { ...command, isAvailable, hasSuitablePlanets: hasPlanets, hasTech };
+          return {
+            ...command,
+            isAvailable,
+            hasSuitablePlanets: hasPlanets,
+            hasTech,
+          };
         }
         return command;
       })
-      .filter((command) => command.isAvailable || command.unlockName === 'Colony Base');
+      .filter(
+        (command) =>
+          command.isAvailable || command.unlockName === "Colony Base",
+      );
   });
   const androidCommands = createMemo(() =>
     [
-      specialCommand('Android Farmers', 'Android Farmers'),
-      specialCommand('Android Workers', 'Android Workers'),
-      specialCommand('Android Scientists', 'Android Scientists'),
-    ].filter((command) => command.isAvailable).slice(0, 3),
+      specialCommand("Android Farmers", "Android Farmers"),
+      specialCommand("Android Workers", "Android Workers"),
+      specialCommand("Android Scientists", "Android Scientists"),
+    ]
+      .filter((command) => command.isAvailable)
+      .slice(0, 3),
   );
   const spyCommands = createMemo(() =>
-    [specialCommand('Spy', 'Spy')].filter((command) => command.isAvailable),
+    [specialCommand("Spy", "Spy")].filter((command) => command.isAvailable),
   );
-  const personnelCommands = createMemo(() => [...androidCommands(), ...spyCommands()]);
+  const personnelCommands = createMemo(() => [
+    ...androidCommands(),
+    ...spyCommands(),
+  ]);
   const projectedWorkers = createMemo(() => {
     let workers = props.planet.industry.workers;
     for (const move of pendingMoves()) {
-      if (move.to === 'workers') {
+      if (move.to === "workers") {
         workers += move.count;
       }
-      if (move.from === 'workers') {
+      if (move.from === "workers") {
         workers -= move.count;
       }
     }
     return Math.max(0, workers);
   });
-  const industryPerTurn = createMemo(() => getPlanetIndustryForWorkers(props.planet, projectedWorkers()));
-  const completedProduction = createMemo(() => {
+  const industryPerTurn = createMemo(() =>
+    getPlanetIndustryForWorkers(props.planet, projectedWorkers()),
+  );
+  const currentInvestedProduction = createMemo(() => {
     if (!props.planet.isBuilding || !props.planet.currentProject) {
       return 0;
     }
-    return Math.max(0, props.planet.currentProject.cost - props.planet.buildBucket);
+    return Math.max(
+      0,
+      props.planet.currentProject.cost - props.planet.buildBucket,
+    );
   });
-  const progressPercent = createMemo(() => {
-    if (!props.planet.isBuilding || !props.planet.currentProject?.cost) {
+  const displayedBuildBucket = createMemo(() => {
+    const project = activeProject();
+    if (project.id === TRADE_GOODS.id) {
       return 0;
     }
-    return Math.min(100, Math.round((completedProduction() / props.planet.currentProject.cost) * 100));
+    if (
+      pendingBuild()?.building &&
+      project.name !== props.planet.currentProject?.name
+    ) {
+      return Math.max(0, project.cost - currentInvestedProduction());
+    }
+    return props.planet.buildBucket;
+  });
+  const completedProduction = createMemo(() => {
+    const project = activeProject();
+    if (project.id === TRADE_GOODS.id) {
+      return 0;
+    }
+    return Math.max(0, project.cost - displayedBuildBucket());
+  });
+  const progressPercent = createMemo(() => {
+    const project = activeProject();
+    if (project.id === TRADE_GOODS.id || !project.cost) {
+      return 0;
+    }
+    return Math.min(
+      100,
+      Math.round((completedProduction() / project.cost) * 100),
+    );
   });
   const turnsRemaining = createMemo(() => {
-    if (!props.planet.isBuilding || industryPerTurn() <= 0) {
+    if (activeProject().id === TRADE_GOODS.id || industryPerTurn() <= 0) {
       return null;
     }
-    return Math.max(1, Math.ceil(props.planet.buildBucket / industryPerTurn()));
+    return Math.max(1, Math.ceil(displayedBuildBucket() / industryPerTurn()));
   });
-  const isRepeatableProject = (projectName: string) => projectName === 'Colony Base' || projectName === 'Colony Ship';
+  const isRepeatableProject = (projectName: string) =>
+    projectName === "Colony Base" || projectName === "Colony Ship";
 
   function cancelSelection() {
     setIsChoosing(false);
@@ -238,7 +359,11 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
 
   function openChooser() {
     setSelectedProjectId(activeProject().id);
-    setQueuedProjects(pendingQueuedProjects().length > 0 ? pendingQueuedProjects() : props.planet.buildQueue);
+    setQueuedProjects(
+      pendingQueuedProjects().length > 0
+        ? pendingQueuedProjects()
+        : [activeProject(), ...props.planet.buildQueue].slice(0, 10),
+    );
     setIsChoosing(true);
   }
 
@@ -253,24 +378,37 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   function updateQueuedProjects(projects: BuildingViewModel[]) {
     const nextProjects = projects.slice(0, 10);
     setQueuedProjects(nextProjects);
-    changeBuildQueue(props.planet.id, nextProjects.map((project) => project.name));
+    changeBuildQueue(
+      props.planet.id,
+      nextProjects.map((project) => project.name),
+    );
   }
 
   function addProjectToQueue(project: BuildingViewModel): BuildingViewModel[] {
     const isRepeatable = isRepeatableProject(project.name);
-    if (!isRepeatable && project.id !== 0 && builtBuildingIds().has(project.id)) {
+    if (
+      !isRepeatable &&
+      project.id !== 0 &&
+      builtBuildingIds().has(project.id)
+    ) {
       return queuedProjects();
     }
     setSelectedProjectId(project.id);
     const currentProjects = queuedProjects();
     const projects =
-      project.id !== 0 && currentProjects.length === 1 && currentProjects[0]?.id === TRADE_GOODS.id
+      project.id !== 0 &&
+      currentProjects.length === 1 &&
+      currentProjects[0]?.id === TRADE_GOODS.id
         ? []
         : currentProjects;
     if (projects.length >= 10) {
       return projects;
     }
-    if (!isRepeatable && project.id !== 0 && projects.some((queued) => queued.id === project.id)) {
+    if (
+      !isRepeatable &&
+      project.id !== 0 &&
+      projects.some((queued) => queued.id === project.id)
+    ) {
       return projects;
     }
     const nextProjects = [...projects, project];
@@ -282,7 +420,9 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     if (isQueueDragging()) {
       return;
     }
-    updateQueuedProjects(queuedProjects().filter((_, projectIndex) => projectIndex !== index));
+    updateQueuedProjects(
+      queuedProjects().filter((_, projectIndex) => projectIndex !== index),
+    );
   }
 
   function specialCommand(label: string, unlockName: string) {
@@ -341,7 +481,11 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
         setDragOverQueueIndex(null);
         return;
       }
-      nextProjects.splice(Math.min(toIndex, nextProjects.length), 0, movedProject);
+      nextProjects.splice(
+        Math.min(toIndex, nextProjects.length),
+        0,
+        movedProject,
+      );
       nextQueuedProjects = nextProjects;
     }
     updateQueuedProjects(nextQueuedProjects);
@@ -409,7 +553,8 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
       return;
     }
     const nextProjects = autobuildProjects();
-    const randomProject = nextProjects[Math.floor(Math.random() * nextProjects.length)];
+    const randomProject =
+      nextProjects[Math.floor(Math.random() * nextProjects.length)];
     if (randomProject) {
       changeBuilding(props.planet.id, randomProject.id);
     }
@@ -432,111 +577,130 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
       cancelSelection();
     };
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         cancelSelection();
       }
     };
-    document.addEventListener('pointerdown', handlePointerDown);
-    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
     onCleanup(() => {
-      document.removeEventListener('pointerdown', handlePointerDown);
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
     });
   });
 
   return (
-    <section class='construction-panel'>
-      <button class='construction-widget' type='button' onClick={toggleChooser}>
-        <span class='construction-widget-icon'>{activeProject().icon}</span>
-        <span class='construction-widget-body'>
+    <section class="construction-panel">
+      <button class="construction-widget" type="button" onClick={toggleChooser}>
+        <span class="construction-widget-icon">{activeProject().icon}</span>
+        <span class="construction-widget-body">
           <strong>{activeProject().name}</strong>
-          <Show when={props.planet.isBuilding && props.planet.currentProject}>
-            <span class='construction-muted'>
-              {props.planet.buildBucket} PP left · {industryPerTurn()} PP/turn · {turnsRemaining() ? `~${turnsRemaining()} turns` : 'no production'}
-            </span>
-          </Show>
+          <span
+            class="construction-progress"
+            aria-label={`Construction progress ${progressPercent()}%`}
+          >
+            <span style={{ width: `${progressPercent()}%` }} />
+          </span>
         </span>
       </button>
 
-      <label class='construction-autobuild construction-autobuild--header'>
-        <span>Autobuild</span>
-        <span class='construction-autobuild-switch'>
-          <input
-            type='checkbox'
-            checked={isAutobuildEnabled()}
-            aria-label={`Autobuild ${props.planet.name}`}
-            onChange={(event) =>
-              setAutobuildByPlanet((current) => ({
-                ...current,
-                [props.planet.id]: event.currentTarget.checked,
-              }))}
-          />
-          <span aria-hidden='true' />
-        </span>
-      </label>
-
-      <div class='construction-progress' aria-label={`Construction progress ${progressPercent()}%`}>
-        <span style={{ width: `${progressPercent()}%` }} />
-      </div>
-      <Show when={props.planet.isBuilding && props.planet.currentProject}>
-        <div class='construction-progress-meta'>
-          <span>{completedProduction()} / {props.planet.currentProject?.cost ?? 0} PP invested</span>
-          <span>{progressPercent()}%</span>
+      <div class="construction-status-row">
+        <div class="construction-progress-wrap">
+          <Show when={props.planet.isBuilding && props.planet.currentProject}>
+            <div class="construction-progress-meta">
+              <span>
+                {completedProduction()} / {activeProject().cost} PP invested
+                {turnsRemaining()
+                  ? ` · ~${turnsRemaining()} turns`
+                  : " · no production"}
+              </span>
+            </div>
+          </Show>
         </div>
-      </Show>
+        <label class="construction-autobuild construction-autobuild--header">
+          <span>Autobuild</span>
+          <span class="construction-autobuild-switch">
+            <input
+              type="checkbox"
+              checked={isAutobuildEnabled()}
+              aria-label={`Autobuild ${props.planet.name}`}
+              onChange={(event) =>
+                setAutobuildByPlanet((current) => ({
+                  ...current,
+                  [props.planet.id]: event.currentTarget.checked,
+                }))
+              }
+            />
+            <span aria-hidden="true" />
+          </span>
+        </label>
+      </div>
 
       <Show when={isChoosing()}>
         <Portal>
-          <div class='construction-modal-backdrop'>
+          <div class="construction-modal-backdrop">
             <section
-              class='construction-modal'
-              role='dialog'
-              aria-modal='true'
-              aria-labelledby='construction-modal-title'
+              class="construction-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="construction-modal-title"
               ref={modalRef}
             >
-              <header class='construction-modal-header'>
+              <header class="construction-modal-header">
                 <div>
-                  <p class='eyebrow'>Construction</p>
-                  <h2 id='construction-modal-title'>{props.planet.name}</h2>
+                  <p class="eyebrow">Construction</p>
+                  <h2 id="construction-modal-title">{props.planet.name}</h2>
                 </div>
-                <button class='secondary-button construction-close-button' type='button' onClick={cancelSelection}>
+                <button
+                  class="secondary-button construction-close-button"
+                  type="button"
+                  onClick={cancelSelection}
+                >
                   Close
                 </button>
               </header>
 
-              <div class='construction-modal-grid'>
-                <aside class='construction-modal-sidebar'>
+              <div class="construction-modal-grid">
+                <aside class="construction-modal-sidebar">
                   <h3>Buildings</h3>
-                  <div class='construction-project-list'>
+                  <div class="construction-project-list">
                     <For each={buildingListProjects()}>
                       {(project) => (
                         <button
-                          type='button'
-                          class={`construction-project-option ${selectedProject().id === project.id ? 'is-selected' : ''}`}
+                          type="button"
+                          class={`construction-project-option ${selectedProject().id === project.id ? "is-selected" : ""}`}
                           disabled={state.isBusy}
                           onMouseEnter={() => setHoveredProjectId(project.id)}
                           onMouseLeave={() => setHoveredProjectId(null)}
-                          onClick={(event) => handleProjectClick(project, event)}
+                          onClick={(event) =>
+                            handleProjectClick(project, event)
+                          }
                           onDblClick={() => handleProjectDoubleClick(project)}
                         >
-                          <span class='construction-project-name'>{project.name}</span>
-                          <span class='construction-project-cost'>{project.cost > 0 ? `${project.cost} PP` : 'Now'}</span>
+                          <span class="construction-project-name">
+                            {project.name}
+                          </span>
+                          <span class="construction-project-cost">
+                            {project.cost > 0 ? `${project.cost} PP` : "Now"}
+                          </span>
                         </button>
                       )}
                     </For>
                   </div>
                 </aside>
 
-                <main class='construction-queue-panel'>
-                  <article class='construction-project-details'>
-                    <div class='construction-project-title'>
+                <main class="construction-queue-panel">
+                  <article class="construction-project-details">
+                    <div class="construction-project-title">
                       <div>
                         <h3>{previewProject().name}</h3>
-                        <p>{previewProject().description || 'No project description available yet.'}</p>
+                        <p>
+                          {previewProject().description ||
+                            "No project description available yet."}
+                        </p>
                       </div>
                     </div>
-                    <dl class='construction-facts'>
+                    <dl class="construction-facts">
                       <div>
                         <dt>Cost</dt>
                         <dd>{previewProject().cost} PP</dd>
@@ -552,20 +716,26 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
                     </dl>
                   </article>
 
-                  <section class='construction-queue'>
-                    <div class='construction-column-header'>
+                  <section class="construction-queue">
+                    <div class="construction-column-header">
                       <h3>Queue</h3>
                       <span>{queueSlots().filter(Boolean).length}/10</span>
                     </div>
-                    <div class='construction-queue-slots'>
+                    <div class="construction-queue-slots">
                       <For each={queueSlots()}>
                         {(project, index) => (
                           <div
-                            class={`construction-queue-slot ${project ? 'is-filled' : ''} ${draggedQueueIndex() === index() ? 'is-dragging' : ''} ${dragOverQueueIndex() === index() ? 'is-drop-target' : ''}`}
+                            class={`construction-queue-slot ${project ? "is-filled" : ""} ${draggedQueueIndex() === index() ? "is-dragging" : ""} ${dragOverQueueIndex() === index() ? "is-drop-target" : ""}`}
                             draggable={Boolean(project)}
-                            onClick={() => project && removeProjectFromQueue(index())}
-                            onMouseEnter={() => project && setHoveredProjectId(project.id)}
-                            onMouseLeave={() => project && setHoveredProjectId(null)}
+                            onClick={() =>
+                              project && removeProjectFromQueue(index())
+                            }
+                            onMouseEnter={() =>
+                              project && setHoveredProjectId(project.id)
+                            }
+                            onMouseLeave={() =>
+                              project && setHoveredProjectId(null)
+                            }
                             onDragStart={() => startQueueDrag(index())}
                             onDragEnd={endQueueDrag}
                             onDragOver={(event) => {
@@ -574,9 +744,17 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
                             }}
                             onDrop={() => reorderQueue(index())}
                           >
-                            <span class='construction-queue-index'>{index() + 1}</span>
-                            <span class='construction-queue-name'>{project?.name ?? 'Empty'}</span>
-                            <span class='construction-queue-cost'>{project && project.cost > 0 ? `${project.cost} PP` : ''}</span>
+                            <span class="construction-queue-index">
+                              {index() + 1}
+                            </span>
+                            <span class="construction-queue-name">
+                              {project?.name ?? "Empty"}
+                            </span>
+                            <span class="construction-queue-cost">
+                              {project && project.cost > 0
+                                ? `${project.cost} PP`
+                                : ""}
+                            </span>
                           </div>
                         )}
                       </For>
@@ -584,27 +762,38 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
                   </section>
                 </main>
 
-                <aside class='construction-modal-sidebar construction-specials'>
+                <aside class="construction-modal-sidebar construction-specials">
                   <Show when={sectionOneCommands().length > 0}>
-                    <section class='construction-special-section'>
+                    <section class="construction-special-section">
                       <h3>Fleet Orders</h3>
-                      <div class='construction-special-list'>
+                      <div class="construction-special-list">
                         <For each={sectionOneCommands()}>
                           {(command) => {
-                            const isColonyBase = command.unlockName === 'Colony Base';
-                            const hasSuitablePlanets = (command as any).hasSuitablePlanets;
+                            const isColonyBase =
+                              command.unlockName === "Colony Base";
+                            const hasSuitablePlanets = (command as any)
+                              .hasSuitablePlanets;
                             const hasTech = (command as any).hasTech;
-                            const colonyBaseDisabled = isColonyBase && !hasSuitablePlanets;
-                            const isDisabled = isColonyBase 
-                              ? (state.isBusy || colonyBaseDisabled || !hasTech)
-                              : (state.isBusy || !command.project);
+                            const colonyBaseDisabled =
+                              isColonyBase && !hasSuitablePlanets;
+                            const isDisabled = isColonyBase
+                              ? state.isBusy || colonyBaseDisabled || !hasTech
+                              : state.isBusy || !command.project;
                             return (
                               <button
-                                type='button'
-                                class='construction-special-option'
+                                type="button"
+                                class="construction-special-option"
                                 disabled={isDisabled}
-                                onMouseEnter={() => !isColonyBase && command.project && setHoveredProjectId(command.project.id)}
-                                onMouseLeave={() => !isColonyBase && command.project && setHoveredProjectId(null)}
+                                onMouseEnter={() =>
+                                  !isColonyBase &&
+                                  command.project &&
+                                  setHoveredProjectId(command.project.id)
+                                }
+                                onMouseLeave={() =>
+                                  !isColonyBase &&
+                                  command.project &&
+                                  setHoveredProjectId(null)
+                                }
                                 onClick={(event) => {
                                   if (isColonyBase) {
                                     if (!colonyBaseDisabled && hasTech) {
@@ -631,7 +820,11 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
                                   }
                                 }}
                               >
-                                <span>{isColonyBase && !hasSuitablePlanets ? 'No suitable planets' : command.label}</span>
+                                <span>
+                                  {isColonyBase && !hasSuitablePlanets
+                                    ? "No suitable planets for Colony Base"
+                                    : command.label}
+                                </span>
                               </button>
                             );
                           }}
@@ -641,12 +834,16 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
                   </Show>
 
                   <Show when={shipDesigns().some(Boolean)}>
-                    <section class='construction-special-section'>
+                    <section class="construction-special-section">
                       <h3>Ship Designs</h3>
-                      <div class='construction-design-slots'>
+                      <div class="construction-design-slots">
                         <For each={shipDesigns()}>
                           {(design) => (
-                            <button type='button' class='construction-design-slot' disabled>
+                            <button
+                              type="button"
+                              class="construction-design-slot"
+                              disabled
+                            >
                               <Show when={design} fallback={<span>Empty</span>}>
                                 {(item) => (
                                   <>
@@ -663,19 +860,30 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
                   </Show>
 
                   <Show when={personnelCommands().length > 0}>
-                    <section class='construction-special-section'>
+                    <section class="construction-special-section">
                       <h3>Personnel</h3>
-                      <div class='construction-special-list'>
+                      <div class="construction-special-list">
                         <For each={personnelCommands()}>
                           {(command) => (
                             <button
-                              type='button'
-                              class='construction-special-option'
+                              type="button"
+                              class="construction-special-option"
                               disabled={state.isBusy || !command.project}
-                              onMouseEnter={() => command.project && setHoveredProjectId(command.project.id)}
-                              onMouseLeave={() => command.project && setHoveredProjectId(null)}
-                              onClick={(event) => command.project && handleProjectClick(command.project, event)}
-                              onDblClick={() => command.project && handleProjectDoubleClick(command.project)}
+                              onMouseEnter={() =>
+                                command.project &&
+                                setHoveredProjectId(command.project.id)
+                              }
+                              onMouseLeave={() =>
+                                command.project && setHoveredProjectId(null)
+                              }
+                              onClick={(event) =>
+                                command.project &&
+                                handleProjectClick(command.project, event)
+                              }
+                              onDblClick={() =>
+                                command.project &&
+                                handleProjectDoubleClick(command.project)
+                              }
                             >
                               <span>{command.label}</span>
                             </button>
@@ -690,7 +898,6 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
           </div>
         </Portal>
       </Show>
-
     </section>
   );
 }

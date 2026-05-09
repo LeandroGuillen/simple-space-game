@@ -262,14 +262,11 @@ export function AppProvider(props: ParentProps) {
 
   function changeBuildQueue(planetId: number, buildingNames: string[]) {
     const nextBuildCommands = state.pendingCommands.build.filter((command) => command.planetId !== planetId);
-    const planet = findPlanet(state.game, planetId);
-    const activeBuildingName = planet?.isBuilding && planet.currentProject
-      ? planet.currentProject.name
-      : buildingNames[0];
+    const activeBuildingName = buildingNames[0];
     nextBuildCommands.push({
       planetId,
       building: activeBuildingName ?? '',
-      build_queue: buildingNames,
+      build_queue: buildingNames.slice(1),
     });
     setState('pendingCommands', 'build', nextBuildCommands);
     setState('info', buildingNames.length > 0 ? 'Build queue updated' : 'Build queue cleared');

@@ -329,7 +329,11 @@ export function AppShell(props: RouteSectionProps) {
     ),
   );
   const empireIncomeTitle = createMemo(() =>
-    formatEmpireIncomeTooltip(state.game, currentPlayer() ?? null, state.pendingCommands),
+    formatEmpireIncomeTooltip(
+      state.game,
+      currentPlayer() ?? null,
+      state.pendingCommands,
+    ),
   );
   const commandCapacityTitle = createMemo(() =>
     formatCommandCapacityTooltip(state.game, currentPlayer() ?? null),
@@ -582,12 +586,15 @@ export function AppShell(props: RouteSectionProps) {
                     <div
                       class="turn-stat"
                       classList={{
-                        "turn-stat--negative": (currentPlayer()?.commandPointsRemaining ?? 0) < 0,
+                        "turn-stat--negative":
+                          (currentPlayer()?.commandPointsRemaining ?? 0) < 0,
                       }}
                       title={commandCapacityTitle()}
                     >
                       <span>COMMAND</span>
-                      <strong>{formatCommandPointsDisplay(currentPlayer() ?? null)}</strong>
+                      <strong>
+                        {formatCommandPointsDisplay(currentPlayer() ?? null)}
+                      </strong>
                     </div>
 
                     <div class="turn-stat">
@@ -744,7 +751,7 @@ export function AppShell(props: RouteSectionProps) {
                 when={colonizeModalPlanets().length > 0}
                 fallback={
                   <div class="research-breakthrough-notice">
-                    <span>No suitable planets</span>
+                    <span>No suitable planets for Colony Base</span>
                     <strong>Colony Base lost</strong>
                   </div>
                 }
