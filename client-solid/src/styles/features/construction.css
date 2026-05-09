@@ -211,8 +211,8 @@
   }
 
   & > .construction-panel {
-    flex: 0 1 420px;
-    min-width: 320px;
+    flex: 0 1 360px;
+    min-width: 300px;
   }
 
   & .planet-info {
@@ -335,10 +335,10 @@
   width: 100%;
   border: 1px solid var(--rule-strong);
   border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, var(--bg-elev), rgba(92, 135, 160, 0.12));
+  background: var(--surface-quiet);
   color: var(--text);
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: 12px;
   align-items: center;
   padding: 10px 12px;
@@ -372,23 +372,22 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
 }
 
 .construction-widget-body strong {
   font-size: 0.95rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .construction-muted {
   color: var(--text-dim);
   font-size: 0.76rem;
-}
-
-.construction-widget-action {
-  color: var(--accent);
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .construction-progress {
@@ -633,16 +632,6 @@
   font-weight: 700;
 }
 
-.construction-chooser-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid var(--rule);
-}
-
 .construction-queue {
   min-height: 0;
   display: flex;
@@ -790,6 +779,12 @@
   min-height: 34px;
   color: var(--text);
   font-size: 0.78rem;
+}
+
+.construction-autobuild--header {
+  justify-content: flex-end;
+  padding: 2px 0;
+  color: var(--text-dim);
 }
 
 .construction-autobuild-switch {

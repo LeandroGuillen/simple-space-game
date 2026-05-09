@@ -207,24 +207,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     }
     return Math.max(0, workers);
   });
-  const projectedFarmers = createMemo(() => {
-    let farmers = props.planet.food.farmers;
-    for (const move of pendingMoves()) {
-      if (move.to === 'farmers') {
-        farmers += move.count;
-      }
-      if (move.from === 'farmers') {
-        farmers -= move.count;
-      }
-    }
-    return Math.max(0, farmers);
-  });
   const industryPerTurn = createMemo(() => getPlanetIndustryForWorkers(props.planet, projectedWorkers()));
-  const foodPerTurn = createMemo(
-    () => projectedFarmers() * props.planet.food.produced_per_farmer + props.planet.food.produced_per_building,
-  );
-  const foodSurplus = createMemo(() => Math.max(0, foodPerTurn() - Math.floor(props.planet.population / 1000)));
-  const tradeGoodsIncome = createMemo(() => Math.floor(industryPerTurn() / 2) + Math.floor(foodSurplus() / 2));
   const completedProduction = createMemo(() => {
     if (!props.planet.isBuilding || !props.planet.currentProject) {
       return 0;
@@ -279,7 +262,11 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
       return queuedProjects();
     }
     setSelectedProjectId(project.id);
-    const projects = queuedProjects();
+    const currentProjects = queuedProjects();
+    const projects =
+      project.id !== 0 && currentProjects.length === 1 && currentProjects[0]?.id === TRADE_GOODS.id
+        ? []
+        : currentProjects;
     if (projects.length >= 10) {
       return projects;
     }
@@ -311,21 +298,6 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     };
   }
 
-  function confirmProject(project: BuildingViewModel, projects = queuedProjects()) {
-    const nextProjects = projects.length > 0 ? projects : [project];
-    changeBuildQueue(props.planet.id, nextProjects.map((queuedProject) => queuedProject.name));
-    setIsChoosing(false);
-  }
-
-  function confirmQueue() {
-    if (queuedProjects().length === 0) {
-      const nextProjects = addProjectToQueue(selectedProject());
-      confirmProject(selectedProject(), nextProjects);
-      return;
-    }
-    confirmProject(queuedProjects()[0] ?? selectedProject());
-  }
-
   function handleProjectClick(project: BuildingViewModel, event: MouseEvent) {
     if (event.detail !== 1) {
       return;
@@ -344,8 +316,8 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
       clearTimeout(projectClickTimer);
       projectClickTimer = undefined;
     }
-    const nextProjects = addProjectToQueue(project);
-    confirmProject(project, nextProjects);
+    addProjectToQueue(project);
+    cancelSelection();
   }
 
   function reorderQueue(toIndex: number) {
@@ -477,32 +449,41 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
       <button class='construction-widget' type='button' onClick={toggleChooser}>
         <span class='construction-widget-icon'>{activeProject().icon}</span>
         <span class='construction-widget-body'>
-          <span class='eyebrow'>Construction</span>
           <strong>{activeProject().name}</strong>
-          <Show
-            when={props.planet.isBuilding && props.planet.currentProject}
-            fallback={<span class='construction-muted'>Producing treasury income</span>}
-          >
+          <Show when={props.planet.isBuilding && props.planet.currentProject}>
             <span class='construction-muted'>
               {props.planet.buildBucket} PP left · {industryPerTurn()} PP/turn · {turnsRemaining() ? `~${turnsRemaining()} turns` : 'no production'}
             </span>
           </Show>
         </span>
-        <span class='construction-widget-action'>{isChoosing() ? 'Cancel' : 'Change'}</span>
       </button>
+
+      <label class='construction-autobuild construction-autobuild--header'>
+        <span>Autobuild</span>
+        <span class='construction-autobuild-switch'>
+          <input
+            type='checkbox'
+            checked={isAutobuildEnabled()}
+            aria-label={`Autobuild ${props.planet.name}`}
+            onChange={(event) =>
+              setAutobuildByPlanet((current) => ({
+                ...current,
+                [props.planet.id]: event.currentTarget.checked,
+              }))}
+          />
+          <span aria-hidden='true' />
+        </span>
+      </label>
 
       <div class='construction-progress' aria-label={`Construction progress ${progressPercent()}%`}>
         <span style={{ width: `${progressPercent()}%` }} />
       </div>
-      <div class='construction-progress-meta'>
-        <Show
-          when={props.planet.isBuilding && props.planet.currentProject}
-          fallback={<span>Trade Goods producing {tradeGoodsIncome()} BC</span>}
-        >
+      <Show when={props.planet.isBuilding && props.planet.currentProject}>
+        <div class='construction-progress-meta'>
           <span>{completedProduction()} / {props.planet.currentProject?.cost ?? 0} PP invested</span>
           <span>{progressPercent()}%</span>
-        </Show>
-      </div>
+        </div>
+      </Show>
 
       <Show when={isChoosing()}>
         <Portal>
@@ -569,26 +550,6 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
                         <dd>{industryPerTurn()} PP/turn</dd>
                       </div>
                     </dl>
-                    <div class='construction-chooser-actions'>
-                      <label class='construction-autobuild'>
-                        <span>Autobuild</span>
-                        <span class='construction-autobuild-switch'>
-                          <input
-                            type='checkbox'
-                            checked={isAutobuildEnabled()}
-                            onChange={(event) =>
-                              setAutobuildByPlanet((current) => ({
-                                ...current,
-                                [props.planet.id]: event.currentTarget.checked,
-                              }))}
-                          />
-                          <span aria-hidden='true' />
-                        </span>
-                      </label>
-                      <button class='primary-button' type='button' disabled={state.isBusy} onClick={confirmQueue}>
-                        Build
-                      </button>
-                    </div>
                   </article>
 
                   <section class='construction-queue'>
@@ -662,7 +623,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
                                       const project = colonyBaseProject();
                                       if (project) {
                                         addProjectToQueue(project);
-                                        confirmProject(project);
+                                        cancelSelection();
                                       }
                                     }
                                   } else if (command.project) {
