@@ -24,6 +24,9 @@ import type {
   TechSubjectViewModel,
 } from "../lib/types/domain";
 import {
+  formatCommandCapacityTooltip,
+  formatCommandPointsDisplay,
+  formatEmpireIncomeTooltip,
   formatSignedBc,
   gameIdShort,
   getEmpireIncome,
@@ -319,7 +322,14 @@ export function AppShell(props: RouteSectionProps) {
       state.game,
       currentPlayer()?.id ?? state.session.playerId,
       state.pendingCommands,
+      currentPlayer() ?? null,
     ),
+  );
+  const empireIncomeTitle = createMemo(() =>
+    formatEmpireIncomeTooltip(state.game, currentPlayer() ?? null, state.pendingCommands),
+  );
+  const commandCapacityTitle = createMemo(() =>
+    formatCommandCapacityTooltip(state.game, currentPlayer() ?? null),
   );
   const queuedResearchName = createMemo(
     () => state.pendingCommands.selectResearch?.tech_name,
@@ -521,6 +531,7 @@ export function AppShell(props: RouteSectionProps) {
                     <div
                       class="turn-stat"
                       classList={{ "turn-stat--negative": empireIncome() < 0 }}
+                      title={empireIncomeTitle()}
                     >
                       <span>Income</span>
                       <strong>{formatSignedBc(empireIncome())}</strong>
@@ -546,9 +557,15 @@ export function AppShell(props: RouteSectionProps) {
                       </strong>
                     </button>
 
-                    <div class="turn-stat">
-                      <span>Command</span>
-                      <strong>0</strong>
+                    <div
+                      class="turn-stat"
+                      classList={{
+                        "turn-stat--negative": (currentPlayer()?.commandPointsRemaining ?? 0) < 0,
+                      }}
+                      title={commandCapacityTitle()}
+                    >
+                      <span>COMMAND</span>
+                      <strong>{formatCommandPointsDisplay(currentPlayer() ?? null)}</strong>
                     </div>
 
                     <div class="turn-stat">

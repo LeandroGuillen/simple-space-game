@@ -123,6 +123,8 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 
 	// empire turn processing
 	player.Treasury += totalIncome
+	g.HydrateCommandPoints()
+	player.Treasury -= player.CommandOverdrawBC
 	if err := g.applyResearch(player, uint64(max(totalResearch, 0))); err != nil {
 		return err
 	}
@@ -167,6 +169,8 @@ func (g *Game) CreateCapitalPlanet(ownerID uint) error {
 	hydratePlanetOutputs(g, planet)
 	hydratePlanetPopulationCapacity(g, planet, player)
 	hydratePlanetIncome(g, planet, 0)
+
+	g.HydrateCommandPoints()
 
 	return nil
 }

@@ -6,8 +6,8 @@
       "icon": "🏛️",
       "built_on": "PLANET",
       "unique": true,
-      "cost": 100,
-      "maintenance": 1
+      "cost": 200,
+      "maintenance": 0
     },
     {
       "name": "Colony Base",
@@ -334,7 +334,6 @@
       "grants": {
         "modifiers": [
           { "name": "scanner_range", "value": 5 },
-          { "name": "command_points", "value": 3 },
           { "name": "max_ship_size_bonus", "value": 2 },
           { "name": "fleet_defense", "value": 50 },
           { "name": "fleet_attack", "value": 50 }

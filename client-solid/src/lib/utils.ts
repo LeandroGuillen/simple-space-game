@@ -4,10 +4,12 @@ import type {
   BuildCommand,
 } from "./types/commands";
 import type {
+  BuildingViewModel,
   ColonyRow,
   FleetViewModel,
   GameViewModel,
   PlanetViewModel,
+  PlayerViewModel,
   ShipDesignForm,
   StarSummary,
 } from "./types/domain";
@@ -234,13 +236,17 @@ export function getPlanetProjectedPopulationGrowth(planet: PlanetViewModel, pend
   return Math.floor(basicIncrement + flatGrowthBonus - foodLackPenalty);
 }
 
-export function getColonyRows(game?: GameViewModel | null, pendingCommands?: PendingCommands): ColonyRow[] {
+export function getColonyRows(
+  game?: GameViewModel | null,
+  pendingCommands?: PendingCommands,
+  playerId = 1,
+): ColonyRow[] {
   if (!game) {
     return [];
   }
   return game.galaxy.stars.flatMap((star) =>
     star.planets
-      .filter((planet) => planet.owner === 1)
+      .filter((planet) => planet.owner === playerId)
       .map((planet) => ({
         id: planet.id,
         name: planet.name,
@@ -258,14 +264,159 @@ export function getColonyRows(game?: GameViewModel | null, pendingCommands?: Pen
   );
 }
 
-export function getEmpireIncome(game?: GameViewModel | null, playerId = 1, pendingCommands?: PendingCommands) {
+export function getEmpireIncome(
+  game?: GameViewModel | null,
+  playerId = 1,
+  pendingCommands?: PendingCommands,
+  player?: PlayerViewModel | null,
+) {
   if (!game) {
     return 0;
   }
-  return game.galaxy.stars
+  const colonyTotal = game.galaxy.stars
     .flatMap((star) => star.planets)
     .filter((planet) => planet.owner === playerId)
     .reduce((total, planet) => total + getPlanetProjectedIncome(planet, pendingCommands).total, 0);
+  const me = player ?? game.players.find((p) => p.id === playerId);
+  const commandPenalty = me?.commandOverdrawBc ?? 0;
+  return colonyTotal - commandPenalty;
+}
+
+/** Multi-line tooltip for empire income (colonies + command overcapacity). */
+export function formatEmpireIncomeTooltip(
+  game: GameViewModel | null | undefined,
+  player: PlayerViewModel | null | undefined,
+  pendingCommands?: PendingCommands,
+): string {
+  if (!game || !player) {
+    return "";
+  }
+  const lines: string[] = [];
+  let coloniesTotal = 0;
+  for (const star of game.galaxy.stars) {
+    for (const planet of star.planets) {
+      if (planet.owner !== player.id) {
+        continue;
+      }
+      const inc = getPlanetProjectedIncome(planet, pendingCommands).total;
+      coloniesTotal += inc;
+      lines.push(`${planet.name} (${star.name}): ${formatSignedBc(inc)}`);
+    }
+  }
+  if (lines.length === 0) {
+    return "No colonies";
+  }
+  lines.push(`Colonies total: ${formatSignedBc(coloniesTotal)}`);
+  const overBc = player.commandOverdrawBc ?? 0;
+  if (overBc > 0) {
+    const cap = player.commandPointsCapacity ?? 0;
+    const used = player.commandPointsUsed ?? 0;
+    const overCp = Math.max(0, used - cap);
+    lines.push(`Command overcapacity (${overCp} CP): -${overBc} BC`);
+  }
+  return lines.join("\n");
+}
+
+export function formatCommandPointsDisplay(player: PlayerViewModel | null | undefined): string {
+  if (!player) {
+    return "+0 (0)";
+  }
+  const rem = player.commandPointsRemaining ?? 0;
+  const cap = player.commandPointsCapacity ?? 0;
+  const sign = rem > 0 ? "+" : "";
+  return `${sign}${rem} (${cap})`;
+}
+
+function commandPointsPerBuiltBuilding(building: BuildingViewModel): number {
+  return building.modifiers
+    .filter((modifier) => modifier.name.toLowerCase() === "command_points")
+    .reduce((sum, modifier) => sum + modifier.bonus, 0);
+}
+
+/** Lowercase building label with simple English plural for CP tooltip lines. */
+function pluralBuildingLabel(canonicalName: string, count: number): string {
+  const label = canonicalName.trim().toLowerCase();
+  if (count === 1) {
+    return label;
+  }
+  if (label.endsWith(" base")) {
+    return `${label.slice(0, -5)} bases`;
+  }
+  if (label.endsWith("ss")) {
+    return `${label}es`;
+  }
+  if (label.endsWith("s") || label.endsWith("x") || label.endsWith("ch") || label.endsWith("sh")) {
+    return `${label}es`;
+  }
+  return `${label}s`;
+}
+
+/** Multi-line tooltip: capacity sources (starting bonus, colonies, buildings with command_points). */
+export function formatCommandCapacityTooltip(
+  game: GameViewModel | null | undefined,
+  player: PlayerViewModel | null | undefined,
+): string {
+  if (!game || !player) {
+    return "";
+  }
+
+  const lines: string[] = [];
+  const starting = player.commandPointsStartingBonus ?? 0;
+  if (starting > 0) {
+    lines.push(`${starting} from starting allocation`);
+  }
+
+  let colonyCount = 0;
+  const buildingBuckets = new Map<
+    string,
+    { displayName: string; count: number; cpPerBuilding: number }
+  >();
+
+  for (const star of game.galaxy.stars) {
+    for (const planet of star.planets) {
+      if (planet.owner !== player.id) {
+        continue;
+      }
+      colonyCount += 1;
+      for (const building of planet.buildings) {
+        const cp = commandPointsPerBuiltBuilding(building);
+        if (cp <= 0) {
+          continue;
+        }
+        const key = building.name.toLowerCase();
+        const existing = buildingBuckets.get(key);
+        if (existing) {
+          existing.count += 1;
+        } else {
+          buildingBuckets.set(key, {
+            displayName: building.name,
+            count: 1,
+            cpPerBuilding: cp,
+          });
+        }
+      }
+    }
+  }
+
+  if (colonyCount > 0) {
+    const colonyWord = colonyCount === 1 ? "colony" : "colonies";
+    lines.push(`${colonyCount} from ${colonyCount} ${colonyWord}`);
+  }
+
+  const buildingLines = [...buildingBuckets.values()]
+    .map((bucket) => ({
+      bucket,
+      totalCp: bucket.count * bucket.cpPerBuilding,
+      sortKey: bucket.displayName.toLowerCase(),
+    }))
+    .sort((a, b) => a.sortKey.localeCompare(b.sortKey));
+
+  for (const { bucket, totalCp } of buildingLines) {
+    const label = pluralBuildingLabel(bucket.displayName, bucket.count);
+    lines.push(`${totalCp} from ${bucket.count} ${label}`);
+  }
+
+  return lines.join("\n");
 }
 
 export function formatSignedBc(value: number) {

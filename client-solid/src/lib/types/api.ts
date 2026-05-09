@@ -300,6 +300,11 @@ export type ApiPlayer = {
   freighters: number;
   freighters_used: number;
   ship_designs?: ApiShipDesign[] | null;
+  command_points_capacity?: number;
+  command_points_used?: number;
+  command_points_remaining?: number;
+  command_overdraw_bc?: number;
+  command_points_starting_bonus?: number;
 };
 
 export type ApiFleetShip = {

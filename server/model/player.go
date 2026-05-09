@@ -21,6 +21,12 @@ type Player struct {
 
 	ShipDesigns   []ShipDesign `json:"ship_designs"`
 	ExploredStars []uint       `json:"explored_stars"`
+
+	CommandPointsCapacity      int64 `json:"command_points_capacity"`
+	CommandPointsUsed          int64 `json:"command_points_used"`
+	CommandPointsRemaining     int64 `json:"command_points_remaining"`
+	CommandOverdrawBC          int64 `json:"command_overdraw_bc"`
+	CommandPointsStartingBonus int64 `json:"command_points_starting_bonus"`
 }
 
 type AvailableTech struct {

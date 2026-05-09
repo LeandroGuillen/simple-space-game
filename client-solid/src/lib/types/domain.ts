@@ -134,6 +134,11 @@ export type PlayerViewModel = {
   freighters: number;
   freightersUsed: number;
   shipDesigns: ShipDesignViewModel[];
+  commandPointsCapacity: number;
+  commandPointsUsed: number;
+  commandPointsRemaining: number;
+  commandOverdrawBc: number;
+  commandPointsStartingBonus: number;
 };
 
 export type FleetShipViewModel = {

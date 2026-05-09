@@ -172,6 +172,11 @@ function mapPlayer(player: ApiPlayer): PlayerViewModel {
     freightersUsed: player.freighters_used,
     shipDesigns:
       player.ship_designs?.map((design) => mapShipDesign(design, false)) ?? [],
+    commandPointsCapacity: player.command_points_capacity ?? 0,
+    commandPointsUsed: player.command_points_used ?? 0,
+    commandPointsRemaining: player.command_points_remaining ?? 0,
+    commandOverdrawBc: player.command_overdraw_bc ?? 0,
+    commandPointsStartingBonus: player.command_points_starting_bonus ?? 0,
   };
 }
 

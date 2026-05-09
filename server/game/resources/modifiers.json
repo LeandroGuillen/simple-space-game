@@ -16,7 +16,7 @@
     },
     {
       "name": "command_points",
-      "description": "Adds command points.",
+      "description": "Adds command points to the empire budget (ADD; negative values subtract from capacity).",
       "scope": "EMPIRE",
       "stat": "command_points",
       "operation": "ADD"

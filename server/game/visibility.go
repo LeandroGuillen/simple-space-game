@@ -25,6 +25,8 @@ func (g *Game) GetVisibleGameForPlayer(playerID uint) (*Game, error) {
 		return nil, err
 	}
 
+	g.HydrateCommandPoints()
+
 	visible := *g
 	visible.Galaxy = model.Galaxy{Stars: make([]*model.Star, 0, len(g.Galaxy.Stars))}
 	for _, star := range g.Galaxy.Stars {
