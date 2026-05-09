@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	. "ssg/model"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -16,6 +17,8 @@ type Game struct {
 	Players     []*Player  `json:"players"`
 	ID          string     `json:"id"`
 	CurrentTurn int64      `json:"current_turn"`
+	CreatedAt   time.Time  `json:"created_at"`
+	LastTurnAt  *time.Time `json:"last_turn_at,omitempty"`
 	Resources   *Resources `json:"resources"`
 }
 
@@ -29,11 +32,13 @@ func NewGame(resources *ResourceManager, playerName string, numStars uint, playe
 
 	firstPlayerID := uint(1)
 	player1 := NewPlayer(firstPlayerID, playerName, playerColor)
+	created := time.Now().UTC()
 	g := &Game{
 		Galaxy:      NewGalaxy(numStars),
 		Players:     []*Player{player1},
 		ID:          uuid.New().String(),
 		CurrentTurn: 3500,
+		CreatedAt:   created,
 		Resources:   &resources.Resources,
 	}
 	g.hydratePlayerAvailability(player1)
@@ -91,6 +96,8 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 	}
 
 	g.CurrentTurn += 1
+	now := time.Now().UTC()
+	g.LastTurnAt = &now
 	return nil
 }
 

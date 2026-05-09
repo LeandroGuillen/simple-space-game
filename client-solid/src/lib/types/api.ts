@@ -6,6 +6,10 @@ export type ApiGameListItem = {
   game_id: string;
   num_stars: number;
   current_turn: number;
+  /** ISO-8601 UTC when the game was created */
+  created_at?: string | null;
+  /** ISO-8601 UTC when the last turn completed; omit or null if none yet */
+  last_turn_at?: string | null;
   players: ApiGameListPlayer[];
 };
 
@@ -302,6 +306,8 @@ export type ApiGame = {
   players: ApiPlayer[];
   id: string;
   current_turn: number;
+  created_at?: string | null;
+  last_turn_at?: string | null;
   resources: ApiResources;
 };
 

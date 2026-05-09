@@ -28,60 +28,6 @@
   }
 }
 
-
-
-.sidebar-session {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  margin-top: 18px;
-  padding-top: 16px;
-  border-top: 1px solid var(--rule);
-  min-width: 0;
-  width: 100%;
-
-  & .status {
-    font-size: 0.74rem;
-  }
-}
-
-.session-server {
-  display: block;
-  max-width: 100%;
-  color: var(--text-mute);
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.session-game {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-dim);
-}
-
-.session-manage {
-  margin-top: 4px;
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-mute);
-  border-bottom: 1px solid transparent;
-  padding-bottom: 1px;
-  transition:
-    color 0.12s ease,
-    border-color 0.12s ease;
-
-  &:hover {
-    color: var(--accent);
-    border-bottom-color: currentColor;
-  }
-}
-
 .sidebar-menu {
   margin-bottom: 4px;
   padding-top: 16px;

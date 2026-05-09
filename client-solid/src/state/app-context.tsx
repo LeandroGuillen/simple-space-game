@@ -6,6 +6,7 @@ import { mapGame, mapPlayerColorOptions } from '../lib/mappers';
 import type { ApiGameListItem } from '../lib/types/api';
 import type { GameViewModel, PlayerColorOptions, ShipDesignForm } from '../lib/types/domain';
 import type { MovePopulationCommand, PendingCommands, SelectResearchCommand, TurnCommands } from '../lib/types/commands';
+import { clearSessionLastSetupServerUrl } from '../lib/setup-session-storage';
 import { findPlanet, getColonyRows, getPrimaryPlayer, normalizeServerUrl, toWebSocketUrl } from '../lib/utils';
 
 type ConnectionStatus = 'idle' | 'checking' | 'connected' | 'error';
@@ -115,6 +116,7 @@ export function AppProvider(props: ParentProps) {
     clearError();
     window.localStorage.removeItem(STORAGE_KEYS.serverUrl);
     window.localStorage.removeItem(STORAGE_KEYS.selectedGameId);
+    clearSessionLastSetupServerUrl();
   }
 
   async function connect(serverUrl: string) {

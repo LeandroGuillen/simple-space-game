@@ -1,4 +1,4 @@
-import { getPlanetProjectedPopulationGrowth } from "../utils";
+import { formatGameLastTurnAt, getPlanetProjectedPopulationGrowth } from "../utils";
 import type { BuildingViewModel, PlanetViewModel } from "../types/domain";
 
 function building(name: string, modifiers: BuildingViewModel["modifiers"] = []): BuildingViewModel {
@@ -79,6 +79,21 @@ function planet(overrides: Partial<PlanetViewModel> = {}): PlanetViewModel {
     ...overrides,
   };
 }
+
+describe("formatGameLastTurnAt", () => {
+  it("returns em dash for missing or invalid input", () => {
+    expect(formatGameLastTurnAt(undefined)).toBe("—");
+    expect(formatGameLastTurnAt(null)).toBe("—");
+    expect(formatGameLastTurnAt("")).toBe("—");
+    expect(formatGameLastTurnAt("not-a-date")).toBe("—");
+  });
+
+  it("formats valid ISO timestamps", () => {
+    const out = formatGameLastTurnAt("2026-05-08T14:30:00.000Z");
+    expect(out).not.toBe("—");
+    expect(out.length).toBeGreaterThan(4);
+  });
+});
 
 describe("getPlanetProjectedPopulationGrowth", () => {
   it("includes flat population growth from built buildings", () => {

@@ -4,10 +4,16 @@ import {
   createMemo,
   createSignal,
   For,
+  onMount,
   Show,
 } from "solid-js";
 
 import type { ApiGameListItem } from "../lib/types/api";
+import {
+  getInitialSetupSelectedServerUrl,
+  setSessionLastSetupServerUrl,
+} from "../lib/setup-session-storage";
+import { formatGameLastTurnAt, normalizeServerUrl } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
 
 type ServerInfo = {
@@ -18,10 +24,10 @@ type ServerInfo = {
 
 function PanelHeader(props: { title: string; count?: number }) {
   return (
-    <header class="panel-header">
+    <header class="setup-panel-header">
       <h2>{props.title}</h2>
       <Show when={props.count !== undefined}>
-        <span class="panel-count">{props.count}</span>
+        <span class="setup-panel-count">{props.count}</span>
       </Show>
     </header>
   );
@@ -67,7 +73,9 @@ export function SetupPage() {
     useAppContext();
 
   const [servers, setServers] = createSignal<ServerInfo[]>([]);
-  const [selectedServerUrl, setSelectedServerUrl] = createSignal("");
+  const [selectedServerUrl, setSelectedServerUrl] = createSignal(
+    getInitialSetupSelectedServerUrl(),
+  );
   const [showServerForm, setShowServerForm] = createSignal(false);
   const [newServerUrl, setNewServerUrl] = createSignal("http://127.0.0.1:8080");
   const [playerName, setPlayerName] = createSignal("Admiral");
@@ -83,6 +91,20 @@ export function SetupPage() {
 
   const isConnected = createMemo(() => activeServer()?.status === "connected");
   const gameCount = createMemo(() => activeServer()?.games.length ?? 0);
+
+  createEffect(() => {
+    setSessionLastSetupServerUrl(selectedServerUrl());
+  });
+
+  createEffect(() => {
+    if (selectedServerUrl()) {
+      return;
+    }
+    const ctx = normalizeServerUrl(state.session.serverUrl);
+    if (ctx) {
+      setSelectedServerUrl(ctx);
+    }
+  });
 
   createEffect(() => {
     const status = state.session.connectionStatus;
@@ -107,6 +129,33 @@ export function SetupPage() {
         ];
       });
     }
+  });
+
+  onMount(() => {
+    const sel = selectedServerUrl();
+    if (!sel) {
+      return;
+    }
+    const nSel = normalizeServerUrl(sel);
+    const ctx = normalizeServerUrl(state.session.serverUrl);
+    if (
+      state.session.connectionStatus === "connected" &&
+      ctx === nSel
+    ) {
+      void refreshGames();
+      return;
+    }
+    if (state.session.connectionStatus === "checking") {
+      return;
+    }
+    setIsConnecting(true);
+    void (async () => {
+      try {
+        await connect(nSel);
+      } finally {
+        setIsConnecting(false);
+      }
+    })();
   });
 
   createEffect(() => {
@@ -183,226 +232,244 @@ export function SetupPage() {
 
   return (
     <section class="setup-page">
-      <aside class="panel server-panel">
-        <PanelHeader title="Servers" />
+      <div class="setup-hub">
+        <div class="setup-hub-grid">
+          <aside class="setup-sidebar" aria-label="Servers">
+            <PanelHeader title="Servers" />
 
-        <div class="server-list">
-          <For each={servers()}>
-            {(server) => (
-              <li class="server-item-wrap">
-                <button
-                  type="button"
-                  class="server-item"
-                  classList={{ selected: selectedServerUrl() === server.url }}
-                  onClick={() => void handleSelectServer(server.url)}
-                  disabled={isConnecting()}
-                >
-                  <StatusDot status={server.status} />
-                  <span class="server-item-url">{server.url}</span>
-                  <span class="server-item-status">
-                    {server.status === "connected"
-                      ? `${server.games.length}`
-                      : server.status}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  class="server-remove"
-                  classList={{ confirming: confirmRemove() === server.url }}
-                  onClick={() => handleRemoveServer(server.url)}
-                  disabled={isConnecting()}
-                  title="Remove server"
-                >
-                  {confirmRemove() === server.url ? "?" : "×"}
-                </button>
-              </li>
-            )}
-          </For>
-        </div>
-
-        <Show when={!showServerForm()}>
-          <button
-            class="add-button"
-            type="button"
-            onClick={() => setShowServerForm(true)}
-          >
-            <PlusIcon />
-            Add server
-          </button>
-        </Show>
-
-        <Show when={showServerForm()}>
-          <form class="server-form" onSubmit={handleAddServer}>
-            <input
-              value={newServerUrl()}
-              onInput={(event) => setNewServerUrl(event.currentTarget.value)}
-              placeholder="http://127.0.0.1:8080"
-              autofocus
-            />
-            <div class="form-actions">
-              <button
-                class="link-button"
-                type="button"
-                onClick={() => setShowServerForm(false)}
-                disabled={isConnecting()}
-              >
-                Cancel
-              </button>
-              <button
-                class="primary-button"
-                type="submit"
-                disabled={isConnecting()}
-              >
-                Connect
-              </button>
-            </div>
-          </form>
-        </Show>
-      </aside>
-
-      <section class="panel game-panel">
-        <PanelHeader title="Games" count={gameCount()} />
-
-        <Show
-          when={isConnected()}
-          fallback={
-            <div class="empty-state">
-              <span class="empty-text">Select a server to view games</span>
-            </div>
-          }
-        >
-          <Show
-            when={activeServer()?.games.length}
-            fallback={
-              <div class="empty-state">
-                <span class="empty-text">No games yet</span>
-                <button
-                  class="secondary-button create-first"
-                  type="button"
-                  onClick={() => setShowNewGameForm(true)}
-                >
-                  Create one
-                </button>
-              </div>
-            }
-          >
-            <ul class="game-list">
-              <For each={activeServer()?.games}>
-                {(game) => (
-                  <li>
+            <ul class="server-list">
+              <For each={servers()}>
+                {(server) => (
+                  <li class="server-item-wrap">
                     <button
                       type="button"
-                      class="game-item"
-                      onClick={() => void handleSelect(game.game_id)}
-                      disabled={state.isBusy}
+                      class="server-item"
+                      classList={{ selected: selectedServerUrl() === server.url }}
+                      onClick={() => void handleSelectServer(server.url)}
+                      disabled={isConnecting()}
                     >
-                      <div class="game-item-players">
-                        <For each={game.players}>
-                          {(player) => (
-                            <span
-                              class="game-player"
-                              style={{ "background-color": player.color }}
-                              title={`${player.name}: ${player.num_stars} stars`}
-                            >
-                              {player.name}
-                              <span class="player-stars">
-                                {player.num_stars}
-                              </span>
-                            </span>
-                          )}
-                        </For>
-                      </div>
-                      <div class="game-item-info">
-                        <span class="game-id">{game.game_id.slice(0, 8)}</span>
-                        <span class="game-meta">
-                          {game.num_stars} stars · T{game.current_turn}
-                        </span>
-                      </div>
-                      <span class="game-item-action">
-                        <ArrowIcon />
+                      <StatusDot status={server.status} />
+                      <span class="server-item-url">{server.url}</span>
+                      <span class="server-item-status">
+                        {server.status === "connected"
+                          ? `${server.games.length}`
+                          : server.status}
                       </span>
+                    </button>
+                    <button
+                      type="button"
+                      class="server-remove"
+                      classList={{ confirming: confirmRemove() === server.url }}
+                      onClick={() => handleRemoveServer(server.url)}
+                      disabled={isConnecting()}
+                      title="Remove server"
+                    >
+                      {confirmRemove() === server.url ? "?" : "×"}
                     </button>
                   </li>
                 )}
               </For>
             </ul>
-          </Show>
 
-          <Show
-            when={showNewGameForm()}
-            fallback={
-              <Show when={activeServer()?.games.length}>
-                <button
-                  class="secondary-button new-game-button"
-                  type="button"
-                  onClick={() => setShowNewGameForm(true)}
-                >
-                  <PlusIcon />
-                  New Game
-                </button>
-              </Show>
-            }
-          >
-            <form class="new-game-form" onSubmit={handleCreate}>
-              <div class="new-game-row">
-                <label class="field">
-                  <span>Commander</span>
-                  <input
-                    value={playerName()}
-                    onInput={(event) => setPlayerName(event.currentTarget.value)}
-                    autofocus
-                  />
-                </label>
-                <label class="field field-small">
-                  <span>Stars</span>
-                  <input
-                    type="number"
-                    min="12"
-                    max="72"
-                    value={numStars()}
-                    onInput={(event) =>
-                      setNumStars(Number(event.currentTarget.value))
-                    }
-                  />
-                </label>
-              </div>
-              <label class="field">
-                <span>Color</span>
-                <div class="color-swatches">
-                  <For each={state.playerColorOptions.colors}>
-                    {(color) => (
-                      <button
-                        type="button"
-                        class="color-swatch"
-                        classList={{ selected: playerColor() === color }}
-                        style={{ "background-color": color }}
-                        onClick={() => setPlayerColor(color)}
-                      />
+            <Show when={!showServerForm()}>
+              <button
+                class="link-button setup-add-server"
+                type="button"
+                onClick={() => setShowServerForm(true)}
+              >
+                <PlusIcon />
+                Add server
+              </button>
+            </Show>
+
+            <Show when={showServerForm()}>
+              <form class="server-form" onSubmit={handleAddServer}>
+                <input
+                  value={newServerUrl()}
+                  onInput={(event) => setNewServerUrl(event.currentTarget.value)}
+                  placeholder="http://127.0.0.1:8080"
+                  autofocus
+                />
+                <div class="form-actions">
+                  <button
+                    class="link-button"
+                    type="button"
+                    onClick={() => setShowServerForm(false)}
+                    disabled={isConnecting()}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    class="primary-button"
+                    type="submit"
+                    disabled={isConnecting()}
+                  >
+                    Connect
+                  </button>
+                </div>
+              </form>
+            </Show>
+          </aside>
+
+          <section class="setup-games" aria-label="Games">
+            <PanelHeader title="Games" count={gameCount()} />
+
+            <Show
+              when={isConnected()}
+              fallback={
+                <div class="empty-state">
+                  <span class="empty-text">Select a server to view games</span>
+                </div>
+              }
+            >
+              <Show
+                when={activeServer()?.games.length}
+                fallback={
+                  <div class="empty-state">
+                    <span class="empty-text">No games yet</span>
+                    <button
+                      class="secondary-button create-first"
+                      type="button"
+                      onClick={() => setShowNewGameForm(true)}
+                    >
+                      Create one
+                    </button>
+                  </div>
+                }
+              >
+                <ul class="game-list">
+                  <For each={activeServer()?.games}>
+                    {(game) => (
+                      <li>
+                        <button
+                          type="button"
+                          class="game-item"
+                          onClick={() => void handleSelect(game.game_id)}
+                          disabled={state.isBusy}
+                        >
+                          <div class="game-item-body">
+                            <div class="game-item-line-meta">
+                              <span class="game-id">{game.game_id.slice(0, 8)}</span>
+                              <span class="game-meta">
+                                {game.num_stars} stars · T{game.current_turn}
+                              </span>
+                              <span
+                                class="game-last-turn"
+                                title={
+                                  game.last_turn_at
+                                    ? "Last completed turn (your local time)"
+                                    : "Game created (your local time)"
+                                }
+                              >
+                                {formatGameLastTurnAt(
+                                  game.last_turn_at ?? game.created_at,
+                                )}
+                              </span>
+                            </div>
+                            <div class="game-item-players">
+                              <For each={game.players}>
+                                {(player) => (
+                                  <span
+                                    class="game-player"
+                                    style={{ "background-color": player.color }}
+                                    title={`${player.name}: ${player.num_stars} stars`}
+                                  >
+                                    {player.name}
+                                    <span class="player-stars">
+                                      {player.num_stars}
+                                    </span>
+                                  </span>
+                                )}
+                              </For>
+                            </div>
+                          </div>
+                          <span class="game-item-action">
+                            <ArrowIcon />
+                          </span>
+                        </button>
+                      </li>
                     )}
                   </For>
-                </div>
-              </label>
-              <div class="form-actions">
-                <button
-                  class="link-button"
-                  type="button"
-                  onClick={() => setShowNewGameForm(false)}
-                  disabled={state.isBusy}
-                >
-                  Cancel
-                </button>
-                <button
-                  class="primary-button"
-                  type="submit"
-                  disabled={state.isBusy}
-                >
-                  Create
-                </button>
-              </div>
-            </form>
-          </Show>
-        </Show>
-      </section>
+                </ul>
+              </Show>
+
+              <Show
+                when={showNewGameForm()}
+                fallback={
+                  <Show when={activeServer()?.games.length}>
+                    <button
+                      class="secondary-button new-game-button"
+                      type="button"
+                      onClick={() => setShowNewGameForm(true)}
+                    >
+                      <PlusIcon />
+                      New Game
+                    </button>
+                  </Show>
+                }
+              >
+                <form class="new-game-form" onSubmit={handleCreate}>
+                  <div class="new-game-row">
+                    <label class="field">
+                      <span>Commander</span>
+                      <input
+                        value={playerName()}
+                        onInput={(event) => setPlayerName(event.currentTarget.value)}
+                        autofocus
+                      />
+                    </label>
+                    <label class="field field-small">
+                      <span>Stars</span>
+                      <input
+                        type="number"
+                        min="12"
+                        max="72"
+                        value={numStars()}
+                        onInput={(event) =>
+                          setNumStars(Number(event.currentTarget.value))
+                        }
+                      />
+                    </label>
+                  </div>
+                  <label class="field">
+                    <span>Color</span>
+                    <div class="color-swatches">
+                      <For each={state.playerColorOptions.colors}>
+                        {(color) => (
+                          <button
+                            type="button"
+                            class="color-swatch"
+                            classList={{ selected: playerColor() === color }}
+                            style={{ "background-color": color }}
+                            onClick={() => setPlayerColor(color)}
+                          />
+                        )}
+                      </For>
+                    </div>
+                  </label>
+                  <div class="form-actions">
+                    <button
+                      class="link-button"
+                      type="button"
+                      onClick={() => setShowNewGameForm(false)}
+                      disabled={state.isBusy}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      class="primary-button"
+                      type="submit"
+                      disabled={state.isBusy}
+                    >
+                      Create
+                    </button>
+                  </div>
+                </form>
+              </Show>
+            </Show>
+          </section>
+        </div>
+      </div>
     </section>
   );
 }

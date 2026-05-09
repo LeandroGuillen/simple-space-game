@@ -54,8 +54,6 @@ function campaignNavActiveHref(
   return null;
 }
 
-type ConnectionStatus = "idle" | "checking" | "connected" | "error";
-
 type ResearchChoice = {
   subject: TechSubjectViewModel;
   level: TechLevelViewModel;
@@ -71,34 +69,6 @@ type ResearchGroup = {
   level: TechLevelViewModel;
   choices: ResearchChoice[];
 };
-
-function connectionStatusMeta(status: ConnectionStatus): {
-  label: string;
-  statusClass: string;
-} {
-  switch (status) {
-    case "idle":
-      return {
-        label: "Not connected",
-        statusClass: "status status--idle",
-      };
-    case "checking":
-      return {
-        label: "Connecting…",
-        statusClass: "status status--checking",
-      };
-    case "connected":
-      return {
-        label: "Connected",
-        statusClass: "status status--connected",
-      };
-    case "error":
-      return {
-        label: "Connection error",
-        statusClass: "status status--error",
-      };
-  }
-}
 
 function projectedScientists(planetId: number, baseScientists: number, moves: MovePopulationCommand[]) {
   return Math.max(
@@ -271,8 +241,8 @@ export function AppShell(props: RouteSectionProps) {
   const [recentBreakthroughs, setRecentBreakthroughs] = createSignal<string[]>([]);
   let previousKnownTechs: Set<string> | null = null;
   let previousBreakthroughGameId = "";
-  const connectionMeta = createMemo(() =>
-    connectionStatusMeta(state.session.connectionStatus),
+  const sessionStatusDotClass = createMemo(
+    () => `status-dot status-dot--${state.session.connectionStatus}`,
   );
 
   const showGameChrome = createMemo(() => isGameCommandPath(location.pathname));
@@ -384,22 +354,54 @@ export function AppShell(props: RouteSectionProps) {
             v{APP_VERSION}
           </span>
         </div>
-        <a
-          class="app-repo-link"
-          href={REPO_PLACEHOLDER_HREF}
-          target="_blank"
-          rel="noreferrer"
-        >
-          github
-        </a>
-        <button
-          type="button"
-          class="app-debug-link"
-          onClick={() => void enableDebugMode()}
-          disabled={state.debugMode || state.isBusy}
-        >
-          debug mode: {state.debugMode ? "on" : "off"}
-        </button>
+        <Show when={showGameChrome()}>
+          <A
+            href="/setup"
+            class="app-topbar-session"
+            title="Open server and game setup"
+            aria-label={`Session: ${state.session.serverUrl ?? "no server"}${state.session.selectedGameId ? `, game ${gameIdShort(state.session.selectedGameId)}` : ""}`}
+          >
+            <span class={sessionStatusDotClass()} aria-hidden="true" />
+            <Show when={state.session.serverUrl}>
+              <span class="app-topbar-session-url">
+                {state.session.serverUrl}
+              </span>
+            </Show>
+            <Show
+              when={
+                Boolean(state.session.serverUrl) &&
+                Boolean(state.session.selectedGameId)
+              }
+            >
+              <span class="app-topbar-session-sep" aria-hidden="true">
+                ·
+              </span>
+            </Show>
+            <Show when={state.session.selectedGameId}>
+              <span class="app-topbar-session-game">
+                {gameIdShort(state.session.selectedGameId)}
+              </span>
+            </Show>
+          </A>
+        </Show>
+        <div class="app-topbar-end">
+          <a
+            class="app-repo-link"
+            href={REPO_PLACEHOLDER_HREF}
+            target="_blank"
+            rel="noreferrer"
+          >
+            github
+          </a>
+          <button
+            type="button"
+            class="app-debug-link"
+            onClick={() => void enableDebugMode()}
+            disabled={state.debugMode || state.isBusy}
+          >
+            debug mode: {state.debugMode ? "on" : "off"}
+          </button>
+        </div>
       </header>
 
       <Show
@@ -431,26 +433,6 @@ export function AppShell(props: RouteSectionProps) {
                 </For>
               </nav>
             </div>
-
-            <section class="sidebar-session" aria-label="Session">
-              <span class={connectionMeta().statusClass}>
-                <span class="status-dot" aria-hidden="true" />
-                {connectionMeta().label}
-              </span>
-              <Show when={state.session.serverUrl}>
-                <span class="session-server" title={state.session.serverUrl}>
-                  {state.session.serverUrl}
-                </span>
-              </Show>
-              <Show when={state.session.selectedGameId}>
-                <span class="session-game">
-                  Game · {gameIdShort(state.session.selectedGameId)}
-                </span>
-              </Show>
-              <A href="/setup" class="session-manage">
-                Manage
-              </A>
-            </section>
           </aside>
 
           <div class="game-main">

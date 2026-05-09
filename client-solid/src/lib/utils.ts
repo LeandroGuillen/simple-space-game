@@ -66,6 +66,21 @@ export function gameIdShort(gameId: string) {
   return gameId.slice(0, 8);
 }
 
+/** Local short date/time for last completed turn; missing or invalid ISO → em dash */
+export function formatGameLastTurnAt(iso: string | null | undefined): string {
+  if (iso == null || iso === "") {
+    return "—";
+  }
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) {
+    return "—";
+  }
+  return d.toLocaleString(undefined, {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
+}
+
 export function labelForSize(value: number) {
   return sizeLabels[value] ?? "Unknown";
 }

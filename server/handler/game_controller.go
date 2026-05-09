@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"ssg/game"
 	"ssg/model"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,6 +24,8 @@ type GameListResponseItem struct {
 	GameID      string               `json:"game_id"`
 	NumStars    int                  `json:"num_stars"`
 	CurrentTurn int64                `json:"current_turn"`
+	CreatedAt   *time.Time           `json:"created_at,omitempty"`
+	LastTurnAt  *time.Time           `json:"last_turn_at,omitempty"`
 	Players     []GameListPlayerInfo `json:"players"`
 }
 
@@ -98,12 +101,18 @@ func GetGameList(c *gin.Context) {
 				NumStars: ownedStars,
 			}
 		}
-		gameList = append(gameList, GameListResponseItem{
+		item := GameListResponseItem{
 			GameID:      gameID,
 			NumStars:    len(g.Galaxy.Stars),
 			CurrentTurn: g.CurrentTurn,
+			LastTurnAt:  g.LastTurnAt,
 			Players:     playerInfos,
-		})
+		}
+		if !g.CreatedAt.IsZero() {
+			c := g.CreatedAt
+			item.CreatedAt = &c
+		}
+		gameList = append(gameList, item)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"game_list": gameList})
