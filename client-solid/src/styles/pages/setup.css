@@ -330,14 +330,14 @@
 .new-game-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   margin-top: 12px;
   padding-top: 12px;
 }
 
 .new-game-row {
   display: grid;
-  grid-template-columns: 1fr 88px;
+  grid-template-columns: 1fr;
   gap: 10px;
 }
 
@@ -368,10 +368,64 @@
   }
 }
 
-.field-small {
-  & input {
-    font-family: var(--font-mono);
-    text-align: center;
+.new-game-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.option-row {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.option-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-mute);
+}
+
+.option-toggle-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  min-width: 0;
+}
+
+.option-toggle {
+  min-height: 26px;
+  padding: 4px 8px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elev);
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease,
+    color 0.12s ease;
+
+  &:hover {
+    border-color: var(--accent-strong);
+    color: var(--text);
+  }
+
+  &.selected {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
   }
 }
 
@@ -406,6 +460,46 @@
   gap: 8px;
 }
 
+.setup-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgb(0 0 0 / 0.52);
+}
+
+.setup-modal {
+  width: min(360px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+.setup-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  & h2 {
+    margin: 0;
+    font-size: 0.92rem;
+    color: var(--text);
+  }
+}
+
+.field-error {
+  margin: -6px 0 0;
+  color: var(--danger);
+  font-size: 0.72rem;
+}
+
 @media (max-width: 640px) {
   .setup-hub-grid {
     grid-template-columns: 1fr;
@@ -422,5 +516,10 @@
     padding-left: 16px;
     border-top: 1px solid var(--rule);
     padding-top: 14px;
+  }
+
+  .option-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
 }

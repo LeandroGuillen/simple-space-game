@@ -19,6 +19,19 @@ export type ApiGameListPlayer = {
   num_stars: number;
 };
 
+export type NewGameOptions = {
+  player_name: string;
+  player_color: string;
+  num_stars: number;
+  difficulty: "easy" | "medium" | "hard";
+  galaxy_size: "tiny" | "medium" | "huge";
+  galaxy_age: "organic_rich" | "average" | "mineral_rich";
+  players: number;
+  tech_level: "low" | "average" | "advanced";
+  race: "human" | "psilon" | "custom";
+  custom_race_name?: string;
+};
+
 export type ApiRace = {
   id: number;
   name: string;

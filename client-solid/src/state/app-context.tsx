@@ -3,13 +3,22 @@ import { createStore } from 'solid-js/store';
 
 import { ApiClient, parseGameUpdate } from '../lib/api';
 import { mapGame, mapPlayerColorOptions } from '../lib/mappers';
-import type { ApiGameListItem } from '../lib/types/api';
+import type { ApiGameListItem, NewGameOptions } from '../lib/types/api';
 import type { GameViewModel, PlayerColorOptions, ShipDesignForm } from '../lib/types/domain';
 import type { ColonizeCommand, MovePopulationCommand, PendingCommands, SelectResearchCommand, TurnCommands } from '../lib/types/commands';
 import { clearSessionLastSetupServerUrl } from '../lib/setup-session-storage';
 import { findPlanet, getColonyRows, getPrimaryPlayer, normalizeServerUrl, toWebSocketUrl } from '../lib/utils';
 
 type ConnectionStatus = 'idle' | 'checking' | 'connected' | 'error';
+
+function gameActivityTime(game: ApiGameListItem) {
+  const timestamp = game.last_turn_at ?? game.created_at;
+  if (!timestamp) {
+    return 0;
+  }
+  const parsed = Date.parse(timestamp);
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
 
 type AppState = {
   session: {
@@ -37,7 +46,7 @@ type AppContextValue = {
   connect: (serverUrl: string) => Promise<void>;
   disconnect: () => void;
   refreshGames: () => Promise<void>;
-  createGame: (playerName: string, numStars: number, playerColor: string) => Promise<string>;
+  createGame: (options: NewGameOptions) => Promise<string>;
   selectGame: (gameId: string) => Promise<void>;
   refreshGame: () => Promise<void>;
   changeBuilding: (planetId: number, buildingId: number) => void;
@@ -166,7 +175,10 @@ export function AppProvider(props: ParentProps) {
     clearError();
     try {
       const list = await api()!.getGames();
-      list.sort((left, right) => left.game_id.localeCompare(right.game_id));
+      list.sort((left, right) => {
+        const activityDiff = gameActivityTime(right) - gameActivityTime(left);
+        return activityDiff || left.game_id.localeCompare(right.game_id);
+      });
       setState('games', list);
       setBusy(false, `Loaded ${list.length} game${list.length === 1 ? '' : 's'}`);
     } catch (error) {
@@ -176,14 +188,14 @@ export function AppProvider(props: ParentProps) {
     }
   }
 
-  async function createGame(playerName: string, numStars: number, playerColor: string) {
+  async function createGame(options: NewGameOptions) {
     if (!api()) {
       throw new Error('Connect to a server first.');
     }
     setBusy(true, 'Creating game');
     clearError();
     try {
-      const gameId = await api()!.createGame(playerName, numStars, playerColor);
+      const gameId = await api()!.createGame(options);
       setState('session', 'selectedGameId', gameId);
       await refreshGames();
       setBusy(false, 'Game created');

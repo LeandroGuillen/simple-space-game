@@ -11,9 +11,16 @@ import (
 )
 
 type NewGameRequest struct {
-	NumStars    uint   `json:"num_stars,omitempty"`
-	PlayerName  string `json:"player_name,omitempty"`
-	PlayerColor string `json:"player_color,omitempty"`
+	NumStars       uint   `json:"num_stars,omitempty"`
+	PlayerName     string `json:"player_name,omitempty"`
+	PlayerColor    string `json:"player_color,omitempty"`
+	Difficulty     string `json:"difficulty,omitempty"`
+	GalaxySize     string `json:"galaxy_size,omitempty"`
+	GalaxyAge      string `json:"galaxy_age,omitempty"`
+	Players        uint   `json:"players,omitempty"`
+	TechLevel      string `json:"tech_level,omitempty"`
+	Race           string `json:"race,omitempty"`
+	CustomRaceName string `json:"custom_race_name,omitempty"`
 }
 
 type GameListResponse struct {

@@ -5,6 +5,7 @@ import type {
   ApiPlayerColorOptions,
   ApiShipParts,
   ApiStatusResponse,
+  NewGameOptions,
 } from './types/api';
 import type { ShipDesignForm } from './types/domain';
 import type { TurnCommands } from './types/commands';
@@ -65,15 +66,11 @@ export class ApiClient {
     return readJson<ApiPlayerColorOptions>(response);
   }
 
-  async createGame(playerName: string, numStars: number, playerColor: string) {
+  async createGame(options: NewGameOptions) {
     const response = await fetch(`${this.baseUrl}/games`, {
       method: 'POST',
       headers: this.headers(),
-      body: JSON.stringify({
-        player_name: playerName,
-        num_stars: numStars,
-        player_color: playerColor,
-      }),
+      body: JSON.stringify(options),
     });
     const body = await readJson<{ ok: boolean; gameID: string }>(response);
     return body.gameID;
