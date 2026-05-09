@@ -49,6 +49,12 @@ export function PlanetPage() {
       ...Array.from({ length: coins }, () => '🪙'),
     ];
   });
+  const formatMoralePercent = (bonus: number) =>
+    `${bonus >= 0 ? '+' : ''}${Math.round(bonus * 100)}%`;
+  const moraleIcons = createMemo(() => {
+    const bonus = planet()?.morale.bonus ?? 0;
+    return Array.from({ length: Math.max(0, Math.floor(bonus * 10 + 0.000001)) });
+  });
   const fleetsAtParentStar = createMemo(() => {
     const current = planet();
     const playerId = primaryPlayer()?.id ?? 0;
@@ -188,14 +194,29 @@ export function PlanetPage() {
                     </div>
                   </div>
                 </article>
-                <article class='metric-card'>
-                  <span>Morale</span>
-                  <div class='pop-stat-icons'>
-                    <span class='pop-stat-icon'>😊</span>
-                    <span class='pop-stat-icon'>😊</span>
-                    <span class='pop-stat-icon'>😊</span>
-                    <span class='pop-stat-icon'>😐</span>
+                <article class='metric-card morale-metric'>
+                  <span>MORALE</span>
+                  <div class='morale-icons'>
+                    <For each={moraleIcons()}>
+                      {() => <span class='morale-icon'>:)</span>}
+                    </For>
                   </div>
+                  <Show when={currentPlanet().morale.sources.length > 0}>
+                    <div class='pop-output-tooltip morale-tooltip'>
+                      <div class='pop-output-tooltip-row pop-output-tooltip-row--total'>
+                        <span>Total morale:</span>
+                        <strong>{formatMoralePercent(currentPlanet().morale.bonus)}</strong>
+                      </div>
+                      <For each={currentPlanet().morale.sources}>
+                        {(source) => (
+                          <div class='pop-output-tooltip-row'>
+                            <span>{source.name}</span>
+                            <strong>{formatMoralePercent(source.bonus)}</strong>
+                          </div>
+                        )}
+                      </For>
+                    </div>
+                  </Show>
                 </article>
                 <Show when={fleetsAtParentStar().length > 0}>
                   <button class='fleet-orbit-link-inline fleet-orbit-link' type='button' onClick={() => setIsFleetModalOpen(true)}>

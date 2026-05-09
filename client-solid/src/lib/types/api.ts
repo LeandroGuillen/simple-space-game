@@ -118,6 +118,11 @@ export type ApiPlanet = {
     total: number;
     bonus?: number;
   };
+  morale?: {
+    bonus?: number;
+    multiplier?: number;
+    sources?: ApiMoraleSource[];
+  };
   pollution?: number;
   marines: number;
   armor: number;
@@ -127,6 +132,12 @@ export type ApiPlanet = {
   industry_stack: number;
   build_bucket: number;
   is_building: boolean;
+};
+
+export type ApiMoraleSource = {
+  name: string;
+  type: string;
+  bonus: number;
 };
 
 export type ApiStar = {

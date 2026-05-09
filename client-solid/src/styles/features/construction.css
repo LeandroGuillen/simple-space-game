@@ -202,7 +202,38 @@
       transform: translateY(0);
     }
 
+    & .morale-metric {
+      position: relative;
+      cursor: default;
+    }
+
+    & .morale-icons {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 20px;
+    }
+
+    & .morale-icon {
+      color: var(--text);
+      font-family: var(--font-heading);
+      font-size: 1rem;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    & .morale-metric:hover .morale-tooltip {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
     & .income-tooltip {
+      top: calc(100% + 8px);
+      left: 0;
+      z-index: 30;
+    }
+
+    & .morale-tooltip {
       top: calc(100% + 8px);
       left: 0;
       z-index: 30;

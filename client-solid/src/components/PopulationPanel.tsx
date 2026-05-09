@@ -2,6 +2,7 @@ import { createMemo, createSignal, For } from "solid-js";
 import type { MovePopulationCommand } from "../lib/types/commands";
 import type { PlanetViewModel } from "../lib/types/domain";
 import {
+  getMoraleAdjustedLaborOutput,
   getPlanetIndustryForWorkers,
   getPlanetPollutionDivisor,
   getPlanetPollutionForWorkers,
@@ -102,8 +103,11 @@ export function PopulationPanel(props: PopulationPanelProps) {
 
   const getOutputBreakdown = (cat: PopCategory): OutputBreakdown => {
     if (cat === "farmers") {
-      const fromPopulation =
-        getPopCount("farmers") * props.planet.food.produced_per_farmer;
+      const fromPopulation = getMoraleAdjustedLaborOutput(
+        getPopCount("farmers"),
+        props.planet.food.produced_per_farmer,
+        props.planet,
+      );
       const fromBuildings = props.planet.food.produced_per_building;
       return {
         total: fromPopulation + fromBuildings,
@@ -117,10 +121,18 @@ export function PopulationPanel(props: PopulationPanelProps) {
         0,
         props.planet.industry.produced_per_worker - perWorkerBuildingBonus,
       );
-      const fromPopulation = getPopCount("workers") * basePerWorker;
+      const fromPopulation = getMoraleAdjustedLaborOutput(
+        getPopCount("workers"),
+        basePerWorker,
+        props.planet,
+      );
       const fromBuildings =
         props.planet.industry.produced_per_building +
-        getPopCount("workers") * perWorkerBuildingBonus +
+        getMoraleAdjustedLaborOutput(
+          getPopCount("workers"),
+          perWorkerBuildingBonus,
+          props.planet,
+        ) +
         Math.floor(props.planet.population / 1000) *
           props.planet.industry.produced_per_colonist;
       return {
@@ -134,10 +146,18 @@ export function PopulationPanel(props: PopulationPanelProps) {
       0,
       props.planet.science.produced_per_scientist - perScientistBuildingBonus,
     );
-    const fromPopulation = getPopCount("scientists") * basePerScientist;
+    const fromPopulation = getMoraleAdjustedLaborOutput(
+      getPopCount("scientists"),
+      basePerScientist,
+      props.planet,
+    );
     const fromBuildings =
       props.planet.science.produced_per_building +
-      getPopCount("scientists") * perScientistBuildingBonus;
+      getMoraleAdjustedLaborOutput(
+        getPopCount("scientists"),
+        perScientistBuildingBonus,
+        props.planet,
+      );
     return {
       total: fromPopulation + fromBuildings,
       fromPopulation,

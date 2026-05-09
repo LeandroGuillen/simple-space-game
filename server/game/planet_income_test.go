@@ -100,6 +100,24 @@ func TestPlanetIncomeIncludesResearchedTechBonuses(t *testing.T) {
 	assert.Equal(t, 0.5, income.Bonus)
 }
 
+func TestPlanetIncomeMoraleBoostsTaxesOnly(t *testing.T) {
+	planet := &model.Planet{
+		Population: 10000,
+		Morale:     model.PlanetMoraleOutput{Bonus: 0.25, Multiplier: 1.25},
+		Food: model.PlanetFoodOutput{
+			Farmers:             2,
+			ProducedPerFarmer:   2,
+			ProducedPerBuilding: 4,
+		},
+		IsBuilding: true,
+	}
+
+	income := PlanetIncome(&Game{}, planet, 0)
+
+	assert.Equal(t, int64(12), income.Taxes)
+	assert.Equal(t, int64(12), income.Total)
+}
+
 func TestPlanetIncomeTradeGoodsRounding(t *testing.T) {
 	tests := []struct {
 		name             string

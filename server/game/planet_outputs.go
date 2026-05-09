@@ -1,6 +1,8 @@
 package game
 
 import (
+	"math"
+
 	. "ssg/model"
 )
 
@@ -59,7 +61,7 @@ func hydratePlanetOutputs(game *Game, p *Planet) {
 }
 
 func PlanetGrossIndustry(p *Planet) int64 {
-	return p.Industry.Workers*p.Industry.ProducedPerWorker +
+	return moraleAdjustedLaborOutput(p.Industry.Workers, p.Industry.ProducedPerWorker, effectiveMoraleMultiplier(p.Morale)) +
 		p.Industry.ProducedPerBuilding +
 		colonistUnits(p)*p.Industry.ProducedPerColonist
 }
@@ -68,9 +70,29 @@ func PlanetIndustryProduced(p *Planet) int64 {
 	return PlanetGrossIndustry(p) - Pollution(p)
 }
 
+func PlanetFoodProduced(p *Planet) int64 {
+	return moraleAdjustedLaborOutput(p.Food.Farmers, p.Food.ProducedPerFarmer, effectiveMoraleMultiplier(p.Morale)) +
+		p.Food.ProducedPerBuilding
+}
+
+func PlanetScienceProduced(p *Planet) int64 {
+	return moraleAdjustedLaborOutput(p.Science.Scientists, p.Science.ProducedPerScientist, effectiveMoraleMultiplier(p.Morale)) +
+		p.Science.ProducedPerBuilding
+}
+
 func colonistUnits(p *Planet) int64 {
 	if p.Population <= 0 {
 		return 0
 	}
 	return p.Population / 1000
+}
+
+func moraleAdjustedLaborOutput(workers, outputPerWorker int64, multiplier float64) int64 {
+	if multiplier == 0 {
+		multiplier = 1
+	}
+	if multiplier < 0 {
+		multiplier = 0
+	}
+	return int64(math.Floor(float64(workers*outputPerWorker) * multiplier))
 }

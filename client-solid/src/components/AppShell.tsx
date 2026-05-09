@@ -30,6 +30,7 @@ import {
   formatSignedBc,
   gameIdShort,
   getEmpireIncome,
+  getPlanetScienceForScientists,
   findPlanet,
   isPlanetSuitableForColonization,
 } from "../lib/utils";
@@ -127,9 +128,10 @@ function researchPerTurn(
     .reduce(
       (total, planet) =>
         total +
-        projectedScientists(planet.id, planet.science.scientists, moves) *
-          planet.science.produced_per_scientist +
-        planet.science.produced_per_building,
+        getPlanetScienceForScientists(
+          planet,
+          projectedScientists(planet.id, planet.science.scientists, moves),
+        ),
       0,
     );
 }

@@ -1,6 +1,7 @@
 package game
 
 import (
+	"math"
 	"ssg/model"
 )
 
@@ -9,7 +10,7 @@ func hydratePlanetIncome(game *Game, p *model.Planet, industryProduced int64) {
 }
 
 func PlanetIncome(game *Game, planet *model.Planet, industryProduced int64) model.PlanetIncomeOutput {
-	taxes := planet.Population / 1000
+	taxes := int64(math.Floor(float64(planet.Population/1000) * effectiveMoraleMultiplier(planet.Morale)))
 
 	var incomeFromBuildings int64
 	var incomeBonus float64
@@ -38,7 +39,7 @@ func PlanetIncome(game *Game, planet *model.Planet, industryProduced int64) mode
 
 	var tradeGoods int64 = 0
 	if !planet.IsBuilding {
-		food := planet.Food.Farmers*planet.Food.ProducedPerFarmer + planet.Food.ProducedPerBuilding
+		food := PlanetFoodProduced(planet)
 		foodSurplus := food - planet.Population/1000
 		tradeGoods = maxInt64(0, industryProduced)/2 + maxInt64(0, foodSurplus)/2
 	}

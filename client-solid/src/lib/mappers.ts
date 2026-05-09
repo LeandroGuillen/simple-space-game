@@ -270,6 +270,16 @@ function mapPlanet(
     },
     science: planet.science,
     income: mapIncome(planet, buildings),
+    morale: {
+      bonus: planet.morale?.bonus ?? 0,
+      multiplier: planet.morale?.multiplier ?? 1,
+      sources:
+        planet.morale?.sources?.map((source) => ({
+          name: source.name,
+          type: source.type,
+          bonus: source.bonus,
+        })) ?? [],
+    },
     pollution: planet.pollution ?? 0,
     marines: planet.marines,
     armor: planet.armor,
@@ -315,13 +325,14 @@ function mapIncome(planet: ApiPlanet, buildingsOnPlanet: BuildingViewModel[]) {
     };
   }
 
-  const taxes = Math.floor(planet.population / 1000);
+  const moraleMultiplier = planet.morale?.multiplier ?? 1;
+  const taxes = Math.floor(Math.floor(planet.population / 1000) * moraleMultiplier);
   const food =
-    planet.food.farmers * planet.food.produced_per_farmer +
+    Math.floor(planet.food.farmers * planet.food.produced_per_farmer * moraleMultiplier) +
     planet.food.produced_per_building;
   const foodSurplus = Math.max(0, food - taxes);
   const grossIndustry =
-    planet.industry.workers * planet.industry.produced_per_worker +
+    Math.floor(planet.industry.workers * planet.industry.produced_per_worker * moraleMultiplier) +
     planet.industry.produced_per_building +
     Math.floor(planet.population / 1000) *
       (planet.industry.produced_per_colonist ?? 0);

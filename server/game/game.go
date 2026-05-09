@@ -93,7 +93,7 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 			return err
 		}
 		totalIncome += colony.Income.Total
-		totalResearch += colony.Science.Scientists*colony.Science.ProducedPerScientist + colony.Science.ProducedPerBuilding
+		totalResearch += PlanetScienceProduced(colony)
 	}
 
 	// process colonize command
@@ -161,8 +161,9 @@ func (g *Game) CreateCapitalPlanet(ownerID uint) error {
 	buildOnPlanet(planet, "Star Base")
 	buildOnPlanet(planet, "Marine Barracks")
 
-	hydratePlanetOutputs(g, planet)
 	hydratePlanetPopulationCapacity(g, planet, player)
+	hydratePlanetMorale(g, planet, player)
+	hydratePlanetOutputs(g, planet)
 	hydratePlanetIncome(g, planet, 0)
 
 	g.HydrateCommandPoints()
@@ -249,7 +250,10 @@ func (g *Game) GetColonyList(playerID uint) ([]*Planet, error) {
 	for _, star := range g.Galaxy.Stars {
 		for _, planet := range star.Planets {
 			if planet.Owner == playerID {
+				hydratePlanetMorale(g, planet, player)
+				hydratePlanetOutputs(g, planet)
 				hydratePlanetPopulationCapacity(g, planet, player)
+				hydratePlanetIncome(g, planet, PlanetIndustryProduced(planet))
 				colonyList = append(colonyList, planet)
 			}
 		}

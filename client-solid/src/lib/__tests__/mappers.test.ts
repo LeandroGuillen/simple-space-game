@@ -30,6 +30,14 @@ describe('mapGame', () => {
                 food: { farmers: 2, produced_per_farmer: 2, produced_per_building: 0 },
                 industry: { workers: 3, produced_per_worker: 3, produced_per_building: 0 },
                 science: { scientists: 3, produced_per_scientist: 3, produced_per_building: 0 },
+                morale: {
+                  bonus: 0,
+                  multiplier: 1,
+                  sources: [
+                    { name: 'Holo Simulator', type: 'building', bonus: 0.2 },
+                    { name: 'Penalty', type: 'building', bonus: -0.2 },
+                  ],
+                },
                 pollution: 2,
                 marines: 0,
                 armor: 0,
@@ -138,5 +146,13 @@ describe('mapGame', () => {
     ])
     expect(game.galaxy.stars[0]?.planets[0]?.income.maintenance).toBe(2)
     expect(game.galaxy.stars[0]?.planets[0]?.income.total).toBe(6)
+    expect(game.galaxy.stars[0]?.planets[0]?.morale).toEqual({
+      bonus: 0,
+      multiplier: 1,
+      sources: [
+        { name: 'Holo Simulator', type: 'building', bonus: 0.2 },
+        { name: 'Penalty', type: 'building', bonus: -0.2 },
+      ],
+    })
   })
 })

@@ -91,6 +91,11 @@ export type PlanetViewModel = {
     total: number;
     bonus: number;
   };
+  morale: {
+    bonus: number;
+    multiplier: number;
+    sources: MoraleSourceViewModel[];
+  };
   pollution: number;
   currentProject: BuildingViewModel | null;
   buildQueue: BuildingViewModel[];
@@ -99,6 +104,12 @@ export type PlanetViewModel = {
   buildBucket: number;
   isBuilding: boolean;
   maxPopulation: number;
+};
+
+export type MoraleSourceViewModel = {
+  name: string;
+  type: string;
+  bonus: number;
 };
 
 export type StarSummary = {
@@ -321,5 +332,6 @@ export type ColonyRow = {
   scientists: number;
   industry: number;
   income: number;
+  morale: number;
   currentProject: string;
 };

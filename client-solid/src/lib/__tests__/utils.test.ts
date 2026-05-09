@@ -1,4 +1,9 @@
-import { formatGameLastTurnAt, getPlanetProjectedPopulationGrowth } from "../utils";
+import {
+  formatGameLastTurnAt,
+  getPlanetGrossIndustryForWorkers,
+  getPlanetProjectedIncome,
+  getPlanetProjectedPopulationGrowth,
+} from "../utils";
 import type { BuildingViewModel, PlanetViewModel } from "../types/domain";
 
 function building(name: string, modifiers: BuildingViewModel["modifiers"] = []): BuildingViewModel {
@@ -70,6 +75,11 @@ function planet(overrides: Partial<PlanetViewModel> = {}): PlanetViewModel {
       total: 10,
       bonus: 0,
     },
+    morale: {
+      bonus: 0,
+      multiplier: 1,
+      sources: [],
+    },
     pollution: 0,
     currentProject: null,
     buildQueue: [],
@@ -107,5 +117,56 @@ describe("getPlanetProjectedPopulationGrowth", () => {
     });
 
     expect(getPlanetProjectedPopulationGrowth(colony)).toBe(200);
+  });
+
+  it("uses morale-boosted farmer food for starvation checks", () => {
+    const colony = planet({
+      population: 10000,
+      maxPopulation: 10000,
+      food: {
+        farmers: 4,
+        produced_per_farmer: 2,
+        produced_per_building: 0,
+      },
+      morale: {
+        bonus: 0.25,
+        multiplier: 1.25,
+        sources: [],
+      },
+    });
+
+    expect(getPlanetProjectedPopulationGrowth(colony)).toBe(0);
+  });
+});
+
+describe("morale projections", () => {
+  it("boosts taxes and worker industry without boosting colonist industry", () => {
+    const colony = planet({
+      population: 10000,
+      morale: {
+        bonus: 0.25,
+        multiplier: 1.25,
+        sources: [],
+      },
+      industry: {
+        workers: 3,
+        produced_per_worker: 3,
+        produced_per_building: 5,
+        produced_per_colonist: 1,
+      },
+      income: {
+        taxes: 10,
+        buildings: 2,
+        tradeGoods: 0,
+        maintenance: 1,
+        total: 11,
+        bonus: 0,
+      },
+      isBuilding: true,
+    });
+
+    expect(getPlanetGrossIndustryForWorkers(colony, 3)).toBe(26);
+    expect(getPlanetProjectedIncome(colony).taxes).toBe(12);
+    expect(getPlanetProjectedIncome(colony).total).toBe(13);
   });
 });

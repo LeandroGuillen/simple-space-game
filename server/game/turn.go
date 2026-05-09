@@ -9,6 +9,7 @@ import (
 
 func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error {
 
+	hydratePlanetMorale(game, p, player)
 	hydratePlanetOutputs(game, p)
 
 	// population movement
@@ -35,11 +36,9 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 
 	// population growth calculations
 	oldPopulation := p.Population
-	growth := PopulationGrowth(
+	growth := PopulationGrowthFromFood(
 		p.Population,
-		p.Food.ProducedPerBuilding,
-		p.Food.ProducedPerFarmer,
-		p.Food.Farmers,
+		PlanetFoodProduced(p),
 		maxPop,
 		PopulationGrowthBonus(game, p),
 	)

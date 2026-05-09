@@ -4,7 +4,13 @@ import { createMemo, createSignal } from "solid-js";
 import { formatSignedBc } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
 
-type SortKey = "name" | "starName" | "population" | "industry" | "income";
+type SortKey =
+  | "name"
+  | "starName"
+  | "population"
+  | "industry"
+  | "income"
+  | "morale";
 
 export function ColoniesPage() {
   const { colonies, state, currentPlayer, changeBuilding } = useAppContext();
@@ -99,6 +105,8 @@ export function ColoniesPage() {
     setSortKey(nextKey);
     setSortAsc(true);
   }
+  const moraleIcons = (morale: number) =>
+    Array.from({ length: Math.max(0, Math.floor(morale * 10 + 0.000001)) });
 
   return (
     <section class="panel">
@@ -147,6 +155,14 @@ export function ColoniesPage() {
               <th>
                 <button
                   class="sort-button"
+                  onClick={() => toggleSort("morale")}
+                >
+                  Morale
+                </button>
+              </th>
+              <th>
+                <button
+                  class="sort-button"
                   onClick={() => toggleSort("industry")}
                 >
                   Industry
@@ -175,6 +191,9 @@ export function ColoniesPage() {
                 <td>{row.farmers}</td>
                 <td>{row.workers}</td>
                 <td>{row.scientists}</td>
+                <td>
+                  {moraleIcons(row.morale).map(() => ":)").join(" ")}
+                </td>
                 <td>{row.industry}</td>
                 <td classList={{ "numeric-negative": row.income < 0 }}>
                   {formatSignedBc(row.income)}

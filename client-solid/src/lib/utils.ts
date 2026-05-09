@@ -181,9 +181,43 @@ export function getPlanetIndustry(planet: PlanetViewModel) {
   return getPlanetIndustryForWorkers(planet, planet.industry.workers);
 }
 
+export function getMoraleMultiplier(planet: PlanetViewModel) {
+  return planet.morale.multiplier ?? 1;
+}
+
+export function getMoraleAdjustedLaborOutput(
+  count: number,
+  outputPerWorker: number,
+  planet: PlanetViewModel,
+) {
+  return Math.floor(
+    Math.max(0, count) * outputPerWorker * getMoraleMultiplier(planet),
+  );
+}
+
+export function getPlanetFoodForFarmers(
+  planet: PlanetViewModel,
+  farmers: number,
+) {
+  return (
+    getMoraleAdjustedLaborOutput(farmers, planet.food.produced_per_farmer, planet) +
+    planet.food.produced_per_building
+  );
+}
+
+export function getPlanetScienceForScientists(
+  planet: PlanetViewModel,
+  scientists: number,
+) {
+  return (
+    getMoraleAdjustedLaborOutput(scientists, planet.science.produced_per_scientist, planet) +
+    planet.science.produced_per_building
+  );
+}
+
 export function getPlanetGrossIndustryForWorkers(planet: PlanetViewModel, workers: number) {
   return (
-    Math.max(0, workers) * planet.industry.produced_per_worker +
+    getMoraleAdjustedLaborOutput(workers, planet.industry.produced_per_worker, planet) +
     planet.industry.produced_per_building +
     Math.floor(planet.population / 1000) * planet.industry.produced_per_colonist
   );
@@ -218,9 +252,7 @@ export function getPlanetIndustryForWorkers(planet: PlanetViewModel, workers: nu
 export function getPlanetProjectedIncome(planet: PlanetViewModel, pendingCommands?: PendingCommands) {
   const population = getProjectedWorkerAllocation(planet, pendingCommands?.movePopulation ?? []);
   const pendingBuild = getPendingBuild(planet.id, pendingCommands?.build ?? []);
-  const food =
-    population.farmers * planet.food.produced_per_farmer +
-    planet.food.produced_per_building;
+  const food = getPlanetFoodForFarmers(planet, population.farmers);
   const foodSurplus = Math.max(0, food - Math.floor(planet.population / 1000));
   const industry = getPlanetIndustryForWorkers(planet, population.workers);
   const producesTradeGoods =
@@ -229,11 +261,12 @@ export function getPlanetProjectedIncome(planet: PlanetViewModel, pendingCommand
   const tradeGoods = producesTradeGoods
     ? Math.floor(foodSurplus / 2) + Math.floor(industry / 2)
     : 0;
-  const gross = planet.income.taxes + planet.income.buildings + tradeGoods;
+  const taxes = Math.floor(Math.floor(planet.population / 1000) * getMoraleMultiplier(planet));
+  const gross = taxes + planet.income.buildings + tradeGoods;
   const total = Math.trunc(gross * (1 + planet.income.bonus)) - planet.income.maintenance;
 
   return {
-    taxes: planet.income.taxes,
+    taxes,
     buildings: planet.income.buildings,
     tradeGoods,
     maintenance: planet.income.maintenance,
@@ -254,9 +287,7 @@ export function getPlanetProjectedPopulationGrowth(planet: PlanetViewModel, pend
   const basicIncrement = planetCapacity > 0 && freeSpace > 0
     ? Math.floor(Math.sqrt((2000 * popUnits * freeSpace) / planetCapacity))
     : 0;
-  const foodProduced =
-    allocation.farmers * planet.food.produced_per_farmer +
-    planet.food.produced_per_building;
+  const foodProduced = getPlanetFoodForFarmers(planet, allocation.farmers);
   const foodLack = popUnits - foodProduced;
   const foodLackPenalty = foodLack > 0 ? 50 * foodLack : 0;
   const flatGrowthBonus = planet.buildings.reduce(
@@ -296,6 +327,7 @@ export function getColonyRows(
         scientists: planet.science.scientists,
         industry: getPlanetIndustry(planet),
         income: getPlanetProjectedIncome(planet, pendingCommands).total,
+        morale: planet.morale.bonus,
         currentProject: planet.currentProject?.name || "Idle",
       })),
   );

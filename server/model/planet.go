@@ -21,6 +21,7 @@ type Planet struct {
 	Food      PlanetFoodOutput     `json:"food"`
 	Science   PlanetScienceOutput  `json:"science"`
 	Income    PlanetIncomeOutput   `json:"income"`
+	Morale    PlanetMoraleOutput   `json:"morale"`
 	Pollution int64                `json:"pollution"`
 
 	Marines int64 `json:"marines"`
@@ -64,6 +65,18 @@ type PlanetIncomeOutput struct {
 	Maintenance int64   `json:"maintenance"`
 	Total       int64   `json:"total"`
 	Bonus       float64 `json:"bonus"`
+}
+
+type PlanetMoraleOutput struct {
+	Bonus      float64              `json:"bonus"`
+	Multiplier float64              `json:"multiplier"`
+	Sources    []PlanetMoraleSource `json:"sources,omitempty"`
+}
+
+type PlanetMoraleSource struct {
+	Name  string  `json:"name"`
+	Type  string  `json:"type"`
+	Bonus float64 `json:"bonus"`
 }
 
 //go:generate stringer -type=PlanetMineral

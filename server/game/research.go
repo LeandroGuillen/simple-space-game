@@ -11,7 +11,7 @@ import (
 const hyperAdvancedResearchPrefix = "Hyper Advanced "
 
 func Science(p *Planet) int64 {
-	return p.Science.Scientists*p.Science.ProducedPerScientist + p.Science.ProducedPerBuilding
+	return PlanetScienceProduced(p)
 }
 
 func (g *Game) selectResearch(player *Player, cmd SelectResearchCommand) error {
