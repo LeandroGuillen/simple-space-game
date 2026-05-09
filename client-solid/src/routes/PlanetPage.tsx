@@ -1,15 +1,31 @@
-import { useParams } from '@solidjs/router';
+import { A, useParams } from '@solidjs/router';
 import { createMemo, For, Show } from 'solid-js';
 import { ConstructionPanel } from '../components/ConstructionPanel';
 import { PlanetVisual } from '../components/PlanetVisual';
 import { PopulationPanel } from '../components/PopulationPanel';
-import { findPlanet, getPlanetProjectedIncome, getPlanetProjectedPopulationGrowth, labelForEnvironment, labelForGravity, labelForMinerals, labelForSize } from '../lib/utils';
+import { findPlanet, findStar, getPlanetProjectedIncome, getPlanetProjectedPopulationGrowth, getPrimaryPlayer, labelForEnvironment, labelForGravity, labelForMinerals, labelForSize } from '../lib/utils';
 import { useAppContext } from '../state/app-context';
 
 export function PlanetPage() {
   const params = useParams();
   const { state } = useAppContext();
   const planet = () => findPlanet(state.game, Number(params.planetId));
+  const populationUnits = (population: number) => Math.floor(population / 1000);
+  const hasPopulationCapacity = (maxPopulation: number) => populationUnits(maxPopulation) > 0;
+  const primaryPlayer = createMemo(() => getPrimaryPlayer(state.game));
+  const playerColorById = createMemo(
+    () =>
+      new Map(
+        (state.game?.players ?? []).map((player) => [player.id, player.color]),
+      ),
+  );
+  const planetIconSize = (size: number) => `${[14, 16, 21, 26, 31][size - 1] ?? 22}px`;
+  const planetOwnerColor = (owner: number) => playerColorById().get(owner) ?? 'var(--text-mute)';
+  const canVisitPlanet = (owner: number) => owner === primaryPlayer()?.id;
+  const star = createMemo(() => {
+    const current = planet();
+    return current ? findStar(state.game, current.parentStar) : null;
+  });
   const projectedPopGrowth = createMemo(() => {
     const current = planet();
     return current ? getPlanetProjectedPopulationGrowth(current, state.pendingCommands) : 0;
@@ -38,6 +54,61 @@ export function PlanetPage() {
         <section class='page-grid'>
           <section class='panel'>
             <div class='feature-header'>
+              <Show when={star()?.planets.length}>
+                <nav class='system-planet-nav' aria-label={`${star()?.name ?? 'System'} planets`}>
+                  <For each={star()?.planets ?? []}>
+                    {(systemPlanet) => (
+                      <Show
+                        when={canVisitPlanet(systemPlanet.owner)}
+                        fallback={
+                          <span
+                            class='system-planet-link system-planet-link--disabled'
+                            title={`${systemPlanet.name}: ${labelForMinerals(systemPlanet.mineralClass)}, ${populationUnits(systemPlanet.population)}/${populationUnits(systemPlanet.maxPopulation)} population`}
+                          >
+                            <span
+                              class='system-planet-icon'
+                              style={{ '--planet-nav-icon-size': planetIconSize(systemPlanet.size) }}
+                            >
+                              <PlanetVisual environment={systemPlanet.environment} size='small' />
+                            </span>
+                            <span class='system-planet-meta'>
+                              <strong style={{ color: systemPlanet.owner > 0 ? planetOwnerColor(systemPlanet.owner) : 'var(--text-mute)' }}>
+                                {systemPlanet.name}
+                              </strong>
+                              <span>{labelForMinerals(systemPlanet.mineralClass)}</span>
+                              <Show when={hasPopulationCapacity(systemPlanet.maxPopulation)}>
+                                <span>{populationUnits(systemPlanet.population)}/{populationUnits(systemPlanet.maxPopulation)}</span>
+                              </Show>
+                            </span>
+                          </span>
+                        }
+                      >
+                        <A
+                          class='system-planet-link'
+                          classList={{ 'system-planet-link--active': systemPlanet.id === currentPlanet().id }}
+                          href={`/stars/${systemPlanet.parentStar}/planets/${systemPlanet.id}`}
+                          aria-current={systemPlanet.id === currentPlanet().id ? 'page' : undefined}
+                          title={`${systemPlanet.name}: ${labelForMinerals(systemPlanet.mineralClass)}, ${populationUnits(systemPlanet.population)}/${populationUnits(systemPlanet.maxPopulation)} population`}
+                        >
+                          <span
+                            class='system-planet-icon'
+                            style={{ '--planet-nav-icon-size': planetIconSize(systemPlanet.size) }}
+                          >
+                            <PlanetVisual environment={systemPlanet.environment} size='small' />
+                          </span>
+                          <span class='system-planet-meta'>
+                            <strong style={{ color: planetOwnerColor(systemPlanet.owner) }}>{systemPlanet.name}</strong>
+                            <span>{labelForMinerals(systemPlanet.mineralClass)}</span>
+                            <Show when={hasPopulationCapacity(systemPlanet.maxPopulation)}>
+                              <span>{populationUnits(systemPlanet.population)}/{populationUnits(systemPlanet.maxPopulation)}</span>
+                            </Show>
+                          </span>
+                        </A>
+                      </Show>
+                    )}
+                  </For>
+                </nav>
+              </Show>
               <PlanetVisual environment={currentPlanet().environment} size='large' />
               <div class='planet-details'>
                 <h2>{currentPlanet().name}</h2>

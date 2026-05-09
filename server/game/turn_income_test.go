@@ -158,6 +158,62 @@ func TestTurnCanSwitchConstructionBackToTradeGoods(t *testing.T) {
 	assert.Greater(t, colonies[0].Income.TradeGoods, int64(0))
 }
 
+func TestMovePopulationOnlyAppliesToCommandPlanet(t *testing.T) {
+	g := &Game{
+		Players: []*model.Player{
+			{ID: 1},
+		},
+		Resources: &Resources{},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{
+					Planets: []*model.Planet{
+						{
+							ID:           1,
+							Owner:        1,
+							Population:   2000,
+							Size:         model.PlanetSizeMedium,
+							MineralClass: model.PlanetMineralAbundant,
+							Food: model.PlanetFoodOutput{
+								Farmers: 2,
+							},
+						},
+						{
+							ID:           2,
+							Owner:        1,
+							Population:   2000,
+							Size:         model.PlanetSizeMedium,
+							MineralClass: model.PlanetMineralAbundant,
+							Industry: model.PlanetIndustryOutput{
+								Workers: 2,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	require.NoError(t, g.Turn(1, model.Commands{
+		MovePopulation: &model.MovePopulationCommand{
+			PlanetID:   2,
+			Farmers:    1,
+			Workers:    1,
+			Scientists: 0,
+		},
+	}))
+
+	colonies, err := g.GetColonyList(1)
+	require.NoError(t, err)
+	require.Len(t, colonies, 2)
+	assert.Equal(t, int64(2), colonies[0].Food.Farmers)
+	assert.Equal(t, int64(0), colonies[0].Industry.Workers)
+	assert.Equal(t, int64(0), colonies[0].Science.Scientists)
+	assert.Equal(t, int64(1), colonies[1].Food.Farmers)
+	assert.Equal(t, int64(1), colonies[1].Industry.Workers)
+	assert.Equal(t, int64(0), colonies[1].Science.Scientists)
+}
+
 func TestTurnStoresBuildQueueAndStartsFirstProject(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)
@@ -223,6 +279,13 @@ func TestTurnStartsNextQueuedProjectAfterCompletion(t *testing.T) {
 								ProducedPerWorker: 1,
 							},
 						},
+						{
+							ID:           2,
+							Owner:        0,
+							Environment:  model.PlanetEnvironmentTerran,
+							Size:         model.PlanetSizeMedium,
+							MineralClass: model.PlanetMineralAbundant,
+						},
 					},
 				},
 			},
@@ -238,6 +301,153 @@ func TestTurnStartsNextQueuedProjectAfterCompletion(t *testing.T) {
 	assert.Equal(t, "Next Building", colonies[0].CurrentProject)
 	assert.Empty(t, colonies[0].BuildQueue)
 	assert.True(t, colonies[0].IsBuilding)
+}
+
+func TestCompletedColonyBaseCreatesPendingBaseWithoutBuiltBuilding(t *testing.T) {
+	g := &Game{
+		Players: []*model.Player{
+			{
+				ID: 1,
+				Available: model.AvailableTech{
+					Buildings: []string{"Colony Base"},
+				},
+			},
+		},
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{
+				Buildings: []model.Building{
+					{Name: "Colony Base", Cost: 1},
+				},
+			},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{
+					Planets: []*model.Planet{
+						{
+							ID:             1,
+							Owner:          1,
+							Population:     1000,
+							Size:           model.PlanetSizeMedium,
+							MineralClass:   model.PlanetMineralAbundant,
+							CurrentProject: "Colony Base",
+							IsBuilding:     true,
+							BuildBucket:    1,
+							Industry: model.PlanetIndustryOutput{
+								Workers:           1,
+								ProducedPerWorker: 1,
+							},
+						},
+						{
+							ID:           2,
+							Owner:        0,
+							Environment:  model.PlanetEnvironmentTerran,
+							Size:         model.PlanetSizeMedium,
+							MineralClass: model.PlanetMineralAbundant,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	require.NoError(t, g.Turn(1, model.Commands{}))
+
+	colonies, err := g.GetColonyList(1)
+	require.NoError(t, err)
+	require.Len(t, colonies, 1)
+	assert.NotContains(t, colonies[0].Buildings, "Colony Base")
+	assert.Equal(t, []uint{1}, g.PendingColonyBases[1])
+}
+
+func TestTurnClearsPendingColonyBaseWhenNoColonizablePlanetsRemain(t *testing.T) {
+	g := &Game{
+		Players: []*model.Player{
+			{ID: 1},
+		},
+		Resources:          &Resources{},
+		PendingColonyBases: map[uint][]uint{1: []uint{1}},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{
+					Planets: []*model.Planet{
+						{
+							ID:           1,
+							Owner:        1,
+							Population:   1000,
+							Size:         model.PlanetSizeMedium,
+							MineralClass: model.PlanetMineralAbundant,
+						},
+						{
+							ID:           2,
+							Owner:        0,
+							Environment:  model.PlanetEnvironmentGasGiant,
+							Size:         model.PlanetSizeHuge,
+							MineralClass: model.PlanetMineralAbundant,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	require.NoError(t, g.Turn(1, model.Commands{}))
+
+	assert.Empty(t, g.PendingColonyBases[1])
+}
+
+func TestLegacyBuiltColonyBaseDoesNotBlockFutureColonyBases(t *testing.T) {
+	g := &Game{
+		Players: []*model.Player{
+			{
+				ID: 1,
+				Available: model.AvailableTech{
+					Buildings: []string{"Colony Base"},
+				},
+			},
+		},
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{
+				Buildings: []model.Building{
+					{Name: "Colony Base", Cost: 10},
+				},
+			},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{
+					Planets: []*model.Planet{
+						{
+							ID:           1,
+							Owner:        1,
+							Population:   1000,
+							Size:         model.PlanetSizeMedium,
+							MineralClass: model.PlanetMineralAbundant,
+							Buildings:    []string{"Colony Base"},
+							Industry: model.PlanetIndustryOutput{
+								Workers:           1,
+								ProducedPerWorker: 1,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	require.NoError(t, g.Turn(1, model.Commands{
+		Build: []*model.BuildCommand{
+			{PlanetID: 1, Building: "Colony Base"},
+		},
+	}))
+
+	colonies, err := g.GetColonyList(1)
+	require.NoError(t, err)
+	require.Len(t, colonies, 1)
+	assert.Equal(t, "Colony Base", colonies[0].CurrentProject)
+	assert.True(t, colonies[0].IsBuilding)
+	assert.Greater(t, colonies[0].BuildBucket, int64(0))
+	assert.Less(t, colonies[0].BuildBucket, int64(10))
 }
 
 func TestTurnCanUpdateQueueWithoutSwitchingCurrentProject(t *testing.T) {

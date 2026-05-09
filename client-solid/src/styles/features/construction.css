@@ -31,6 +31,93 @@
   align-items: flex-start;
   gap: 24px;
 
+  & .system-planet-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 132px;
+    flex-shrink: 0;
+  }
+
+  & .system-planet-link {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+    padding: 4px 6px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: var(--text-mute);
+    text-decoration: none;
+    transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+
+    &:hover,
+    &:focus-visible {
+      border-color: var(--rule-strong);
+      background: var(--bg-elev);
+      color: var(--text);
+    }
+  }
+
+  & .system-planet-link--active {
+    border-color: var(--accent-soft);
+    background: var(--bg-elev);
+    color: var(--text);
+  }
+
+  & .system-planet-link--disabled {
+    cursor: default;
+    opacity: 0.72;
+
+    &:hover,
+    &:focus-visible {
+      border-color: transparent;
+      background: transparent;
+      color: var(--text-mute);
+    }
+  }
+
+  & .system-planet-icon {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+
+    & .planet-mini {
+      display: block;
+      width: var(--planet-nav-icon-size, 22px);
+      height: var(--planet-nav-icon-size, 22px);
+    }
+  }
+
+  & .system-planet-meta {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1px;
+    min-width: 0;
+    color: var(--text-mute);
+    font-size: 0.54rem;
+    line-height: 1.05;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+
+    & span,
+    & strong {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    & strong {
+      color: var(--text);
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+  }
+
   & .planet-details {
     display: flex;
     flex-direction: column;
@@ -792,6 +879,17 @@
   .feature-header {
     flex-direction: column;
     align-items: stretch;
+
+    & .system-planet-nav {
+      flex-direction: row;
+      width: 100%;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    & .system-planet-link {
+      min-width: 132px;
+    }
 
     & > .construction-panel {
       width: 100%;

@@ -11,9 +11,9 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 	hydratePlanetOutputs(game, p)
 
 	// population movement
-	if commands.MovePopulation != nil {
+	if commands.MovePopulation != nil && commands.MovePopulation.PlanetID == p.ID {
 		newTotal := commands.MovePopulation.Farmers + commands.MovePopulation.Workers + commands.MovePopulation.Scientists
-		if newTotal > p.Population {
+		if newTotal > p.Population/1000 {
 			return fmt.Errorf("bad pop movement: too many units")
 		}
 		p.Food.Farmers = commands.MovePopulation.Farmers
@@ -121,7 +121,6 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 		if nextBucket <= 0 {
 			// project is complete
 			completedProject := p.CurrentProject
-			p.Buildings = append(p.Buildings, completedProject)
 			p.IsBuilding = false
 			p.IndustryStack += -nextBucket
 			p.BuildBucket = 0
@@ -132,6 +131,8 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 					game.PendingColonyBases = make(map[uint][]uint)
 				}
 				game.PendingColonyBases[player.ID] = append(game.PendingColonyBases[player.ID], p.ID)
+			} else {
+				p.Buildings = append(p.Buildings, completedProject)
 			}
 
 			if len(p.BuildQueue) > 0 {
@@ -202,6 +203,9 @@ func Build(p *Planet, buildingName string, availableBuildings []string, game *Ga
 	// is the building already built on this planet
 	found := false
 	for _, buildingInPlanet := range p.Buildings {
+		if buildingName == "Colony Base" {
+			continue
+		}
 		if buildingName == buildingInPlanet {
 			found = true
 			break
@@ -242,6 +246,9 @@ func canBuild(p *Planet, buildingName string, availableBuildings []string, game 
 		return false
 	}
 	for _, buildingInPlanet := range p.Buildings {
+		if buildingName == "Colony Base" {
+			continue
+		}
 		if buildingName == buildingInPlanet {
 			return false
 		}

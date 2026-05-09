@@ -13,13 +13,13 @@ type Turnable interface {
 }
 
 type Game struct {
-	Galaxy              Galaxy       `json:"galaxy"`
-	Players             []*Player    `json:"players"`
-	ID                  string       `json:"id"`
-	CurrentTurn         int64        `json:"current_turn"`
-	CreatedAt           time.Time    `json:"created_at"`
-	LastTurnAt          *time.Time   `json:"last_turn_at,omitempty"`
-	Resources           *Resources   `json:"resources"`
+	Galaxy             Galaxy          `json:"galaxy"`
+	Players            []*Player       `json:"players"`
+	ID                 string          `json:"id"`
+	CurrentTurn        int64           `json:"current_turn"`
+	CreatedAt          time.Time       `json:"created_at"`
+	LastTurnAt         *time.Time      `json:"last_turn_at,omitempty"`
+	Resources          *Resources      `json:"resources"`
 	PendingColonyBases map[uint][]uint `json:"pending_colony_bases"`
 }
 
@@ -35,12 +35,12 @@ func NewGame(resources *ResourceManager, playerName string, numStars uint, playe
 	player1 := NewPlayer(firstPlayerID, playerName, playerColor)
 	created := time.Now().UTC()
 	g := &Game{
-		Galaxy:              NewGalaxy(numStars),
-		Players:             []*Player{player1},
-		ID:                  uuid.New().String(),
-		CurrentTurn:         3500,
-		CreatedAt:           created,
-		Resources:           &resources.Resources,
+		Galaxy:             NewGalaxy(numStars),
+		Players:            []*Player{player1},
+		ID:                 uuid.New().String(),
+		CurrentTurn:        3500,
+		CreatedAt:          created,
+		Resources:          &resources.Resources,
 		PendingColonyBases: make(map[uint][]uint),
 	}
 	g.hydratePlayerAvailability(player1)
@@ -106,6 +106,9 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 		if err := g.ColonizePlanet(playerID, sourcePlanetID, commands.Colonize.PlanetID); err != nil {
 			return err
 		}
+	}
+	if len(g.PendingColonyBases[playerID]) > 0 && !g.hasColonizablePlanets() {
+		delete(g.PendingColonyBases, playerID)
 	}
 
 	// empire turn processing
@@ -189,6 +192,17 @@ func (g *Game) ColonizePlanet(ownerID, sourcePlanetID, targetPlanetID uint) erro
 	_ = sourcePlanetID
 
 	return nil
+}
+
+func (g *Game) hasColonizablePlanets() bool {
+	for _, star := range g.Galaxy.Stars {
+		for _, planet := range star.Planets {
+			if planet.Owner == 0 && planet.Environment != PlanetEnvironmentGasGiant && planet.Environment != PlanetEnvironmentAsteroidBelt {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // GetColonyList returns a list of planets that have a colony owned by given player.

@@ -70,6 +70,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     }
     return projects;
   });
+  const buildingListProjects = createMemo(() => [TRADE_GOODS, ...buildableProjects()]);
   const projectByName = createMemo(() => new Map(availableProjects().map((project) => [project.name.toLowerCase(), project])));
   const pendingMoves = createMemo(() =>
     state.pendingCommands.movePopulation.filter((cmd) => cmd.planetId === props.planet.id),
@@ -494,7 +495,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
                 <aside class='construction-modal-sidebar'>
                   <h3>Buildings</h3>
                   <div class='construction-project-list'>
-                    <For each={availableProjects()}>
+                    <For each={buildingListProjects()}>
                       {(project) => (
                         <button
                           type='button'
