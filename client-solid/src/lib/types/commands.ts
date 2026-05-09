@@ -22,7 +22,8 @@ export type ColonizeCommand = {
 export type FleetMoveCommand = {
   fleet_id: number;
   destination_star_id: number;
-  ship_indexes?: number[];
+  /** Required: server treats a missing JSON field as “move entire fleet”. */
+  ship_indexes: number[];
 };
 
 export type PendingCommands = {

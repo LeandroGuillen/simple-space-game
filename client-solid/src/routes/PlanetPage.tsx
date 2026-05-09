@@ -4,7 +4,7 @@ import { ConstructionPanel } from '../components/ConstructionPanel';
 import { FleetOrbitModal } from '../components/FleetOrbitModal';
 import { PlanetVisual } from '../components/PlanetVisual';
 import { PopulationPanel } from '../components/PopulationPanel';
-import { findFleetInOrbit, findPlanet, findStar, getPlanetProjectedIncome, getPlanetProjectedPopulationGrowth, getPrimaryPlayer, labelForEnvironment, labelForGravity, labelForMinerals, labelForSize } from '../lib/utils';
+import { findPlanet, findPlayerFleetsAtStar, findStar, getPlanetProjectedIncome, getPlanetProjectedPopulationGrowth, getPrimaryPlayer, labelForEnvironment, labelForGravity, labelForMinerals, labelForSize, sortFleetsForStarTabs } from '../lib/utils';
 import { useAppContext } from '../state/app-context';
 
 export function PlanetPage() {
@@ -49,14 +49,17 @@ export function PlanetPage() {
       ...Array.from({ length: coins }, () => '🪙'),
     ];
   });
-  const fleetInOrbit = createMemo(() => {
+  const fleetsAtParentStar = createMemo(() => {
     const current = planet();
     const playerId = primaryPlayer()?.id ?? 0;
     if (!current || !playerId) {
-      return null;
+      return [];
     }
-    return findFleetInOrbit(state.game, playerId, current.parentStar);
+    return sortFleetsForStarTabs(findPlayerFleetsAtStar(state.game, playerId, current.parentStar));
   });
+  const fleetShipCountAtParentStar = createMemo(() =>
+    fleetsAtParentStar().reduce((total, f) => total + f.ships.length, 0),
+  );
 
   return (
     <Show when={planet()} fallback={<section class='panel'>Planet not found.</section>}>
@@ -194,9 +197,9 @@ export function PlanetPage() {
                     <span class='pop-stat-icon'>😐</span>
                   </div>
                 </article>
-                <Show when={fleetInOrbit()}>
+                <Show when={fleetsAtParentStar().length > 0}>
                   <button class='fleet-orbit-link-inline fleet-orbit-link' type='button' onClick={() => setIsFleetModalOpen(true)}>
-                    🚀 Fleet in Orbit ({fleetInOrbit()?.ships.length ?? 0})
+                    🚀 Fleets ({fleetShipCountAtParentStar()})
                   </button>
                 </Show>
               </div>

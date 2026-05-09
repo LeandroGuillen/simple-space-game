@@ -21,9 +21,9 @@ type ColonizeCommand struct {
 }
 
 type FleetMoveCommand struct {
-	FleetID           uint   `json:"fleet_id"`
-	DestinationStarID uint   `json:"destination_star_id"`
-	ShipIndexes       []uint `json:"ship_indexes,omitempty"`
+	FleetID           uint    `json:"fleet_id"`
+	DestinationStarID uint    `json:"destination_star_id"`
+	ShipIndexes       *[]uint `json:"ship_indexes,omitempty"`
 }
 
 type Commands struct {

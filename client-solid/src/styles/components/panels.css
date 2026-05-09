@@ -15,6 +15,50 @@
   margin-bottom: 12px;
 }
 
+.inspector-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.inspector-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.inspector-header h2 {
+  margin: 2px 0 0;
+  font-family: var(--font-heading);
+  font-size: clamp(1.15rem, 1.8vw, 1.45rem);
+  letter-spacing: 0.02em;
+}
+
+.inspector-subtitle {
+  margin: 6px 0 0;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.inspector-header-action {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+.inspector-empty-card {
+  justify-content: flex-start;
+  padding: 14px;
+  margin: 0;
+  border: 1px solid var(--rule);
+  background: rgba(255, 255, 255, 0.025);
+}
+
 .setup-panel {
   padding: 28px 30px;
 }

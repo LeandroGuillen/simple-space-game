@@ -129,6 +129,43 @@ export function findFleetInOrbit(game: GameViewModel | null | undefined, playerI
   return game.fleets.find((fleet) => fleet.ownerId === playerId && fleet.starId === starId && fleet.turnsRemaining === 0) ?? null;
 }
 
+/** Fleets owned by the player that are still in orbit at this star. */
+export function findPlayerFleetsAtStar(
+  game: GameViewModel | null | undefined,
+  playerId: number,
+  starId: number,
+): FleetViewModel[] {
+  if (!game) {
+    return [];
+  }
+  return game.fleets.filter((fleet) =>
+    fleet.ownerId === playerId && fleet.starId === starId && (fleet.turnsRemaining ?? 0) === 0
+  );
+}
+
+export function sortFleetsForStarTabs(fleets: FleetViewModel[]): FleetViewModel[] {
+  return [...fleets].sort((a, b) => {
+    const aOrbit = (a.turnsRemaining ?? 0) === 0;
+    const bOrbit = (b.turnsRemaining ?? 0) === 0;
+    if (aOrbit !== bOrbit) {
+      return aOrbit ? -1 : 1;
+    }
+    return (a.destinationStarId ?? 0) - (b.destinationStarId ?? 0);
+  });
+}
+
+export function fleetTabLabel(game: GameViewModel | null | undefined, fleet: FleetViewModel): string {
+  if ((fleet.turnsRemaining ?? 0) === 0) {
+    const star = findStar(game, fleet.starId);
+    return `Orbiting ${star?.name ?? "Unknown system"}`;
+  }
+  const dest = fleet.destinationStarId != null ? findStar(game, fleet.destinationStarId) : null;
+  if (dest && !dest.explored) {
+    return "Exploring a new system";
+  }
+  return `Traveling to ${dest?.name ?? "Unknown system"}`;
+}
+
 export function calculateFleetTravelTurns(from: StarSummary, to: StarSummary) {
   return calculateFleetTravelTurnsFromCoordinates(from.x, from.y, to.x, to.y);
 }

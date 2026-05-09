@@ -1,24 +1,26 @@
 import { A } from "@solidjs/router";
 import { createMemo, createSignal, Show } from "solid-js";
 
-import { FleetOrbitModal } from "../components/FleetOrbitModal";
+import { FleetInspectorPanel } from "../components/FleetInspectorPanel";
 import { GalaxyMap } from "../components/GalaxyMap";
 import { PlanetVisual } from "../components/PlanetVisual";
 import {
   calculateFleetTravelTurnsFromCoordinates,
-  findFleetInOrbit,
+  findPlayerFleetsAtStar,
   findStar,
   labelForEnvironment,
   labelForGravity,
   labelForMinerals,
   labelForSize,
+  sortFleetsForStarTabs,
 } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
 
 export function GalaxyPage() {
   const { state, currentPlayer, addFleetMoveCommand } = useAppContext();
   const [selectedStarId, setSelectedStarId] = createSignal<number>();
-  const [fleetModalFleetId, setFleetModalFleetId] = createSignal<number | null>(null);
+  const [selectedFleetStarId, setSelectedFleetStarId] = createSignal<number | null>(null);
+  const [selectedFleetId, setSelectedFleetId] = createSignal<number | null>(null);
   const [travelMode, setTravelMode] = createSignal<{ fleetId: number; originStarId: number; shipIndexes: number[] } | null>(null);
   const [snappedStarId, setSnappedStarId] = createSignal<number | null>(null);
 
@@ -44,15 +46,15 @@ export function GalaxyPage() {
     (state.game?.fleets ?? [])
       .filter((fleet) => fleet.ownerId === (currentPlayer()?.id ?? 0)),
   );
-  const selectedStarFleet = createMemo(() => {
+  const fleetsAtSelectedStar = createMemo(() => {
     const starId = selectedStar()?.id;
     if (!starId) {
-      return null;
+      return [];
     }
-    return findFleetInOrbit(state.game, currentPlayer()?.id ?? 0, starId);
+    return sortFleetsForStarTabs(findPlayerFleetsAtStar(state.game, currentPlayer()?.id ?? 0, starId));
   });
-  const modalFleet = createMemo(() =>
-    ownedFleets().find((fleet) => fleet.id === fleetModalFleetId()) ?? null,
+  const fleetShipCountAtSelectedStar = createMemo(() =>
+    fleetsAtSelectedStar().reduce((total, f) => total + f.ships.length, 0),
   );
   const pendingFleetRoutes = createMemo(() =>
     state.pendingCommands.fleetMove.map((command) => {
@@ -124,6 +126,8 @@ export function GalaxyPage() {
     const mode = travelMode();
     if (!mode) {
       setSelectedStarId(starId);
+      setSelectedFleetStarId(null);
+      setSelectedFleetId(null);
       return;
     }
     if (starId === mode.originStarId) {
@@ -143,6 +147,29 @@ export function GalaxyPage() {
     });
     setSelectedStarId(starId);
     exitFleetTravelMode();
+  }
+
+  function selectFleetForInspector(fleetId: number | null, starId: number | null) {
+    setSelectedFleetStarId(starId);
+    setSelectedFleetId(fleetId);
+    if (starId) {
+      setSelectedStarId(starId);
+    }
+  }
+
+  function handleFleetSelectionChange(fleetId: number | null, shipIndexes: number[]) {
+    if (fleetId == null || shipIndexes.length === 0) {
+      if (travelMode()?.fleetId === fleetId) {
+        exitFleetTravelMode();
+      }
+      return;
+    }
+    const f = ownedFleets().find((item) => item.id === fleetId);
+    const originStarId = f?.starId ?? selectedFleetStarId();
+    if (!originStarId) {
+      return;
+    }
+    setTravelMode({ fleetId, originStarId, shipIndexes });
   }
 
   return (
@@ -170,7 +197,10 @@ export function GalaxyPage() {
               y: fleet.y,
               isMoving: fleet.turnsRemaining > 0,
             }))}
-            onFleetClick={(fleetId) => setFleetModalFleetId(fleetId)}
+            onFleetClick={(fleetId) => {
+              const f = ownedFleets().find((item) => item.id === fleetId);
+              selectFleetForInspector(fleetId, f?.starId ?? null);
+            }}
             routeLines={fleetRouteLines()}
             onHoverSnappedStar={(starId) => {
               if (!travelMode()) {
@@ -182,126 +212,124 @@ export function GalaxyPage() {
         </section>
 
         <section class="panel inspector-panel">
-          <Show
-            when={selectedStar()}
-            fallback={<p>Select a star to inspect the system.</p>}
-          >
-            {(star) => (
-              <>
-                <p class="eyebrow">System Inspector</p>
-                <h2>{star().name}</h2>
-                <Show when={selectedStarFleet()}>
-                  <button class="fleet-orbit-link-inline fleet-orbit-link" type="button" onClick={() => setFleetModalFleetId(selectedStarFleet()?.id ?? null)}>
-                    🚀 Fleet in Orbit ({selectedStarFleet()?.ships.length ?? 0})
-                  </button>
-                </Show>
-                <Show when={travelMode()}>
-                  <div class="fleet-travel-mode-banner">
-                    <p class="eyebrow">
-                      Fleet travel mode: pick a destination star, or the star this fleet is at to cancel a queued move or
-                      stop planning
-                    </p>
-                    <button
-                      class="secondary-button"
-                      type="button"
-                      onClick={() => {
-                        const m = travelMode();
-                        if (m) {
-                          addFleetMoveCommand({
-                            fleet_id: m.fleetId,
-                            destination_star_id: m.originStarId,
-                            ship_indexes: m.shipIndexes,
-                          });
-                        }
-                        exitFleetTravelMode();
-                      }}
-                    >
-                      Cancel
-                    </button>
+          <Show when={selectedFleetStarId()} fallback={
+            <Show
+              when={selectedStar()}
+              fallback={<p>Select a star to inspect the system.</p>}
+            >
+              {(star) => (
+                <>
+                  <div class="inspector-header">
+                    <div>
+                      <p class="eyebrow">System Inspector</p>
+                      <h2>{star().name}</h2>
+                      <p class="inspector-subtitle">
+                        {star().explored ? `${star().planets.length} planets catalogued` : "Unexplored system"}
+                      </p>
+                    </div>
+                    <Show when={fleetsAtSelectedStar().length > 0}>
+                      <button
+                        class="secondary-button inspector-header-action"
+                        type="button"
+                        onClick={() => selectFleetForInspector(null, selectedStar()?.id ?? null)}
+                      >
+                        Fleets ({fleetShipCountAtSelectedStar()})
+                      </button>
+                    </Show>
                   </div>
-                </Show>
 
-                <div class="planet-list">
-                  <Show
-                    when={star().explored}
-                    fallback={
-                      <article class="planet-card">
-                        <div>
-                          <p>No planet telemetry. Explore this system first.</p>
-                        </div>
-                      </article>
-                    }
-                  >
-                    {star().planets.map((planet) => (
-                      <article class="planet-card">
-                        <div class="planet-card-visual">
-                          <A href={`/stars/${star().id}/planets/${planet.id}`}>
-                            <PlanetVisual
-                              environment={planet.environment}
-                              size="small"
-                            />
-                          </A>
-                        </div>
-                        <div class="planet-card-info">
-                          <p class="planet-title">
-                            <Show
-                              when={planet.owner > 0}
-                              fallback={<span>{planet.name}</span>}
-                            >
-                              <A
-                                class="planet-name-link"
-                                href={`/stars/${star().id}/planets/${planet.id}`}
-                                style={{
-                                  color:
-                                    playerColorById().get(planet.owner) ??
-                                    "var(--text)",
-                                }}
+                  <div class="planet-list">
+                    <Show
+                      when={star().explored}
+                      fallback={
+                        <article class="planet-card inspector-empty-card">
+                          <div>
+                            <p>No planet telemetry. Explore this system first.</p>
+                          </div>
+                        </article>
+                      }
+                    >
+                      {star().planets.map((planet) => (
+                        <article class="planet-card">
+                          <div class="planet-card-visual">
+                            <A href={`/stars/${star().id}/planets/${planet.id}`}>
+                              <PlanetVisual
+                                environment={planet.environment}
+                                size="small"
+                              />
+                            </A>
+                          </div>
+                          <div class="planet-card-info">
+                            <p class="planet-title">
+                              <Show
+                                when={planet.owner > 0}
+                                fallback={<span>{planet.name}</span>}
                               >
-                                {planet.name}
-                              </A>
-                            </Show>
-                          </p>
-                          <p>
-                            {labelForEnvironment(planet.environment)} ·{" "}
-                            {labelForSize(planet.size)} ·{" "}
-                            {labelForMinerals(planet.mineralClass)}
-                          </p>
-                          <p>
-                            Gravity: {labelForGravity(planet.gravity)}
-                            <Show when={planet.owner > 0}>
-                              {" "}
-                              · Population {planet.population}/
-                              {planet.maxPopulation}
-                            </Show>
-                          </p>
-                          <p>
-                            {planet.owner > 0
-                              ? `Controlled by ${playerNameById().get(planet.owner) ?? `Player ${planet.owner}`}`
-                              : "Uncontrolled"}
-                          </p>
-                        </div>
-                      </article>
-                    ))}
-                  </Show>
-                </div>
-
-              </>
+                                <A
+                                  class="planet-name-link"
+                                  href={`/stars/${star().id}/planets/${planet.id}`}
+                                  style={{
+                                    color:
+                                      playerColorById().get(planet.owner) ??
+                                      "var(--text)",
+                                  }}
+                                >
+                                  {planet.name}
+                                </A>
+                              </Show>
+                            </p>
+                            <p>
+                              {labelForEnvironment(planet.environment)} ·{" "}
+                              {labelForSize(planet.size)} ·{" "}
+                              {labelForMinerals(planet.mineralClass)}
+                            </p>
+                            <p>
+                              Gravity: {labelForGravity(planet.gravity)}
+                              <Show when={planet.owner > 0}>
+                                {" "}
+                                · Population {planet.population}/
+                                {planet.maxPopulation}
+                              </Show>
+                            </p>
+                            <p>
+                              {planet.owner > 0
+                                ? `Controlled by ${playerNameById().get(planet.owner) ?? `Player ${planet.owner}`}`
+                                : "Uncontrolled"}
+                            </p>
+                          </div>
+                        </article>
+                      ))}
+                    </Show>
+                  </div>
+                </>
+              )}
+            </Show>
+          }>
+            {(fleetStarId) => (
+              <FleetInspectorPanel
+                starId={fleetStarId()}
+                fleetId={selectedFleetId()}
+                onViewSystem={(starId) => {
+                  setSelectedStarId(starId);
+                  setSelectedFleetStarId(null);
+                  setSelectedFleetId(null);
+                }}
+                onSelectionChange={handleFleetSelectionChange}
+                isMoveTargeting={travelMode() != null}
+                onCancelMove={() => {
+                  const m = travelMode();
+                  if (m) {
+                    addFleetMoveCommand({
+                      fleet_id: m.fleetId,
+                      destination_star_id: m.originStarId,
+                      ship_indexes: m.shipIndexes,
+                    });
+                  }
+                  exitFleetTravelMode();
+                }}
+              />
             )}
           </Show>
-          <FleetOrbitModal
-            starId={modalFleet()?.starId ?? null}
-            fleetId={fleetModalFleetId()}
-            isOpen={fleetModalFleetId() !== null}
-            onClose={() => setFleetModalFleetId(null)}
-            onMove={(fleetId, shipIndexes) => {
-              const originStarId = modalFleet()?.starId ?? null;
-              if (!originStarId) {
-                return;
-              }
-              setFleetModalFleetId(null);
-              setTravelMode({ fleetId, originStarId, shipIndexes });
-            }}
-          />
         </section>
       </section>
     </Show>

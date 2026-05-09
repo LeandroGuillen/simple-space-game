@@ -9,6 +9,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func uShips(idxs ...uint) *[]uint {
+	s := append([]uint(nil), idxs...)
+	return &s
+}
+
 func TestTurnAddsIncomeToTreasuryEveryTurn(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)
@@ -704,7 +709,7 @@ func TestTurnQueuesFleetMoveCommand(t *testing.T) {
 
 	require.NoError(t, g.Turn(1, model.Commands{
 		FleetMove: []*model.FleetMoveCommand{
-			{FleetID: 1, DestinationStarID: 2, ShipIndexes: []uint{0}},
+			{FleetID: 1, DestinationStarID: 2, ShipIndexes: uShips(0)},
 		},
 	}))
 
@@ -745,7 +750,7 @@ func TestFleetArrivalExploresDestinationStar(t *testing.T) {
 
 	require.NoError(t, g.Turn(1, model.Commands{
 		FleetMove: []*model.FleetMoveCommand{
-			{FleetID: 1, DestinationStarID: 2, ShipIndexes: []uint{0}},
+			{FleetID: 1, DestinationStarID: 2, ShipIndexes: uShips(0)},
 		},
 	}))
 
@@ -787,7 +792,7 @@ func TestTurnRejectsRerouteWithoutHyperspaceCommunications(t *testing.T) {
 
 	err := g.Turn(1, model.Commands{
 		FleetMove: []*model.FleetMoveCommand{
-			{FleetID: 1, DestinationStarID: 3, ShipIndexes: []uint{0}},
+			{FleetID: 1, DestinationStarID: 3, ShipIndexes: uShips(0)},
 		},
 	})
 
@@ -826,8 +831,196 @@ func TestTurnAllowsRerouteWithHyperspaceCommunications(t *testing.T) {
 
 	require.NoError(t, g.Turn(1, model.Commands{
 		FleetMove: []*model.FleetMoveCommand{
-			{FleetID: 1, DestinationStarID: 3, ShipIndexes: []uint{0}},
+			{FleetID: 1, DestinationStarID: 3, ShipIndexes: uShips(0)},
 		},
 	}))
 	assert.Equal(t, uint(3), g.Fleets[0].DestinationStarID)
+}
+
+func TestFleetPartialMoveSplitsOrbitStack(t *testing.T) {
+	g := &Game{
+		Players: []*model.Player{
+			{ID: 1},
+		},
+		Fleets: []*model.Fleet{
+			{
+				ID:     1,
+				Owner:  1,
+				StarID: 1,
+				X:      10,
+				Y:      10,
+				Ships: []model.FleetShip{
+					{Type: "colony_ship", Name: "Colony Ship A"},
+					{Type: "colony_ship", Name: "Colony Ship B"},
+				},
+			},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{ID: 1, X: 10, Y: 10, Planets: []*model.Planet{}},
+				{ID: 2, X: 310, Y: 10, Planets: []*model.Planet{}},
+			},
+		},
+		Resources: &Resources{BuildingCollection: &BuildingCollection{Buildings: []model.Building{}}},
+	}
+	g.Players[0].Fleets = []uint{1}
+
+	require.NoError(t, g.Turn(1, model.Commands{
+		FleetMove: []*model.FleetMoveCommand{
+			{FleetID: 1, DestinationStarID: 2, ShipIndexes: uShips(0)},
+		},
+	}))
+
+	require.Len(t, g.Fleets, 2)
+	var orbit, moving *model.Fleet
+	for _, f := range g.Fleets {
+		if f.DestinationStarID == 0 && f.TurnsRemaining == 0 {
+			orbit = f
+		} else {
+			moving = f
+		}
+	}
+	require.NotNil(t, orbit)
+	require.NotNil(t, moving)
+	require.Len(t, orbit.Ships, 1)
+	require.Equal(t, "Colony Ship B", orbit.Ships[0].Name)
+	require.Len(t, moving.Ships, 1)
+	require.Equal(t, "Colony Ship A", moving.Ships[0].Name)
+	require.Equal(t, uint(2), moving.DestinationStarID)
+}
+
+func TestFleetMultiplePartialMovesUseOriginalShipIndexes(t *testing.T) {
+	g := &Game{
+		Players: []*model.Player{
+			{ID: 1},
+		},
+		Fleets: []*model.Fleet{
+			{
+				ID:     1,
+				Owner:  1,
+				StarID: 1,
+				X:      10,
+				Y:      10,
+				Ships: []model.FleetShip{
+					{Type: "colony_ship", Name: "A"},
+					{Type: "colony_ship", Name: "B"},
+					{Type: "colony_ship", Name: "C"},
+				},
+			},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{ID: 1, X: 10, Y: 10, Planets: []*model.Planet{}},
+				{ID: 2, X: 310, Y: 10, Planets: []*model.Planet{}},
+				{ID: 3, X: 610, Y: 10, Planets: []*model.Planet{}},
+			},
+		},
+		Resources: &Resources{BuildingCollection: &BuildingCollection{Buildings: []model.Building{}}},
+	}
+	g.Players[0].Fleets = []uint{1}
+
+	require.NoError(t, g.Turn(1, model.Commands{
+		FleetMove: []*model.FleetMoveCommand{
+			{FleetID: 1, DestinationStarID: 2, ShipIndexes: uShips(0)},
+			{FleetID: 1, DestinationStarID: 3, ShipIndexes: uShips(1)},
+		},
+	}))
+
+	require.Len(t, g.Fleets, 3)
+	shipsByDestination := map[uint]string{}
+	for _, fleet := range g.Fleets {
+		require.Len(t, fleet.Ships, 1)
+		shipsByDestination[fleet.DestinationStarID] = fleet.Ships[0].Name
+	}
+	assert.Equal(t, "C", shipsByDestination[0])
+	assert.Equal(t, "A", shipsByDestination[2])
+	assert.Equal(t, "B", shipsByDestination[3])
+}
+
+func TestFleetRecallWhileMovingMergesOrbitWithoutHyperspace(t *testing.T) {
+	g := &Game{
+		Players: []*model.Player{
+			{ID: 1},
+		},
+		Fleets: []*model.Fleet{
+			{
+				ID:                1,
+				Owner:             1,
+				StarID:            1,
+				X:                 100,
+				Y:                 10,
+				OriginX:           10,
+				OriginY:           10,
+				DestinationStarID: 2,
+				TotalTurns:        5,
+				TurnsRemaining:    3,
+				Ships: []model.FleetShip{
+					{Type: "colony_ship", Name: "Returning"},
+				},
+			},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{ID: 1, X: 10, Y: 10, Planets: []*model.Planet{}},
+				{ID: 2, X: 310, Y: 10, Planets: []*model.Planet{}},
+			},
+		},
+		Resources: &Resources{BuildingCollection: &BuildingCollection{Buildings: []model.Building{}}},
+	}
+	g.Players[0].Fleets = []uint{1}
+
+	require.NoError(t, g.Turn(1, model.Commands{
+		FleetMove: []*model.FleetMoveCommand{
+			{FleetID: 1, DestinationStarID: 1, ShipIndexes: uShips(0)},
+		},
+	}))
+
+	require.Len(t, g.Fleets, 1)
+	require.Equal(t, uint(0), g.Fleets[0].DestinationStarID)
+	require.Len(t, g.Fleets[0].Ships, 1)
+	require.Equal(t, "Returning", g.Fleets[0].Ships[0].Name)
+}
+
+func TestFleetArrivalMergesIntoExistingOrbitFleet(t *testing.T) {
+	g := &Game{
+		Players: []*model.Player{
+			{ID: 1, ExploredStars: []uint{1, 2}},
+		},
+		Fleets: []*model.Fleet{
+			{
+				ID:     1,
+				Owner:  1,
+				StarID: 2,
+				X:      80,
+				Y:      10,
+				Ships:  []model.FleetShip{{Type: "frigate", Name: "Guard"}},
+			},
+			{
+				ID:                2,
+				Owner:             1,
+				StarID:            1,
+				X:                 80,
+				Y:                 10,
+				OriginX:           10,
+				OriginY:           10,
+				DestinationStarID: 2,
+				TotalTurns:        1,
+				TurnsRemaining:    1,
+				Ships:             []model.FleetShip{{Type: "colony_ship", Name: "Arrival"}},
+			},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{ID: 1, X: 10, Y: 10, Planets: []*model.Planet{}},
+				{ID: 2, X: 80, Y: 10, Planets: []*model.Planet{}},
+			},
+		},
+		Resources: &Resources{BuildingCollection: &BuildingCollection{Buildings: []model.Building{}}},
+	}
+	g.Players[0].Fleets = []uint{1, 2}
+
+	require.NoError(t, g.Turn(1, model.Commands{}))
+
+	require.Len(t, g.Fleets, 1)
+	require.Len(t, g.Fleets[0].Ships, 2)
 }

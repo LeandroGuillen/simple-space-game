@@ -77,13 +77,8 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 			return err
 		}
 	}
-	for _, fleetMoveCommand := range commands.FleetMove {
-		if fleetMoveCommand == nil {
-			continue
-		}
-		if err := g.issueFleetMove(playerID, fleetMoveCommand); err != nil {
-			return err
-		}
+	if err := g.issueFleetMoveCommands(playerID, commands.FleetMove); err != nil {
+		return err
 	}
 
 	// colonies turn processing

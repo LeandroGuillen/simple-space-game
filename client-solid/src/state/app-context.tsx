@@ -281,16 +281,51 @@ export function AppProvider(props: ParentProps) {
 
   function addFleetMoveCommand(command: FleetMoveCommand) {
     const fleet = state.game?.fleets.find((item) => item.id === command.fleet_id);
-    // Server rejects destination === fleet.StarID; treat it as cancelling a queued move (or aborting travel planning).
-    if (fleet && command.destination_star_id === fleet.starId) {
-      const hadPending = state.pendingCommands.fleetMove.some((cmd) => cmd.fleet_id === command.fleet_id);
-      const nextCommands = state.pendingCommands.fleetMove.filter((cmd) => cmd.fleet_id !== command.fleet_id);
+    const inTransit =
+      fleet != null &&
+      (fleet.turnsRemaining ?? 0) > 0 &&
+      (fleet.destinationStarId ?? 0) > 0;
+    // Stationary fleet: destination === current star clears a queued move without ending the turn.
+    // In-transit fleet: same destination issues a recall and must be sent to the server.
+    if (fleet && command.destination_star_id === fleet.starId && !inTransit) {
+      const selected = new Set(command.ship_indexes);
+      const nextCommands = state.pendingCommands.fleetMove
+        .map((cmd) =>
+          cmd.fleet_id === command.fleet_id
+            ? { ...cmd, ship_indexes: cmd.ship_indexes.filter((index) => !selected.has(index)) }
+            : cmd,
+        )
+        .filter((cmd) => cmd.ship_indexes.length > 0);
+      const hadPending = nextCommands.length !== state.pendingCommands.fleetMove.length ||
+        state.pendingCommands.fleetMove.some((cmd) =>
+          cmd.fleet_id === command.fleet_id && cmd.ship_indexes.some((index) => selected.has(index)),
+        );
       setState('pendingCommands', 'fleetMove', nextCommands);
       setState('info', hadPending ? 'Fleet move cancelled' : 'Fleet travel cancelled');
       return;
     }
-    const nextCommands = state.pendingCommands.fleetMove.filter((cmd) => cmd.fleet_id !== command.fleet_id);
-    nextCommands.push(command);
+    const selected = new Set(command.ship_indexes);
+    const nextCommands = state.pendingCommands.fleetMove
+      .map((cmd) =>
+        cmd.fleet_id === command.fleet_id
+          ? { ...cmd, ship_indexes: cmd.ship_indexes.filter((index) => !selected.has(index)) }
+          : cmd,
+      )
+      .filter((cmd) => cmd.ship_indexes.length > 0);
+    const sameDestination = nextCommands.find((cmd) =>
+      cmd.fleet_id === command.fleet_id && cmd.destination_star_id === command.destination_star_id
+    );
+    if (sameDestination) {
+      sameDestination.ship_indexes = [...sameDestination.ship_indexes, ...command.ship_indexes]
+        .filter((index, position, indexes) => indexes.indexOf(index) === position)
+        .sort((a, b) => a - b);
+    } else {
+      nextCommands.push({
+      fleet_id: command.fleet_id,
+      destination_star_id: command.destination_star_id,
+      ship_indexes: [...command.ship_indexes],
+      });
+    }
     setState('pendingCommands', 'fleetMove', nextCommands);
     setState('info', 'Fleet move queued for next turn');
   }
@@ -442,7 +477,6 @@ export function AppProvider(props: ParentProps) {
         const payload = parseGameUpdate(event.data);
         if (payload.game_update.id === state.session.selectedGameId) {
           setState('game', mapGame(payload.game_update));
-          setState('pendingCommands', emptyPendingCommands());
           setState({ isBusy: false, info: 'Live update received' });
         }
       } catch {
@@ -514,7 +548,11 @@ function toTurnCommands(commands: PendingCommands, game: GameViewModel | null): 
     turnCommands.colonize = commands.colonize;
   }
   if (commands.fleetMove.length > 0) {
-    turnCommands.fleet_move = commands.fleetMove;
+    turnCommands.fleet_move = commands.fleetMove.map((cmd) => ({
+      fleet_id: cmd.fleet_id,
+      destination_star_id: cmd.destination_star_id,
+      ship_indexes: [...cmd.ship_indexes],
+    }));
   }
 
   const [firstMove] = commands.movePopulation;
