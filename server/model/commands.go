@@ -27,9 +27,9 @@ type FleetMoveCommand struct {
 }
 
 type Commands struct {
-	Build          []*BuildCommand        `json:"build"`
-	MovePopulation *MovePopulationCommand `json:"movePopulation,omitempty"`
-	SelectResearch *SelectResearchCommand `json:"selectResearch,omitempty"`
-	Colonize       *ColonizeCommand       `json:"colonize,omitempty"`
-	FleetMove      []*FleetMoveCommand    `json:"fleet_move,omitempty"`
+	Build          []*BuildCommand          `json:"build"`
+	MovePopulation []*MovePopulationCommand `json:"movePopulation,omitempty"`
+	SelectResearch *SelectResearchCommand   `json:"selectResearch,omitempty"`
+	Colonize       *ColonizeCommand         `json:"colonize,omitempty"`
+	FleetMove      []*FleetMoveCommand      `json:"fleet_move,omitempty"`
 }

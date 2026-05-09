@@ -12,14 +12,18 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 	hydratePlanetOutputs(game, p)
 
 	// population movement
-	if commands.MovePopulation != nil && commands.MovePopulation.PlanetID == p.ID {
-		newTotal := commands.MovePopulation.Farmers + commands.MovePopulation.Workers + commands.MovePopulation.Scientists
+	for _, movePopulation := range commands.MovePopulation {
+		if movePopulation.PlanetID != p.ID {
+			continue
+		}
+		newTotal := movePopulation.Farmers + movePopulation.Workers + movePopulation.Scientists
 		if newTotal > p.Population/1000 {
 			return fmt.Errorf("bad pop movement: too many units")
 		}
-		p.Food.Farmers = commands.MovePopulation.Farmers
-		p.Industry.Workers = commands.MovePopulation.Workers
-		p.Science.Scientists = commands.MovePopulation.Scientists
+		p.Food.Farmers = movePopulation.Farmers
+		p.Industry.Workers = movePopulation.Workers
+		p.Science.Scientists = movePopulation.Scientists
+		break
 	}
 
 	maxPop := MaxPop(game, p, player)

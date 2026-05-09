@@ -43,7 +43,7 @@ export type TurnMovePopulationCommand = {
 
 export type TurnCommands = {
   build: BuildCommand[];
-  movePopulation?: TurnMovePopulationCommand;
+  movePopulation?: TurnMovePopulationCommand[];
   selectResearch?: SelectResearchCommand;
   colonize?: ColonizeCommand;
   fleet_move?: FleetMoveCommand[];

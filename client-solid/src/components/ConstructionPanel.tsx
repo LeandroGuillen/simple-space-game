@@ -2,6 +2,7 @@ import { createEffect, createMemo, createSignal, For, onCleanup, onMount, Show }
 import { Portal } from 'solid-js/web';
 
 import type { BuildingViewModel, PlanetViewModel, ShipDesignViewModel } from '../lib/types/domain';
+import { isAutobuildProject } from '../lib/construction';
 import { getPlanetIndustryForWorkers, findStar, getSuitablePlanetsForColonization } from '../lib/utils';
 import { useAppContext } from '../state/app-context';
 
@@ -90,6 +91,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
         (!project.unique || !uniqueBuildingsLockedElsewhere().has(project.name)),
     ) ?? [],
   );
+  const autobuildProjects = createMemo(() => buildableProjects().filter(isAutobuildProject));
   const colonyBaseProject = createMemo(() =>
     state.game?.resources.buildingCollection.buildings.find(
       (project) => project.name === 'Colony Base' && availableBuildingNames().has(project.name),
@@ -430,11 +432,11 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
       state.isBusy ||
       props.planet.isBuilding ||
       pendingBuild() ||
-      buildableProjects().length === 0
+      autobuildProjects().length === 0
     ) {
       return;
     }
-    const nextProjects = buildableProjects();
+    const nextProjects = autobuildProjects();
     const randomProject = nextProjects[Math.floor(Math.random() * nextProjects.length)];
     if (randomProject) {
       changeBuilding(props.planet.id, randomProject.id);

@@ -555,33 +555,40 @@ function toTurnCommands(commands: PendingCommands, game: GameViewModel | null): 
     }));
   }
 
-  const [firstMove] = commands.movePopulation;
-  if (!firstMove || !game) {
+  if (commands.movePopulation.length === 0 || !game) {
     return turnCommands;
   }
 
-  const planet = findPlanet(game, firstMove.planetId);
-  if (!planet) {
-    return turnCommands;
+  const movePlanetIds = [...new Set(commands.movePopulation.map((move) => move.planetId))];
+  const movePopulation = [];
+  for (const planetId of movePlanetIds) {
+    const planet = findPlanet(game, planetId);
+    if (!planet) {
+      continue;
+    }
+
+    const totals = {
+      farmers: planet.food.farmers,
+      workers: planet.industry.workers,
+      scientists: planet.science.scientists,
+    };
+
+    for (const move of commands.movePopulation.filter((command) => command.planetId === planetId)) {
+      totals[move.from] -= move.count;
+      totals[move.to] += move.count;
+    }
+
+    movePopulation.push({
+      planetId,
+      farmers: Math.max(0, totals.farmers),
+      workers: Math.max(0, totals.workers),
+      scientists: Math.max(0, totals.scientists),
+    });
   }
 
-  const totals = {
-    farmers: planet.food.farmers,
-    workers: planet.industry.workers,
-    scientists: planet.science.scientists,
-  };
-
-  for (const move of commands.movePopulation.filter((command) => command.planetId === firstMove.planetId)) {
-    totals[move.from] -= move.count;
-    totals[move.to] += move.count;
+  if (movePopulation.length > 0) {
+    turnCommands.movePopulation = movePopulation;
   }
-
-  turnCommands.movePopulation = {
-    planetId: firstMove.planetId,
-    farmers: Math.max(0, totals.farmers),
-    workers: Math.max(0, totals.workers),
-    scientists: Math.max(0, totals.scientists),
-  };
 
   return turnCommands;
 }

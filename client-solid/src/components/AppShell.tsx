@@ -30,6 +30,7 @@ import {
   formatSignedBc,
   gameIdShort,
   getEmpireIncome,
+  findPlanet,
   isPlanetSuitableForColonization,
 } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
@@ -349,8 +350,27 @@ export function AppShell(props: RouteSectionProps) {
   const colonizeModalPlanets = createMemo(() => {
     const game = state.game;
     if (!game) return [];
-    return game.galaxy.stars.flatMap((star) =>
-      star.planets.filter(isPlanetSuitableForColonization),
+    const sourceStarIds = new Set(
+      state.pendingColonyBasePlanets
+        .map((planetId) => findPlanet(game, planetId)?.parentStar)
+        .filter((starId): starId is number => typeof starId === "number"),
+    );
+    return game.galaxy.stars
+      .filter((star) => sourceStarIds.has(star.id))
+      .flatMap((star) => star.planets.filter(isPlanetSuitableForColonization));
+  });
+  const colonizeModalStars = createMemo(() => {
+    const game = state.game;
+    if (!game) return [];
+    const sourceStarIds = new Set(
+      state.pendingColonyBasePlanets
+        .map((planetId) => findPlanet(game, planetId)?.parentStar)
+        .filter((starId): starId is number => typeof starId === "number"),
+    );
+    return game.galaxy.stars.filter(
+      (star) =>
+        sourceStarIds.has(star.id) &&
+        star.planets.some(isPlanetSuitableForColonization),
     );
   });
   const availableResearchGroups = createMemo(() =>
@@ -728,7 +748,7 @@ export function AppShell(props: RouteSectionProps) {
                 }
               >
                 <div class="research-subject-grid">
-                  <For each={state.game?.galaxy.stars ?? []}>
+                  <For each={colonizeModalStars()}>
                     {(star) => {
                       const starPlanets = () =>
                         star.planets.filter(isPlanetSuitableForColonization);

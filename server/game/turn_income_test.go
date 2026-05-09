@@ -200,12 +200,12 @@ func TestMovePopulationOnlyAppliesToCommandPlanet(t *testing.T) {
 	}
 
 	require.NoError(t, g.Turn(1, model.Commands{
-		MovePopulation: &model.MovePopulationCommand{
+		MovePopulation: []*model.MovePopulationCommand{{
 			PlanetID:   2,
 			Farmers:    1,
 			Workers:    1,
 			Scientists: 0,
-		},
+		}},
 	}))
 
 	colonies, err := g.GetColonyList(1)
@@ -217,6 +217,60 @@ func TestMovePopulationOnlyAppliesToCommandPlanet(t *testing.T) {
 	assert.Equal(t, int64(1), colonies[1].Food.Farmers)
 	assert.Equal(t, int64(1), colonies[1].Industry.Workers)
 	assert.Equal(t, int64(0), colonies[1].Science.Scientists)
+}
+
+func TestMovePopulationCanApplyToMultipleColonies(t *testing.T) {
+	g := &Game{
+		Players: []*model.Player{
+			{ID: 1},
+		},
+		Resources: &Resources{},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{
+					Planets: []*model.Planet{
+						{
+							ID:           1,
+							Owner:        1,
+							Population:   3000,
+							Size:         model.PlanetSizeMedium,
+							MineralClass: model.PlanetMineralAbundant,
+							Food: model.PlanetFoodOutput{
+								Farmers: 3,
+							},
+						},
+						{
+							ID:           2,
+							Owner:        1,
+							Population:   3000,
+							Size:         model.PlanetSizeMedium,
+							MineralClass: model.PlanetMineralAbundant,
+							Industry: model.PlanetIndustryOutput{
+								Workers: 3,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	require.NoError(t, g.Turn(1, model.Commands{
+		MovePopulation: []*model.MovePopulationCommand{
+			{PlanetID: 1, Farmers: 2, Workers: 1, Scientists: 0},
+			{PlanetID: 2, Farmers: 1, Workers: 1, Scientists: 1},
+		},
+	}))
+
+	colonies, err := g.GetColonyList(1)
+	require.NoError(t, err)
+	require.Len(t, colonies, 2)
+	assert.Equal(t, int64(2), colonies[0].Food.Farmers)
+	assert.Equal(t, int64(1), colonies[0].Industry.Workers)
+	assert.Equal(t, int64(0), colonies[0].Science.Scientists)
+	assert.Equal(t, int64(1), colonies[1].Food.Farmers)
+	assert.Equal(t, int64(1), colonies[1].Industry.Workers)
+	assert.Equal(t, int64(1), colonies[1].Science.Scientists)
 }
 
 func TestTurnStoresBuildQueueAndStartsFirstProject(t *testing.T) {
@@ -399,6 +453,102 @@ func TestTurnClearsPendingColonyBaseWhenNoColonizablePlanetsRemain(t *testing.T)
 	require.NoError(t, g.Turn(1, model.Commands{}))
 
 	assert.Empty(t, g.PendingColonyBases[1])
+}
+
+func TestTurnClearsPendingColonyBaseWhenOnlyOtherSystemsHaveColonizablePlanets(t *testing.T) {
+	g := &Game{
+		Players: []*model.Player{
+			{ID: 1},
+		},
+		Resources:          &Resources{},
+		PendingColonyBases: map[uint][]uint{1: []uint{1}},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{
+					ID: 1,
+					Planets: []*model.Planet{
+						{
+							ID:           1,
+							Owner:        1,
+							ParentStar:   1,
+							Population:   1000,
+							Size:         model.PlanetSizeMedium,
+							MineralClass: model.PlanetMineralAbundant,
+						},
+						{
+							ID:           2,
+							Owner:        0,
+							ParentStar:   1,
+							Environment:  model.PlanetEnvironmentGasGiant,
+							Size:         model.PlanetSizeHuge,
+							MineralClass: model.PlanetMineralAbundant,
+						},
+					},
+				},
+				{
+					ID: 2,
+					Planets: []*model.Planet{
+						{
+							ID:           3,
+							Owner:        0,
+							ParentStar:   2,
+							Environment:  model.PlanetEnvironmentTerran,
+							Size:         model.PlanetSizeMedium,
+							MineralClass: model.PlanetMineralAbundant,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	require.NoError(t, g.Turn(1, model.Commands{}))
+
+	assert.Empty(t, g.PendingColonyBases[1])
+}
+
+func TestColonyBaseCannotColonizeDifferentSystem(t *testing.T) {
+	g := &Game{
+		Players: []*model.Player{
+			{ID: 1},
+		},
+		Resources: &Resources{},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{
+					ID: 1,
+					Planets: []*model.Planet{
+						{
+							ID:           1,
+							Owner:        1,
+							ParentStar:   1,
+							Population:   1000,
+							Size:         model.PlanetSizeMedium,
+							MineralClass: model.PlanetMineralAbundant,
+						},
+					},
+				},
+				{
+					ID: 2,
+					Planets: []*model.Planet{
+						{
+							ID:           2,
+							Owner:        0,
+							ParentStar:   2,
+							Environment:  model.PlanetEnvironmentTerran,
+							Size:         model.PlanetSizeMedium,
+							MineralClass: model.PlanetMineralAbundant,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	err := g.ColonizePlanet(1, 1, 2)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "same system")
 }
 
 func TestLegacyBuiltColonyBaseDoesNotBlockFutureColonyBases(t *testing.T) {

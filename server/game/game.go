@@ -112,7 +112,7 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 			return err
 		}
 	}
-	if len(g.PendingColonyBases[playerID]) > 0 && !g.hasColonizablePlanets() {
+	if len(g.PendingColonyBases[playerID]) > 0 && !g.hasColonizablePlanetsInSourceSystems(g.PendingColonyBases[playerID], playerID) {
 		delete(g.PendingColonyBases, playerID)
 	}
 
@@ -175,9 +175,20 @@ func (g *Game) ColonizePlanet(ownerID, sourcePlanetID, targetPlanetID uint) erro
 		return err
 	}
 
+	source, err := g.getPlanet(sourcePlanetID)
+	if err != nil {
+		return err
+	}
+	if source.Owner != ownerID {
+		return fmt.Errorf("source planet is not owned by player")
+	}
+
 	target, err := g.getPlanet(targetPlanetID)
 	if err != nil {
 		return err
+	}
+	if target.ParentStar != source.ParentStar {
+		return fmt.Errorf("colony base can only colonize planets in the same system")
 	}
 	if target.Owner != 0 {
 		return fmt.Errorf("planet already colonized")
@@ -199,13 +210,25 @@ func (g *Game) ColonizePlanet(ownerID, sourcePlanetID, targetPlanetID uint) erro
 	target.IsBuilding = false
 	target.BuildBucket = 0
 
-	_ = sourcePlanetID
-
 	return nil
 }
 
-func (g *Game) hasColonizablePlanets() bool {
+func (g *Game) hasColonizablePlanetsInSourceSystems(sourcePlanetIDs []uint, ownerID uint) bool {
+	sourceStars := make(map[uint]bool)
+	for _, sourcePlanetID := range sourcePlanetIDs {
+		source, err := g.getPlanet(sourcePlanetID)
+		if err != nil || source.Owner != ownerID {
+			continue
+		}
+		sourceStars[source.ParentStar] = true
+	}
+	if len(sourceStars) == 0 {
+		return false
+	}
 	for _, star := range g.Galaxy.Stars {
+		if !sourceStars[star.ID] {
+			continue
+		}
 		for _, planet := range star.Planets {
 			if planet.Owner == 0 && planet.Environment != PlanetEnvironmentGasGiant && planet.Environment != PlanetEnvironmentAsteroidBelt {
 				return true
