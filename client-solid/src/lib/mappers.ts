@@ -3,6 +3,8 @@ import type {
   ApiBuilding,
   ApiComputer,
   ApiDrive,
+  ApiFleet,
+  ApiFleetShip,
   ApiFuelCell,
   ApiGame,
   ApiGrants,
@@ -23,6 +25,8 @@ import type {
   ComputerViewModel,
   DriveViewModel,
   FuelCellViewModel,
+  FleetShipViewModel,
+  FleetViewModel,
   GameViewModel,
   HullSizeViewModel,
   ModifierDefinitionViewModel,
@@ -65,6 +69,7 @@ return {
       ),
     },
     players,
+    fleets: (apiGame.fleets ?? []).map(mapFleet),
     resources: {
       shipParts: {
         hullSizes: apiGame.resources.ship_parts.hull_sizes.map(mapHullSize),
@@ -102,6 +107,29 @@ return {
       },
     },
     pendingColonyBases: apiGame.pending_colony_bases ?? {},
+  };
+}
+
+function mapFleet(fleet: ApiFleet): FleetViewModel {
+  return {
+    id: fleet.id,
+    ownerId: fleet.owner,
+    starId: fleet.star_id,
+    x: fleet.x,
+    y: fleet.y,
+    originStarId: fleet.origin_star_id ?? null,
+    destinationStarId: fleet.destination_star_id ?? null,
+    totalTurns: fleet.total_turns ?? 0,
+    turnsRemaining: fleet.turns_remaining ?? 0,
+    ships: (fleet.ships ?? []).map(mapFleetShip),
+  };
+}
+
+function mapFleetShip(ship: ApiFleetShip): FleetShipViewModel {
+  return {
+    type: ship.type,
+    name: ship.name,
+    icon: ship.icon ?? "🚀",
   };
 }
 
@@ -381,6 +409,7 @@ function mapBuilding(
     icon: building.icon ?? "🏗️",
     cost: building.cost ?? 0,
     maintenance: building.maintenance ?? 0,
+    unique: Boolean(building.unique),
     grants,
     modifiers: grants.modifiers.map((modifier) =>
       mapBuildingModifier(modifier, modifierByName),

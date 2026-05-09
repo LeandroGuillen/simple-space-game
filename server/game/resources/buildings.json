@@ -17,6 +17,14 @@
       "maintenance": 0
     },
     {
+      "name": "Colony Ship",
+      "description": "Builds a colony ship and deploys it to this system's orbit fleet.",
+      "icon": "🚀",
+      "built_on": "PLANET",
+      "cost": 300,
+      "maintenance": 0
+    },
+    {
       "name": "Star Base",
       "description": "Orbital defensive satellite that provides planet defense and scanning.",
       "built_on": "PLANET",

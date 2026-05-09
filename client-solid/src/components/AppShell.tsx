@@ -445,17 +445,17 @@ export function AppShell(props: RouteSectionProps) {
               <header class="game-topbar panel" aria-label="Current game">
                 <div class="turn-panel">
                   <div class="turn-meta">
-                    <div class="turn-stat turn-stat--accent">
-                      <span>Treasury</span>
-                      <strong>{currentPlayer()?.treasury ?? 0} BC</strong>
-                    </div>
-
                     <div
                       class="turn-stat"
                       classList={{ "turn-stat--negative": empireIncome() < 0 }}
                     >
                       <span>Income</span>
                       <strong>{formatSignedBc(empireIncome())}</strong>
+                    </div>
+
+                    <div class="turn-stat turn-stat--accent">
+                      <span>Treasury</span>
+                      <strong>{currentPlayer()?.treasury ?? 0} BC</strong>
                     </div>
 
                     <button

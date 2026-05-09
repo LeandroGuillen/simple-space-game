@@ -15,6 +15,7 @@ type Turnable interface {
 type Game struct {
 	Galaxy             Galaxy          `json:"galaxy"`
 	Players            []*Player       `json:"players"`
+	Fleets             []*Fleet        `json:"fleets"`
 	ID                 string          `json:"id"`
 	CurrentTurn        int64           `json:"current_turn"`
 	CreatedAt          time.Time       `json:"created_at"`
@@ -37,6 +38,7 @@ func NewGame(resources *ResourceManager, playerName string, numStars uint, playe
 	g := &Game{
 		Galaxy:             NewGalaxy(numStars),
 		Players:            []*Player{player1},
+		Fleets:             []*Fleet{},
 		ID:                 uuid.New().String(),
 		CurrentTurn:        3500,
 		CreatedAt:          created,
@@ -72,6 +74,14 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 
 	if commands.SelectResearch != nil {
 		if err := g.selectResearch(player, *commands.SelectResearch); err != nil {
+			return err
+		}
+	}
+	for _, fleetMoveCommand := range commands.FleetMove {
+		if fleetMoveCommand == nil {
+			continue
+		}
+		if err := g.issueFleetMove(playerID, fleetMoveCommand); err != nil {
 			return err
 		}
 	}
@@ -116,6 +126,7 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 	if err := g.applyResearch(player, uint64(max(totalResearch, 0))); err != nil {
 		return err
 	}
+	g.advanceFleetMovements()
 
 	g.CurrentTurn += 1
 	now := time.Now().UTC()

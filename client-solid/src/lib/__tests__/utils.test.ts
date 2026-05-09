@@ -9,6 +9,7 @@ function building(name: string, modifiers: BuildingViewModel["modifiers"] = []):
     icon: "🏗️",
     cost: 0,
     maintenance: 0,
+    unique: false,
     grants: {
       unlocks: {
         buildings: [],

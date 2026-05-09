@@ -5,7 +5,7 @@ import { ApiClient, parseGameUpdate } from '../lib/api';
 import { mapGame, mapPlayerColorOptions } from '../lib/mappers';
 import type { ApiGameListItem, NewGameOptions } from '../lib/types/api';
 import type { GameViewModel, PlayerColorOptions, ShipDesignForm } from '../lib/types/domain';
-import type { ColonizeCommand, MovePopulationCommand, PendingCommands, SelectResearchCommand, TurnCommands } from '../lib/types/commands';
+import type { ColonizeCommand, FleetMoveCommand, MovePopulationCommand, PendingCommands, SelectResearchCommand, TurnCommands } from '../lib/types/commands';
 import { clearSessionLastSetupServerUrl } from '../lib/setup-session-storage';
 import { findPlanet, getColonyRows, getPrimaryPlayer, normalizeServerUrl, toWebSocketUrl } from '../lib/utils';
 
@@ -52,6 +52,7 @@ type AppContextValue = {
   changeBuilding: (planetId: number, buildingId: number) => void;
   changeBuildQueue: (planetId: number, buildingNames: string[]) => void;
   addMovePopulationCommand: (command: MovePopulationCommand) => void;
+  addFleetMoveCommand: (command: FleetMoveCommand) => void;
   addColonizeCommand: (command: ColonizeCommand) => void;
   selectColonizeTarget: (planetId: number) => void;
   closeColonizeModal: () => void;
@@ -74,6 +75,7 @@ export function AppProvider(props: ParentProps) {
   const emptyPendingCommands = (): PendingCommands => ({
     build: [],
     movePopulation: [],
+    fleetMove: [],
     selectResearch: undefined,
     colonize: undefined,
   });
@@ -275,6 +277,13 @@ export function AppProvider(props: ParentProps) {
     setState('pendingCommands', 'movePopulation', (cmds) => [...cmds, command]);
   }
 
+  function addFleetMoveCommand(command: FleetMoveCommand) {
+    const nextCommands = state.pendingCommands.fleetMove.filter((cmd) => cmd.fleet_id !== command.fleet_id);
+    nextCommands.push(command);
+    setState('pendingCommands', 'fleetMove', nextCommands);
+    setState('info', 'Fleet move queued for next turn');
+  }
+
   function addColonizeCommand(command: ColonizeCommand) {
     setState('pendingCommands', 'colonize', command);
     setState('info', 'Colonize command queued for next turn');
@@ -465,6 +474,7 @@ export function AppProvider(props: ParentProps) {
     changeBuilding,
     changeBuildQueue,
     addMovePopulationCommand,
+    addFleetMoveCommand,
     addColonizeCommand,
     selectColonizeTarget,
     closeColonizeModal,
@@ -491,6 +501,9 @@ function toTurnCommands(commands: PendingCommands, game: GameViewModel | null): 
 
   if (commands.colonize) {
     turnCommands.colonize = commands.colonize;
+  }
+  if (commands.fleetMove.length > 0) {
+    turnCommands.fleet_move = commands.fleetMove;
   }
 
   const [firstMove] = commands.movePopulation;

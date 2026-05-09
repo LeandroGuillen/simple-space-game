@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	"math"
+	"slices"
 	. "ssg/model"
 )
 
@@ -131,6 +132,12 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 					game.PendingColonyBases = make(map[uint][]uint)
 				}
 				game.PendingColonyBases[player.ID] = append(game.PendingColonyBases[player.ID], p.ID)
+			} else if completedProject == "Colony Ship" {
+				game.addShipToOrbitFleet(player.ID, p.ParentStar, FleetShip{
+					Type: "colony_ship",
+					Name: "Colony Ship",
+					Icon: "🚀",
+				})
 			} else {
 				p.Buildings = append(p.Buildings, completedProject)
 			}
@@ -178,7 +185,10 @@ func sanitizeBuildQueue(p *Planet, buildQueue []string, availableBuildings []str
 		if len(queue) >= 10 {
 			break
 		}
-		if buildingName == "" || buildingName == "Trade Goods" || seen[buildingName] {
+		if buildingName == "" || buildingName == "Trade Goods" {
+			continue
+		}
+		if !isRepeatableProject(buildingName) && seen[buildingName] {
 			continue
 		}
 		if !canBuild(p, buildingName, availableBuildings, game) {
@@ -203,7 +213,7 @@ func Build(p *Planet, buildingName string, availableBuildings []string, game *Ga
 	// is the building already built on this planet
 	found := false
 	for _, buildingInPlanet := range p.Buildings {
-		if buildingName == "Colony Base" {
+		if isRepeatableProject(buildingName) {
 			continue
 		}
 		if buildingName == buildingInPlanet {
@@ -233,6 +243,9 @@ func Build(p *Planet, buildingName string, availableBuildings []string, game *Ga
 	if p.IsBuilding && p.CurrentProject == buildingName {
 		return true
 	}
+	if building.Unique && isEmpireUniqueBuildingLocked(game, p.Owner, buildingName, p.ID) {
+		return false
+	}
 
 	p.CurrentProject = buildingName
 	p.IsBuilding = true
@@ -246,7 +259,7 @@ func canBuild(p *Planet, buildingName string, availableBuildings []string, game 
 		return false
 	}
 	for _, buildingInPlanet := range p.Buildings {
-		if buildingName == "Colony Base" {
+		if isRepeatableProject(buildingName) {
 			continue
 		}
 		if buildingName == buildingInPlanet {
@@ -263,6 +276,32 @@ func canBuild(p *Planet, buildingName string, availableBuildings []string, game 
 	if !foundAvailable {
 		return false
 	}
-	_, err := getBuildingFromName(game, buildingName)
-	return err == nil
+	building, err := getBuildingFromName(game, buildingName)
+	if err != nil {
+		return false
+	}
+	if building.Unique && isEmpireUniqueBuildingLocked(game, p.Owner, buildingName, p.ID) {
+		return false
+	}
+	return true
+}
+
+func isEmpireUniqueBuildingLocked(game *Game, ownerID uint, buildingName string, ignorePlanetID uint) bool {
+	for _, star := range game.Galaxy.Stars {
+		for _, planet := range star.Planets {
+			if planet.Owner != ownerID || planet.ID == ignorePlanetID {
+				continue
+			}
+			if slices.Contains(planet.Buildings, buildingName) ||
+				(planet.IsBuilding && planet.CurrentProject == buildingName) ||
+				slices.Contains(planet.BuildQueue, buildingName) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func isRepeatableProject(buildingName string) bool {
+	return buildingName == "Colony Base" || buildingName == "Colony Ship"
 }

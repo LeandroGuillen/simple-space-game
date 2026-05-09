@@ -1,14 +1,16 @@
 import { A, useParams } from '@solidjs/router';
-import { createMemo, For, Show } from 'solid-js';
+import { createMemo, createSignal, For, Show } from 'solid-js';
 import { ConstructionPanel } from '../components/ConstructionPanel';
+import { FleetOrbitModal } from '../components/FleetOrbitModal';
 import { PlanetVisual } from '../components/PlanetVisual';
 import { PopulationPanel } from '../components/PopulationPanel';
-import { findPlanet, findStar, getPlanetProjectedIncome, getPlanetProjectedPopulationGrowth, getPrimaryPlayer, labelForEnvironment, labelForGravity, labelForMinerals, labelForSize } from '../lib/utils';
+import { findFleetInOrbit, findPlanet, findStar, getPlanetProjectedIncome, getPlanetProjectedPopulationGrowth, getPrimaryPlayer, labelForEnvironment, labelForGravity, labelForMinerals, labelForSize } from '../lib/utils';
 import { useAppContext } from '../state/app-context';
 
 export function PlanetPage() {
   const params = useParams();
   const { state } = useAppContext();
+  const [isFleetModalOpen, setIsFleetModalOpen] = createSignal(false);
   const planet = () => findPlanet(state.game, Number(params.planetId));
   const populationUnits = (population: number) => Math.floor(population / 1000);
   const hasPopulationCapacity = (maxPopulation: number) => populationUnits(maxPopulation) > 0;
@@ -46,6 +48,14 @@ export function PlanetPage() {
       ...Array.from({ length: bags }, () => '💰'),
       ...Array.from({ length: coins }, () => '🪙'),
     ];
+  });
+  const fleetInOrbit = createMemo(() => {
+    const current = planet();
+    const playerId = primaryPlayer()?.id ?? 0;
+    if (!current || !playerId) {
+      return null;
+    }
+    return findFleetInOrbit(state.game, playerId, current.parentStar);
   });
 
   return (
@@ -184,12 +194,22 @@ export function PlanetPage() {
                     <span class='pop-stat-icon'>😐</span>
                   </div>
                 </article>
+                <Show when={fleetInOrbit()}>
+                  <button class='fleet-orbit-link-inline fleet-orbit-link' type='button' onClick={() => setIsFleetModalOpen(true)}>
+                    🚀 Fleet in Orbit ({fleetInOrbit()?.ships.length ?? 0})
+                  </button>
+                </Show>
               </div>
               <ConstructionPanel planet={currentPlanet()} />
             </div>
           </section>
 
           <PopulationPanel planet={currentPlanet()} />
+          <FleetOrbitModal
+            starId={currentPlanet().parentStar}
+            isOpen={isFleetModalOpen()}
+            onClose={() => setIsFleetModalOpen(false)}
+          />
         </section>
       )}
     </Show>

@@ -78,6 +78,7 @@ export type ApiBuilding = {
   icon?: string;
   cost?: number;
   maintenance?: number;
+  unique?: boolean;
   grants?: ApiGrants;
 };
 
@@ -301,6 +302,25 @@ export type ApiPlayer = {
   ship_designs?: ApiShipDesign[] | null;
 };
 
+export type ApiFleetShip = {
+  type: string;
+  name: string;
+  icon?: string;
+};
+
+export type ApiFleet = {
+  id: number;
+  owner: number;
+  star_id: number;
+  x: number;
+  y: number;
+  origin_star_id?: number;
+  destination_star_id?: number;
+  total_turns?: number;
+  turns_remaining?: number;
+  ships: ApiFleetShip[];
+};
+
 export type ApiResearchProject = {
   subject: string;
   tech_name?: string;
@@ -317,6 +337,7 @@ export type ApiPlayerColorOptions = {
 export type ApiGame = {
   galaxy: ApiGalaxy;
   players: ApiPlayer[];
+  fleets?: ApiFleet[] | null;
   id: string;
   current_turn: number;
   created_at?: string | null;

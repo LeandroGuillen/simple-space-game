@@ -39,3 +39,38 @@
   stroke: var(--gold);
   stroke-opacity: 0.85;
 }
+
+.star-fleet-link {
+  cursor: pointer;
+
+  & circle {
+    fill: rgba(6, 16, 26, 0.88);
+    stroke: rgba(255, 255, 255, 0.25);
+    stroke-width: 1;
+  }
+
+  & text {
+    font-size: 8px;
+  }
+}
+
+.fleet-route-line {
+  stroke: #33e07e;
+  stroke-width: 2;
+  stroke-linecap: round;
+  fill: none;
+  stroke-dasharray: 4 6;
+  animation: fleetRouteDash 1.2s linear infinite;
+}
+
+.fleet-route-eta {
+  fill: #7af0ab;
+  font-size: 10px;
+  font-family: var(--font-mono);
+}
+
+@keyframes fleetRouteDash {
+  to {
+    stroke-dashoffset: -20;
+  }
+}

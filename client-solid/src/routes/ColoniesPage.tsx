@@ -23,9 +23,40 @@ export function ColoniesPage() {
     state.game?.galaxy.stars
       .flatMap((star) => star.planets)
       .find((planet) => planet.id === planetId);
+  const uniqueBuildingsLockedElsewhere = (planetId: number) => {
+    const playerId = currentPlayer()?.id;
+    if (!playerId) return new Set<string>();
+    const locked = new Set<string>();
+    for (const star of state.game?.galaxy.stars ?? []) {
+      for (const planet of star.planets) {
+        if (planet.owner !== playerId || planet.id === planetId) {
+          continue;
+        }
+        for (const building of planet.buildings) {
+          if (building.unique) {
+            locked.add(building.name);
+          }
+        }
+        if (planet.currentProject?.unique) {
+          locked.add(planet.currentProject.name);
+        }
+        for (const queued of planet.buildQueue) {
+          if (queued.unique) {
+            locked.add(queued.name);
+          }
+        }
+      }
+    }
+    return locked;
+  };
   const buildableOptions = (planetId: number) => {
     const builtBuildingNames = new Set(planetForRow(planetId)?.buildings.map((building) => building.name) ?? []);
-    return buildingOptions().filter((building) => !builtBuildingNames.has(building.name));
+    const lockedUniqueNames = uniqueBuildingsLockedElsewhere(planetId);
+    return buildingOptions().filter(
+      (building) =>
+        !builtBuildingNames.has(building.name) &&
+        (!building.unique || !lockedUniqueNames.has(building.name)),
+    );
   };
 
   const rows = createMemo(() => {

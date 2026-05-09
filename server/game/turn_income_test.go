@@ -509,3 +509,325 @@ func TestTurnCanUpdateQueueWithoutSwitchingCurrentProject(t *testing.T) {
 	assert.Equal(t, []string{"Queued Building"}, colonies[0].BuildQueue)
 	assert.True(t, colonies[0].IsBuilding)
 }
+
+func TestBuildRejectsUniqueBuildingWhenOwnedElsewhere(t *testing.T) {
+	g := &Game{
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{
+				Buildings: []model.Building{
+					{Name: "Capitol", Cost: 100, Unique: true},
+				},
+			},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{
+					Planets: []*model.Planet{
+						{ID: 1, Owner: 1, Buildings: []string{"Capitol"}},
+						{ID: 2, Owner: 1},
+					},
+				},
+			},
+		},
+	}
+	target := g.Galaxy.Stars[0].Planets[1]
+
+	built := Build(target, "Capitol", []string{"Capitol"}, g)
+
+	assert.False(t, built)
+	assert.False(t, target.IsBuilding)
+	assert.Empty(t, target.CurrentProject)
+}
+
+func TestBuildAllowsUniqueBuildingAfterItIsRemoved(t *testing.T) {
+	g := &Game{
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{
+				Buildings: []model.Building{
+					{Name: "Capitol", Cost: 100, Unique: true},
+				},
+			},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{
+					Planets: []*model.Planet{
+						{ID: 1, Owner: 1},
+						{ID: 2, Owner: 1},
+					},
+				},
+			},
+		},
+	}
+	target := g.Galaxy.Stars[0].Planets[1]
+
+	built := Build(target, "Capitol", []string{"Capitol"}, g)
+
+	assert.True(t, built)
+	assert.True(t, target.IsBuilding)
+	assert.Equal(t, "Capitol", target.CurrentProject)
+	assert.Equal(t, int64(100), target.BuildBucket)
+}
+
+func TestTurnCompletingColonyShipCreatesOrbitFleet(t *testing.T) {
+	g := &Game{
+		Players: []*model.Player{
+			{
+				ID: 1,
+				Available: model.AvailableTech{
+					Buildings: []string{"Colony Ship"},
+				},
+			},
+		},
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{
+				Buildings: []model.Building{
+					{Name: "Colony Ship", Cost: 0},
+				},
+			},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{
+					ID: 1,
+					Planets: []*model.Planet{
+						{
+							ID:         1,
+							Owner:      1,
+							ParentStar: 1,
+							Population: 1000,
+							Size:       model.PlanetSizeMedium,
+							Industry: model.PlanetIndustryOutput{
+								Workers:           1,
+								ProducedPerWorker: 1,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	require.NoError(t, g.Turn(1, model.Commands{
+		Build: []*model.BuildCommand{
+			{PlanetID: 1, Building: "Colony Ship"},
+		},
+	}))
+
+	require.Len(t, g.Fleets, 1)
+	assert.Equal(t, uint(1), g.Fleets[0].Owner)
+	assert.Equal(t, uint(1), g.Fleets[0].StarID)
+	require.Len(t, g.Fleets[0].Ships, 1)
+	assert.Equal(t, "Colony Ship", g.Fleets[0].Ships[0].Name)
+	assert.Equal(t, []uint{g.Fleets[0].ID}, g.Players[0].Fleets)
+}
+
+func TestTurnCompletingMultipleColonyShipsReusesSystemFleet(t *testing.T) {
+	g := &Game{
+		Players: []*model.Player{
+			{
+				ID: 1,
+				Available: model.AvailableTech{
+					Buildings: []string{"Colony Ship"},
+				},
+			},
+		},
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{
+				Buildings: []model.Building{
+					{Name: "Colony Ship", Cost: 0},
+				},
+			},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{
+					ID: 1,
+					Planets: []*model.Planet{
+						{
+							ID:         1,
+							Owner:      1,
+							ParentStar: 1,
+							Population: 1000,
+							Size:       model.PlanetSizeMedium,
+							Industry: model.PlanetIndustryOutput{
+								Workers:           1,
+								ProducedPerWorker: 1,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for i := 0; i < 2; i++ {
+		require.NoError(t, g.Turn(1, model.Commands{
+			Build: []*model.BuildCommand{
+				{PlanetID: 1, Building: "Colony Ship"},
+			},
+		}))
+	}
+
+	require.Len(t, g.Fleets, 1)
+	require.Len(t, g.Fleets[0].Ships, 2)
+	assert.Equal(t, []uint{g.Fleets[0].ID}, g.Players[0].Fleets)
+}
+
+func TestTurnQueuesFleetMoveCommand(t *testing.T) {
+	g := &Game{
+		Players: []*model.Player{
+			{ID: 1},
+		},
+		Fleets: []*model.Fleet{
+			{
+				ID:     1,
+				Owner:  1,
+				StarID: 1,
+				Ships: []model.FleetShip{
+					{Type: "colony_ship", Name: "Colony Ship"},
+				},
+			},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{ID: 1, X: 10, Y: 10, Planets: []*model.Planet{}},
+				{ID: 2, X: 310, Y: 10, Planets: []*model.Planet{}},
+			},
+		},
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{
+				Buildings: []model.Building{},
+			},
+		},
+	}
+
+	require.NoError(t, g.Turn(1, model.Commands{
+		FleetMove: []*model.FleetMoveCommand{
+			{FleetID: 1, DestinationStarID: 2, ShipIndexes: []uint{0}},
+		},
+	}))
+
+	require.Len(t, g.Fleets, 1)
+	assert.Equal(t, uint(2), g.Fleets[0].DestinationStarID)
+	assert.Greater(t, g.Fleets[0].TurnsRemaining, uint(0))
+	assert.Less(t, g.Fleets[0].TurnsRemaining, g.Fleets[0].TotalTurns)
+	assert.Greater(t, g.Fleets[0].X, float64(10))
+}
+
+func TestFleetArrivalExploresDestinationStar(t *testing.T) {
+	g := &Game{
+		Players: []*model.Player{
+			{ID: 1, ExploredStars: []uint{1}},
+		},
+		Fleets: []*model.Fleet{
+			{
+				ID:     1,
+				Owner:  1,
+				StarID: 1,
+				Ships: []model.FleetShip{
+					{Type: "colony_ship", Name: "Colony Ship"},
+				},
+			},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{ID: 1, X: 10, Y: 10, Planets: []*model.Planet{}},
+				{ID: 2, X: 80, Y: 10, Planets: []*model.Planet{}},
+			},
+		},
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{
+				Buildings: []model.Building{},
+			},
+		},
+	}
+
+	require.NoError(t, g.Turn(1, model.Commands{
+		FleetMove: []*model.FleetMoveCommand{
+			{FleetID: 1, DestinationStarID: 2, ShipIndexes: []uint{0}},
+		},
+	}))
+
+	require.Len(t, g.Fleets, 1)
+	assert.Equal(t, uint(2), g.Fleets[0].StarID)
+	assert.Equal(t, uint(0), g.Fleets[0].DestinationStarID)
+	assert.Contains(t, g.Players[0].ExploredStars, uint(2))
+}
+
+func TestTurnRejectsRerouteWithoutHyperspaceCommunications(t *testing.T) {
+	g := &Game{
+		Players: []*model.Player{
+			{ID: 1},
+		},
+		Fleets: []*model.Fleet{
+			{
+				ID:                1,
+				Owner:             1,
+				StarID:            1,
+				X:                 100,
+				Y:                 100,
+				OriginX:           10,
+				OriginY:           10,
+				DestinationStarID: 2,
+				TotalTurns:        5,
+				TurnsRemaining:    3,
+				Ships:             []model.FleetShip{{Type: "colony_ship", Name: "Colony Ship"}},
+			},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{ID: 1, X: 10, Y: 10, Planets: []*model.Planet{}},
+				{ID: 2, X: 310, Y: 10, Planets: []*model.Planet{}},
+				{ID: 3, X: 610, Y: 10, Planets: []*model.Planet{}},
+			},
+		},
+		Resources: &Resources{BuildingCollection: &BuildingCollection{Buildings: []model.Building{}}},
+	}
+
+	err := g.Turn(1, model.Commands{
+		FleetMove: []*model.FleetMoveCommand{
+			{FleetID: 1, DestinationStarID: 3, ShipIndexes: []uint{0}},
+		},
+	})
+
+	require.Error(t, err)
+}
+
+func TestTurnAllowsRerouteWithHyperspaceCommunications(t *testing.T) {
+	g := &Game{
+		Players: []*model.Player{
+			{ID: 1, ResearchedTechs: []string{"Hyperspace Communications"}},
+		},
+		Fleets: []*model.Fleet{
+			{
+				ID:                1,
+				Owner:             1,
+				StarID:            1,
+				X:                 100,
+				Y:                 100,
+				OriginX:           10,
+				OriginY:           10,
+				DestinationStarID: 2,
+				TotalTurns:        5,
+				TurnsRemaining:    3,
+				Ships:             []model.FleetShip{{Type: "colony_ship", Name: "Colony Ship"}},
+			},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{ID: 1, X: 10, Y: 10, Planets: []*model.Planet{}},
+				{ID: 2, X: 310, Y: 10, Planets: []*model.Planet{}},
+				{ID: 3, X: 610, Y: 10, Planets: []*model.Planet{}},
+			},
+		},
+		Resources: &Resources{BuildingCollection: &BuildingCollection{Buildings: []model.Building{}}},
+	}
+
+	require.NoError(t, g.Turn(1, model.Commands{
+		FleetMove: []*model.FleetMoveCommand{
+			{FleetID: 1, DestinationStarID: 3, ShipIndexes: []uint{0}},
+		},
+	}))
+	assert.Equal(t, uint(3), g.Fleets[0].DestinationStarID)
+}

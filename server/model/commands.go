@@ -20,9 +20,16 @@ type ColonizeCommand struct {
 	PlanetID uint `json:"planet_id"`
 }
 
+type FleetMoveCommand struct {
+	FleetID           uint   `json:"fleet_id"`
+	DestinationStarID uint   `json:"destination_star_id"`
+	ShipIndexes       []uint `json:"ship_indexes,omitempty"`
+}
+
 type Commands struct {
 	Build          []*BuildCommand        `json:"build"`
 	MovePopulation *MovePopulationCommand `json:"movePopulation,omitempty"`
 	SelectResearch *SelectResearchCommand `json:"selectResearch,omitempty"`
 	Colonize       *ColonizeCommand       `json:"colonize,omitempty"`
+	FleetMove      []*FleetMoveCommand    `json:"fleet_move,omitempty"`
 }

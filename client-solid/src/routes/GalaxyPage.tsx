@@ -1,9 +1,12 @@
 import { A } from "@solidjs/router";
 import { createMemo, createSignal, Show } from "solid-js";
 
+import { FleetOrbitModal } from "../components/FleetOrbitModal";
 import { GalaxyMap } from "../components/GalaxyMap";
 import { PlanetVisual } from "../components/PlanetVisual";
 import {
+  calculateFleetTravelTurnsFromCoordinates,
+  findFleetInOrbit,
   findStar,
   labelForEnvironment,
   labelForGravity,
@@ -13,8 +16,11 @@ import {
 import { useAppContext } from "../state/app-context";
 
 export function GalaxyPage() {
-  const { state, exploreStar } = useAppContext();
+  const { state, currentPlayer, addFleetMoveCommand } = useAppContext();
   const [selectedStarId, setSelectedStarId] = createSignal<number>();
+  const [fleetModalFleetId, setFleetModalFleetId] = createSignal<number | null>(null);
+  const [travelMode, setTravelMode] = createSignal<{ fleetId: number; originStarId: number; shipIndexes: number[] } | null>(null);
+  const [snappedStarId, setSnappedStarId] = createSignal<number | null>(null);
 
   const stars = createMemo(() => state.game?.galaxy.stars ?? []);
   const selectedStar = createMemo(() => {
@@ -34,6 +40,99 @@ export function GalaxyPage() {
         (state.game?.players ?? []).map((player) => [player.id, player.color]),
       ),
   );
+  const ownedFleets = createMemo(() =>
+    (state.game?.fleets ?? [])
+      .filter((fleet) => fleet.ownerId === (currentPlayer()?.id ?? 0)),
+  );
+  const selectedStarFleet = createMemo(() => {
+    const starId = selectedStar()?.id;
+    if (!starId) {
+      return null;
+    }
+    return findFleetInOrbit(state.game, currentPlayer()?.id ?? 0, starId);
+  });
+  const modalFleet = createMemo(() =>
+    ownedFleets().find((fleet) => fleet.id === fleetModalFleetId()) ?? null,
+  );
+  const pendingFleetRoutes = createMemo(() =>
+    state.pendingCommands.fleetMove.map((command) => {
+      const fleet = state.game?.fleets.find((item) => item.id === command.fleet_id);
+      if (!fleet) return null;
+      const to = findStar(state.game, command.destination_star_id);
+      if (!to) return null;
+      return {
+        fromX: fleet.x,
+        fromY: fleet.y,
+        toX: to.x,
+        toY: to.y,
+        eta: calculateFleetTravelTurnsFromCoordinates(fleet.x, fleet.y, to.x, to.y),
+      };
+    }).filter((route): route is { fromX: number; fromY: number; toX: number; toY: number; eta: number } => Boolean(route)),
+  );
+  const activeFleetRoutes = createMemo(() =>
+    (state.game?.fleets ?? [])
+      .filter((fleet) => fleet.ownerId === (currentPlayer()?.id ?? 0) && fleet.destinationStarId)
+      .map((fleet) => {
+        const to = findStar(state.game, fleet.destinationStarId!);
+        if (!to) {
+          return null;
+        }
+        return {
+          fromX: fleet.x,
+          fromY: fleet.y,
+          toX: to.x,
+          toY: to.y,
+          eta: fleet.turnsRemaining,
+        };
+      })
+      .filter((route): route is { fromX: number; fromY: number; toX: number; toY: number; eta: number } => Boolean(route)),
+  );
+  const previewFleetRoute = createMemo(() => {
+    const mode = travelMode();
+    const toStarId = snappedStarId();
+    if (!mode || !toStarId || mode.originStarId === toStarId) {
+      return null;
+    }
+    const fleet = ownedFleets().find((item) => item.id === mode.fleetId);
+    const to = findStar(state.game, toStarId);
+    if (!fleet || !to) {
+      return null;
+    }
+    return {
+      fromX: fleet.x,
+      fromY: fleet.y,
+      toX: to.x,
+      toY: to.y,
+      eta: calculateFleetTravelTurnsFromCoordinates(fleet.x, fleet.y, to.x, to.y),
+      preview: true,
+    };
+  });
+  const fleetRouteLines = createMemo(() => {
+    const routes = [...activeFleetRoutes(), ...pendingFleetRoutes()];
+    if (previewFleetRoute()) {
+      routes.push(previewFleetRoute()!);
+    }
+    return routes;
+  });
+
+  function handleStarSelect(starId: number) {
+    const mode = travelMode();
+    if (!mode) {
+      setSelectedStarId(starId);
+      return;
+    }
+    if (starId === mode.originStarId) {
+      return;
+    }
+    addFleetMoveCommand({
+      fleet_id: mode.fleetId,
+      destination_star_id: starId,
+      ship_indexes: mode.shipIndexes,
+    });
+    setSelectedStarId(starId);
+    setTravelMode(null);
+    setSnappedStarId(null);
+  }
 
   return (
     <Show
@@ -52,7 +151,22 @@ export function GalaxyPage() {
           <GalaxyMap
             stars={stars()}
             selectedStarId={selectedStar()?.id}
-            onSelect={(starId) => setSelectedStarId(starId)}
+            onSelect={handleStarSelect}
+            fleets={ownedFleets().map((fleet) => ({
+              id: fleet.id,
+              starId: fleet.starId,
+              x: fleet.x,
+              y: fleet.y,
+              isMoving: fleet.turnsRemaining > 0,
+            }))}
+            onFleetClick={(fleetId) => setFleetModalFleetId(fleetId)}
+            routeLines={fleetRouteLines()}
+            onHoverSnappedStar={(starId) => {
+              if (!travelMode()) {
+                return;
+              }
+              setSnappedStarId(starId);
+            }}
           />
         </section>
 
@@ -65,6 +179,14 @@ export function GalaxyPage() {
               <>
                 <p class="eyebrow">System Inspector</p>
                 <h2>{star().name}</h2>
+                <Show when={selectedStarFleet()}>
+                  <button class="fleet-orbit-link-inline fleet-orbit-link" type="button" onClick={() => setFleetModalFleetId(selectedStarFleet()?.id ?? null)}>
+                    🚀 Fleet in Orbit ({selectedStarFleet()?.ships.length ?? 0})
+                  </button>
+                </Show>
+                <Show when={travelMode()}>
+                  <p class="eyebrow">Fleet travel mode active: select destination star</p>
+                </Show>
 
                 <div class="planet-list">
                   <Show
@@ -130,17 +252,23 @@ export function GalaxyPage() {
                   </Show>
                 </div>
 
-                <Show when={!star().explored}>
-                  <button
-                    class="primary-button"
-                    onClick={() => void exploreStar(star().id)}
-                  >
-                    Explore System
-                  </button>
-                </Show>
               </>
             )}
           </Show>
+          <FleetOrbitModal
+            starId={modalFleet()?.starId ?? null}
+            fleetId={fleetModalFleetId()}
+            isOpen={fleetModalFleetId() !== null}
+            onClose={() => setFleetModalFleetId(null)}
+            onMove={(fleetId, shipIndexes) => {
+              const originStarId = modalFleet()?.starId ?? null;
+              if (!originStarId) {
+                return;
+              }
+              setFleetModalFleetId(null);
+              setTravelMode({ fleetId, originStarId, shipIndexes });
+            }}
+          />
         </section>
       </section>
     </Show>

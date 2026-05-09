@@ -8,7 +8,11 @@
     "name": "Battleoids",
     "description": "Enables robotic ground combat units."
   },
-  { "name": "Colony Ship", "description": "No description provided" },
+  {
+    "name": "Colony Ship",
+    "description": "No description provided",
+    "grants": { "unlocks": { "buildings": ["Colony Ship"] } }
+  },
   { "name": "Confederation", "description": "No description provided" },
   {
     "name": "Dauntless Guidance System",

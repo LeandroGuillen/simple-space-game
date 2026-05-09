@@ -49,6 +49,7 @@ export type BuildingViewModel = {
   icon: string;
   cost: number;
   maintenance: number;
+  unique: boolean;
   grants: GrantsViewModel;
   modifiers: BuildingModifierViewModel[];
 };
@@ -133,6 +134,25 @@ export type PlayerViewModel = {
   freighters: number;
   freightersUsed: number;
   shipDesigns: ShipDesignViewModel[];
+};
+
+export type FleetShipViewModel = {
+  type: string;
+  name: string;
+  icon: string;
+};
+
+export type FleetViewModel = {
+  id: number;
+  ownerId: number;
+  starId: number;
+  x: number;
+  y: number;
+  originStarId: number | null;
+  destinationStarId: number | null;
+  totalTurns: number;
+  turnsRemaining: number;
+  ships: FleetShipViewModel[];
 };
 
 export type PlayerAvailabilityViewModel = {
@@ -279,6 +299,7 @@ export type GameViewModel = {
   currentTurn: number;
   galaxy: GalaxyViewModel;
   players: PlayerViewModel[];
+  fleets: FleetViewModel[];
   resources: ResourcesViewModel;
   pendingColonyBases: Record<number, number[]>; // playerID -> planetIDs
 };

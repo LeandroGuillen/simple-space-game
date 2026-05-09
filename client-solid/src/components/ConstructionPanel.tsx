@@ -16,6 +16,7 @@ const TRADE_GOODS: BuildingViewModel = {
   icon: '💱',
   cost: 0,
   maintenance: 0,
+  unique: false,
   grants: {
     unlocks: {
       buildings: [],
@@ -37,8 +38,9 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   const { state, currentPlayer, changeBuilding, changeBuildQueue } = useAppContext();
   const [isChoosing, setIsChoosing] = createSignal(false);
   const [selectedProjectId, setSelectedProjectId] = createSignal<number | null>(null);
-  const [isAutobuildEnabled, setIsAutobuildEnabled] = createSignal(false);
+  const [autobuildByPlanet, setAutobuildByPlanet] = createSignal<Record<number, boolean>>({});
   const [queuedProjects, setQueuedProjects] = createSignal<BuildingViewModel[]>([]);
+  const isAutobuildEnabled = createMemo(() => autobuildByPlanet()[props.planet.id] ?? false);
   const [draggedQueueIndex, setDraggedQueueIndex] = createSignal<number | null>(null);
   const [dragOverQueueIndex, setDragOverQueueIndex] = createSignal<number | null>(null);
   const [isQueueDragging, setIsQueueDragging] = createSignal(false);
@@ -53,9 +55,39 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
       .map((building) => building.id),
   ));
   const availableBuildingNames = createMemo(() => new Set(currentPlayer()?.available.buildings ?? []));
+  const uniqueBuildingsLockedElsewhere = createMemo(() => {
+    const playerId = currentPlayer()?.id;
+    if (!playerId) return new Set<string>();
+    const locked = new Set<string>();
+    for (const star of state.game?.galaxy.stars ?? []) {
+      for (const planet of star.planets) {
+        if (planet.owner !== playerId || planet.id === props.planet.id) {
+          continue;
+        }
+        for (const building of planet.buildings) {
+          if (building.unique) {
+            locked.add(building.name);
+          }
+        }
+        if (planet.currentProject?.unique) {
+          locked.add(planet.currentProject.name);
+        }
+        for (const queued of planet.buildQueue) {
+          if (queued.unique) {
+            locked.add(queued.name);
+          }
+        }
+      }
+    }
+    return locked;
+  });
   const buildableProjects = createMemo(() =>
     state.game?.resources.buildingCollection.buildings.filter(
-      (project) => availableBuildingNames().has(project.name) && !builtBuildingIds().has(project.id) && project.name !== 'Colony Base',
+      (project) =>
+        availableBuildingNames().has(project.name) &&
+        !builtBuildingIds().has(project.id) &&
+        project.name !== 'Colony Base' &&
+        (!project.unique || !uniqueBuildingsLockedElsewhere().has(project.name)),
     ) ?? [],
   );
   const colonyBaseProject = createMemo(() =>
@@ -209,6 +241,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     }
     return Math.max(1, Math.ceil(props.planet.buildBucket / industryPerTurn()));
   });
+  const isRepeatableProject = (projectName: string) => projectName === 'Colony Base' || projectName === 'Colony Ship';
 
   function cancelSelection() {
     setIsChoosing(false);
@@ -239,9 +272,8 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   }
 
   function addProjectToQueue(project: BuildingViewModel): BuildingViewModel[] {
-    // Colony Base can always be queued (even if already built - multiple are allowed)
-    const isColonyBase = project.name === 'Colony Base';
-    if (!isColonyBase && project.id !== 0 && builtBuildingIds().has(project.id)) {
+    const isRepeatable = isRepeatableProject(project.name);
+    if (!isRepeatable && project.id !== 0 && builtBuildingIds().has(project.id)) {
       return queuedProjects();
     }
     setSelectedProjectId(project.id);
@@ -249,8 +281,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     if (projects.length >= 10) {
       return projects;
     }
-    // Allow multiple Colony Bases but prevent duplicate real buildings
-    if (!isColonyBase && project.id !== 0 && projects.some((queued) => queued.id === project.id)) {
+    if (!isRepeatable && project.id !== 0 && projects.some((queued) => queued.id === project.id)) {
       return projects;
     }
     const nextProjects = [...projects, project];
@@ -543,7 +574,11 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
                           <input
                             type='checkbox'
                             checked={isAutobuildEnabled()}
-                            onChange={(event) => setIsAutobuildEnabled(event.currentTarget.checked)}
+                            onChange={(event) =>
+                              setAutobuildByPlanet((current) => ({
+                                ...current,
+                                [props.planet.id]: event.currentTarget.checked,
+                              }))}
                           />
                           <span aria-hidden='true' />
                         </span>

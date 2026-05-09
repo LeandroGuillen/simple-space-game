@@ -5,6 +5,7 @@ import type {
 } from "./types/commands";
 import type {
   ColonyRow,
+  FleetViewModel,
   GameViewModel,
   PlanetViewModel,
   ShipDesignForm,
@@ -117,6 +118,24 @@ export function cssClassForEnvironment(value: number) {
 
 export function getPrimaryPlayer(game?: GameViewModel | null) {
   return game?.players[0] ?? null;
+}
+
+export function findFleetInOrbit(game: GameViewModel | null | undefined, playerId: number, starId: number): FleetViewModel | null {
+  if (!game) {
+    return null;
+  }
+  return game.fleets.find((fleet) => fleet.ownerId === playerId && fleet.starId === starId && fleet.turnsRemaining === 0) ?? null;
+}
+
+export function calculateFleetTravelTurns(from: StarSummary, to: StarSummary) {
+  return calculateFleetTravelTurnsFromCoordinates(from.x, from.y, to.x, to.y);
+}
+
+export function calculateFleetTravelTurnsFromCoordinates(fromX: number, fromY: number, toX: number, toY: number) {
+  const dx = toX - fromX;
+  const dy = toY - fromY;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+  return Math.max(1, Math.ceil(distance / 90));
 }
 
 export function getPlanetIndustry(planet: PlanetViewModel) {
