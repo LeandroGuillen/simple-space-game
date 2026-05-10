@@ -9,11 +9,12 @@ import (
 )
 
 func TestBuildOnPlanetAddsMissingBuilding(t *testing.T) {
+	g := &Game{Resources: &Resources{BuildingCollection: &BuildingCollection{}}}
 	planet := &model.Planet{}
 
-	buildOnPlanet(planet, "Capitol")
-	buildOnPlanet(planet, "Star Base")
-	buildOnPlanet(planet, "Capitol")
+	buildOnPlanet(g, planet, "Capitol")
+	buildOnPlanet(g, planet, "Star Base")
+	buildOnPlanet(g, planet, "Capitol")
 
 	assert.Equal(t, []string{"Capitol", "Star Base"}, planet.Buildings)
 }

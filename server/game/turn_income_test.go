@@ -786,6 +786,95 @@ func TestBuildAllowsUniqueBuildingAfterItIsRemoved(t *testing.T) {
 	assert.Equal(t, int64(100), target.BuildBucket)
 }
 
+func TestBuildUpgradeUsesLowerTierCostAsCredit(t *testing.T) {
+	g := &Game{
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{
+				Buildings: []model.Building{
+					{Name: "Planetary Radiation Shield", Cost: 80},
+					{Name: "Planetary Flux Shield", Cost: 200, Upgrades: []string{"Planetary Radiation Shield"}},
+					{Name: "Planetary Barrier Shield", Cost: 500, Upgrades: []string{"Planetary Radiation Shield", "Planetary Flux Shield"}},
+				},
+			},
+		},
+	}
+	planet := &model.Planet{Buildings: []string{"Planetary Radiation Shield"}}
+
+	assert.True(t, Build(planet, "Planetary Flux Shield", []string{"Planetary Flux Shield"}, g))
+	assert.Equal(t, int64(120), planet.BuildBucket)
+
+	assert.True(t, Build(planet, "Planetary Barrier Shield", []string{"Planetary Barrier Shield"}, g))
+	assert.Equal(t, int64(420), planet.BuildBucket)
+}
+
+func TestBuildRejectsLowerTierWhenSuperiorBuildingExists(t *testing.T) {
+	g := &Game{
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{
+				Buildings: []model.Building{
+					{Name: "Planetary Radiation Shield", Cost: 80},
+					{Name: "Planetary Flux Shield", Cost: 200, Upgrades: []string{"Planetary Radiation Shield"}},
+				},
+			},
+		},
+	}
+	planet := &model.Planet{Buildings: []string{"Planetary Flux Shield"}}
+
+	assert.False(t, Build(planet, "Planetary Radiation Shield", []string{"Planetary Radiation Shield"}, g))
+}
+
+func TestCompletingBuildingUpgradeRemovesLowerTier(t *testing.T) {
+	g := &Game{
+		Players: []*model.Player{
+			{
+				ID: 1,
+				Available: model.AvailableTech{
+					Buildings: []string{"Planetary Radiation Shield", "Planetary Flux Shield"},
+				},
+			},
+		},
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{
+				Buildings: []model.Building{
+					{Name: "Planetary Radiation Shield", Cost: 80},
+					{Name: "Planetary Flux Shield", Cost: 200, Upgrades: []string{"Planetary Radiation Shield"}},
+				},
+			},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{
+					Planets: []*model.Planet{
+						{
+							ID:             1,
+							Owner:          1,
+							Population:     1000,
+							Size:           model.PlanetSizeMedium,
+							MineralClass:   model.PlanetMineralAbundant,
+							Buildings:      []string{"Planetary Radiation Shield"},
+							CurrentProject: "Planetary Flux Shield",
+							IsBuilding:     true,
+							BuildBucket:    1,
+							Industry: model.PlanetIndustryOutput{
+								Workers:           1,
+								ProducedPerWorker: 1,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	require.NoError(t, g.Turn(1, model.Commands{}))
+
+	colonies, err := g.GetColonyList(1)
+	require.NoError(t, err)
+	require.Len(t, colonies, 1)
+	assert.NotContains(t, colonies[0].Buildings, "Planetary Radiation Shield")
+	assert.Contains(t, colonies[0].Buildings, "Planetary Flux Shield")
+}
+
 func TestTurnCompletingColonyShipCreatesOrbitFleet(t *testing.T) {
 	g := &Game{
 		Players: []*model.Player{

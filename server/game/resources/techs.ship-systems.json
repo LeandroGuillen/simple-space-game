@@ -123,6 +123,11 @@
     "grants": { "unlocks": { "ship_systems": ["Time Warp Facilitator"] } }
   },
   {
+    "name": "Warp Dissipator",
+    "description": "No description provided",
+    "grants": { "unlocks": { "ship_systems": ["Warp Dissipator"] } }
+  },
+  {
     "name": "Inertial Stabilizer",
     "description": "No description provided",
     "grants": { "unlocks": { "ship_systems": ["Inertial Stabilizer"] } }

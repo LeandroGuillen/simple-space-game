@@ -34,6 +34,7 @@ const TRADE_GOODS: BuildingViewModel = {
   cost: 0,
   maintenance: 0,
   unique: false,
+  upgrades: [],
   grants: {
     unlocks: {
       buildings: [],
@@ -50,6 +51,25 @@ const TRADE_GOODS: BuildingViewModel = {
   },
   modifiers: [],
 };
+
+function hasSuperiorBuilding(
+  project: BuildingViewModel,
+  builtBuildings: BuildingViewModel[],
+) {
+  return builtBuildings.some((builtBuilding) =>
+    builtBuilding.upgrades.includes(project.name),
+  );
+}
+
+function isSpecialConstructionProject(projectName: string) {
+  return (
+    projectName === "Colony Base" ||
+    projectName === "Colony Ship" ||
+    projectName === "Android Farmers" ||
+    projectName === "Android Workers" ||
+    projectName === "Android Scientists"
+  );
+}
 
 export function ConstructionPanel(props: ConstructionPanelProps) {
   const { state, currentPlayer, changeBuilding, changeBuildQueue } =
@@ -89,6 +109,9 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
           .map((building) => building.id),
       ),
   );
+  const builtBuildingNames = createMemo(
+    () => new Set(props.planet.buildings.map((building) => building.name)),
+  );
   const availableBuildingNames = createMemo(
     () => new Set(currentPlayer()?.available.buildings ?? []),
   );
@@ -124,7 +147,8 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
         (project) =>
           availableBuildingNames().has(project.name) &&
           !builtBuildingIds().has(project.id) &&
-          project.name !== "Colony Base" &&
+          !hasSuperiorBuilding(project, props.planet.buildings) &&
+          !isSpecialConstructionProject(project.name) &&
           (!project.unique ||
             !uniqueBuildingsLockedElsewhere().has(project.name)),
       ) ?? [],
@@ -140,10 +164,21 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
           availableBuildingNames().has(project.name),
       ) ?? null,
   );
+  const colonyShipProject = createMemo(
+    () =>
+      state.game?.resources.buildingCollection.buildings.find(
+        (project) =>
+          project.name === "Colony Ship" &&
+          availableBuildingNames().has(project.name),
+      ) ?? null,
+  );
   const availableProjects = createMemo(() => {
     const projects = [TRADE_GOODS, ...buildableProjects()];
     if (colonyBaseProject()) {
       projects.push(colonyBaseProject()!);
+    }
+    if (colonyShipProject()) {
+      projects.push(colonyShipProject()!);
     }
     return projects;
   });
@@ -301,13 +336,27 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   const industryPerTurn = createMemo(() =>
     getPlanetIndustryForWorkers(props.planet, projectedWorkers()),
   );
+  function effectiveProjectCost(project: BuildingViewModel) {
+    const upgradeCredit = project.upgrades.reduce((credit, upgradedName) => {
+      if (!builtBuildingNames().has(upgradedName)) {
+        return credit;
+      }
+      const upgradedBuilding =
+        state.game?.resources.buildingCollection.buildings.find(
+          (building) => building.name === upgradedName,
+        );
+      return Math.max(credit, upgradedBuilding?.cost ?? 0);
+    }, 0);
+    return Math.max(0, project.cost - upgradeCredit);
+  }
   const currentInvestedProduction = createMemo(() => {
     if (!props.planet.isBuilding || !props.planet.currentProject) {
       return 0;
     }
     return Math.max(
       0,
-      props.planet.currentProject.cost - props.planet.buildBucket,
+      effectiveProjectCost(props.planet.currentProject) -
+        props.planet.buildBucket,
     );
   });
   const displayedBuildBucket = createMemo(() => {
@@ -319,7 +368,10 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
       pendingBuild()?.building &&
       project.name !== props.planet.currentProject?.name
     ) {
-      return Math.max(0, project.cost - currentInvestedProduction());
+      return Math.max(
+        0,
+        effectiveProjectCost(project) - currentInvestedProduction(),
+      );
     }
     return props.planet.buildBucket;
   });
@@ -328,16 +380,17 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     if (project.id === TRADE_GOODS.id) {
       return 0;
     }
-    return Math.max(0, project.cost - displayedBuildBucket());
+    return Math.max(0, effectiveProjectCost(project) - displayedBuildBucket());
   });
   const progressPercent = createMemo(() => {
     const project = activeProject();
-    if (project.id === TRADE_GOODS.id || !project.cost) {
+    const projectCost = effectiveProjectCost(project);
+    if (project.id === TRADE_GOODS.id || !projectCost) {
       return 0;
     }
     return Math.min(
       100,
-      Math.round((completedProduction() / project.cost) * 100),
+      Math.round((completedProduction() / projectCost) * 100),
     );
   });
   const turnsRemaining = createMemo(() => {
@@ -609,7 +662,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
           <Show when={props.planet.isBuilding && props.planet.currentProject}>
             <div class="construction-progress-meta">
               <span>
-                {completedProduction()} / {activeProject().cost} PP invested
+                {completedProduction()} / {effectiveProjectCost(activeProject())} PP invested
                 {turnsRemaining()
                   ? ` · ~${turnsRemaining()} turns`
                   : " · no production"}
@@ -681,7 +734,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
                             {project.name}
                           </span>
                           <span class="construction-project-cost">
-                            {project.cost > 0 ? `${project.cost} PP` : "Now"}
+                            {project.cost > 0 ? `${effectiveProjectCost(project)} PP` : "Now"}
                           </span>
                         </button>
                       )}
@@ -703,7 +756,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
                     <dl class="construction-facts">
                       <div>
                         <dt>Cost</dt>
-                        <dd>{previewProject().cost} PP</dd>
+                        <dd>{effectiveProjectCost(previewProject())} PP</dd>
                       </div>
                       <div>
                         <dt>Maintenance</dt>
@@ -752,7 +805,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
                             </span>
                             <span class="construction-queue-cost">
                               {project && project.cost > 0
-                                ? `${project.cost} PP`
+                                ? `${effectiveProjectCost(project)} PP`
                                 : ""}
                             </span>
                           </div>

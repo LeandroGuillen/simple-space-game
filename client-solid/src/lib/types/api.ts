@@ -79,6 +79,7 @@ export type ApiBuilding = {
   cost?: number;
   maintenance?: number;
   unique?: boolean;
+  upgrades?: string[];
   grants?: ApiGrants;
 };
 

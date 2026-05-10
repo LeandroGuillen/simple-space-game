@@ -51,6 +51,7 @@
           { "name": "fleet_attack", "value": 25 }
         ]
       },
+      "upgrades": ["Star Base"],
       "cost": 1000,
       "maintenance": 3
     },
@@ -67,6 +68,7 @@
           { "name": "fleet_attack", "value": 50 }
         ]
       },
+      "upgrades": ["Star Base", "Batttlestation"],
       "cost": 2500,
       "maintenance": 4
     },
@@ -101,19 +103,24 @@
       "cost": 200,
       "maintenance": 3
     },
-    { "name": "Food Replicators", "description": "No description provided" },
+    {
+      "name": "Food Replicators",
+      "description": "Converts 2 production into 1 food when needed.",
+      "cost": 200,
+      "maintenance": 10
+    },
     {
       "name": "Automated Factory",
       "description": "Robotic assembly lines that add flat production and improve each worker's industrial output.",
       "icon": "🏭",
-      "cost": 60,
-      "maintenance": 1,
       "grants": {
         "modifiers": [
           { "name": "industry_flat", "value": 5 },
           { "name": "industry_per_worker", "value": 1 }
         ]
-      }
+      },
+      "cost": 60,
+      "maintenance": 1
     },
     {
       "name": "Robo-Miners",
@@ -342,12 +349,11 @@
       "cost": 1000,
       "maintenance": 5
     },
-
     {
       "name": "Terraforming",
       "description": "No description provided",
       "built_on": "PLANET",
-      "cost": 0,
+      "cost": 250,
       "maintenance": 0
     },
 
@@ -355,86 +361,95 @@
       "name": "Gaia Transformation",
       "description": "No description provided",
       "built_on": "PLANET",
-      "cost": 0,
+      "cost": 500,
       "maintenance": 0
     },
     {
       "name": "Gravity Generator",
       "description": "No description provided",
       "built_on": "PLANET",
-      "cost": 0,
-      "maintenance": 0
+      "cost": 120,
+      "maintenance": 2
     },
     {
       "name": "Dimensional Portal",
       "description": "No description provided",
       "built_on": "PLANET",
-      "cost": 0,
-      "maintenance": 0
+      "unique": true,
+      "cost": 500,
+      "maintenance": 2
     },
     {
       "name": "Warp Interdictor",
       "description": "No description provided",
       "built_on": "PLANET",
-      "cost": 0,
-      "maintenance": 0
-    },
-    {
-      "name": "Warp Dissipator",
-      "description": "No description provided",
-      "built_on": "PLANET",
-      "cost": 0,
-      "maintenance": 0
+      "cost": 300,
+      "maintenance": 3
     },
     {
       "name": "Planetary Radiation Shield",
       "description": "No description provided",
       "built_on": "PLANET",
-      "cost": 0,
-      "maintenance": 0
+      "cost": 80,
+      "maintenance": 1
     },
     {
       "name": "Planetary Flux Shield",
       "description": "No description provided",
       "built_on": "PLANET",
-      "cost": 0,
-      "maintenance": 0
+      "cost": 200,
+      "maintenance": 3,
+      "upgrades": ["Planetary Radiation Shield"]
     },
     {
       "name": "Planetary Barrier Shield",
       "description": "No description provided",
       "built_on": "PLANET",
-      "cost": 0,
-      "maintenance": 0
+      "cost": 500,
+      "maintenance": 5,
+      "upgrades": ["Planetary Radiation Shield", "Planetary Flux Shield"]
     },
     {
       "name": "Android Farmers",
-      "description": "No description provided",
+      "description": "Robotic colonists that can only farm, but each generates 3 more food than a normal colonist.",
       "built_on": "PLANET",
-      "cost": 0,
-      "maintenance": 0
+      "grants": {
+        "modifiers": [{ "name": "food_per_farmer", "value": 1 }]
+      },
+      "cost": 50,
+      "maintenance": 1
     },
     {
       "name": "Android Workers",
       "description": "No description provided",
       "built_on": "PLANET",
-      "cost": 0,
-      "maintenance": 0
+      "grants": {
+        "modifiers": [{ "name": "industry_per_worker", "value": 1 }]
+      },
+      "cost": 50,
+      "maintenance": 1
     },
     {
       "name": "Android Scientists",
       "description": "No description provided",
       "built_on": "PLANET",
-      "cost": 0,
-      "maintenance": 0
+      "grants": {
+        "modifiers": [{ "name": "science_per_scientist", "value": 1 }]
+      },
+      "cost": 50,
+      "maintenance": 1
     },
     {
       "name": "Alien Management Center",
-      "description": "No description provided"
+      "description": "Assimilates conquered populations at the rate of 1 per 2 turns, regardless of government",
+      "cost": 60,
+      "maintenance": 1
     },
     {
       "name": "Artificial Planet Construction",
-      "description": "No description provided"
+      "description": "Enables a colony to create new colonizable planets in the same system by converting Gas Giants into Huge Barren Abundant planets and Asteroid Belts into Large Barren Abundant planets.",
+      "cost": 800,
+      "maintenance": 0
     },
     {
       "name": "Cloning Center",

@@ -128,11 +128,6 @@
     "grants": { "unlocks": { "buildings": ["Warp Interdictor"] } }
   },
   {
-    "name": "Warp Dissipator",
-    "description": "No description provided",
-    "grants": { "unlocks": { "buildings": ["Warp Dissipator"] } }
-  },
-  {
     "name": "Planetary Radiation Shield",
     "description": "No description provided",
     "grants": { "unlocks": { "buildings": ["Planetary Radiation Shield"] } }

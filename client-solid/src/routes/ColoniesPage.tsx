@@ -2,6 +2,7 @@ import { A } from "@solidjs/router";
 import { createMemo, createSignal } from "solid-js";
 
 import { formatSignedBc } from "../lib/utils";
+import type { BuildingViewModel } from "../lib/types/domain";
 import { useAppContext } from "../state/app-context";
 
 type SortKey =
@@ -56,11 +57,13 @@ export function ColoniesPage() {
     return locked;
   };
   const buildableOptions = (planetId: number) => {
-    const builtBuildingNames = new Set(planetForRow(planetId)?.buildings.map((building) => building.name) ?? []);
+    const builtBuildings = planetForRow(planetId)?.buildings ?? [];
+    const builtBuildingNames = new Set(builtBuildings.map((building) => building.name));
     const lockedUniqueNames = uniqueBuildingsLockedElsewhere(planetId);
     return buildingOptions().filter(
       (building) =>
         !builtBuildingNames.has(building.name) &&
+        !hasSuperiorBuilding(building, builtBuildings) &&
         (!building.unique || !lockedUniqueNames.has(building.name)),
     );
   };
@@ -229,5 +232,14 @@ export function ColoniesPage() {
         </table>
       </div>
     </section>
+  );
+}
+
+function hasSuperiorBuilding(
+  project: BuildingViewModel,
+  builtBuildings: BuildingViewModel[],
+) {
+  return builtBuildings.some((builtBuilding) =>
+    builtBuilding.upgrades.includes(project.name),
   );
 }

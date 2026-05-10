@@ -63,7 +63,13 @@
     }
   },
   { "name": "Telepathic Training", "description": "No description provided" },
-  { "name": "Microbiotics", "description": "No description provided" },
+  {
+    "name": "Microbiotics",
+    "description": "No description provided",
+    "grants": {
+      "modifiers": [{ "name": "population_growth", "value": 25 }]
+    }
+  },
   { "name": "Psionics", "description": "No description provided" },
   {
     "name": "Heightened Intelligence",

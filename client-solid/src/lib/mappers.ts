@@ -426,6 +426,7 @@ function mapBuilding(
     cost: building.cost ?? 0,
     maintenance: building.maintenance ?? 0,
     unique: Boolean(building.unique),
+    upgrades: building.upgrades ?? [],
     grants,
     modifiers: grants.modifiers.map((modifier) =>
       mapBuildingModifier(modifier, modifierByName),

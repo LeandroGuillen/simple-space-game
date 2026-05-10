@@ -50,6 +50,7 @@ export type BuildingViewModel = {
   cost: number;
   maintenance: number;
   unique: boolean;
+  upgrades: string[];
   grants: GrantsViewModel;
   modifiers: BuildingModifierViewModel[];
 };

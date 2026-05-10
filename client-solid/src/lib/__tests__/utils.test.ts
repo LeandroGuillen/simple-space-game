@@ -15,6 +15,7 @@ function building(name: string, modifiers: BuildingViewModel["modifiers"] = []):
     cost: 0,
     maintenance: 0,
     unique: false,
+    upgrades: [],
     grants: {
       unlocks: {
         buildings: [],

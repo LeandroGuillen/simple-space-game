@@ -157,9 +157,9 @@ func (g *Game) CreateCapitalPlanet(ownerID uint) error {
 	planet.Industry.Workers = 3
 	planet.Science.Scientists = 1
 
-	buildOnPlanet(planet, "Capitol")
-	buildOnPlanet(planet, "Star Base")
-	buildOnPlanet(planet, "Marine Barracks")
+	buildOnPlanet(g, planet, "Capitol")
+	buildOnPlanet(g, planet, "Star Base")
+	buildOnPlanet(g, planet, "Marine Barracks")
 
 	hydratePlanetPopulationCapacity(g, planet, player)
 	hydratePlanetMorale(g, planet, player)

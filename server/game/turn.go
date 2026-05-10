@@ -142,7 +142,7 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 					Icon: "🚀",
 				})
 			} else {
-				p.Buildings = append(p.Buildings, completedProject)
+				buildOnPlanet(game, p, completedProject)
 			}
 
 			if len(p.BuildQueue) > 0 {
@@ -249,11 +249,14 @@ func Build(p *Planet, buildingName string, availableBuildings []string, game *Ga
 	if building.Unique && isEmpireUniqueBuildingLocked(game, p.Owner, buildingName, p.ID) {
 		return false
 	}
+	if hasSuperiorBuilding(p, buildingName, game) {
+		return false
+	}
 
 	investedProduction := currentBuildProgress(p, game)
 	p.CurrentProject = buildingName
 	p.IsBuilding = true
-	p.BuildBucket = max(0, building.Cost-investedProduction)
+	p.BuildBucket = max(0, effectiveBuildingCost(p, building, game)-investedProduction)
 
 	return true
 }
@@ -266,7 +269,7 @@ func currentBuildProgress(p *Planet, game *Game) int64 {
 	if err != nil {
 		return 0
 	}
-	return max(0, building.Cost-p.BuildBucket)
+	return max(0, effectiveBuildingCost(p, building, game)-p.BuildBucket)
 }
 
 func canBuild(p *Planet, buildingName string, availableBuildings []string, game *Game) bool {
@@ -298,7 +301,38 @@ func canBuild(p *Planet, buildingName string, availableBuildings []string, game 
 	if building.Unique && isEmpireUniqueBuildingLocked(game, p.Owner, buildingName, p.ID) {
 		return false
 	}
+	if hasSuperiorBuilding(p, buildingName, game) {
+		return false
+	}
 	return true
+}
+
+func effectiveBuildingCost(p *Planet, building Building, game *Game) int64 {
+	upgradeCredit := int64(0)
+	for _, upgradedBuildingName := range building.Upgrades {
+		if !slices.Contains(p.Buildings, upgradedBuildingName) {
+			continue
+		}
+		upgradedBuilding, err := getBuildingFromName(game, upgradedBuildingName)
+		if err != nil {
+			continue
+		}
+		upgradeCredit = max(upgradeCredit, upgradedBuilding.Cost)
+	}
+	return max(0, building.Cost-upgradeCredit)
+}
+
+func hasSuperiorBuilding(p *Planet, buildingName string, game *Game) bool {
+	for _, builtBuildingName := range p.Buildings {
+		builtBuilding, err := getBuildingFromName(game, builtBuildingName)
+		if err != nil {
+			continue
+		}
+		if slices.Contains(builtBuilding.Upgrades, buildingName) {
+			return true
+		}
+	}
+	return false
 }
 
 func isEmpireUniqueBuildingLocked(game *Game, ownerID uint, buildingName string, ignorePlanetID uint) bool {
