@@ -195,6 +195,8 @@ export type ApiStar = {
 
 export type ApiGalaxy = {
   stars: ApiStar[];
+  width?: number;
+  height?: number;
 };
 
 export type ApiWeapon = Record<string, never>;

@@ -7,6 +7,8 @@ describe('mapGame', () => {
       id: 'game-1',
       current_turn: 3500,
       galaxy: {
+        width: 990,
+        height: 566,
         stars: [
           {
             id: 7,
@@ -126,6 +128,8 @@ describe('mapGame', () => {
 
     expect(game.id).toBe('game-1')
     expect(game.currentTurn).toBe(3500)
+    expect(game.galaxy.width).toBe(990)
+    expect(game.galaxy.height).toBe(566)
     expect(game.players[0]?.raceName).toBe('Human')
     expect(game.players[0]?.researchedTechs).toEqual(['Starting Colony Infrastructure', 'Automated Factory'])
     expect(game.players[0]?.available.buildings).toEqual(['Colony Base', 'Automated Factory'])
@@ -156,5 +160,30 @@ describe('mapGame', () => {
         { name: 'Penalty', type: 'building', bonus: -0.2 },
       ],
     })
+  })
+
+  it('defaults missing galaxy dimensions for old payloads', () => {
+    const apiGame: ApiGame = {
+      id: 'game-legacy',
+      current_turn: 3500,
+      galaxy: { stars: [] },
+      players: [],
+      fleets: [],
+      resources: {
+        ship_parts: {
+          hull_sizes: [],
+          drives: [],
+          armors: [],
+          computers: [],
+          fuel_cells: [],
+          shields: [],
+        },
+      },
+    }
+
+    const game = mapGame(apiGame)
+
+    expect(game.galaxy.width).toBe(700)
+    expect(game.galaxy.height).toBe(400)
   })
 })

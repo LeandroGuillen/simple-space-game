@@ -8,9 +8,18 @@ import {
   Show,
 } from "solid-js";
 
-import type { ApiGameListItem, NewGameOptions, RaceTraitId } from "../lib/types/api";
+import type {
+  ApiGameListItem,
+  NewGameOptions,
+  RaceTraitId,
+} from "../lib/types/api";
 import type { CustomRaceDesign } from "../lib/types/api";
-import { consumeSetupFormOpen, getCustomRaceDraft, markSetupFormOpen, setCustomRaceDraft } from "../lib/custom-race-storage";
+import {
+  consumeSetupFormOpen,
+  getCustomRaceDraft,
+  markSetupFormOpen,
+  setCustomRaceDraft,
+} from "../lib/custom-race-storage";
 import { ApiClient } from "../lib/api";
 import { isPlayableCustomRaceDesign } from "../lib/race-design";
 import {
@@ -42,9 +51,9 @@ const difficultyOptions = [
 ] satisfies ToggleOption<NewGameOptions["difficulty"]>[];
 
 const galaxySizeOptions = [
-  { label: "Tiny 15", value: "tiny" },
-  { label: "Medium 30", value: "medium" },
-  { label: "Huge 50", value: "huge" },
+  { label: "Tiny", value: "tiny" },
+  { label: "Medium", value: "medium" },
+  { label: "Huge", value: "huge" },
 ] satisfies ToggleOption<NewGameOptions["galaxy_size"]>[];
 
 const galaxyAgeOptions = [
@@ -66,8 +75,8 @@ const techLevelOptions = [
 
 const galaxySizeStars: Record<NewGameOptions["galaxy_size"], number> = {
   tiny: 15,
-  medium: 30,
-  huge: 50,
+  medium: 40,
+  huge: 100,
 };
 
 function PanelHeader(props: { title: string; count?: number }) {
@@ -84,25 +93,32 @@ function PanelHeader(props: { title: string; count?: number }) {
 function StatusDot(props: { status: string }) {
   const label = () => {
     switch (props.status) {
-      case "idle": return "Not connected";
-      case "checking": return "Connecting...";
-      case "connected": return "OK";
-      case "error": return "Failed";
-      default: return props.status;
+      case "idle":
+        return "Not connected";
+      case "checking":
+        return "Connecting...";
+      case "connected":
+        return "OK";
+      case "error":
+        return "Failed";
+      default:
+        return props.status;
     }
   };
   return (
-    <span
-      class={`status-dot status-dot--${props.status}`}
-      title={label()}
-    />
+    <span class={`status-dot status-dot--${props.status}`} title={label()} />
   );
 }
 
 function PlusIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-      <path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <path
+        d="M7 2v10M2 7h10"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+      />
     </svg>
   );
 }
@@ -110,7 +126,13 @@ function PlusIcon() {
 function ArrowIcon() {
   return (
     <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-      <path d="M2 5h6M6 2l4 3-4 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+      <path
+        d="M2 5h6M6 2l4 3-4 3"
+        stroke="currentColor"
+        stroke-width="1.3"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
     </svg>
   );
 }
@@ -161,35 +183,50 @@ export function SetupPage() {
   const [showServerForm, setShowServerForm] = createSignal(false);
   const [newServerUrl, setNewServerUrl] = createSignal("http://127.0.0.1:8080");
   const [playerName, setPlayerName] = createSignal("Admiral");
-  const [difficulty, setDifficulty] = createSignal<NewGameOptions["difficulty"]>("medium");
-  const [galaxySize, setGalaxySize] = createSignal<NewGameOptions["galaxy_size"]>("medium");
-  const [galaxyAge, setGalaxyAge] = createSignal<NewGameOptions["galaxy_age"]>("average");
+  const [difficulty, setDifficulty] =
+    createSignal<NewGameOptions["difficulty"]>("medium");
+  const [galaxySize, setGalaxySize] =
+    createSignal<NewGameOptions["galaxy_size"]>("medium");
+  const [galaxyAge, setGalaxyAge] =
+    createSignal<NewGameOptions["galaxy_age"]>("average");
   const [players, setPlayers] = createSignal(1);
-  const [techLevel, setTechLevel] = createSignal<NewGameOptions["tech_level"]>("average");
+  const [techLevel, setTechLevel] =
+    createSignal<NewGameOptions["tech_level"]>("average");
   const [race, setRace] = createSignal<RaceSelection>("human");
-  const [customRace, setCustomRace] = createSignal<CustomRaceDesign | null>(null);
-  const [savedCustomRaces, setSavedCustomRaces] = createSignal<CustomRaceDesign[]>([]);
+  const [customRace, setCustomRace] = createSignal<CustomRaceDesign | null>(
+    null,
+  );
+  const [savedCustomRaces, setSavedCustomRaces] = createSignal<
+    CustomRaceDesign[]
+  >([]);
   const [playerColor, setPlayerColor] = createSignal("#FFFFFF");
-  const [showNewGameForm, setShowNewGameForm] = createSignal(false);
+  const [isNewGameFormOpen, setIsNewGameFormOpen] = createSignal(false);
   const [isConnecting, setIsConnecting] = createSignal(false);
   const [confirmRemove, setConfirmRemove] = createSignal<string | null>(null);
 
   const activeServer = createMemo(() =>
-    servers().find((s) => s.url === selectedServerUrl())
+    servers().find((s) => s.url === selectedServerUrl()),
   );
 
   const isConnected = createMemo(() => activeServer()?.status === "connected");
   const gameCount = createMemo(() => activeServer()?.games.length ?? 0);
+  const shouldShowNewGameForm = createMemo(
+    () => isConnected() && (gameCount() === 0 || isNewGameFormOpen()),
+  );
   const raceOptions = createMemo(
     () =>
       [
         { label: "Human", value: "human" },
         { label: "Psilon", value: "psilon" },
         ...savedCustomRaces().map((saved) => ({
-          label: isPlayableCustomRaceDesign(saved) ? saved.name : `${saved.name} (Unplayable)`,
+          label: isPlayableCustomRaceDesign(saved)
+            ? saved.name
+            : `${saved.name} (Unplayable)`,
           value: `custom:${saved.name}` as const,
           disabled: !isPlayableCustomRaceDesign(saved),
-          title: !isPlayableCustomRaceDesign(saved) ? "Edit this race before using it in a game." : undefined,
+          title: !isPlayableCustomRaceDesign(saved)
+            ? "Edit this race before using it in a game."
+            : undefined,
         })),
         { label: "Custom", value: "custom-link" },
       ] satisfies ToggleOption<RaceSelection>[],
@@ -212,14 +249,21 @@ export function SetupPage() {
   createEffect(() => {
     const status = state.session.connectionStatus;
     const url = state.session.serverUrl;
-    if (url && (status === "connected" || status === "error" || status === "checking")) {
+    if (
+      url &&
+      (status === "connected" || status === "error" || status === "checking")
+    ) {
       setServers((prev) => {
         const existing = prev.find((s) => s.url === url);
         if (existing) {
           return prev.map((s) =>
             s.url === url
-              ? { ...s, status: status as ServerInfo["status"], games: status === "connected" ? state.games : s.games }
-              : s
+              ? {
+                  ...s,
+                  status: status as ServerInfo["status"],
+                  games: status === "connected" ? state.games : s.games,
+                }
+              : s,
           );
         }
         return [
@@ -239,21 +283,15 @@ export function SetupPage() {
     if (draft?.name.trim()) {
       setCustomRace(draft);
       setRace(`custom:${draft.name}`);
-      setShowNewGameForm(true);
     }
-    if (consumeSetupFormOpen()) {
-      setShowNewGameForm(true);
-    }
+    consumeSetupFormOpen();
     const sel = selectedServerUrl();
     if (!sel) {
       return;
     }
     const nSel = normalizeServerUrl(sel);
     const ctx = normalizeServerUrl(state.session.serverUrl);
-    if (
-      state.session.connectionStatus === "connected" &&
-      ctx === nSel
-    ) {
+    if (state.session.connectionStatus === "connected" && ctx === nSel) {
       void refreshGames();
       return;
     }
@@ -329,7 +367,7 @@ export function SetupPage() {
       if (selectedServerUrl() === url) {
         setSelectedServerUrl("");
       }
-      setShowNewGameForm(false);
+      setIsNewGameFormOpen(false);
       setConfirmRemove(null);
     } else {
       setConfirmRemove(url);
@@ -341,15 +379,24 @@ export function SetupPage() {
     event.preventDefault();
     try {
       const selectedRace = race();
-      const selectedCustomRace =
-        selectedRace.startsWith("custom:")
-          ? savedCustomRaces().find((saved) => `custom:${saved.name}` === selectedRace) ?? customRace()
-          : null;
-      if (selectedCustomRace && !isPlayableCustomRaceDesign(selectedCustomRace)) {
+      const selectedCustomRace = selectedRace.startsWith("custom:")
+        ? (savedCustomRaces().find(
+            (saved) => `custom:${saved.name}` === selectedRace,
+          ) ?? customRace())
+        : null;
+      if (
+        selectedCustomRace &&
+        !isPlayableCustomRaceDesign(selectedCustomRace)
+      ) {
         return;
       }
-      const requestRace: NewGameOptions["race"] =
-        selectedRace.startsWith("custom:") ? "custom" : selectedRace === "psilon" ? "psilon" : "human";
+      const requestRace: NewGameOptions["race"] = selectedRace.startsWith(
+        "custom:",
+      )
+        ? "custom"
+        : selectedRace === "psilon"
+          ? "psilon"
+          : "human";
       const gameId = await createGame({
         player_name: playerName(),
         player_color: playerColor(),
@@ -360,9 +407,7 @@ export function SetupPage() {
         players: players(),
         tech_level: techLevel(),
         race: requestRace,
-        ...(selectedCustomRace
-          ? { custom_race: selectedCustomRace }
-          : {}),
+        ...(selectedCustomRace ? { custom_race: selectedCustomRace } : {}),
       });
       await selectGame(gameId);
       navigate("/galaxy");
@@ -383,10 +428,16 @@ export function SetupPage() {
       return;
     }
     if (nextRace.startsWith("custom:")) {
-      const saved = savedCustomRaces().find((race) => `custom:${race.name}` === nextRace);
+      const saved = savedCustomRaces().find(
+        (race) => `custom:${race.name}` === nextRace,
+      );
       if (saved) {
         setCustomRace(saved);
-        setCustomRaceDraft({ name: saved.name, trait_ids: [...(saved.trait_ids ?? [])] as RaceTraitId[], playable: saved.playable });
+        setCustomRaceDraft({
+          name: saved.name,
+          trait_ids: [...(saved.trait_ids ?? [])] as RaceTraitId[],
+          playable: saved.playable,
+        });
       }
     }
     setRace(nextRace);
@@ -406,7 +457,9 @@ export function SetupPage() {
                     <button
                       type="button"
                       class="server-item"
-                      classList={{ selected: selectedServerUrl() === server.url }}
+                      classList={{
+                        selected: selectedServerUrl() === server.url,
+                      }}
                       onClick={() => void handleSelectServer(server.url)}
                       disabled={isConnecting()}
                     >
@@ -448,7 +501,9 @@ export function SetupPage() {
               <form class="server-form" onSubmit={handleAddServer}>
                 <input
                   value={newServerUrl()}
-                  onInput={(event) => setNewServerUrl(event.currentTarget.value)}
+                  onInput={(event) =>
+                    setNewServerUrl(event.currentTarget.value)
+                  }
                   placeholder="http://127.0.0.1:8080"
                   autofocus
                 />
@@ -492,7 +547,7 @@ export function SetupPage() {
                     <button
                       class="secondary-button create-first"
                       type="button"
-                      onClick={() => setShowNewGameForm(true)}
+                      onClick={() => setIsNewGameFormOpen(true)}
                     >
                       Create one
                     </button>
@@ -511,7 +566,9 @@ export function SetupPage() {
                         >
                           <div class="game-item-body">
                             <div class="game-item-line-meta">
-                              <span class="game-id">{game.game_id.slice(0, 8)}</span>
+                              <span class="game-id">
+                                {game.game_id.slice(0, 8)}
+                              </span>
                               <span class="game-meta">
                                 {game.num_stars} stars · T{game.current_turn}
                               </span>
@@ -556,13 +613,13 @@ export function SetupPage() {
               </Show>
 
               <Show
-                when={showNewGameForm()}
+                when={shouldShowNewGameForm()}
                 fallback={
                   <Show when={activeServer()?.games.length}>
                     <button
                       class="secondary-button new-game-button"
                       type="button"
-                      onClick={() => setShowNewGameForm(true)}
+                      onClick={() => setIsNewGameFormOpen(true)}
                     >
                       <PlusIcon />
                       New Game
@@ -576,7 +633,9 @@ export function SetupPage() {
                       <span>Commander</span>
                       <input
                         value={playerName()}
-                        onInput={(event) => setPlayerName(event.currentTarget.value)}
+                        onInput={(event) =>
+                          setPlayerName(event.currentTarget.value)
+                        }
                         autofocus
                       />
                     </label>
@@ -640,7 +699,7 @@ export function SetupPage() {
                     <button
                       class="link-button"
                       type="button"
-                      onClick={() => setShowNewGameForm(false)}
+                      onClick={() => setIsNewGameFormOpen(false)}
                       disabled={state.isBusy}
                     >
                       Cancel

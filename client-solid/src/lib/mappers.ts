@@ -42,6 +42,9 @@ import type {
   TechViewModel,
 } from "./types/domain";
 
+const DEFAULT_GALAXY_WIDTH = 700;
+const DEFAULT_GALAXY_HEIGHT = 400;
+
 export function mapGame(apiGame: ApiGame): GameViewModel {
   const players = apiGame.players.map(mapPlayer);
   const playerColorById = new Map(
@@ -67,6 +70,8 @@ return {
       stars: apiGame.galaxy.stars.map((star) =>
         mapStar(star, playerColorById, buildingByName),
       ),
+      width: apiGame.galaxy.width ?? DEFAULT_GALAXY_WIDTH,
+      height: apiGame.galaxy.height ?? DEFAULT_GALAXY_HEIGHT,
     },
     players,
     fleets: (apiGame.fleets ?? []).map(mapFleet),

@@ -218,6 +218,8 @@ describe("getColonyRows", () => {
         techTree: { subjects: [] },
       },
       galaxy: {
+        width: 700,
+        height: 400,
         stars: [
           {
             id: 1,

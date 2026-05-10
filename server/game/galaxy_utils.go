@@ -7,14 +7,31 @@ import (
 )
 
 const (
-	galaxyWidth  int64 = 700
-	galaxyHeight int64 = 400
+	tinyGalaxyWidth    int64 = 240
+	tinyGalaxyHeight   int64 = 180
+	mediumGalaxyWidth  int64 = 600
+	mediumGalaxyHeight int64 = 400
+	hugeGalaxyWidth    int64 = 1000
+	hugeGalaxyHeight   int64 = 800
 	// 1 parsec in map pixels, calibrated from visual spacing examples.
 	parsecInPixels = 60
 	// Reject a candidate if Euclidean distance to an existing star is below 1 parsec.
 	minStarSeparationParsecSq   = 1.0 * parsecInPixels * parsecInPixels
 	maxRandomStarPlacementTries = 500_000
 )
+
+func galaxyDimensionsForSize(size string) (int64, int64) {
+	switch size {
+	case "tiny":
+		return tinyGalaxyWidth, tinyGalaxyHeight
+	case "medium":
+		return mediumGalaxyWidth, mediumGalaxyHeight
+	case "huge":
+		return hugeGalaxyWidth, hugeGalaxyHeight
+	default:
+		return mediumGalaxyWidth, mediumGalaxyHeight
+	}
+}
 
 func starDistanceSq(x1, y1, x2, y2 int64) float64 {
 	dx := float64(x1 - x2)
@@ -32,10 +49,10 @@ func tooCloseToExisting(x, y int64, stars []*model.Star) bool {
 }
 
 // assignGalaxyStarPosition sets X,Y so every star is at least 1 parsec from all previously placed stars.
-func assignGalaxyStarPosition(star *model.Star, existing []*model.Star) {
-	w := int(galaxyWidth)
-	h := int(galaxyHeight)
-	for try := 0; try < maxRandomStarPlacementTries; try++ {
+func assignGalaxyStarPosition(star *model.Star, existing []*model.Star, width, height int64) {
+	w := int(width)
+	h := int(height)
+	for range maxRandomStarPlacementTries {
 		x := int64(randomIntn(w))
 		y := int64(randomIntn(h))
 		if !tooCloseToExisting(x, y, existing) {
@@ -43,23 +60,28 @@ func assignGalaxyStarPosition(star *model.Star, existing []*model.Star) {
 			return
 		}
 	}
-	for y := int64(0); y < galaxyHeight; y++ {
-		for x := int64(0); x < galaxyWidth; x++ {
-			if !tooCloseToExisting(x, y, existing) {
-				star.X, star.Y = x, y
-				return
-			}
-		}
-	}
-	panic(fmt.Sprintf("galaxy: could not place star (already have %d stars)", len(existing)))
+	// for y := int64(0); y < height; y++ {
+	// 	for x := int64(0); x < width; x++ {
+	// 		if !tooCloseToExisting(x, y, existing) {
+	// 			star.X, star.Y = x, y
+	// 			return
+	// 		}
+	// 	}
+	// }
+	// panic(fmt.Sprintf("galaxy: could not place star (already have %d stars)", len(existing)))
 }
 
 func NewGalaxy(numStars uint) model.Galaxy {
+	return NewGalaxyForSize(numStars, "")
+}
+
+func NewGalaxyForSize(numStars uint, galaxySize string) model.Galaxy {
+	width, height := galaxyDimensionsForSize(galaxySize)
 	var stars []*model.Star
 	var starNames = make(map[string]int)
 	var planetIDCounter uint = 1
 
-	for i := uint(0); i < numStars; i++ {
+	for i := range numStars {
 		// assign random name, adding numbers if necessary
 		randomName := GetRandomStarName()
 		repetitions, nameExists := starNames[randomName]
@@ -73,12 +95,14 @@ func NewGalaxy(numStars uint) model.Galaxy {
 		star, numPlanets := NewRandomStar(i+1, planetIDCounter, randomName)
 		planetIDCounter += numPlanets
 
-		assignGalaxyStarPosition(star, stars)
+		assignGalaxyStarPosition(star, stars, width, height)
 		stars = append(stars, star)
 	}
 
 	galaxy := model.Galaxy{
-		Stars: stars,
+		Stars:  stars,
+		Width:  width,
+		Height: height,
 	}
 
 	return galaxy
@@ -86,7 +110,9 @@ func NewGalaxy(numStars uint) model.Galaxy {
 
 func NewEmptyGalaxy() model.Galaxy {
 	galaxy := model.Galaxy{
-		Stars: []*model.Star{},
+		Stars:  []*model.Star{},
+		Width:  mediumGalaxyWidth,
+		Height: mediumGalaxyHeight,
 	}
 
 	return galaxy

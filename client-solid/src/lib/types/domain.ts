@@ -128,6 +128,8 @@ export type StarSummary = {
 
 export type GalaxyViewModel = {
   stars: StarSummary[];
+  width: number;
+  height: number;
 };
 
 export type PlayerViewModel = {

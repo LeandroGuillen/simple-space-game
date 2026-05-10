@@ -196,6 +196,8 @@ export function GalaxyPage() {
           <GalaxyMap
             gameId={state.session.selectedGameId || state.game?.id}
             stars={stars()}
+            width={state.game?.galaxy.width}
+            height={state.game?.galaxy.height}
             selectedStarId={selectedStar()?.id}
             onSelect={handleStarSelect}
             fleets={ownedFleets().map((fleet) => ({

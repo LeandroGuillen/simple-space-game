@@ -74,6 +74,7 @@ func NewGame(c *gin.Context) {
 		PlayerName:  req.PlayerName,
 		PlayerColor: req.PlayerColor,
 		NumStars:    req.NumStars,
+		GalaxySize:  req.GalaxySize,
 		Race:        race,
 	})
 	if err != nil {

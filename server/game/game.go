@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"slices"
 	. "ssg/model"
 	"time"
 
@@ -29,6 +30,7 @@ type NewGameOptions struct {
 	PlayerName  string
 	PlayerColor string
 	NumStars    uint
+	GalaxySize  string
 	Race        Race
 }
 
@@ -51,7 +53,7 @@ func NewGame(resources *ResourceManager, options NewGameOptions) (*Game, error) 
 	player1 := NewPlayer(firstPlayerID, playerName, playerColor, race)
 	created := time.Now().UTC()
 	g := &Game{
-		Galaxy:             NewGalaxy(numStars),
+		Galaxy:             NewGalaxyForSize(numStars, options.GalaxySize),
 		Players:            []*Player{player1},
 		Fleets:             []*Fleet{},
 		ID:                 uuid.New().String(),
@@ -286,10 +288,8 @@ func (g *Game) prepareColonyShip(ownerID, fleetID uint) error {
 	if g.PendingColonyShips == nil {
 		g.PendingColonyShips = make(map[uint][]uint)
 	}
-	for _, pendingFleetID := range g.PendingColonyShips[ownerID] {
-		if pendingFleetID == fleetID {
-			return nil
-		}
+	if slices.Contains(g.PendingColonyShips[ownerID], fleetID) {
+		return nil
 	}
 	g.PendingColonyShips[ownerID] = append(g.PendingColonyShips[ownerID], fleetID)
 	return nil

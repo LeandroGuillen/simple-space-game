@@ -1,17 +1,22 @@
-import { For, createEffect, createMemo, createSignal, onCleanup, onMount } from "solid-js";
+import {
+  For,
+  createEffect,
+  createMemo,
+  createSignal,
+  onCleanup,
+  onMount,
+} from "solid-js";
 
 import type { StarSummary } from "../lib/types/domain";
 import {
-  FULL_GALAXY_VIEWPORT,
   GALAXY_VIEWPORT_STORAGE_PREFIX,
-  WORLD_H,
-  WORLD_W,
-  WORLD_X,
-  WORLD_Y,
   ZOOM_STEP,
   centerViewportOn,
   clampViewport,
+  getInitialGalaxyViewport,
   getZoom,
+  isAtMaxZoom,
+  normalizeGalaxyMapBounds,
   panViewportByScreenDelta,
   parseStoredGalaxyViewport,
   screenToSvgPoint,
@@ -26,22 +31,59 @@ import "./GalaxyMap.css";
 const DRAG_CLICK_SUPPRESSION_PX = 4;
 const KEYBOARD_PAN_UNITS = 40;
 const STORAGE_DEBOUNCE_MS = 150;
+const STAR_VIEW_MARGIN = 28;
 
 type GalaxyMapProps = {
   stars: StarSummary[];
   selectedStarId?: number;
   onSelect: (starId: number) => void;
-  fleets?: { id: number; starId: number; x: number; y: number; isMoving?: boolean }[];
+  fleets?: {
+    id: number;
+    starId: number;
+    x: number;
+    y: number;
+    isMoving?: boolean;
+  }[];
   onFleetClick?: (fleetId: number) => void;
-  routeLines?: { fromX: number; fromY: number; toX: number; toY: number; eta: number; preview?: boolean }[];
+  routeLines?: {
+    fromX: number;
+    fromY: number;
+    toX: number;
+    toY: number;
+    eta: number;
+    preview?: boolean;
+  }[];
   onHoverSnappedStar?: (starId: number | null) => void;
   gameId?: string;
+  width?: number;
+  height?: number;
 };
 
 export function GalaxyMap(props: GalaxyMapProps) {
   let svgRef: SVGSVGElement | undefined;
   let saveTimeout: ReturnType<typeof setTimeout> | undefined;
-  const [viewport, setViewport] = createSignal<GalaxyMapViewport>(FULL_GALAXY_VIEWPORT);
+  const starsContentBounds = createMemo(() => {
+    if (props.stars.length === 0) {
+      return undefined;
+    }
+
+    const xs = props.stars.map((star) => star.x);
+    const ys = props.stars.map((star) => star.y);
+    return {
+      minX: Math.min(...xs) - STAR_VIEW_MARGIN,
+      minY: Math.min(...ys) - STAR_VIEW_MARGIN,
+      maxX: Math.max(...xs) + STAR_VIEW_MARGIN,
+      maxY: Math.max(...ys) + STAR_VIEW_MARGIN,
+    };
+  });
+  const mapBounds = createMemo(() =>
+    normalizeGalaxyMapBounds(props.width, props.height, starsContentBounds()),
+  );
+  const initialViewport = createMemo(() =>
+    getInitialGalaxyViewport(mapBounds()),
+  );
+  const [viewport, setViewport] =
+    createSignal<GalaxyMapViewport>(initialViewport());
   const [isDragging, setIsDragging] = createSignal(false);
   const [dragState, setDragState] = createSignal<{
     pointerId: number;
@@ -51,22 +93,31 @@ export function GalaxyMap(props: GalaxyMapProps) {
   } | null>(null);
   const [suppressNextClick, setSuppressNextClick] = createSignal(false);
   const viewBox = createMemo(() => viewportToViewBox(viewport()));
-  const zoom = createMemo(() => getZoom(viewport()));
+  const zoom = createMemo(() => getZoom(viewport(), mapBounds()));
+  const canZoomIn = createMemo(() => !isAtMaxZoom(viewport(), mapBounds()));
 
   function storageKey() {
-    return props.gameId ? `${GALAXY_VIEWPORT_STORAGE_PREFIX}${props.gameId}` : "";
+    const bounds = mapBounds();
+    return props.gameId
+      ? `${GALAXY_VIEWPORT_STORAGE_PREFIX}${props.gameId}.${bounds.width}x${bounds.height}`
+      : "";
   }
 
   function loadStoredViewport() {
     const key = storageKey();
     if (!key) {
-      setViewport(FULL_GALAXY_VIEWPORT);
+      setViewport(initialViewport());
       return;
     }
     try {
-      setViewport(parseStoredGalaxyViewport(window.localStorage.getItem(key)));
+      setViewport(
+        parseStoredGalaxyViewport(
+          window.localStorage.getItem(key),
+          mapBounds(),
+        ),
+      );
     } catch {
-      setViewport(FULL_GALAXY_VIEWPORT);
+      setViewport(initialViewport());
     }
   }
 
@@ -74,6 +125,8 @@ export function GalaxyMap(props: GalaxyMapProps) {
 
   createEffect(() => {
     props.gameId;
+    props.width;
+    props.height;
     loadStoredViewport();
   });
 
@@ -114,19 +167,34 @@ export function GalaxyMap(props: GalaxyMapProps) {
   }
 
   function zoomAt(clientX: number, clientY: number, scale: number) {
+    if (scale > 1 && !canZoomIn()) {
+      return;
+    }
     const svgPoint = svgPointForClient(clientX, clientY);
     if (!svgPoint) {
       return;
     }
-    setViewport((current) => zoomViewportAt(current, svgPoint, scale));
+    setViewport((current) =>
+      zoomViewportAt(current, svgPoint, scale, mapBounds()),
+    );
   }
 
   function zoomAtCenter(scale: number) {
+    if (scale > 1 && !canZoomIn()) {
+      return;
+    }
     const current = viewport();
-    setViewport(zoomViewportAt(current, {
-      x: current.x + current.width / 2,
-      y: current.y + current.height / 2,
-    }, scale));
+    setViewport(
+      zoomViewportAt(
+        current,
+        {
+          x: current.x + current.width / 2,
+          y: current.y + current.height / 2,
+        },
+        scale,
+        mapBounds(),
+      ),
+    );
   }
 
   function panByScreenDelta(deltaClientX: number, deltaClientY: number) {
@@ -134,19 +202,31 @@ export function GalaxyMap(props: GalaxyMapProps) {
     if (!bounds) {
       return;
     }
-    setViewport((current) => panViewportByScreenDelta(current, bounds, deltaClientX, deltaClientY));
+    setViewport((current) =>
+      panViewportByScreenDelta(
+        current,
+        mapBounds(),
+        bounds,
+        deltaClientX,
+        deltaClientY,
+      ),
+    );
   }
 
   function resetViewport() {
-    setViewport(FULL_GALAXY_VIEWPORT);
+    setViewport(initialViewport());
   }
 
   function focusSelectedStar() {
-    const selectedStar = props.stars.find((star) => star.id === props.selectedStarId);
+    const selectedStar = props.stars.find(
+      (star) => star.id === props.selectedStarId,
+    );
     if (!selectedStar) {
       return;
     }
-    setViewport((current) => centerViewportOn(current, selectedStar));
+    setViewport((current) =>
+      centerViewportOn(current, selectedStar, mapBounds()),
+    );
   }
 
   function handleMouseMove(event: MouseEvent) {
@@ -175,7 +255,11 @@ export function GalaxyMap(props: GalaxyMapProps) {
 
   function handleWheel(event: WheelEvent) {
     event.preventDefault();
-    zoomAt(event.clientX, event.clientY, event.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP);
+    zoomAt(
+      event.clientX,
+      event.clientY,
+      event.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP,
+    );
   }
 
   function handlePointerDown(event: PointerEvent) {
@@ -217,7 +301,10 @@ export function GalaxyMap(props: GalaxyMapProps) {
 
   function stopDragging(event: PointerEvent) {
     const drag = dragState();
-    if (drag?.pointerId === event.pointerId && drag.totalMovement > DRAG_CLICK_SUPPRESSION_PX) {
+    if (
+      drag?.pointerId === event.pointerId &&
+      drag.totalMovement > DRAG_CLICK_SUPPRESSION_PX
+    ) {
       setSuppressNextClick(true);
     }
     setDragState(null);
@@ -238,19 +325,39 @@ export function GalaxyMap(props: GalaxyMapProps) {
     switch (event.key) {
       case "ArrowUp":
         event.preventDefault();
-        setViewport(clampViewport({ ...current, y: current.y - panDistance }));
+        setViewport(
+          clampViewport(
+            { ...current, y: current.y - panDistance },
+            mapBounds(),
+          ),
+        );
         break;
       case "ArrowDown":
         event.preventDefault();
-        setViewport(clampViewport({ ...current, y: current.y + panDistance }));
+        setViewport(
+          clampViewport(
+            { ...current, y: current.y + panDistance },
+            mapBounds(),
+          ),
+        );
         break;
       case "ArrowLeft":
         event.preventDefault();
-        setViewport(clampViewport({ ...current, x: current.x - panDistance }));
+        setViewport(
+          clampViewport(
+            { ...current, x: current.x - panDistance },
+            mapBounds(),
+          ),
+        );
         break;
       case "ArrowRight":
         event.preventDefault();
-        setViewport(clampViewport({ ...current, x: current.x + panDistance }));
+        setViewport(
+          clampViewport(
+            { ...current, x: current.x + panDistance },
+            mapBounds(),
+          ),
+        );
         break;
       case "+":
       case "=":
@@ -278,13 +385,33 @@ export function GalaxyMap(props: GalaxyMapProps) {
   return (
     <div class="galaxy-map-shell">
       <div class="galaxy-map-toolbar" aria-label="Galaxy map controls">
-        <button class="galaxy-map-control" type="button" aria-label="Zoom in" title="Zoom in" onClick={() => zoomAtCenter(ZOOM_STEP)}>
+        <span>Num stars: {props.stars.length}</span>
+        <button
+          class="galaxy-map-control"
+          type="button"
+          aria-label="Zoom in"
+          title="Zoom in"
+          disabled={!canZoomIn()}
+          onClick={() => zoomAtCenter(ZOOM_STEP)}
+        >
           +
         </button>
-        <button class="galaxy-map-control" type="button" aria-label="Zoom out" title="Zoom out" onClick={() => zoomAtCenter(1 / ZOOM_STEP)}>
+        <button
+          class="galaxy-map-control"
+          type="button"
+          aria-label="Zoom out"
+          title="Zoom out"
+          onClick={() => zoomAtCenter(1 / ZOOM_STEP)}
+        >
           -
         </button>
-        <button class="galaxy-map-control" type="button" aria-label="Reset view" title="Reset view" onClick={resetViewport}>
+        <button
+          class="galaxy-map-control"
+          type="button"
+          aria-label="Reset view"
+          title="Reset view"
+          onClick={resetViewport}
+        >
           0
         </button>
         <button
@@ -320,21 +447,23 @@ export function GalaxyMap(props: GalaxyMapProps) {
           onKeyDown={handleKeyDown}
           onMouseLeave={() => props.onHoverSnappedStar?.(null)}
         >
-          <rect
-            x={WORLD_X}
-            y={WORLD_Y}
-            width={WORLD_W}
-            height={WORLD_H}
-            rx="6"
-            fill="#06101aff"
-          />
           <g class="fleet-route-layer">
             <For each={props.routeLines ?? []}>
               {(route) => {
                 return (
                   <g classList={{ "is-preview": Boolean(route.preview) }}>
-                    <line x1={route.fromX} y1={route.fromY} x2={route.toX} y2={route.toY} class="fleet-route-line" />
-                    <text x={route.fromX + 10} y={route.fromY - 10} class="fleet-route-eta">
+                    <line
+                      x1={route.fromX}
+                      y1={route.fromY}
+                      x2={route.toX}
+                      y2={route.toY}
+                      class="fleet-route-line"
+                    />
+                    <text
+                      x={route.fromX + 10}
+                      y={route.fromY - 10}
+                      class="fleet-route-eta"
+                    >
                       ETA {route.eta}
                     </text>
                   </g>
@@ -342,7 +471,7 @@ export function GalaxyMap(props: GalaxyMapProps) {
               }}
             </For>
           </g>
-          <g>
+          <g id="galaxy-stars">
             <For each={props.stars}>
               {(star) => (
                 <g
@@ -370,7 +499,9 @@ export function GalaxyMap(props: GalaxyMapProps) {
                       "star-label-unoccupied":
                         star.explored && star.ownedPlanets === 0,
                     }}
-                    style={star.ownerColor ? { fill: star.ownerColor } : undefined}
+                    style={
+                      star.ownerColor ? { fill: star.ownerColor } : undefined
+                    }
                   >
                     {star.name}
                   </text>
@@ -378,7 +509,7 @@ export function GalaxyMap(props: GalaxyMapProps) {
               )}
             </For>
           </g>
-          <g>
+          <g id="fleet-links">
             <For each={props.fleets ?? []}>
               {(fleet) => (
                 <g
@@ -390,7 +521,9 @@ export function GalaxyMap(props: GalaxyMapProps) {
                   }}
                 >
                   <circle r="7.5" />
-                  <text text-anchor="middle" y="3.5">🚀</text>
+                  <text text-anchor="middle" y="3.5">
+                    🚀
+                  </text>
                 </g>
               )}
             </For>
