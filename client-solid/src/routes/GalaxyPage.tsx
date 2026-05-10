@@ -1,5 +1,5 @@
 import { A } from "@solidjs/router";
-import { createMemo, createSignal, Show } from "solid-js";
+import { createEffect, createMemo, createSignal, Show } from "solid-js";
 
 import { FleetInspectorPanel } from "../components/FleetInspectorPanel";
 import { GalaxyMap } from "../components/GalaxyMap";
@@ -121,6 +121,16 @@ export function GalaxyPage() {
     setTravelMode(null);
     setSnappedStarId(null);
   }
+
+  createEffect(() => {
+    const mode = travelMode();
+    if (!mode) {
+      return;
+    }
+    if (state.pendingCommands.colonize.some((command) => command.fleet_id === mode.fleetId)) {
+      exitFleetTravelMode();
+    }
+  });
 
   function handleStarSelect(starId: number) {
     const mode = travelMode();

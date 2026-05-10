@@ -928,6 +928,204 @@ func TestTurnCompletingColonyShipCreatesOrbitFleet(t *testing.T) {
 	assert.Equal(t, []uint{g.Fleets[0].ID}, g.Players[0].Fleets)
 }
 
+func TestColonyShipCommandQueuesPendingFleet(t *testing.T) {
+	g := &Game{
+		Players:   []*model.Player{{ID: 1, Fleets: []uint{1}}},
+		Resources: &Resources{},
+		Fleets: []*model.Fleet{
+			{
+				ID:     1,
+				Owner:  1,
+				StarID: 1,
+				Ships:  []model.FleetShip{{Type: "colony_ship", Name: "Colony Ship"}},
+			},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{
+					ID: 1,
+					Planets: []*model.Planet{
+						{ID: 1, Owner: 1, ParentStar: 1, Population: 1000},
+						{ID: 2, Owner: 0, ParentStar: 1, Environment: model.PlanetEnvironmentTerran},
+					},
+				},
+			},
+		},
+	}
+
+	require.NoError(t, g.Turn(1, model.Commands{
+		ColonyShip: &model.PrepareColonyShipCommand{FleetID: 1},
+	}))
+
+	assert.Equal(t, []uint{1}, g.PendingColonyShips[1])
+	require.Len(t, g.Fleets, 1)
+	require.Len(t, g.Fleets[0].Ships, 1)
+}
+
+func TestPendingColonyShipColonizesAndConsumesOneShip(t *testing.T) {
+	g := &Game{
+		Players:   []*model.Player{{ID: 1, Fleets: []uint{1}}},
+		Resources: &Resources{},
+		Fleets: []*model.Fleet{
+			{
+				ID:     1,
+				Owner:  1,
+				StarID: 1,
+				Ships: []model.FleetShip{
+					{Type: "colony_ship", Name: "Colony Ship"},
+					{Type: "frigate", Name: "Guard"},
+				},
+			},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{
+					ID: 1,
+					Planets: []*model.Planet{
+						{ID: 1, Owner: 1, ParentStar: 1, Population: 1000},
+						{ID: 2, Owner: 0, ParentStar: 1, Environment: model.PlanetEnvironmentTerran},
+					},
+				},
+			},
+		},
+	}
+
+	require.NoError(t, g.Turn(1, model.Commands{
+		Colonize: &model.ColonizeCommand{FleetID: 1, PlanetID: 2},
+	}))
+
+	planet, err := g.getPlanet(2)
+	require.NoError(t, err)
+	assert.Equal(t, uint(1), planet.Owner)
+	require.Len(t, g.Fleets, 1)
+	require.Len(t, g.Fleets[0].Ships, 1)
+	assert.Equal(t, "Guard", g.Fleets[0].Ships[0].Name)
+	assert.Empty(t, g.PendingColonyShips[1])
+}
+
+func TestColonyShipColonizeWithStaleFleetIDUsesOrbitingShipInTargetSystem(t *testing.T) {
+	g := &Game{
+		Players:   []*model.Player{{ID: 1, Fleets: []uint{7}}},
+		Resources: &Resources{},
+		Fleets: []*model.Fleet{
+			{
+				ID:     7,
+				Owner:  1,
+				StarID: 1,
+				Ships:  []model.FleetShip{{Type: "colony_ship", Name: "Colony Ship"}},
+			},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{
+					ID: 1,
+					Planets: []*model.Planet{
+						{ID: 1, Owner: 1, ParentStar: 1, Population: 1000},
+						{ID: 2, Owner: 0, ParentStar: 1, Environment: model.PlanetEnvironmentTerran},
+					},
+				},
+			},
+		},
+	}
+
+	require.NoError(t, g.Turn(1, model.Commands{
+		Colonize: &model.ColonizeCommand{FleetID: 1, PlanetID: 2},
+	}))
+
+	planet, err := g.getPlanet(2)
+	require.NoError(t, err)
+	assert.Equal(t, uint(1), planet.Owner)
+	assert.Empty(t, g.Fleets)
+	assert.Empty(t, g.Players[0].Fleets)
+}
+
+func TestMultipleColonyShipsCanColonizeInSameTurn(t *testing.T) {
+	g := &Game{
+		Players:   []*model.Player{{ID: 1, Fleets: []uint{1, 2}}},
+		Resources: &Resources{},
+		Fleets: []*model.Fleet{
+			{
+				ID:     1,
+				Owner:  1,
+				StarID: 1,
+				Ships:  []model.FleetShip{{Type: "colony_ship", Name: "Colony Ship A"}},
+			},
+			{
+				ID:     2,
+				Owner:  1,
+				StarID: 2,
+				Ships:  []model.FleetShip{{Type: "colony_ship", Name: "Colony Ship B"}},
+			},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{
+					ID: 1,
+					Planets: []*model.Planet{
+						{ID: 1, Owner: 1, ParentStar: 1, Population: 1000},
+						{ID: 2, Owner: 0, ParentStar: 1, Environment: model.PlanetEnvironmentTerran},
+					},
+				},
+				{
+					ID: 2,
+					Planets: []*model.Planet{
+						{ID: 3, Owner: 0, ParentStar: 2, Environment: model.PlanetEnvironmentTerran},
+					},
+				},
+			},
+		},
+	}
+
+	require.NoError(t, g.Turn(1, model.Commands{
+		ColonizeMany: []*model.ColonizeCommand{
+			{FleetID: 1, PlanetID: 2},
+			{FleetID: 2, PlanetID: 3},
+		},
+	}))
+
+	first, err := g.getPlanet(2)
+	require.NoError(t, err)
+	second, err := g.getPlanet(3)
+	require.NoError(t, err)
+	assert.Equal(t, uint(1), first.Owner)
+	assert.Equal(t, uint(1), second.Owner)
+	assert.Empty(t, g.Fleets)
+}
+
+func TestColonyShipCommandWithoutEligiblePlanetKeepsShip(t *testing.T) {
+	g := &Game{
+		Players:   []*model.Player{{ID: 1, Fleets: []uint{1}}},
+		Resources: &Resources{},
+		Fleets: []*model.Fleet{
+			{
+				ID:     1,
+				Owner:  1,
+				StarID: 1,
+				Ships:  []model.FleetShip{{Type: "colony_ship", Name: "Colony Ship"}},
+			},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{
+					ID: 1,
+					Planets: []*model.Planet{
+						{ID: 1, Owner: 1, ParentStar: 1, Population: 1000},
+						{ID: 2, Owner: 0, ParentStar: 1, Environment: model.PlanetEnvironmentGasGiant},
+					},
+				},
+			},
+		},
+	}
+
+	require.NoError(t, g.Turn(1, model.Commands{
+		ColonyShip: &model.PrepareColonyShipCommand{FleetID: 1},
+	}))
+
+	assert.Empty(t, g.PendingColonyShips[1])
+	require.Len(t, g.Fleets, 1)
+	require.Len(t, g.Fleets[0].Ships, 1)
+}
+
 func TestTurnCompletingMultipleColonyShipsReusesSystemFleet(t *testing.T) {
 	g := &Game{
 		Players: []*model.Player{

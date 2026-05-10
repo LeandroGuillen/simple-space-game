@@ -1,7 +1,7 @@
 import { For, Show, createEffect, createMemo, createSignal, on } from "solid-js";
 
 import type { FleetShipViewModel } from "../lib/types/domain";
-import { findPlayerFleetsAtStar, findStar, fleetTabLabel, sortFleetsForStarTabs } from "../lib/utils";
+import { findPlayerFleetsAtStar, findStar, fleetTabLabel, isPlanetSuitableForColonization, sortFleetsForStarTabs } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
 
 type FleetStackShip = FleetShipViewModel & {
@@ -25,7 +25,7 @@ type FleetInspectorPanelProps = {
 };
 
 export function FleetInspectorPanel(props: FleetInspectorPanelProps) {
-  const { state, currentPlayer } = useAppContext();
+  const { state, currentPlayer, beginColonyShipColonization, cancelColonyShipColonization } = useAppContext();
   const fleetsAtStar = createMemo(() => {
     if (!props.starId) {
       return [];
@@ -105,6 +105,20 @@ export function FleetInspectorPanel(props: FleetInspectorPanelProps) {
     const stack = activeStack();
     return stack != null && stack.ships.length > 0 && selectedIndexes().length === stack.ships.length;
   });
+  const canColonizeWithShip = createMemo(() => {
+    const stack = activeStack();
+    const star = system();
+    return Boolean(
+      stack &&
+        star &&
+        stack.key.startsWith("orbit-") &&
+        stack.ships.some((ship) => ship.type === "colony_ship") &&
+        star.planets.some(isPlanetSuitableForColonization),
+    );
+  });
+  const isColonizing = createMemo(() =>
+    state.pendingCommands.colonize.some((command) => command.fleet_id === activeStack()?.fleetId),
+  );
 
   createEffect(
     on(
@@ -196,7 +210,13 @@ export function FleetInspectorPanel(props: FleetInspectorPanelProps) {
                   onClick={() => toggleShipSelection(ship.originalIndex)}
                 >
                   <span class="fleet-orbit-ship-icon">{ship.icon || "🚀"}</span>
-                  <strong>{ship.type === "colony_ship" ? "Colony Ship" : ship.name}</strong>
+                  <strong>
+                    {ship.type === "colony_ship" && isColonizing()
+                      ? "Colonizing a planet"
+                      : ship.type === "colony_ship"
+                        ? "Colony Ship"
+                        : ship.name}
+                  </strong>
                 </article>
               )}
             </For>
@@ -214,6 +234,20 @@ export function FleetInspectorPanel(props: FleetInspectorPanelProps) {
             <Show when={props.isMoveTargeting && props.onCancelMove}>
               <button class="secondary-button" type="button" onClick={props.onCancelMove}>
                 Cancel
+              </button>
+            </Show>
+            <Show when={canColonizeWithShip() || isColonizing()}>
+              <button
+                class={isColonizing() ? "secondary-button" : "primary-button"}
+                type="button"
+                disabled={state.isBusy}
+                onClick={() =>
+                  isColonizing()
+                    ? cancelColonyShipColonization(stack().fleetId)
+                    : beginColonyShipColonization(stack().fleetId)
+                }
+              >
+                {isColonizing() ? "Cancel Colonization" : "Colonize Planet"}
               </button>
             </Show>
           </div>

@@ -22,6 +22,7 @@ type Game struct {
 	LastTurnAt         *time.Time      `json:"last_turn_at,omitempty"`
 	Resources          *Resources      `json:"resources"`
 	PendingColonyBases map[uint][]uint `json:"pending_colony_bases"`
+	PendingColonyShips map[uint][]uint `json:"pending_colony_ships"`
 }
 
 type NewGameOptions struct {
@@ -58,6 +59,7 @@ func NewGame(resources *ResourceManager, options NewGameOptions) (*Game, error) 
 		CreatedAt:          created,
 		Resources:          &resources.Resources,
 		PendingColonyBases: make(map[uint][]uint),
+		PendingColonyShips: make(map[uint][]uint),
 	}
 	g.hydratePlayerAvailability(player1)
 
@@ -94,6 +96,11 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 	if err := g.issueFleetMoveCommands(playerID, commands.FleetMove); err != nil {
 		return err
 	}
+	if commands.ColonyShip != nil {
+		if err := g.prepareColonyShip(playerID, commands.ColonyShip.FleetID); err != nil {
+			return err
+		}
+	}
 
 	// colonies turn processing
 	colonyList, err := g.GetColonyList(playerID)
@@ -110,24 +117,20 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 		totalResearch += PlanetScienceProduced(colony)
 	}
 
-	// process colonize command
+	colonizeCommands := commands.ColonizeMany
 	if commands.Colonize != nil {
-		if g.PendingColonyBases == nil {
-			g.PendingColonyBases = make(map[uint][]uint)
-		}
-		pending := g.PendingColonyBases[playerID]
-		if len(pending) == 0 {
-			return fmt.Errorf("no pending colony base")
-		}
-		sourcePlanetID := pending[len(pending)-1]
-		g.PendingColonyBases[playerID] = pending[:len(pending)-1]
-
-		if err := g.ColonizePlanet(playerID, sourcePlanetID, commands.Colonize.PlanetID); err != nil {
+		colonizeCommands = append(colonizeCommands, commands.Colonize)
+	}
+	for _, command := range colonizeCommands {
+		if err := g.processColonizeCommand(playerID, command); err != nil {
 			return err
 		}
 	}
 	if len(g.PendingColonyBases[playerID]) > 0 && !g.hasColonizablePlanetsInSourceSystems(g.PendingColonyBases[playerID], playerID) {
 		delete(g.PendingColonyBases, playerID)
+	}
+	if len(g.PendingColonyShips[playerID]) > 0 && !g.hasColonizablePlanetsForPendingShips(g.PendingColonyShips[playerID], playerID) {
+		delete(g.PendingColonyShips, playerID)
 	}
 
 	// empire turn processing
@@ -143,6 +146,25 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 	now := time.Now().UTC()
 	g.LastTurnAt = &now
 	return nil
+}
+
+func (g *Game) processColonizeCommand(playerID uint, command *ColonizeCommand) error {
+	if command == nil {
+		return nil
+	}
+	if command.FleetID != 0 {
+		return g.ColonizePlanetWithShip(playerID, command.FleetID, command.PlanetID)
+	}
+	if g.PendingColonyBases == nil {
+		g.PendingColonyBases = make(map[uint][]uint)
+	}
+	pending := g.PendingColonyBases[playerID]
+	if len(pending) == 0 {
+		return fmt.Errorf("no pending colony base")
+	}
+	sourcePlanetID := pending[len(pending)-1]
+	g.PendingColonyBases[playerID] = pending[:len(pending)-1]
+	return g.ColonizePlanet(playerID, sourcePlanetID, command.PlanetID)
 }
 
 func (g *Game) CreateCapitalPlanet(ownerID uint) error {
@@ -244,6 +266,123 @@ func (g *Game) ColonizePlanet(ownerID, sourcePlanetID, targetPlanetID uint) erro
 	return nil
 }
 
+func (g *Game) prepareColonyShip(ownerID, fleetID uint) error {
+	fleet, err := g.getFleet(fleetID)
+	if err != nil {
+		return err
+	}
+	if fleet.Owner != ownerID {
+		return fmt.Errorf("fleet %d does not belong to player %d", fleet.ID, ownerID)
+	}
+	if fleet.DestinationStarID != 0 || fleet.TurnsRemaining != 0 {
+		return fmt.Errorf("colony ship must be in orbit")
+	}
+	if !fleetHasColonyShip(fleet) {
+		return fmt.Errorf("fleet has no colony ship")
+	}
+	if !g.hasColonizablePlanetsInStar(fleet.StarID) {
+		return nil
+	}
+	if g.PendingColonyShips == nil {
+		g.PendingColonyShips = make(map[uint][]uint)
+	}
+	for _, pendingFleetID := range g.PendingColonyShips[ownerID] {
+		if pendingFleetID == fleetID {
+			return nil
+		}
+	}
+	g.PendingColonyShips[ownerID] = append(g.PendingColonyShips[ownerID], fleetID)
+	return nil
+}
+
+func (g *Game) ColonizePlanetWithShip(ownerID, fleetID, targetPlanetID uint) error {
+	if g.PendingColonyShips == nil {
+		g.PendingColonyShips = make(map[uint][]uint)
+	}
+	target, err := g.getPlanet(targetPlanetID)
+	if err != nil {
+		return err
+	}
+	pending := g.PendingColonyShips[ownerID]
+	found := false
+	nextPending := make([]uint, 0, len(pending))
+	for _, pendingFleetID := range pending {
+		if pendingFleetID == fleetID && !found {
+			found = true
+			continue
+		}
+		nextPending = append(nextPending, pendingFleetID)
+	}
+
+	fleet, err := g.getFleet(fleetID)
+	if err != nil {
+		fleet = g.findOrbitColonyShipFleet(ownerID, target.ParentStar)
+		if fleet == nil {
+			return fmt.Errorf("no orbiting colony ship in target system")
+		}
+	}
+	if fleet.Owner != ownerID {
+		return fmt.Errorf("fleet %d does not belong to player %d", fleet.ID, ownerID)
+	}
+	if fleet.DestinationStarID != 0 || fleet.TurnsRemaining != 0 {
+		return fmt.Errorf("colony ship must be in orbit")
+	}
+	if !fleetHasColonyShip(fleet) {
+		return fmt.Errorf("fleet has no colony ship")
+	}
+
+	if target.ParentStar != fleet.StarID {
+		return fmt.Errorf("colony ship can only colonize planets in the same system")
+	}
+	if err := g.colonizePlanet(ownerID, target); err != nil {
+		return err
+	}
+	removeFirstColonyShip(fleet)
+	if len(fleet.Ships) == 0 {
+		g.removeFleet(fleet)
+	}
+	if found {
+		g.PendingColonyShips[ownerID] = nextPending
+	}
+	return nil
+}
+
+func (g *Game) findOrbitColonyShipFleet(ownerID, starID uint) *Fleet {
+	for _, fleet := range g.Fleets {
+		if fleet.Owner == ownerID &&
+			fleet.StarID == starID &&
+			fleet.DestinationStarID == 0 &&
+			fleet.TurnsRemaining == 0 &&
+			fleetHasColonyShip(fleet) {
+			return fleet
+		}
+	}
+	return nil
+}
+
+func (g *Game) colonizePlanet(ownerID uint, target *Planet) error {
+	if target.Owner != 0 {
+		return fmt.Errorf("planet already colonized")
+	}
+	if target.Environment == PlanetEnvironmentGasGiant || target.Environment == PlanetEnvironmentAsteroidBelt {
+		return fmt.Errorf("cannot colonize this planet type")
+	}
+
+	target.Owner = ownerID
+	target.Population = 1000
+
+	if target.Environment >= PlanetEnvironmentDesert {
+		target.Food.Farmers = 1
+	} else {
+		target.Industry.Workers = 1
+	}
+
+	target.CurrentProject = "Trade Goods"
+	target.IsBuilding = false
+	target.BuildBucket = 0
+	return nil
+}
+
 func (g *Game) hasColonizablePlanetsInSourceSystems(sourcePlanetIDs []uint, ownerID uint) bool {
 	sourceStars := make(map[uint]bool)
 	for _, sourcePlanetID := range sourcePlanetIDs {
@@ -267,6 +406,50 @@ func (g *Game) hasColonizablePlanetsInSourceSystems(sourcePlanetIDs []uint, owne
 		}
 	}
 	return false
+}
+
+func (g *Game) hasColonizablePlanetsForPendingShips(fleetIDs []uint, ownerID uint) bool {
+	for _, fleetID := range fleetIDs {
+		fleet, err := g.getFleet(fleetID)
+		if err != nil || fleet.Owner != ownerID || !fleetHasColonyShip(fleet) {
+			continue
+		}
+		if g.hasColonizablePlanetsInStar(fleet.StarID) {
+			return true
+		}
+	}
+	return false
+}
+
+func (g *Game) hasColonizablePlanetsInStar(starID uint) bool {
+	star, err := g.getStar(starID)
+	if err != nil {
+		return false
+	}
+	for _, planet := range star.Planets {
+		if planet.Owner == 0 && planet.Environment != PlanetEnvironmentGasGiant && planet.Environment != PlanetEnvironmentAsteroidBelt {
+			return true
+		}
+	}
+	return false
+}
+
+func fleetHasColonyShip(fleet *Fleet) bool {
+	for _, ship := range fleet.Ships {
+		if ship.Type == "colony_ship" {
+			return true
+		}
+	}
+	return false
+}
+
+func removeFirstColonyShip(fleet *Fleet) {
+	for i, ship := range fleet.Ships {
+		if ship.Type == "colony_ship" {
+			fleet.Ships = append(fleet.Ships[:i], fleet.Ships[i+1:]...)
+			return
+		}
+	}
 }
 
 // GetColonyList returns a list of planets that have a colony owned by given player.

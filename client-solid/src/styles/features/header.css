@@ -278,6 +278,47 @@
     }
 }
 
+.colonize-system-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 18px;
+}
+
+.colonize-system-panel {
+    min-width: 0;
+}
+
+.colonize-planet-card {
+    cursor: pointer;
+    transition:
+        background 0.12s ease,
+        color 0.12s ease,
+        opacity 0.12s ease;
+
+    &:hover,
+    &:focus-visible {
+        background: var(--surface-quiet);
+        outline: none;
+    }
+
+    &:focus-visible {
+        box-shadow: inset 2px 0 0 var(--accent);
+    }
+
+    &:disabled {
+        cursor: default;
+        opacity: 0.6;
+    }
+
+    &:disabled:hover {
+        background: transparent;
+    }
+
+    &.is-eligible .planet-title {
+        color: var(--text);
+    }
+}
+
 .research-level-name {
     font-family: var(--font-heading);
     font-size: 0.84rem;

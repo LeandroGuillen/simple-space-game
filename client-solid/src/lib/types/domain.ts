@@ -321,6 +321,7 @@ export type GameViewModel = {
   fleets: FleetViewModel[];
   resources: ResourcesViewModel;
   pendingColonyBases: Record<number, number[]>; // playerID -> planetIDs
+  pendingColonyShips: Record<number, number[]>; // playerID -> fleetIDs
 };
 
 export type ColonyRow = {

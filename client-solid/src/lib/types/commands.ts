@@ -17,6 +17,7 @@ export type SelectResearchCommand = {
 
 export type ColonizeCommand = {
   planet_id: number;
+  fleet_id?: number;
 };
 
 export type FleetMoveCommand = {
@@ -30,7 +31,7 @@ export type PendingCommands = {
   build: BuildCommand[];
   movePopulation: MovePopulationCommand[];
   selectResearch?: SelectResearchCommand;
-  colonize?: ColonizeCommand;
+  colonize: ColonizeCommand[];
   fleetMove: FleetMoveCommand[];
 };
 
@@ -46,5 +47,6 @@ export type TurnCommands = {
   movePopulation?: TurnMovePopulationCommand[];
   selectResearch?: SelectResearchCommand;
   colonize?: ColonizeCommand;
+  colonize_many?: ColonizeCommand[];
   fleet_move?: FleetMoveCommand[];
 };

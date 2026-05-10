@@ -18,6 +18,11 @@ type SelectResearchCommand struct {
 
 type ColonizeCommand struct {
 	PlanetID uint `json:"planet_id"`
+	FleetID  uint `json:"fleet_id,omitempty"`
+}
+
+type PrepareColonyShipCommand struct {
+	FleetID uint `json:"fleet_id"`
 }
 
 type FleetMoveCommand struct {
@@ -27,9 +32,11 @@ type FleetMoveCommand struct {
 }
 
 type Commands struct {
-	Build          []*BuildCommand          `json:"build"`
-	MovePopulation []*MovePopulationCommand `json:"movePopulation,omitempty"`
-	SelectResearch *SelectResearchCommand   `json:"selectResearch,omitempty"`
-	Colonize       *ColonizeCommand         `json:"colonize,omitempty"`
-	FleetMove      []*FleetMoveCommand      `json:"fleet_move,omitempty"`
+	Build          []*BuildCommand           `json:"build"`
+	MovePopulation []*MovePopulationCommand  `json:"movePopulation,omitempty"`
+	SelectResearch *SelectResearchCommand    `json:"selectResearch,omitempty"`
+	Colonize       *ColonizeCommand          `json:"colonize,omitempty"`
+	ColonizeMany   []*ColonizeCommand        `json:"colonize_many,omitempty"`
+	ColonyShip     *PrepareColonyShipCommand `json:"colony_ship,omitempty"`
+	FleetMove      []*FleetMoveCommand       `json:"fleet_move,omitempty"`
 }

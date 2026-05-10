@@ -33,8 +33,13 @@ import {
   getPlanetScienceForScientists,
   findPlanet,
   isPlanetSuitableForColonization,
+  labelForEnvironment,
+  labelForGravity,
+  labelForMinerals,
+  labelForSize,
 } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
+import { PlanetVisual } from "./PlanetVisual";
 
 const gameNavItems = [
   { href: "/galaxy", label: "Galaxy" },
@@ -353,13 +358,30 @@ export function AppShell(props: RouteSectionProps) {
   const hyperAdvancedLevels = createMemo(
     () => currentPlayer()?.hyperAdvanced ?? {},
   );
+  const playerNameById = createMemo(
+    () =>
+      new Map(
+        (state.game?.players ?? []).map((player) => [player.id, player.name]),
+      ),
+  );
+  const playerColorById = createMemo(
+    () =>
+      new Map(
+        (state.game?.players ?? []).map((player) => [player.id, player.color]),
+      ),
+  );
   const colonizeModalPlanets = createMemo(() => {
     const game = state.game;
     if (!game) return [];
     const sourceStarIds = new Set(
-      state.pendingColonyBasePlanets
+      [
+        ...state.pendingColonyBasePlanets
         .map((planetId) => findPlanet(game, planetId)?.parentStar)
         .filter((starId): starId is number => typeof starId === "number"),
+        ...state.pendingColonyShipFleets
+          .map((fleetId) => game.fleets.find((fleet) => fleet.id === fleetId)?.starId)
+          .filter((starId): starId is number => typeof starId === "number"),
+      ],
     );
     return game.galaxy.stars
       .filter((star) => sourceStarIds.has(star.id))
@@ -369,9 +391,14 @@ export function AppShell(props: RouteSectionProps) {
     const game = state.game;
     if (!game) return [];
     const sourceStarIds = new Set(
-      state.pendingColonyBasePlanets
+      [
+        ...state.pendingColonyBasePlanets
         .map((planetId) => findPlanet(game, planetId)?.parentStar)
         .filter((starId): starId is number => typeof starId === "number"),
+        ...state.pendingColonyShipFleets
+          .map((fleetId) => game.fleets.find((fleet) => fleet.id === fleetId)?.starId)
+          .filter((starId): starId is number => typeof starId === "number"),
+      ],
     );
     return game.galaxy.stars.filter(
       (star) =>
@@ -735,7 +762,7 @@ export function AppShell(props: RouteSectionProps) {
             >
               <div class="research-modal-header">
                 <div>
-                  <p class="eyebrow">Colony Base Ready</p>
+                  <p class="eyebrow">{state.pendingColonyShipFleets.length > 0 ? "Colony Ship Ready" : "Colony Base Ready"}</p>
                   <h2 id="colonize-modal-title">Select Target Planet</h2>
                 </div>
                 <button
@@ -751,45 +778,77 @@ export function AppShell(props: RouteSectionProps) {
                 when={colonizeModalPlanets().length > 0}
                 fallback={
                   <div class="research-breakthrough-notice">
-                    <span>No suitable planets for Colony Base</span>
-                    <strong>Colony Base lost</strong>
+                    <span>No suitable planets for colonization</span>
+                    <strong>{state.pendingColonyShipFleets.length > 0 ? "Colony Ship retained" : "Colony Base lost"}</strong>
                   </div>
                 }
               >
-                <div class="research-subject-grid">
+                <div class="colonize-system-grid">
                   <For each={colonizeModalStars()}>
                     {(star) => {
-                      const starPlanets = () =>
-                        star.planets.filter(isPlanetSuitableForColonization);
                       return (
-                        <Show when={starPlanets().length > 0}>
-                          <article class="research-subject-card">
-                            <span class="research-subject-card-header">
-                              <span>{star.name}</span>
-                              <strong>
-                                {starPlanets().length} planet
-                                {starPlanets().length > 1 ? "s" : ""}
-                              </strong>
-                            </span>
-                            <div class="research-tech-list">
-                              <For each={starPlanets()}>
-                                {(planet) => (
+                        <article class="colonize-system-panel" aria-label={star.name}>
+                          <div class="planet-list">
+                            <For each={star.planets}>
+                              {(planet) => {
+                                const eligible = () => isPlanetSuitableForColonization(planet);
+                                return (
                                   <button
                                     type="button"
-                                    class="research-tech-option"
-                                    onClick={() =>
-                                      selectColonizeTarget(planet.id)
-                                    }
+                                    class="planet-card colonize-planet-card"
+                                    classList={{ "is-eligible": eligible() }}
+                                    disabled={!eligible()}
+                                    onClick={() => selectColonizeTarget(planet.id)}
                                   >
-                                    <span class="research-tech-option-item">
-                                      {planet.name}
-                                    </span>
+                                    <div class="planet-card-visual">
+                                      <PlanetVisual
+                                        environment={planet.environment}
+                                        size="small"
+                                      />
+                                    </div>
+                                    <div class="planet-card-info">
+                                      <p class="planet-title">
+                                        <span
+                                          style={{
+                                            color:
+                                              planet.owner > 0
+                                                ? playerColorById().get(planet.owner) ?? "var(--text)"
+                                                : "var(--text)",
+                                          }}
+                                        >
+                                          {planet.name}
+                                        </span>
+                                      </p>
+                                      <p>
+                                        {labelForEnvironment(planet.environment)} ·{" "}
+                                        {labelForSize(planet.size)} ·{" "}
+                                        {labelForMinerals(planet.mineralClass)}
+                                      </p>
+                                      <p>
+                                        Gravity: {labelForGravity(planet.gravity)}
+                                        <Show when={planet.owner > 0}>
+                                          {" "}
+                                          · Population {planet.population}/
+                                          {planet.maxPopulation}
+                                        </Show>
+                                      </p>
+                                      <p>
+                                        {planet.owner > 0
+                                          ? `Controlled by ${playerNameById().get(planet.owner) ?? `Player ${planet.owner}`}`
+                                          : eligible()
+                                            ? "Eligible colonization target"
+                                            : "Not suitable for colonization"}
+                                      </p>
+                                    </div>
+                                    <Show when={eligible()}>
+                                      <span class="game-card-cue">Select</span>
+                                    </Show>
                                   </button>
-                                )}
-                              </For>
-                            </div>
-                          </article>
-                        </Show>
+                                );
+                              }}
+                            </For>
+                          </div>
+                        </article>
                       );
                     }}
                   </For>

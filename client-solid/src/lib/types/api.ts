@@ -403,6 +403,7 @@ export type ApiGame = {
   last_turn_at?: string | null;
   resources: ApiResources;
   pending_colony_bases?: Record<number, number[]>; // playerID -> planetIDs
+  pending_colony_ships?: Record<number, number[]>; // playerID -> fleetIDs
 };
 
 export type ApiGameUpdateMessage = {

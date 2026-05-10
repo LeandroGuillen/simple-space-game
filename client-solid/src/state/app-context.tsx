@@ -36,6 +36,7 @@ type AppState = {
   info: string;
   pendingCommands: PendingCommands;
   pendingColonyBasePlanets: number[]; // planets where Colony Base completed
+  pendingColonyShipFleets: number[]; // fleets where Colony Ship command completed
   showColonizeModal: boolean;
 };
 
@@ -54,6 +55,8 @@ type AppContextValue = {
   addMovePopulationCommand: (command: MovePopulationCommand) => void;
   addFleetMoveCommand: (command: FleetMoveCommand) => void;
   addColonizeCommand: (command: ColonizeCommand) => void;
+  beginColonyShipColonization: (fleetId: number) => void;
+  cancelColonyShipColonization: (fleetId: number) => void;
   selectColonizeTarget: (planetId: number) => void;
   closeColonizeModal: () => void;
   selectResearch: (command: SelectResearchCommand) => void;
@@ -77,7 +80,7 @@ export function AppProvider(props: ParentProps) {
     movePopulation: [],
     fleetMove: [],
     selectResearch: undefined,
-    colonize: undefined,
+    colonize: [],
   });
 
   const [state, setState] = createStore<AppState>({
@@ -99,6 +102,7 @@ export function AppProvider(props: ParentProps) {
     info: '',
     pendingCommands: emptyPendingCommands(),
     pendingColonyBasePlanets: [],
+    pendingColonyShipFleets: [],
     showColonizeModal: false,
   });
 
@@ -323,24 +327,70 @@ export function AppProvider(props: ParentProps) {
       ship_indexes: [...command.ship_indexes],
       });
     }
+    setState('pendingCommands', 'colonize', (commands) =>
+      commands.filter((item) => item.fleet_id !== command.fleet_id),
+    );
     setState('pendingCommands', 'fleetMove', nextCommands);
     setState('info', 'Fleet move queued for next turn');
   }
 
   function addColonizeCommand(command: ColonizeCommand) {
-    setState('pendingCommands', 'colonize', command);
+    if (command.fleet_id != null) {
+      setState('pendingCommands', 'fleetMove', (commands) =>
+        commands.filter((item) => item.fleet_id !== command.fleet_id),
+      );
+    }
+    setState('pendingCommands', 'colonize', (commands) => [
+      ...commands.filter((item) => item.fleet_id !== command.fleet_id && item.planet_id !== command.planet_id),
+      command,
+    ]);
     setState('info', 'Colonize command queued for next turn');
   }
 
   function selectColonizeTarget(planetId: number) {
-    addColonizeCommand({ planet_id: planetId });
+    const game = state.game;
+    const target = game ? findPlanet(game, planetId) : null;
+    const fleetId =
+      target && game
+        ? state.pendingColonyShipFleets
+            .map((fleetId) => game.fleets.find((fleet) => fleet.id === fleetId))
+            .find((fleet) =>
+              fleet != null &&
+              fleet.starId === target.parentStar &&
+              (fleet.turnsRemaining ?? 0) === 0 &&
+              fleet.ships.some((ship) => ship.type === 'colony_ship')
+            )?.id ??
+          game.fleets.find((fleet) =>
+            fleet.ownerId === state.session.playerId &&
+            fleet.starId === target.parentStar &&
+            (fleet.turnsRemaining ?? 0) === 0 &&
+            fleet.ships.some((ship) => ship.type === 'colony_ship')
+          )?.id
+        : undefined;
+    addColonizeCommand(fleetId ? { planet_id: planetId, fleet_id: fleetId } : { planet_id: planetId });
     setState('showColonizeModal', false);
     setState('pendingColonyBasePlanets', []);
+    setState('pendingColonyShipFleets', []);
   }
 
   function closeColonizeModal() {
     setState('showColonizeModal', false);
     setState('pendingColonyBasePlanets', []);
+    setState('pendingColonyShipFleets', []);
+  }
+
+  function beginColonyShipColonization(fleetId: number) {
+    setState('pendingColonyBasePlanets', []);
+    setState('pendingColonyShipFleets', [fleetId]);
+    setState('showColonizeModal', true);
+  }
+
+  function cancelColonyShipColonization(fleetId: number) {
+    if (!state.pendingCommands.colonize.some((command) => command.fleet_id === fleetId)) {
+      return;
+    }
+    setState('pendingCommands', 'colonize', (commands) => commands.filter((command) => command.fleet_id !== fleetId));
+    setState('info', 'Colony ship colonization cancelled');
   }
 
   function selectResearch(command: SelectResearchCommand) {
@@ -402,12 +452,19 @@ export function AppProvider(props: ParentProps) {
       // Check for pending colony bases
       const playerId = state.session.playerId;
       const pendingBases = mappedGame.pendingColonyBases[playerId] ?? [];
-      if (pendingBases.length > 0) {
+      const pendingShips = mappedGame.pendingColonyShips[playerId] ?? [];
+      let completionInfo = 'Turn complete';
+      if (pendingBases.length > 0 || pendingShips.length > 0) {
         setState('pendingColonyBasePlanets', pendingBases);
+        setState('pendingColonyShipFleets', pendingShips);
         setState('showColonizeModal', true);
+      } else {
+        setState('pendingColonyBasePlanets', []);
+        setState('pendingColonyShipFleets', []);
+        setState('showColonizeModal', false);
       }
 
-      setBusy(false, 'Turn complete');
+      setBusy(false, completionInfo);
     } catch (error) {
       setBusy(false, '');
       setState('error', error instanceof Error ? error.message : 'Unable to complete turn.');
@@ -518,6 +575,8 @@ export function AppProvider(props: ParentProps) {
     addMovePopulationCommand,
     addFleetMoveCommand,
     addColonizeCommand,
+    beginColonyShipColonization,
+    cancelColonyShipColonization,
     selectColonizeTarget,
     closeColonizeModal,
     selectResearch,
@@ -541,8 +600,10 @@ function toTurnCommands(commands: PendingCommands, game: GameViewModel | null): 
     turnCommands.selectResearch = commands.selectResearch;
   }
 
-  if (commands.colonize) {
-    turnCommands.colonize = commands.colonize;
+  if (commands.colonize.length === 1) {
+    turnCommands.colonize = commands.colonize[0];
+  } else if (commands.colonize.length > 1) {
+    turnCommands.colonize_many = commands.colonize;
   }
   if (commands.fleetMove.length > 0) {
     turnCommands.fleet_move = commands.fleetMove.map((cmd) => ({
