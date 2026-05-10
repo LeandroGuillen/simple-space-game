@@ -28,5 +28,6 @@
 @import "./styles/features/fleets.css";
 
 @import "./styles/pages/setup.css";
+@import "./styles/pages/custom-race.css";
 
 @import "./styles/responsive/breakpoints.css";

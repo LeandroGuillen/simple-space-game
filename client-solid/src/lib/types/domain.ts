@@ -134,6 +134,8 @@ export type PlayerViewModel = {
   name: string;
   color: string;
   raceName: string;
+  raceTraitIds: string[];
+  raceGrants: GrantsViewModel;
   treasury: number;
   taxRate: number;
   researchPoints: number;

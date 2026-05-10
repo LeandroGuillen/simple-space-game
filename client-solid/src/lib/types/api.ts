@@ -19,6 +19,34 @@ export type ApiGameListPlayer = {
   num_stars: number;
 };
 
+export type RaceTraitId =
+  | "growth_minus_50"
+  | "growth_plus_50"
+  | "growth_plus_100"
+  | "food_minus_1"
+  | "food_plus_1"
+  | "food_plus_2"
+  | "production_minus_1"
+  | "production_plus_1"
+  | "production_plus_2"
+  | "research_minus_1"
+  | "research_plus_1"
+  | "research_plus_2"
+  | "money_minus_half"
+  | "money_plus_half"
+  | "money_plus_1"
+  | "subterranean"
+  | "large_homeworld"
+  | "rich_homeworld"
+  | "poor_homeworld"
+  | "artifacts_homeworld";
+
+export type CustomRaceDesign = {
+  name: string;
+  trait_ids: RaceTraitId[];
+  playable?: boolean;
+};
+
 export type NewGameOptions = {
   player_name: string;
   player_color: string;
@@ -30,14 +58,28 @@ export type NewGameOptions = {
   tech_level: "low" | "average" | "advanced";
   race: "human" | "psilon" | "custom";
   custom_race_name?: string;
+  custom_race?: CustomRaceDesign;
+};
+
+export type ApiCustomRaceListResponse = {
+  custom_races: CustomRaceDesign[];
 };
 
 export type ApiRace = {
   id: number;
   name: string;
+  trait_ids?: string[];
+  grants?: ApiGrants;
   Stats?: {
     PopulationGrowth?: number;
     Farming?: number;
+  };
+  stats?: {
+    population_growth_percent?: number;
+    farming?: number;
+    production?: number;
+    research?: number;
+    money_bonus?: number;
   };
 };
 

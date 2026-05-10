@@ -40,6 +40,7 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 		p.Population,
 		PlanetFoodProduced(p),
 		maxPop,
+		player.Race.Stats.PopulationGrowthPercent,
 		PopulationGrowthBonus(game, p),
 	)
 	p.Population += growth

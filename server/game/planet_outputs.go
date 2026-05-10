@@ -37,6 +37,24 @@ func hydratePlanetOutputs(game *Game, p *Planet) {
 			}
 		}
 	}
+	if game != nil {
+		if player, err := game.getPlayer(p.Owner); err == nil {
+			for _, modifier := range player.Race.Grants.Modifiers {
+				switch modifier.Name {
+				case "food_per_farmer":
+					foodPerFarmer += int64(modifier.Value)
+				case "industry_per_worker":
+					industryPerWorker += int64(modifier.Value)
+				case "science_per_scientist":
+					sciencePerScientist += int64(modifier.Value)
+				}
+			}
+		}
+	}
+	sciencePerScientist += p.HomeworldScienceBonus
+	foodPerFarmer = maxInt64(0, foodPerFarmer)
+	industryPerWorker = maxInt64(0, industryPerWorker)
+	sciencePerScientist = maxInt64(0, sciencePerScientist)
 
 	p.Food = PlanetFoodOutput{
 		Farmers:             p.Food.Farmers,

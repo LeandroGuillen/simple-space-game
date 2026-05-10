@@ -7,6 +7,9 @@ import (
 
 func MaxPop(game *Game, p *Planet, player *Player) int64 {
 	maxPop := baseMaxPop(p)
+	if playerHasRaceTrait(player, "subterranean") {
+		maxPop += baseMaxPop(p)
+	}
 
 	if game != nil && game.Resources != nil && game.Resources.BuildingCollection != nil {
 		for _, buildingName := range p.Buildings {
@@ -78,12 +81,12 @@ func populationGrowthModifiers(modifiers []Modifier) int64 {
 }
 
 // PopulationGrowth returns the per-turn population delta for a planet.
-func PopulationGrowth(population, foodPerBuilding, foodPerFarmer, numFarmers, maxPop, flatGrowthBonus int64) int64 {
+func PopulationGrowth(population, foodPerBuilding, foodPerFarmer, numFarmers, maxPop, raceGrowthPercent, flatGrowthBonus int64) int64 {
 	totalFoodProduced := foodPerBuilding + foodPerFarmer*numFarmers
-	return PopulationGrowthFromFood(population, totalFoodProduced, maxPop, flatGrowthBonus)
+	return PopulationGrowthFromFood(population, totalFoodProduced, maxPop, raceGrowthPercent, flatGrowthBonus)
 }
 
-func PopulationGrowthFromFood(population, totalFoodProduced, maxPop, flatGrowthBonus int64) int64 {
+func PopulationGrowthFromFood(population, totalFoodProduced, maxPop, raceGrowthPercent, flatGrowthBonus int64) int64 {
 	if population <= 0 {
 		return 0
 	}
@@ -93,7 +96,7 @@ func PopulationGrowthFromFood(population, totalFoodProduced, maxPop, flatGrowthB
 	free_space := planet_capacity - pop_units
 	basic_increment := math.Floor(math.Sqrt(2000 * pop_units * free_space / planet_capacity))
 
-	race_bonus := float64(0)     // TODO: can be -50%, 0%, +50%, +100%
+	race_bonus := float64(raceGrowthPercent)
 	medicine_bonus := float64(0) // TODO: sum of technology bonus and leader bonus
 	// housing_bonus = math.Floor( PP * 40 / float64(p.Population) )
 	housing_bonus := float64(0) // TODO appears if 'housing' is picked in the build menu

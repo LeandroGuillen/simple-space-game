@@ -13,7 +13,7 @@ func TestResearchMakesBuildingAvailable(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)
 
-	g, err := NewGame(resources, "Ada", 4, model.DefaultPlayerColor())
+	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: DefaultRace("Human")})
 	require.NoError(t, err)
 
 	player := g.Players[0]
@@ -33,7 +33,7 @@ func TestTurnAccumulatesResearchPointsForSelectedBreakthrough(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)
 
-	g, err := NewGame(resources, "Ada", 4, model.DefaultPlayerColor())
+	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: DefaultRace("Human")})
 	require.NoError(t, err)
 
 	player := g.Players[0]
@@ -52,7 +52,7 @@ func TestTurnCompletesSelectedTechAndSpendsAccumulatedResearch(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)
 
-	g, err := NewGame(resources, "Ada", 4, model.DefaultPlayerColor())
+	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: DefaultRace("Human")})
 	require.NoError(t, err)
 
 	player := g.Players[0]
@@ -78,7 +78,7 @@ func TestTurnCompletesForceAllResearchAndUnlocksEveryTechInLevel(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)
 
-	g, err := NewGame(resources, "Ada", 4, model.DefaultPlayerColor())
+	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: DefaultRace("Human")})
 	require.NoError(t, err)
 
 	player := g.Players[0]
@@ -99,7 +99,7 @@ func TestCanChangeResearchWithoutLosingAccumulatedPoints(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)
 
-	g, err := NewGame(resources, "Ada", 4, model.DefaultPlayerColor())
+	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: DefaultRace("Human")})
 	require.NoError(t, err)
 
 	player := g.Players[0]
@@ -123,7 +123,7 @@ func TestHyperAdvancedResearchRequiresCompletedSubject(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)
 
-	g, err := NewGame(resources, "Ada", 4, model.DefaultPlayerColor())
+	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: DefaultRace("Human")})
 	require.NoError(t, err)
 
 	player := g.Players[0]
@@ -139,7 +139,7 @@ func TestHyperAdvancedResearchDoesNotCompleteWithoutResearchPoints(t *testing.T)
 	resources, err := NewResourceManager()
 	require.NoError(t, err)
 
-	g, err := NewGame(resources, "Ada", 4, model.DefaultPlayerColor())
+	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: DefaultRace("Human")})
 	require.NoError(t, err)
 
 	player := g.Players[0]
@@ -158,7 +158,7 @@ func TestHyperAdvancedResearchDoesNotCompleteFromBankedResearchWithoutNewResearc
 	resources, err := NewResourceManager()
 	require.NoError(t, err)
 
-	g, err := NewGame(resources, "Ada", 4, model.DefaultPlayerColor())
+	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: DefaultRace("Human")})
 	require.NoError(t, err)
 
 	player := g.Players[0]
@@ -179,7 +179,7 @@ func TestHyperAdvancedResearchCompletesAndDoublesNextCost(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)
 
-	g, err := NewGame(resources, "Ada", 4, model.DefaultPlayerColor())
+	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: DefaultRace("Human")})
 	require.NoError(t, err)
 
 	player := g.Players[0]
@@ -203,7 +203,7 @@ func TestCapitalDoesNotStartWithColonyBaseBuilt(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)
 
-	g, err := NewGame(resources, "Ada", 4, model.DefaultPlayerColor())
+	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: DefaultRace("Human")})
 	require.NoError(t, err)
 
 	colonies, err := g.GetColonyList(g.Players[0].ID)

@@ -24,16 +24,30 @@ type Game struct {
 	PendingColonyBases map[uint][]uint `json:"pending_colony_bases"`
 }
 
-func NewGame(resources *ResourceManager, playerName string, numStars uint, playerColor string) (*Game, error) {
+type NewGameOptions struct {
+	PlayerName  string
+	PlayerColor string
+	NumStars    uint
+	Race        Race
+}
+
+func NewGame(resources *ResourceManager, options NewGameOptions) (*Game, error) {
+	playerName := options.PlayerName
+	playerColor := options.PlayerColor
+	numStars := options.NumStars
 	if playerColor == "" {
 		playerColor = DefaultPlayerColor()
 	}
 	if !IsValidPlayerColor(playerColor) {
 		return nil, fmt.Errorf("invalid player color %q", playerColor)
 	}
+	race := options.Race
+	if race.Name == "" {
+		race = DefaultRace("Human")
+	}
 
 	firstPlayerID := uint(1)
-	player1 := NewPlayer(firstPlayerID, playerName, playerColor)
+	player1 := NewPlayer(firstPlayerID, playerName, playerColor, race)
 	created := time.Now().UTC()
 	g := &Game{
 		Galaxy:             NewGalaxy(numStars),
@@ -150,6 +164,7 @@ func (g *Game) CreateCapitalPlanet(ownerID uint) error {
 	planet.Size = PlanetSizeMedium
 	planet.MineralClass = PlanetMineralAbundant
 	planet.Gravity = PlanetGravityNormal
+	applyRaceHomeworldTraits(player, planet)
 
 	// population setup
 	planet.Population = 8000
@@ -169,6 +184,21 @@ func (g *Game) CreateCapitalPlanet(ownerID uint) error {
 	g.HydrateCommandPoints()
 
 	return nil
+}
+
+func applyRaceHomeworldTraits(player *Player, planet *Planet) {
+	if playerHasRaceTrait(player, "large_homeworld") {
+		planet.Size = PlanetSizeLarge
+	}
+	if playerHasRaceTrait(player, "rich_homeworld") {
+		planet.MineralClass = PlanetMineralRich
+	}
+	if playerHasRaceTrait(player, "poor_homeworld") {
+		planet.MineralClass = PlanetMineralPoor
+	}
+	if playerHasRaceTrait(player, "artifacts_homeworld") {
+		planet.HomeworldScienceBonus = 2
+	}
 }
 
 func (g *Game) ColonizePlanet(ownerID, sourcePlanetID, targetPlanetID uint) error {

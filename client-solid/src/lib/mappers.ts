@@ -151,6 +151,8 @@ function mapPlayer(player: ApiPlayer): PlayerViewModel {
     name: player.name,
     color: player.color,
     raceName: player.race?.name || "Unassigned",
+    raceTraitIds: player.race?.trait_ids ?? [],
+    raceGrants: mapGrants(player.race?.grants),
     treasury: player.treasury,
     taxRate: player.tax_rate,
     researchPoints: player.research_points,

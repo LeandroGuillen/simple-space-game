@@ -28,6 +28,8 @@ func PlanetIncome(game *Game, planet *model.Planet, industryProduced int64) mode
 			player = nil
 		}
 		if player != nil {
+			_, raceBonus := incomeModifiers(player.Race.Grants.Modifiers)
+			incomeBonus += raceBonus
 			for _, techName := range player.ResearchedTechs {
 				if tech, ok := game.findTechDefinition(techName); ok {
 					_, techBonus := incomeModifiers(tech.Grants.Modifiers)
@@ -52,7 +54,11 @@ func PlanetIncome(game *Game, planet *model.Planet, industryProduced int64) mode
 	}
 
 	grossIncome := taxes + incomeFromBuildings + tradeGoods
-	totalIncome := int64(float64(grossIncome)*(1+incomeBonus)) - maintenance
+	incomeMultiplier := 1 + incomeBonus
+	if incomeMultiplier < 0 {
+		incomeMultiplier = 0
+	}
+	totalIncome := int64(float64(grossIncome)*incomeMultiplier) - maintenance
 
 	return model.PlanetIncomeOutput{
 		Taxes:       taxes,

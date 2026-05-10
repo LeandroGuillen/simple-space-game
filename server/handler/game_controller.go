@@ -11,16 +11,22 @@ import (
 )
 
 type NewGameRequest struct {
-	NumStars       uint   `json:"num_stars,omitempty"`
-	PlayerName     string `json:"player_name,omitempty"`
-	PlayerColor    string `json:"player_color,omitempty"`
-	Difficulty     string `json:"difficulty,omitempty"`
-	GalaxySize     string `json:"galaxy_size,omitempty"`
-	GalaxyAge      string `json:"galaxy_age,omitempty"`
-	Players        uint   `json:"players,omitempty"`
-	TechLevel      string `json:"tech_level,omitempty"`
-	Race           string `json:"race,omitempty"`
-	CustomRaceName string `json:"custom_race_name,omitempty"`
+	NumStars       uint               `json:"num_stars,omitempty"`
+	PlayerName     string             `json:"player_name,omitempty"`
+	PlayerColor    string             `json:"player_color,omitempty"`
+	Difficulty     string             `json:"difficulty,omitempty"`
+	GalaxySize     string             `json:"galaxy_size,omitempty"`
+	GalaxyAge      string             `json:"galaxy_age,omitempty"`
+	Players        uint               `json:"players,omitempty"`
+	TechLevel      string             `json:"tech_level,omitempty"`
+	Race           string             `json:"race,omitempty"`
+	CustomRaceName string             `json:"custom_race_name,omitempty"`
+	CustomRace     *CustomRaceRequest `json:"custom_race,omitempty"`
+}
+
+type CustomRaceRequest struct {
+	Name     string   `json:"name"`
+	TraitIDs []string `json:"trait_ids"`
 }
 
 type GameListResponse struct {
@@ -59,7 +65,17 @@ func NewGame(c *gin.Context) {
 	}
 	server := rawServer.(*Server)
 
-	g, err := game.NewGame(server.ResourceManager, req.PlayerName, req.NumStars, req.PlayerColor)
+	race, err := raceFromRequest(req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	g, err := game.NewGame(server.ResourceManager, game.NewGameOptions{
+		PlayerName:  req.PlayerName,
+		PlayerColor: req.PlayerColor,
+		NumStars:    req.NumStars,
+		Race:        race,
+	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": fmt.Sprintf("error creating game: %s", err.Error()),
@@ -69,6 +85,28 @@ func NewGame(c *gin.Context) {
 	server.GameList[g.ID] = g
 
 	c.JSON(http.StatusOK, gin.H{"ok": true, "gameID": g.ID})
+}
+
+func raceFromRequest(req NewGameRequest) (model.Race, error) {
+	switch req.Race {
+	case "", "human":
+		return game.DefaultRace("Human"), nil
+	case "psilon":
+		return game.DefaultRace("Psilon"), nil
+	case "custom":
+		if req.CustomRace != nil {
+			return game.BuildCustomRace(game.CustomRaceDesign{
+				Name:     req.CustomRace.Name,
+				TraitIDs: req.CustomRace.TraitIDs,
+			})
+		}
+		if req.CustomRaceName != "" {
+			return game.BuildCustomRace(game.CustomRaceDesign{Name: req.CustomRaceName})
+		}
+		return model.Race{}, fmt.Errorf("custom race payload is required")
+	default:
+		return model.Race{}, fmt.Errorf("unknown race %q", req.Race)
+	}
 }
 
 func GetPlayerColors(c *gin.Context) {

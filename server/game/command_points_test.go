@@ -13,7 +13,7 @@ func TestStartingCapitalCommandPoints(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)
 
-	g, err := NewGame(resources, "Ada", 4, model.DefaultPlayerColor())
+	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: DefaultRace("Human")})
 	require.NoError(t, err)
 
 	player := g.Players[0]
@@ -29,7 +29,7 @@ func TestCommandPointOverdrawChargesTreasury(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)
 
-	g, err := NewGame(resources, "Ada", 4, model.DefaultPlayerColor())
+	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: DefaultRace("Human")})
 	require.NoError(t, err)
 
 	player := g.Players[0]

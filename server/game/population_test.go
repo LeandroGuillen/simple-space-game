@@ -134,6 +134,7 @@ func TestTurnAddsCloningCenterPopulationGrowth(t *testing.T) {
 		planet.Food.Farmers,
 		MaxPop(g, planet, player),
 		0,
+		0,
 	)
 
 	require.NoError(t, planetTurn(planet, model.Commands{}, player, g))

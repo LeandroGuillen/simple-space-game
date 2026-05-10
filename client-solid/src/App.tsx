@@ -2,6 +2,7 @@ import { Navigate, Route, Router } from "@solidjs/router";
 
 import { AppShell } from "./components/AppShell";
 import { ColoniesPage } from "./routes/ColoniesPage";
+import { CustomRacePage } from "./routes/CustomRacePage";
 import { FleetsPage } from "./routes/FleetsPage";
 import { GalaxyPage } from "./routes/GalaxyPage";
 import { PlanetPage } from "./routes/PlanetPage";
@@ -30,6 +31,7 @@ export default function App() {
       <Router root={AppShell}>
         <Route path="/" component={HomeRoute} />
         <Route path="/setup" component={SetupPage} />
+        <Route path="/setup/custom-race" component={CustomRacePage} />
         <Route path="/galaxy" component={GalaxyPage} />
         <Route path="/stars/:starId/planets/:planetId" component={PlanetPage} />
         <Route path="/colonies" component={ColoniesPage} />

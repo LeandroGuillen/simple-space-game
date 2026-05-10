@@ -5,6 +5,7 @@ import type {
   ApiPlayerColorOptions,
   ApiShipParts,
   ApiStatusResponse,
+  CustomRaceDesign,
   NewGameOptions,
 } from './types/api';
 import type { ShipDesignForm } from './types/domain';
@@ -64,6 +65,33 @@ export class ApiClient {
   async getPlayerColorOptions() {
     const response = await fetch(`${this.baseUrl}/games/player-colors`);
     return readJson<ApiPlayerColorOptions>(response);
+  }
+
+  async getCustomRaces() {
+    const response = await fetch(`${this.baseUrl}/races/custom`);
+    const body = await readJson<{ custom_races: CustomRaceDesign[] }>(response);
+    return body.custom_races;
+  }
+
+  async saveCustomRace(design: CustomRaceDesign) {
+    const response = await fetch(`${this.baseUrl}/races/custom`, {
+      method: 'POST',
+      headers: this.headers(),
+      body: JSON.stringify({
+        name: design.name,
+        trait_ids: design.trait_ids,
+      }),
+    });
+    const body = await readJson<{ custom_race: CustomRaceDesign }>(response);
+    return body.custom_race;
+  }
+
+  async deleteCustomRace(name: string) {
+    const response = await fetch(`${this.baseUrl}/races/custom/${encodeURIComponent(name)}`, {
+      method: 'DELETE',
+      headers: this.headers(),
+    });
+    return readJson<{ ok: boolean }>(response);
   }
 
   async createGame(options: NewGameOptions) {

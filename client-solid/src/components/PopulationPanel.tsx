@@ -1,6 +1,7 @@
 import { createMemo, createSignal, For } from "solid-js";
 import type { MovePopulationCommand } from "../lib/types/commands";
 import type { PlanetViewModel } from "../lib/types/domain";
+import { raceTraitById } from "../lib/race-design";
 import {
   getMoraleAdjustedLaborOutput,
   getPlanetIndustryForWorkers,
@@ -24,6 +25,13 @@ type BuildingContribution = {
   total: number;
 };
 
+type RaceContribution = {
+  raceName: string;
+  traitName: string;
+  label: string;
+  total: number;
+};
+
 const POP_LABELS: Record<PopCategory, string> = {
   farmers: "Farmer",
   workers: "Worker",
@@ -35,6 +43,10 @@ const POP_COLORS: Record<PopCategory, string> = {
   workers: "#5a8cb8",
   scientists: "#9eb8a8",
 };
+
+function formatSigned(value: number) {
+  return `${value > 0 ? "+" : ""}${value}`;
+}
 
 type PopulationPanelProps = {
   planet: PlanetViewModel;
@@ -101,14 +113,65 @@ export function PopulationPanel(props: PopulationPanelProps) {
       0,
     );
 
+  const owner = createMemo(() =>
+    state.game?.players.find((player) => player.id === props.planet.owner) ?? null,
+  );
+
+  const getRaceContributions = (cat: PopCategory): RaceContribution[] => {
+    const player = owner();
+    if (!player) {
+      return [];
+    }
+    const workerCount = getPopCount(cat);
+    const contributions: RaceContribution[] = [];
+    for (const traitId of player.raceTraitIds) {
+      const trait = raceTraitById.get(traitId);
+      if (!trait) {
+        continue;
+      }
+      for (const modifier of player.raceGrants.modifiers) {
+        if (cat === "farmers" && modifier.name === "food_per_farmer" && trait.category === "Farming") {
+          contributions.push({
+            raceName: player.raceName,
+            traitName: trait.name,
+            label: `${formatSigned(modifier.value)} food per farmer × ${workerCount}`,
+            total: modifier.value * workerCount,
+          });
+        }
+        if (cat === "workers" && modifier.name === "industry_per_worker" && trait.category === "Production") {
+          contributions.push({
+            raceName: player.raceName,
+            traitName: trait.name,
+            label: `${formatSigned(modifier.value)} production per worker × ${workerCount}`,
+            total: modifier.value * workerCount,
+          });
+        }
+        if (cat === "scientists" && modifier.name === "science_per_scientist" && trait.category === "Research") {
+          contributions.push({
+            raceName: player.raceName,
+            traitName: trait.name,
+            label: `${formatSigned(modifier.value)} research per scientist × ${workerCount}`,
+            total: modifier.value * workerCount,
+          });
+        }
+      }
+    }
+    return contributions;
+  };
+
   const getOutputBreakdown = (cat: PopCategory): OutputBreakdown => {
     if (cat === "farmers") {
+      const raceBonus = getRaceContributions("farmers").reduce(
+        (sum, contribution) => sum + contribution.total / Math.max(1, getPopCount("farmers")),
+        0,
+      );
       const fromPopulation = getMoraleAdjustedLaborOutput(
         getPopCount("farmers"),
-        props.planet.food.produced_per_farmer,
+        Math.max(0, props.planet.food.produced_per_farmer - raceBonus),
         props.planet,
       );
-      const fromBuildings = props.planet.food.produced_per_building;
+      const fromBuildings = props.planet.food.produced_per_building +
+        getMoraleAdjustedLaborOutput(getPopCount("farmers"), raceBonus, props.planet);
       return {
         total: fromPopulation + fromBuildings,
         fromPopulation,
@@ -117,9 +180,13 @@ export function PopulationPanel(props: PopulationPanelProps) {
     }
     if (cat === "workers") {
       const perWorkerBuildingBonus = getBuildingModifierBonus("industry_per_worker");
+      const perWorkerRaceBonus = getRaceContributions("workers").reduce(
+        (sum, contribution) => sum + contribution.total / Math.max(1, getPopCount("workers")),
+        0,
+      );
       const basePerWorker = Math.max(
         0,
-        props.planet.industry.produced_per_worker - perWorkerBuildingBonus,
+        props.planet.industry.produced_per_worker - perWorkerBuildingBonus - perWorkerRaceBonus,
       );
       const fromPopulation = getMoraleAdjustedLaborOutput(
         getPopCount("workers"),
@@ -130,7 +197,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
         props.planet.industry.produced_per_building +
         getMoraleAdjustedLaborOutput(
           getPopCount("workers"),
-          perWorkerBuildingBonus,
+          perWorkerBuildingBonus + perWorkerRaceBonus,
           props.planet,
         ) +
         Math.floor(props.planet.population / 1000) *
@@ -142,9 +209,13 @@ export function PopulationPanel(props: PopulationPanelProps) {
       };
     }
     const perScientistBuildingBonus = getBuildingModifierBonus("science_per_scientist");
+    const perScientistRaceBonus = getRaceContributions("scientists").reduce(
+      (sum, contribution) => sum + contribution.total / Math.max(1, getPopCount("scientists")),
+      0,
+    );
     const basePerScientist = Math.max(
       0,
-      props.planet.science.produced_per_scientist - perScientistBuildingBonus,
+      props.planet.science.produced_per_scientist - perScientistBuildingBonus - perScientistRaceBonus,
     );
     const fromPopulation = getMoraleAdjustedLaborOutput(
       getPopCount("scientists"),
@@ -155,7 +226,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
       props.planet.science.produced_per_building +
       getMoraleAdjustedLaborOutput(
         getPopCount("scientists"),
-        perScientistBuildingBonus,
+        perScientistBuildingBonus + perScientistRaceBonus,
         props.planet,
       );
     return {
@@ -163,6 +234,33 @@ export function PopulationPanel(props: PopulationPanelProps) {
       fromPopulation,
       fromBuildings,
     };
+  };
+
+  const renderRaceContributionRows = (cat: PopCategory) => {
+    const contributions = getRaceContributions(cat);
+    if (contributions.length === 0) {
+      return (
+        <div class="pop-output-tooltip-row pop-output-tooltip-row--detail">
+          <span>No race trait bonuses</span>
+          <strong>0</strong>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <For each={contributions}>
+          {(contribution) => (
+            <div class="pop-output-tooltip-row pop-output-tooltip-row--detail">
+              <span>
+                {contribution.raceName} trait: {contribution.traitName} ({contribution.label})
+              </span>
+              <strong>{formatSigned(contribution.total)}</strong>
+            </div>
+          )}
+        </For>
+      </>
+    );
   };
 
   const getBuildingContributions = (
@@ -401,6 +499,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
                 <span>From buildings:</span>
                 <strong>{getOutputBreakdown("farmers").fromBuildings}</strong>
               </div>
+              {renderRaceContributionRows("farmers")}
               {renderBuildingContributionRows("farmers")}
             </div>
           </div>
@@ -463,6 +562,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
                 <span>From buildings:</span>
                 <strong>{getOutputBreakdown("workers").fromBuildings}</strong>
               </div>
+              {renderRaceContributionRows("workers")}
               <div class="pop-output-tooltip-row pop-output-tooltip-row--detail">
                 <span>Planet absorption:</span>
                 <strong>{getPollutionPlanetSize()}</strong>
@@ -516,6 +616,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
                   {getOutputBreakdown("scientists").fromBuildings}
                 </strong>
               </div>
+              {renderRaceContributionRows("scientists")}
               {renderBuildingContributionRows("scientists")}
             </div>
           </div>

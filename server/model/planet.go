@@ -23,6 +23,8 @@ type Planet struct {
 	Income    PlanetIncomeOutput   `json:"income"`
 	Morale    PlanetMoraleOutput   `json:"morale"`
 	Pollution int64                `json:"pollution"`
+	// HomeworldScienceBonus is currently used for the custom race Artifacts World trait.
+	HomeworldScienceBonus int64 `json:"homeworld_science_bonus,omitempty"`
 
 	Marines int64 `json:"marines"`
 	Armored int64 `json:"armor"`

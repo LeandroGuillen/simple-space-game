@@ -14,6 +14,7 @@ import (
 
 type Server struct {
 	GameList        map[string]*game.Game
+	CustomRaces     map[string]game.CustomRaceDesign
 	ResourceManager *game.ResourceManager
 	router          *gin.Engine
 	hub             *ws.Hub
@@ -43,7 +44,7 @@ func NewServer() (*Server, error) {
 	r.Use(cors.New(cors.Config{
 		AllowOriginFunc: func(string) bool { return true },
 		AllowWebSockets: true,
-		AllowMethods:    []string{"GET", "POST", "PUT", "OPTIONS"},
+		AllowMethods:    []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:    []string{"Origin", "content-type", "game-id", "player-id"},
 		ExposeHeaders:   []string{"Content-Length"},
 		MaxAge:          12 * time.Hour,
@@ -51,6 +52,7 @@ func NewServer() (*Server, error) {
 
 	server := &Server{
 		GameList:        make(map[string]*game.Game),
+		CustomRaces:     make(map[string]game.CustomRaceDesign),
 		ResourceManager: resourceManager,
 	}
 
@@ -70,6 +72,9 @@ func (s *Server) registerRoutes(r *gin.Engine) {
 	r.GET("/games", GetGameList)
 	r.GET("/games/player-colors", GetPlayerColors)
 	r.GET("/games/:gameID", GetGame)
+	r.GET("/races/custom", GetCustomRaces)
+	r.POST("/races/custom", SaveCustomRace)
+	r.DELETE("/races/custom/:name", DeleteCustomRace)
 
 	r.POST("/colonies", GetColonyList)
 

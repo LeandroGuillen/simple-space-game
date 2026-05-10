@@ -23,7 +23,7 @@ func TestNewGameStartsWithDefaultBuildingsAvailableFromStartingTech(t *testing.T
 	resources, err := NewResourceManager()
 	assert.NoError(t, err)
 
-	game, err := NewGame(resources, "Ada", 4, model.DefaultPlayerColor())
+	game, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: DefaultRace("Human")})
 	assert.NoError(t, err)
 
 	player := game.Players[0]
