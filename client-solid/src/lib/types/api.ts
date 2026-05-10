@@ -175,6 +175,7 @@ export type ApiPlanet = {
   industry_stack: number;
   build_bucket: number;
   is_building: boolean;
+  autobuild?: boolean;
 };
 
 export type ApiMoraleSource = {

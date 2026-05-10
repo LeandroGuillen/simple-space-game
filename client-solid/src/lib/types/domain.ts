@@ -104,6 +104,7 @@ export type PlanetViewModel = {
   industryStack: number;
   buildBucket: number;
   isBuilding: boolean;
+  autobuild: boolean;
   maxPopulation: number;
 };
 

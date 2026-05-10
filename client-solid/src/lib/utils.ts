@@ -315,21 +315,27 @@ export function getColonyRows(
   return game.galaxy.stars.flatMap((star) =>
     star.planets
       .filter((planet) => planet.owner === playerId)
-      .map((planet) => ({
-        id: planet.id,
-        name: planet.name,
-        starId: star.id,
-        starName: star.name,
-        population: planet.population,
-        maxPopulation: planet.maxPopulation,
-        farmers: planet.food.farmers,
-        workers: planet.industry.workers,
-        scientists: planet.science.scientists,
-        industry: getPlanetIndustry(planet),
-        income: getPlanetProjectedIncome(planet, pendingCommands).total,
-        morale: planet.morale.bonus,
-        currentProject: planet.currentProject?.name || "Idle",
-      })),
+      .map((planet) => {
+        const allocation = getProjectedWorkerAllocation(
+          planet,
+          pendingCommands?.movePopulation ?? [],
+        );
+        return {
+          id: planet.id,
+          name: planet.name,
+          starId: star.id,
+          starName: star.name,
+          population: planet.population,
+          maxPopulation: planet.maxPopulation,
+          farmers: allocation.farmers,
+          workers: allocation.workers,
+          scientists: allocation.scientists,
+          industry: getPlanetIndustryForWorkers(planet, allocation.workers),
+          income: getPlanetProjectedIncome(planet, pendingCommands).total,
+          morale: planet.morale.bonus,
+          currentProject: planet.currentProject?.name || "Idle",
+        };
+      }),
   );
 }
 

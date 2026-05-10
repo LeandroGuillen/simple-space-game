@@ -47,6 +47,7 @@ describe('mapGame', () => {
                 industry_stack: 0,
                 build_bucket: 60,
                 is_building: true,
+                autobuild: true,
               },
             ],
           },
@@ -137,6 +138,7 @@ describe('mapGame', () => {
     expect(game.galaxy.stars[0]?.planets[0]?.currentProject?.name).toBe('Automated Factory')
     expect(game.galaxy.stars[0]?.planets[0]?.currentProject?.id).toBe(1)
     expect(game.galaxy.stars[0]?.planets[0]?.currentProject?.icon).toBe('🏭')
+    expect(game.galaxy.stars[0]?.planets[0]?.autobuild).toBe(true)
     expect(game.galaxy.stars[0]?.planets[0]?.currentProject?.modifiers).toEqual([
       { name: 'industry_flat', description: '', bonus: 5 },
     ])

@@ -5,6 +5,7 @@ import (
 	"math"
 	"slices"
 	. "ssg/model"
+	"strings"
 )
 
 func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error {
@@ -100,9 +101,14 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 				p.BuildBucket = 0
 			}
 		} else {
-			p.CurrentProject = "Trade Goods"
-			p.IsBuilding = false
-			p.BuildBucket = 0
+			if p.Autobuild {
+				buildingName = nextAutobuildProject(p, player.Available.Buildings, game)
+			}
+			if buildingName == "" || !Build(p, buildingName, player.Available.Buildings, game) {
+				p.CurrentProject = "Trade Goods"
+				p.IsBuilding = false
+				p.BuildBucket = 0
+			}
 		}
 	} else if buildingName == "Trade Goods" {
 		p.CurrentProject = "Trade Goods"
@@ -164,6 +170,34 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 	}
 
 	return nil
+}
+
+func nextAutobuildProject(p *Planet, availableBuildings []string, game *Game) string {
+	for _, buildingName := range availableBuildings {
+		if !isAutobuildProject(buildingName) {
+			continue
+		}
+		if canBuild(p, buildingName, availableBuildings, game) {
+			return buildingName
+		}
+	}
+	return ""
+}
+
+func isAutobuildProject(buildingName string) bool {
+	switch buildingName {
+	case "Colony Base",
+		"Colony Ship",
+		"Outpost Ship",
+		"Transport",
+		"Freighters",
+		"Spy",
+		"Android Farmers",
+		"Android Workers",
+		"Android Scientists":
+		return false
+	}
+	return !strings.HasSuffix(buildingName, " Ship")
 }
 
 func capAssignedPopulation(p *Planet) {

@@ -32,3 +32,17 @@ func TestNewGameStartsWithDefaultBuildingsAvailableFromStartingTech(t *testing.T
 	assert.Contains(t, player.Available.Drives, "Nuclear")
 	assert.Contains(t, player.Available.Armors, "Titanium")
 }
+
+func TestSetPlanetAutobuildPersistsOnOwnedPlanet(t *testing.T) {
+	resources, err := NewResourceManager()
+	assert.NoError(t, err)
+
+	game, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: DefaultRace("Human")})
+	assert.NoError(t, err)
+
+	assert.NoError(t, game.SetPlanetAutobuild(1, 1, true))
+
+	planet, err := game.getPlanet(1)
+	assert.NoError(t, err)
+	assert.True(t, planet.Autobuild)
+}

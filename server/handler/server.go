@@ -80,6 +80,7 @@ func (s *Server) registerRoutes(r *gin.Engine) {
 
 	r.POST("/action/:owner/colonize/:planet", ColonizePlanet)
 	r.POST("/action/:owner/explore/:star", ExploreStar)
+	r.PUT("/planets/:planet/autobuild", SetPlanetAutobuild)
 	r.POST("/debug/research-all", DebugResearchAllTechs)
 
 	resources := r.Group("/resources")

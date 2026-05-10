@@ -56,4 +56,31 @@
   & .numeric-negative {
     color: var(--danger);
   }
+
+  & .colonies-project-heading,
+  & .colonies-project-cell {
+    width: 250px;
+    min-width: 250px;
+    max-width: 250px;
+  }
+
+  & .colonies-project-cell {
+    vertical-align: middle;
+  }
+
+  & .colonies-autobuild-heading,
+  & .colonies-autobuild-cell {
+    text-align: center;
+    width: 92px;
+  }
+
+  & .colonies-autobuild-cell {
+    vertical-align: middle;
+  }
+
+  & .colonies-autobuild-toggle {
+    justify-content: center;
+    min-height: 42px;
+    padding: 0;
+  }
 }

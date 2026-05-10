@@ -474,6 +474,18 @@ func (g *Game) GetColonyList(playerID uint) ([]*Planet, error) {
 	return colonyList, nil
 }
 
+func (g *Game) SetPlanetAutobuild(playerID, planetID uint, enabled bool) error {
+	planet, err := g.getPlanet(planetID)
+	if err != nil {
+		return err
+	}
+	if planet.Owner != playerID {
+		return fmt.Errorf("planet %d is not owned by player %d", planetID, playerID)
+	}
+	planet.Autobuild = enabled
+	return nil
+}
+
 func (g *Game) GetShipDesignsList(playerID uint) ([]*ShipDesign, error) {
 	if player, err := g.getPlayer(playerID); err != nil {
 		return nil, err

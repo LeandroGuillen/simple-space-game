@@ -39,6 +39,7 @@ type Planet struct {
 	// BuildBucket represents the production that is left for the current project to complete.
 	BuildBucket int64 `json:"build_bucket"`
 	IsBuilding  bool  `json:"is_building"`
+	Autobuild   bool  `json:"autobuild"`
 }
 
 type PlanetFoodOutput struct {

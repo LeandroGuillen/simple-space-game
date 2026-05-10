@@ -137,6 +137,15 @@ export class ApiClient {
     return readJson<{ ok: boolean }>(response);
   }
 
+  async setPlanetAutobuild(gameId: string, planetId: number, enabled: boolean) {
+    const response = await fetch(`${this.baseUrl}/planets/${planetId}/autobuild`, {
+      method: 'PUT',
+      headers: this.headers(gameId),
+      body: JSON.stringify({ enabled }),
+    });
+    return readJson<ApiGame>(response);
+  }
+
   async colonize(gameId: string, planetId: number) {
     const response = await fetch(`${this.baseUrl}/action/${this.playerId}/colonize/${planetId}`, {
       method: 'POST',

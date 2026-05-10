@@ -1,10 +1,11 @@
 import {
   formatGameLastTurnAt,
+  getColonyRows,
   getPlanetGrossIndustryForWorkers,
   getPlanetProjectedIncome,
   getPlanetProjectedPopulationGrowth,
 } from "../utils";
-import type { BuildingViewModel, PlanetViewModel } from "../types/domain";
+import type { BuildingViewModel, GameViewModel, PlanetViewModel } from "../types/domain";
 
 function building(name: string, modifiers: BuildingViewModel["modifiers"] = []): BuildingViewModel {
   return {
@@ -88,6 +89,7 @@ function planet(overrides: Partial<PlanetViewModel> = {}): PlanetViewModel {
     industryStack: 0,
     buildBucket: 0,
     isBuilding: false,
+    autobuild: false,
     ...overrides,
   };
 }
@@ -169,5 +171,86 @@ describe("morale projections", () => {
     expect(getPlanetGrossIndustryForWorkers(colony, 3)).toBe(26);
     expect(getPlanetProjectedIncome(colony).taxes).toBe(12);
     expect(getPlanetProjectedIncome(colony).total).toBe(13);
+  });
+});
+
+describe("getColonyRows", () => {
+  it("shows pending population moves before the turn is submitted", () => {
+    const colony = planet({
+      food: {
+        farmers: 4,
+        produced_per_farmer: 2,
+        produced_per_building: 0,
+      },
+      industry: {
+        workers: 3,
+        produced_per_worker: 3,
+        produced_per_building: 0,
+        produced_per_colonist: 0,
+      },
+      science: {
+        scientists: 3,
+        produced_per_scientist: 3,
+        produced_per_building: 0,
+      },
+    });
+    const game: GameViewModel = {
+      id: "test",
+      currentTurn: 1,
+      players: [],
+      fleets: [],
+      pendingColonyBases: {},
+      pendingColonyShips: {},
+      resources: {
+        shipParts: {
+          hullSizes: [],
+          drives: [],
+          armors: [],
+          computers: [],
+          fuelCells: [],
+          shields: [],
+        },
+        shipSystemCollection: { shipSystems: [] },
+        buildingCollection: { buildings: [] },
+        modifierCollection: { modifiers: [] },
+        techCollection: { techs: [] },
+        shipDesignCollection: { shipDesigns: [] },
+        techTree: { subjects: [] },
+      },
+      galaxy: {
+        stars: [
+          {
+            id: 1,
+            name: "Sol",
+            color: 0,
+            x: 0,
+            y: 0,
+            explored: true,
+            ownerColor: null,
+            ownedPlanets: 1,
+            planets: [colony],
+          },
+        ],
+      },
+    };
+
+    const [row] = getColonyRows(
+      game,
+      {
+        build: [],
+        fleetMove: [],
+        colonize: [],
+        selectResearch: undefined,
+        movePopulation: [
+          { planetId: colony.id, from: "workers", to: "scientists", count: 2 },
+        ],
+      },
+      1,
+    );
+
+    expect(row?.farmers).toBe(4);
+    expect(row?.workers).toBe(1);
+    expect(row?.scientists).toBe(5);
+    expect(row?.industry).toBe(3);
   });
 });

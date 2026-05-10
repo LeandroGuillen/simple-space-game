@@ -1,8 +1,8 @@
 import { A } from "@solidjs/router";
-import { createMemo, createSignal } from "solid-js";
+import { createMemo, createSignal, For } from "solid-js";
 
+import { ConstructionPanel } from "../components/ConstructionPanel";
 import { formatSignedBc } from "../lib/utils";
-import type { BuildingViewModel } from "../lib/types/domain";
 import { useAppContext } from "../state/app-context";
 
 type SortKey =
@@ -14,59 +14,15 @@ type SortKey =
   | "morale";
 
 export function ColoniesPage() {
-  const { colonies, state, currentPlayer, changeBuilding } = useAppContext();
+  const { colonies, state, setPlanetAutobuild } = useAppContext();
   const [filter, setFilter] = createSignal("");
   const [sortKey, setSortKey] = createSignal<SortKey>("name");
   const [sortAsc, setSortAsc] = createSignal(true);
-  const buildingOptions = createMemo(
-    () => {
-      const availableBuildingNames = new Set(currentPlayer()?.available.buildings ?? []);
-      return state.game?.resources.buildingCollection.buildings.filter((building) =>
-        availableBuildingNames.has(building.name),
-      ) ?? [];
-    },
-  );
   const planetForRow = (planetId: number) =>
     state.game?.galaxy.stars
       .flatMap((star) => star.planets)
       .find((planet) => planet.id === planetId);
-  const uniqueBuildingsLockedElsewhere = (planetId: number) => {
-    const playerId = currentPlayer()?.id;
-    if (!playerId) return new Set<string>();
-    const locked = new Set<string>();
-    for (const star of state.game?.galaxy.stars ?? []) {
-      for (const planet of star.planets) {
-        if (planet.owner !== playerId || planet.id === planetId) {
-          continue;
-        }
-        for (const building of planet.buildings) {
-          if (building.unique) {
-            locked.add(building.name);
-          }
-        }
-        if (planet.currentProject?.unique) {
-          locked.add(planet.currentProject.name);
-        }
-        for (const queued of planet.buildQueue) {
-          if (queued.unique) {
-            locked.add(queued.name);
-          }
-        }
-      }
-    }
-    return locked;
-  };
-  const buildableOptions = (planetId: number) => {
-    const builtBuildings = planetForRow(planetId)?.buildings ?? [];
-    const builtBuildingNames = new Set(builtBuildings.map((building) => building.name));
-    const lockedUniqueNames = uniqueBuildingsLockedElsewhere(planetId);
-    return buildingOptions().filter(
-      (building) =>
-        !builtBuildingNames.has(building.name) &&
-        !hasSuperiorBuilding(building, builtBuildings) &&
-        (!building.unique || !lockedUniqueNames.has(building.name)),
-    );
-  };
+  const populationUnits = (population: number) => Math.floor(population / 1000);
 
   const rows = createMemo(() => {
     const needle = filter().trim().toLowerCase();
@@ -88,17 +44,10 @@ export function ColoniesPage() {
     });
     return sorted;
   });
-
-  const selectedProjectId = (planetId: number) => {
-    const pendingBuild = state.pendingCommands.build.find((command) => command.planetId === planetId);
-    if (pendingBuild) {
-      return buildingOptions().find((building) => building.name === pendingBuild.building)?.id ?? "";
-    }
-
-    return (
-      planetForRow(planetId)?.currentProject?.id ?? ""
-    );
-  };
+  const rowById = createMemo(
+    () => new Map(rows().map((row) => [row.id, row])),
+  );
+  const rowIds = createMemo(() => rows().map((row) => row.id));
 
   function toggleSort(nextKey: SortKey) {
     if (sortKey() === nextKey) {
@@ -179,67 +128,69 @@ export function ColoniesPage() {
                   Income
                 </button>
               </th>
-              <th>Project</th>
-              <th>Action</th>
+              <th class="colonies-project-heading">Project</th>
+              <th class="colonies-autobuild-heading">Autobuild</th>
             </tr>
           </thead>
           <tbody>
-            {rows().map((row) => (
+            <For each={rowIds()}>
+              {(rowId) => {
+                const row = () => rowById().get(rowId);
+                const planet = () => planetForRow(rowId);
+                return (
               <tr>
-                <td>{row.name}</td>
-                <td>{row.starName}</td>
                 <td>
-                  {row.population}/{row.maxPopulation}
-                </td>
-                <td>{row.farmers}</td>
-                <td>{row.workers}</td>
-                <td>{row.scientists}</td>
-                <td>
-                  {moraleIcons(row.morale).map(() => ":)").join(" ")}
-                </td>
-                <td>{row.industry}</td>
-                <td classList={{ "numeric-negative": row.income < 0 }}>
-                  {formatSignedBc(row.income)}
-                </td>
-                <td>
-                  <label class="sr-only" for={`project-${row.id}`}>
-                    Set project for {row.name}
-                  </label>
-                  <select
-                    id={`project-${row.id}`}
-                    value={selectedProjectId(row.id)}
-                    onChange={(event) =>
-                      changeBuilding(row.id, Number(event.currentTarget.value))
-                    }
-                  >
-                    <option value="">Select building...</option>
-                    {buildableOptions(row.id).map((building) => (
-                      <option value={building.id}>{building.name}</option>
-                    ))}
-                  </select>
-                </td>
-                <td>
-                  <A
-                    class="link-button secondary-button"
-                    href={`/stars/${row.starId}/planets/${row.id}`}
-                  >
-                    Inspect
+                  <A href={`/stars/${row()?.starId}/planets/${rowId}`}>
+                    {row()?.name}
                   </A>
                 </td>
+                <td>{row()?.starName}</td>
+                <td>
+                  {populationUnits(row()?.population ?? 0)}/{populationUnits(row()?.maxPopulation ?? 0)}
+                </td>
+                <td>{row()?.farmers}</td>
+                <td>{row()?.workers}</td>
+                <td>{row()?.scientists}</td>
+                <td>
+                  {moraleIcons(row()?.morale ?? 0).map(() => ":)").join(" ")}
+                </td>
+                <td>{row()?.industry}</td>
+                <td classList={{ "numeric-negative": (row()?.income ?? 0) < 0 }}>
+                  {formatSignedBc(row()?.income ?? 0)}
+                </td>
+                <td class="colonies-project-cell">
+                  {planet() ? (
+                      <ConstructionPanel planet={planet()!} compact />
+                    ) : (
+                      row()?.currentProject
+                    )}
+                </td>
+                <td class="colonies-autobuild-cell">
+                  <label class="construction-autobuild colonies-autobuild-toggle">
+                    <span class="sr-only">Autobuild {row()?.name}</span>
+                    <span class="construction-autobuild-switch">
+                      <input
+                        type="checkbox"
+                        checked={planet()?.autobuild ?? false}
+                        aria-label={`Autobuild ${row()?.name}`}
+                        onChange={(event) =>
+                          setPlanetAutobuild(
+                            rowId,
+                            event.currentTarget.checked,
+                          )
+                        }
+                      />
+                      <span aria-hidden="true" />
+                    </span>
+                  </label>
+                </td>
               </tr>
-            ))}
+                );
+              }}
+            </For>
           </tbody>
         </table>
       </div>
     </section>
-  );
-}
-
-function hasSuperiorBuilding(
-  project: BuildingViewModel,
-  builtBuildings: BuildingViewModel[],
-) {
-  return builtBuildings.some((builtBuilding) =>
-    builtBuilding.upgrades.includes(project.name),
   );
 }

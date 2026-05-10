@@ -296,6 +296,7 @@ function mapPlanet(
     industryStack: planet.industry_stack,
     buildBucket: planet.build_bucket,
     isBuilding: planet.is_building,
+    autobuild: planet.autobuild ?? false,
     maxPopulation: planet.max_population ?? planet.size * 4 * 1000,
   };
 }

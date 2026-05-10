@@ -23,6 +23,10 @@ type BuildOnPlanetRequest struct {
 	BuildingID *uint  `binding:"required" json:"building_id"`
 }
 
+type SetPlanetAutobuildRequest struct {
+	Enabled bool `json:"enabled"`
+}
+
 func ColonizePlanet(c *gin.Context) {
 	var req ColonizePlanetRequest
 	if err := c.Bind(&req); err != nil {
@@ -107,4 +111,43 @@ func ExploreStar(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"game": visible})
+}
+
+func SetPlanetAutobuild(c *gin.Context) {
+	gameID, playerID, err := readHeaders(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	planetID, err := strconv.ParseUint(c.Param("planet"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "planet ID is invalid or not present"})
+		return
+	}
+
+	var req SetPlanetAutobuildRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	g, s, err := getGameHandle(c, gameID)
+	if err != nil {
+		return
+	}
+
+	if err := g.SetPlanetAutobuild(playerID, uint(planetID), req.Enabled); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	visible, err := g.GetVisibleGameForPlayer(playerID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, visible)
+	s.hub.BroadcastGameUpdate(g)
 }

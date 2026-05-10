@@ -382,6 +382,33 @@
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
+.construction-panel--compact {
+  min-width: 180px;
+}
+
+.construction-panel--compact .construction-widget {
+  border-color: transparent;
+  background: transparent;
+  padding: 6px 8px;
+  gap: 8px;
+}
+
+.construction-panel--compact .construction-widget:hover {
+  border-color: transparent;
+  box-shadow: none;
+  background: var(--surface-quiet);
+}
+
+.construction-panel--compact .construction-widget-icon {
+  width: 28px;
+  height: 28px;
+  font-size: 17px;
+}
+
+.construction-panel--compact .construction-status-row {
+  display: none;
+}
+
 .construction-widget-icon {
   width: 42px;
   height: 42px;

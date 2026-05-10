@@ -1,5 +1,4 @@
 import {
-  createEffect,
   createMemo,
   createSignal,
   For,
@@ -14,7 +13,6 @@ import type {
   PlanetViewModel,
   ShipDesignViewModel,
 } from "../lib/types/domain";
-import { isAutobuildProject } from "../lib/construction";
 import {
   getPlanetIndustryForWorkers,
   findStar,
@@ -24,6 +22,7 @@ import { useAppContext } from "../state/app-context";
 
 type ConstructionPanelProps = {
   planet: PlanetViewModel;
+  compact?: boolean;
 };
 
 const TRADE_GOODS: BuildingViewModel = {
@@ -72,20 +71,17 @@ function isSpecialConstructionProject(projectName: string) {
 }
 
 export function ConstructionPanel(props: ConstructionPanelProps) {
-  const { state, currentPlayer, changeBuilding, changeBuildQueue } =
+  const { state, currentPlayer, changeBuildQueue, setPlanetAutobuild } =
     useAppContext();
   const [isChoosing, setIsChoosing] = createSignal(false);
   const [selectedProjectId, setSelectedProjectId] = createSignal<number | null>(
     null,
   );
-  const [autobuildByPlanet, setAutobuildByPlanet] = createSignal<
-    Record<number, boolean>
-  >({});
   const [queuedProjects, setQueuedProjects] = createSignal<BuildingViewModel[]>(
     [],
   );
   const isAutobuildEnabled = createMemo(
-    () => autobuildByPlanet()[props.planet.id] ?? false,
+    () => props.planet.autobuild,
   );
   const [draggedQueueIndex, setDraggedQueueIndex] = createSignal<number | null>(
     null,
@@ -152,9 +148,6 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
           (!project.unique ||
             !uniqueBuildingsLockedElsewhere().has(project.name)),
       ) ?? [],
-  );
-  const autobuildProjects = createMemo(() =>
-    buildableProjects().filter(isAutobuildProject),
   );
   const colonyBaseProject = createMemo(
     () =>
@@ -595,24 +588,6 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     }, 120);
   }
 
-  createEffect(() => {
-    if (
-      !isAutobuildEnabled() ||
-      state.isBusy ||
-      props.planet.isBuilding ||
-      pendingBuild() ||
-      autobuildProjects().length === 0
-    ) {
-      return;
-    }
-    const nextProjects = autobuildProjects();
-    const randomProject =
-      nextProjects[Math.floor(Math.random() * nextProjects.length)];
-    if (randomProject) {
-      changeBuilding(props.planet.id, randomProject.id);
-    }
-  });
-
   onCleanup(() => {
     if (projectClickTimer) {
       clearTimeout(projectClickTimer);
@@ -624,7 +599,12 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
 
   onMount(() => {
     const handlePointerDown = (event: PointerEvent) => {
-      if (!isChoosing() || modalRef?.contains(event.target as Node)) {
+      const target = event.target as Element | null;
+      if (
+        !isChoosing() ||
+        modalRef?.contains(event.target as Node) ||
+        target?.closest(".construction-modal")
+      ) {
         return;
       }
       cancelSelection();
@@ -643,7 +623,10 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   });
 
   return (
-    <section class="construction-panel">
+    <section
+      class="construction-panel"
+      classList={{ "construction-panel--compact": props.compact }}
+    >
       <button class="construction-widget" type="button" onClick={toggleChooser}>
         <span class="construction-widget-icon">{activeProject().icon}</span>
         <span class="construction-widget-body">
@@ -670,23 +653,25 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
             </div>
           </Show>
         </div>
-        <label class="construction-autobuild construction-autobuild--header">
-          <span>Autobuild</span>
-          <span class="construction-autobuild-switch">
-            <input
-              type="checkbox"
-              checked={isAutobuildEnabled()}
-              aria-label={`Autobuild ${props.planet.name}`}
-              onChange={(event) =>
-                setAutobuildByPlanet((current) => ({
-                  ...current,
-                  [props.planet.id]: event.currentTarget.checked,
-                }))
-              }
-            />
-            <span aria-hidden="true" />
-          </span>
-        </label>
+        <Show when={!props.compact}>
+          <label class="construction-autobuild construction-autobuild--header">
+            <span>Autobuild</span>
+            <span class="construction-autobuild-switch">
+              <input
+                type="checkbox"
+                checked={isAutobuildEnabled()}
+                aria-label={`Autobuild ${props.planet.name}`}
+                onChange={(event) =>
+                  setPlanetAutobuild(
+                    props.planet.id,
+                    event.currentTarget.checked,
+                  )
+                }
+              />
+              <span aria-hidden="true" />
+            </span>
+          </label>
+        </Show>
       </div>
 
       <Show when={isChoosing()}>

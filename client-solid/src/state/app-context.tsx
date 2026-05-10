@@ -4,9 +4,10 @@ import { createStore } from 'solid-js/store';
 import { ApiClient, parseGameUpdate } from '../lib/api';
 import { mapGame, mapPlayerColorOptions } from '../lib/mappers';
 import type { ApiGameListItem, NewGameOptions } from '../lib/types/api';
-import type { GameViewModel, PlayerColorOptions, ShipDesignForm } from '../lib/types/domain';
+import type { BuildingViewModel, GameViewModel, PlayerColorOptions, ShipDesignForm } from '../lib/types/domain';
 import type { ColonizeCommand, FleetMoveCommand, MovePopulationCommand, PendingCommands, SelectResearchCommand, TurnCommands } from '../lib/types/commands';
 import { clearSessionLastSetupServerUrl } from '../lib/setup-session-storage';
+import { isAutobuildProject } from '../lib/construction';
 import { findPlanet, getColonyRows, getPrimaryPlayer, normalizeServerUrl, toWebSocketUrl } from '../lib/utils';
 
 type ConnectionStatus = 'idle' | 'checking' | 'connected' | 'error';
@@ -52,6 +53,7 @@ type AppContextValue = {
   refreshGame: () => Promise<void>;
   changeBuilding: (planetId: number, buildingId: number) => void;
   changeBuildQueue: (planetId: number, buildingNames: string[]) => void;
+  setPlanetAutobuild: (planetId: number, enabled: boolean) => Promise<void>;
   addMovePopulationCommand: (command: MovePopulationCommand) => void;
   addFleetMoveCommand: (command: FleetMoveCommand) => void;
   addColonizeCommand: (command: ColonizeCommand) => void;
@@ -274,6 +276,32 @@ export function AppProvider(props: ParentProps) {
     });
     setState('pendingCommands', 'build', nextBuildCommands);
     setState('info', buildingNames.length > 0 ? 'Build queue updated' : 'Build queue cleared');
+  }
+
+  function setPlanetAutobuildLocal(planetId: number, enabled: boolean) {
+    for (let starIndex = 0; starIndex < (state.game?.galaxy.stars.length ?? 0); starIndex += 1) {
+      const planetIndex = state.game!.galaxy.stars[starIndex].planets.findIndex((planet) => planet.id === planetId);
+      if (planetIndex >= 0) {
+        setState('game', 'galaxy', 'stars', starIndex, 'planets', planetIndex, 'autobuild', enabled);
+        return;
+      }
+    }
+  }
+
+  async function setPlanetAutobuild(planetId: number, enabled: boolean) {
+    setPlanetAutobuildLocal(planetId, enabled);
+    if (!api() || !state.session.selectedGameId) {
+      return;
+    }
+    clearError();
+    try {
+      const mapped = mapGame(await api()!.setPlanetAutobuild(state.session.selectedGameId, planetId, enabled));
+      setState('game', mapped);
+    } catch (error) {
+      setPlanetAutobuildLocal(planetId, !enabled);
+      setState('error', error instanceof Error ? error.message : 'Unable to update autobuild.');
+      throw error;
+    }
   }
 
   function addMovePopulationCommand(command: MovePopulationCommand) {
@@ -519,6 +547,54 @@ export function AppProvider(props: ParentProps) {
   });
 
   createEffect(() => {
+    if (!state.game || state.isBusy) {
+      return;
+    }
+
+    const player = currentPlayer();
+    if (!player) {
+      return;
+    }
+
+    const availableBuildingNames = new Set(player.available.buildings);
+    for (const star of state.game.galaxy.stars) {
+      for (const planet of star.planets) {
+        if (
+          planet.owner !== player.id ||
+          !planet.autobuild ||
+          planet.isBuilding ||
+          state.pendingCommands.build.some((command) => command.planetId === planet.id)
+        ) {
+          continue;
+        }
+
+        const builtBuildingIds = new Set(
+          planet.buildings
+            .filter((building) => building.name !== 'Colony Base')
+            .map((building) => building.id),
+        );
+        const lockedUniqueNames = uniqueBuildingsLockedElsewhere(
+          state.game,
+          player.id,
+          planet.id,
+        );
+        const projects = state.game.resources.buildingCollection.buildings.filter(
+          (project) =>
+            availableBuildingNames.has(project.name) &&
+            !builtBuildingIds.has(project.id) &&
+            !hasSuperiorBuilding(project, planet.buildings) &&
+            (!project.unique || !lockedUniqueNames.has(project.name)) &&
+            isAutobuildProject(project),
+        );
+        const project = projects[Math.floor(Math.random() * projects.length)];
+        if (project) {
+          changeBuilding(planet.id, project.id);
+        }
+      }
+    }
+  });
+
+  createEffect(() => {
     const serverUrl = state.session.serverUrl;
     const gameId = state.session.selectedGameId;
     if (!serverUrl || !gameId) {
@@ -572,6 +648,7 @@ export function AppProvider(props: ParentProps) {
     refreshGame,
     changeBuilding,
     changeBuildQueue,
+    setPlanetAutobuild,
     addMovePopulationCommand,
     addFleetMoveCommand,
     addColonizeCommand,
@@ -649,6 +726,44 @@ function toTurnCommands(commands: PendingCommands, game: GameViewModel | null): 
   }
 
   return turnCommands;
+}
+
+function hasSuperiorBuilding(
+  project: BuildingViewModel,
+  builtBuildings: BuildingViewModel[],
+) {
+  return builtBuildings.some((builtBuilding) =>
+    builtBuilding.upgrades.includes(project.name),
+  );
+}
+
+function uniqueBuildingsLockedElsewhere(
+  game: GameViewModel,
+  playerId: number,
+  planetId: number,
+) {
+  const locked = new Set<string>();
+  for (const star of game.galaxy.stars) {
+    for (const planet of star.planets) {
+      if (planet.owner !== playerId || planet.id === planetId) {
+        continue;
+      }
+      for (const building of planet.buildings) {
+        if (building.unique) {
+          locked.add(building.name);
+        }
+      }
+      if (planet.currentProject?.unique) {
+        locked.add(planet.currentProject.name);
+      }
+      for (const queued of planet.buildQueue) {
+        if (queued.unique) {
+          locked.add(queued.name);
+        }
+      }
+    }
+  }
+  return locked;
 }
 
 export function useAppContext() {

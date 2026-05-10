@@ -107,6 +107,27 @@ func TestTurnStartsConstructionWithBuildingCostAndNoTradeGoods(t *testing.T) {
 	assert.Less(t, capital.BuildBucket, int64(200))
 }
 
+func TestTurnUsesPersistedAutobuildForIdleColony(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: DefaultRace("Human")})
+	require.NoError(t, err)
+
+	player := g.Players[0]
+	player.Available.Buildings = append(player.Available.Buildings, "Automated Factory")
+	require.NoError(t, g.SetPlanetAutobuild(player.ID, 1, true))
+
+	require.NoError(t, g.Turn(player.ID, model.Commands{}))
+
+	colonies, err := g.GetColonyList(player.ID)
+	require.NoError(t, err)
+	require.NotEmpty(t, colonies)
+	assert.True(t, colonies[0].Autobuild)
+	assert.True(t, colonies[0].IsBuilding)
+	assert.Equal(t, "Automated Factory", colonies[0].CurrentProject)
+}
+
 func TestTurnContinuesExistingConstructionWithoutRepeatedCommand(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)
