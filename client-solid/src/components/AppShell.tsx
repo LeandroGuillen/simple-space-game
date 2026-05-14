@@ -846,6 +846,7 @@ export function AppShell(props: RouteSectionProps) {
                                   >
                                     <div class="planet-card-visual">
                                       <PlanetVisual
+                                        planetId={planet.id}
                                         environment={planet.environment}
                                         size="small"
                                       />

@@ -163,10 +163,13 @@
 }
 
 .planet-card-visual {
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
   width: 44px;
   height: 44px;
   position: relative;
+  overflow: hidden;
 }
 
 .planet-card-info {

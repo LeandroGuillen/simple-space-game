@@ -266,6 +266,7 @@ export function GalaxyPage() {
                         >
                           <div class="planet-card-visual" aria-hidden="true">
                             <PlanetVisual
+                              planetId={planet.id}
                               environment={planet.environment}
                               size="small"
                             />

@@ -88,7 +88,7 @@ export function PlanetPage() {
                               class='system-planet-icon'
                               style={{ '--planet-nav-icon-size': planetIconSize(systemPlanet.size) }}
                             >
-                              <PlanetVisual environment={systemPlanet.environment} size='small' />
+                              <PlanetVisual planetId={systemPlanet.id} environment={systemPlanet.environment} size='small' />
                             </span>
                             <span class='system-planet-meta'>
                               <strong style={{ color: systemPlanet.owner > 0 ? planetOwnerColor(systemPlanet.owner) : 'var(--text-mute)' }}>
@@ -113,7 +113,7 @@ export function PlanetPage() {
                             class='system-planet-icon'
                             style={{ '--planet-nav-icon-size': planetIconSize(systemPlanet.size) }}
                           >
-                            <PlanetVisual environment={systemPlanet.environment} size='small' />
+                            <PlanetVisual planetId={systemPlanet.id} environment={systemPlanet.environment} size='small' />
                           </span>
                           <span class='system-planet-meta'>
                             <strong style={{ color: planetOwnerColor(systemPlanet.owner) }}>{systemPlanet.name}</strong>
@@ -128,7 +128,7 @@ export function PlanetPage() {
                   </For>
                 </nav>
               </Show>
-              <PlanetVisual environment={currentPlanet().environment} size='large' />
+              <PlanetVisual planetId={currentPlanet().id} environment={currentPlanet().environment} size='large' />
               <div class='planet-details'>
                 <h2>{currentPlanet().name}</h2>
                 <p class='lede'>
