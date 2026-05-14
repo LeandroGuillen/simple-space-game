@@ -26,6 +26,13 @@ func NewRandomPlanet() *model.Planet {
 	var gravity = model.PlanetGravity(randomIntn(int(model.PlanetGravityMax)-1) + 1)
 	var environment = model.PlanetEnvironment(randomIntn(int(model.PlanetEnvironmentMax)-1) + 1)
 
+	switch environment {
+	case model.PlanetEnvironmentGasGiant:
+		size = model.PlanetSizeHuge
+	case model.PlanetEnvironmentAsteroidBelt:
+		size = model.PlanetSizeLarge
+	}
+
 	return NewPlanet(mineralClass, size, gravity, environment)
 }
 

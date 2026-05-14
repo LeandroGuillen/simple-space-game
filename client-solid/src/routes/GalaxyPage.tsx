@@ -16,6 +16,8 @@ import {
 } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
 
+const populationUnits = (population: number) => Math.floor(population / 1000);
+
 export function GalaxyPage() {
   const { state, currentPlayer, addFleetMoveCommand } = useAppContext();
   const [selectedStarId, setSelectedStarId] = createSignal<number>();
@@ -30,12 +32,6 @@ export function GalaxyPage() {
     const chosenId = selectedStarId() ?? firstId;
     return chosenId ? findStar(state.game, chosenId) : null;
   });
-  const playerNameById = createMemo(
-    () =>
-      new Map(
-        (state.game?.players ?? []).map((player) => [player.id, player.name]),
-      ),
-  );
   const playerColorById = createMemo(
     () =>
       new Map(
@@ -233,9 +229,9 @@ export function GalaxyPage() {
                     <div>
                       <p class="eyebrow">System Inspector</p>
                       <h2>{star().name}</h2>
-                      <p class="inspector-subtitle">
-                        {star().explored ? `${star().planets.length} planets catalogued` : "Unexplored system"}
-                      </p>
+                      <Show when={!star().explored}>
+                        <p class="inspector-subtitle">Unexplored system</p>
+                      </Show>
                     </div>
                     <Show when={fleetsAtSelectedStar().length > 0}>
                       <button
@@ -259,57 +255,64 @@ export function GalaxyPage() {
                         </article>
                       }
                     >
-                      {star().planets.map((planet) => (
-                        <A
-                          class="planet-card planet-card-link"
-                          href={`/stars/${star().id}/planets/${planet.id}`}
-                        >
-                          <div class="planet-card-visual" aria-hidden="true">
-                            <PlanetVisual
-                              planetId={planet.id}
-                              environment={planet.environment}
-                              size="small"
-                            />
-                          </div>
-                          <div class="planet-card-info">
-                            <p class="planet-title">
-                              <Show
-                                when={planet.owner > 0}
-                                fallback={<span>{planet.name}</span>}
-                              >
-                                <span
-                                  class="planet-name-link"
-                                  style={{
-                                    color:
-                                      playerColorById().get(planet.owner) ??
-                                      "var(--text)",
-                                  }}
+                      {star().planets.map((planet) => {
+                        const planetCardContent = (
+                          <>
+                            <div class="planet-card-visual" aria-hidden="true">
+                              <PlanetVisual
+                                planetId={planet.id}
+                                environment={planet.environment}
+                                size="small"
+                              />
+                            </div>
+                            <div class="planet-card-info">
+                              <p class="planet-title">
+                                <Show
+                                  when={planet.owner > 0}
+                                  fallback={<span>{planet.name}</span>}
                                 >
-                                  {planet.name}
-                                </span>
-                              </Show>
-                            </p>
-                            <p>
-                              {labelForEnvironment(planet.environment)} ·{" "}
-                              {labelForSize(planet.size)} ·{" "}
-                              {labelForMinerals(planet.mineralClass)}
-                            </p>
-                            <p>
-                              Gravity: {labelForGravity(planet.gravity)}
-                              <Show when={planet.owner > 0}>
-                                {" "}
-                                · Population {planet.population}/
-                                {planet.maxPopulation}
-                              </Show>
-                            </p>
-                            <p>
-                              {planet.owner > 0
-                                ? `Controlled by ${playerNameById().get(planet.owner) ?? `Player ${planet.owner}`}`
-                                : "Uncontrolled"}
-                            </p>
-                          </div>
-                        </A>
-                      ))}
+                                  <span
+                                    class="planet-name-link"
+                                    style={{
+                                      color:
+                                        playerColorById().get(planet.owner) ??
+                                        "var(--text)",
+                                    }}
+                                  >
+                                    {planet.name}
+                                  </span>
+                                </Show>
+                              </p>
+                              <p>
+                                {labelForEnvironment(planet.environment)} ·{" "}
+                                {labelForSize(planet.size)} ·{" "}
+                                {labelForMinerals(planet.mineralClass)}
+                              </p>
+                              <p>
+                                Gravity: {labelForGravity(planet.gravity)}
+                                <Show when={planet.owner > 0}>
+                                  {" "}
+                                  · Population {populationUnits(planet.population)}
+                                  /{populationUnits(planet.maxPopulation)}
+                                </Show>
+                              </p>
+                            </div>
+                          </>
+                        );
+
+                        return planet.owner > 0 ? (
+                          <A
+                            class="planet-card planet-card-link"
+                            href={`/stars/${star().id}/planets/${planet.id}`}
+                          >
+                            {planetCardContent}
+                          </A>
+                        ) : (
+                          <article class="planet-card planet-card-link">
+                            {planetCardContent}
+                          </article>
+                        );
+                      })}
                     </Show>
                   </div>
                 </>
