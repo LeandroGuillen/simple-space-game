@@ -69,6 +69,12 @@ export function gameIdShort(gameId: string) {
   return gameId.slice(0, 8);
 }
 
+export function formatStardate(stardate: number | null | undefined): string {
+  return typeof stardate === "number" && Number.isFinite(stardate)
+    ? stardate.toFixed(1)
+    : "";
+}
+
 /** Local short date/time for last completed turn; missing or invalid ISO → em dash */
 export function formatGameLastTurnAt(iso: string | null | undefined): string {
   if (iso == null || iso === "") {

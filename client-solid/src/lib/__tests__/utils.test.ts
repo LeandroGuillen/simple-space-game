@@ -1,5 +1,6 @@
 import {
   formatGameLastTurnAt,
+  formatStardate,
   getEmpireFoodBalance,
   getColonyRows,
   getPlanetGrossIndustryForWorkers,
@@ -107,6 +108,13 @@ describe("formatGameLastTurnAt", () => {
     const out = formatGameLastTurnAt("2026-05-08T14:30:00.000Z");
     expect(out).not.toBe("—");
     expect(out.length).toBeGreaterThan(4);
+  });
+});
+
+describe("formatStardate", () => {
+  it("keeps one fractional digit", () => {
+    expect(formatStardate(3500)).toBe("3500.0");
+    expect(formatStardate(3500.9)).toBe("3500.9");
   });
 });
 

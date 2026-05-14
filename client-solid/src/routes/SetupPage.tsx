@@ -26,7 +26,7 @@ import {
   getInitialSetupSelectedServerUrl,
   setSessionLastSetupServerUrl,
 } from "../lib/setup-session-storage";
-import { formatGameLastTurnAt, normalizeServerUrl } from "../lib/utils";
+import { formatGameLastTurnAt, formatStardate, normalizeServerUrl } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
 
 type ServerInfo = {
@@ -570,7 +570,7 @@ export function SetupPage() {
                                 {game.game_id.slice(0, 8)}
                               </span>
                               <span class="game-meta">
-                                {game.num_stars} stars · T{game.current_turn}
+                                {game.num_stars} stars · T{formatStardate(game.current_turn)}
                               </span>
                               <span
                                 class="game-last-turn"

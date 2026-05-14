@@ -36,7 +36,7 @@ type GameListResponse struct {
 type GameListResponseItem struct {
 	GameID      string               `json:"game_id"`
 	NumStars    int                  `json:"num_stars"`
-	CurrentTurn int64                `json:"current_turn"`
+	CurrentTurn float64              `json:"current_turn"`
 	CreatedAt   *time.Time           `json:"created_at,omitempty"`
 	LastTurnAt  *time.Time           `json:"last_turn_at,omitempty"`
 	Players     []GameListPlayerInfo `json:"players"`

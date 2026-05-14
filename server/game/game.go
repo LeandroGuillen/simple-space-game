@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"math"
 	"slices"
 	. "ssg/model"
 	"time"
@@ -18,7 +19,7 @@ type Game struct {
 	Players            []*Player       `json:"players"`
 	Fleets             []*Fleet        `json:"fleets"`
 	ID                 string          `json:"id"`
-	CurrentTurn        int64           `json:"current_turn"`
+	CurrentTurn        float64         `json:"current_turn"`
 	CreatedAt          time.Time       `json:"created_at"`
 	LastTurnAt         *time.Time      `json:"last_turn_at,omitempty"`
 	Resources          *Resources      `json:"resources"`
@@ -57,7 +58,7 @@ func NewGame(resources *ResourceManager, options NewGameOptions) (*Game, error) 
 		Players:            []*Player{player1},
 		Fleets:             []*Fleet{},
 		ID:                 uuid.New().String(),
-		CurrentTurn:        3500,
+		CurrentTurn:        3500.0,
 		CreatedAt:          created,
 		Resources:          &resources.Resources,
 		PendingColonyBases: make(map[uint][]uint),
@@ -144,10 +145,14 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 	}
 	g.advanceFleetMovements()
 
-	g.CurrentTurn += 1
+	g.CurrentTurn = advanceStardate(g.CurrentTurn)
 	now := time.Now().UTC()
 	g.LastTurnAt = &now
 	return nil
+}
+
+func advanceStardate(stardate float64) float64 {
+	return math.Round((stardate+0.1)*10) / 10
 }
 
 func (g *Game) processColonizeCommand(playerID uint, command *ColonizeCommand) error {

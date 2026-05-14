@@ -30,6 +30,7 @@ import {
   formatEmpireIncomeTooltip,
   formatSigned,
   formatSignedBc,
+  formatStardate,
   gameIdShort,
   getEmpireFoodBalance,
   getEmpireIncome,
@@ -655,7 +656,7 @@ export function AppShell(props: RouteSectionProps) {
 
                     <div class="turn-stat">
                       <span>Stardate</span>
-                      <strong>{state.game?.currentTurn}</strong>
+                      <strong>{formatStardate(state.game?.currentTurn)}</strong>
                     </div>
                   </div>
                   <div class="turn-actions">
