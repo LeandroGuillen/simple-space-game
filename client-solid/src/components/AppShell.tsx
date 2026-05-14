@@ -26,9 +26,12 @@ import type {
 import {
   formatCommandCapacityTooltip,
   formatCommandPointsDisplay,
+  formatEmpireFoodTooltip,
   formatEmpireIncomeTooltip,
+  formatSigned,
   formatSignedBc,
   gameIdShort,
+  getEmpireFoodBalance,
   getEmpireIncome,
   getPlanetScienceForScientists,
   findPlanet,
@@ -340,6 +343,20 @@ export function AppShell(props: RouteSectionProps) {
       state.pendingCommands,
     ),
   );
+  const empireFoodBalance = createMemo(() =>
+    getEmpireFoodBalance(
+      state.game,
+      currentPlayer()?.id ?? state.session.playerId,
+      state.pendingCommands,
+    ),
+  );
+  const empireFoodTitle = createMemo(() =>
+    formatEmpireFoodTooltip(
+      state.game,
+      currentPlayer() ?? null,
+      state.pendingCommands,
+    ),
+  );
   const commandCapacityTitle = createMemo(() =>
     formatCommandCapacityTooltip(state.game, currentPlayer() ?? null),
   );
@@ -593,6 +610,17 @@ export function AppShell(props: RouteSectionProps) {
                     <div class="turn-stat turn-stat--accent">
                       <span>Treasury</span>
                       <strong>{currentPlayer()?.treasury ?? 0} BC</strong>
+                    </div>
+
+                    <div
+                      class="turn-stat"
+                      classList={{
+                        "turn-stat--negative": empireFoodBalance() < 0,
+                      }}
+                      title={empireFoodTitle()}
+                    >
+                      <span>Food</span>
+                      <strong>{formatSigned(empireFoodBalance())}</strong>
                     </div>
 
                     <button

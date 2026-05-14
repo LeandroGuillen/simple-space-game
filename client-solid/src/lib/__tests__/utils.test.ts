@@ -1,5 +1,6 @@
 import {
   formatGameLastTurnAt,
+  getEmpireFoodBalance,
   getColonyRows,
   getPlanetGrossIndustryForWorkers,
   getPlanetProjectedIncome,
@@ -254,5 +255,78 @@ describe("getColonyRows", () => {
     expect(row?.workers).toBe(1);
     expect(row?.scientists).toBe(5);
     expect(row?.industry).toBe(3);
+  });
+});
+
+describe("getEmpireFoodBalance", () => {
+  it("sums projected colony food production minus population consumption", () => {
+    const colony = planet({
+      population: 6000,
+      food: {
+        farmers: 2,
+        produced_per_farmer: 3,
+        produced_per_building: 1,
+      },
+      industry: {
+        workers: 2,
+        produced_per_worker: 3,
+        produced_per_building: 0,
+        produced_per_colonist: 0,
+      },
+    });
+    const game: GameViewModel = {
+      id: "test",
+      currentTurn: 1,
+      players: [],
+      fleets: [],
+      pendingColonyBases: {},
+      pendingColonyShips: {},
+      resources: {
+        shipParts: {
+          hullSizes: [],
+          drives: [],
+          armors: [],
+          computers: [],
+          fuelCells: [],
+          shields: [],
+        },
+        shipSystemCollection: { shipSystems: [] },
+        buildingCollection: { buildings: [] },
+        modifierCollection: { modifiers: [] },
+        techCollection: { techs: [] },
+        shipDesignCollection: { shipDesigns: [] },
+        techTree: { subjects: [] },
+      },
+      galaxy: {
+        width: 700,
+        height: 400,
+        stars: [
+          {
+            id: 1,
+            name: "Sol",
+            color: 0,
+            x: 0,
+            y: 0,
+            explored: true,
+            ownerColor: null,
+            ownedPlanets: 1,
+            planets: [colony],
+          },
+        ],
+      },
+    };
+
+    expect(getEmpireFoodBalance(game, 1)).toBe(1);
+    expect(
+      getEmpireFoodBalance(game, 1, {
+        build: [],
+        fleetMove: [],
+        colonize: [],
+        selectResearch: undefined,
+        movePopulation: [
+          { planetId: colony.id, from: "workers", to: "farmers", count: 2 },
+        ],
+      }),
+    ).toBe(7);
   });
 });

@@ -40,12 +40,12 @@
         letter-spacing: -0.005em;
     }
 
-    &--accent strong {
+    &.turn-stat--accent strong {
         color: var(--gold);
     }
 
-    &--negative strong {
-        color: var(--danger);
+    &.turn-stat--negative strong {
+        color: #ff5f57;
     }
 }
 

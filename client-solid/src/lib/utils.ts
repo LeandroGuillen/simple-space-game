@@ -357,6 +357,64 @@ export function getEmpireIncome(
   return colonyTotal - commandPenalty;
 }
 
+export function getEmpireFoodBalance(
+  game?: GameViewModel | null,
+  playerId = 1,
+  pendingCommands?: PendingCommands,
+) {
+  if (!game) {
+    return 0;
+  }
+  return game.galaxy.stars
+    .flatMap((star) => star.planets)
+    .filter((planet) => planet.owner === playerId)
+    .reduce((total, planet) => {
+      const allocation = getProjectedWorkerAllocation(
+        planet,
+        pendingCommands?.movePopulation ?? [],
+      );
+      const produced = getPlanetFoodForFarmers(planet, allocation.farmers);
+      const consumed = Math.floor(planet.population / 1000);
+      return total + produced - consumed;
+    }, 0);
+}
+
+export function formatEmpireFoodTooltip(
+  game: GameViewModel | null | undefined,
+  player: PlayerViewModel | null | undefined,
+  pendingCommands?: PendingCommands,
+): string {
+  if (!game || !player) {
+    return "";
+  }
+  const lines: string[] = [];
+  let producedTotal = 0;
+  let consumedTotal = 0;
+  for (const star of game.galaxy.stars) {
+    for (const planet of star.planets) {
+      if (planet.owner !== player.id) {
+        continue;
+      }
+      const allocation = getProjectedWorkerAllocation(
+        planet,
+        pendingCommands?.movePopulation ?? [],
+      );
+      const produced = getPlanetFoodForFarmers(planet, allocation.farmers);
+      const consumed = Math.floor(planet.population / 1000);
+      producedTotal += produced;
+      consumedTotal += consumed;
+      lines.push(`${planet.name} (${star.name}): ${produced} produced, ${consumed} consumed`);
+    }
+  }
+  if (lines.length === 0) {
+    return "No colonies";
+  }
+  const balance = producedTotal - consumedTotal;
+  lines.push(`Empire food: ${producedTotal} produced, ${consumedTotal} consumed`);
+  lines.push(`Balance: ${formatSigned(balance)}`);
+  return lines.join("\n");
+}
+
 /** Multi-line tooltip for empire income (colonies + command overcapacity). */
 export function formatEmpireIncomeTooltip(
   game: GameViewModel | null | undefined,
@@ -496,6 +554,10 @@ export function formatCommandCapacityTooltip(
 
 export function formatSignedBc(value: number) {
   return `${value > 0 ? "+" : ""}${value} BC`;
+}
+
+export function formatSigned(value: number) {
+  return `${value > 0 ? "+" : ""}${value}`;
 }
 
 function getProjectedWorkerAllocation(planet: PlanetViewModel, moves: MovePopulationCommand[]) {
