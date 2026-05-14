@@ -1,6 +1,27 @@
 .table-frame {
   overflow-x: auto;
   margin-top: 18px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-strong) rgba(255, 255, 255, 0.04);
+}
+
+.table-frame::-webkit-scrollbar {
+  height: 9px;
+}
+
+.table-frame::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 999px;
+}
+
+.table-frame::-webkit-scrollbar-thumb {
+  border: 2px solid rgba(255, 255, 255, 0.04);
+  border-radius: 999px;
+  background: var(--accent-strong);
+}
+
+.table-frame::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 198, 195, 0.68);
 }
 
 .data-table {
