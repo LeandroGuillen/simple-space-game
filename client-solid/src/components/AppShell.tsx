@@ -66,7 +66,7 @@ function isGameCommandPath(pathname: string) {
   );
 }
 
-/** Which campaign sidebar href should show as active (star/planet views belong to Galaxy). */
+/** Which campaign navigation href should show as active (star/planet views belong to Galaxy). */
 function campaignNavActiveHref(
   pathname: string,
 ): (typeof gameNavItems)[number]["href"] | null {
@@ -390,16 +390,17 @@ export function AppShell(props: RouteSectionProps) {
   const colonizeModalPlanets = createMemo(() => {
     const game = state.game;
     if (!game) return [];
-    const sourceStarIds = new Set(
-      [
-        ...state.pendingColonyBasePlanets
+    const sourceStarIds = new Set([
+      ...state.pendingColonyBasePlanets
         .map((planetId) => findPlanet(game, planetId)?.parentStar)
         .filter((starId): starId is number => typeof starId === "number"),
-        ...state.pendingColonyShipFleets
-          .map((fleetId) => game.fleets.find((fleet) => fleet.id === fleetId)?.starId)
-          .filter((starId): starId is number => typeof starId === "number"),
-      ],
-    );
+      ...state.pendingColonyShipFleets
+        .map(
+          (fleetId) =>
+            game.fleets.find((fleet) => fleet.id === fleetId)?.starId,
+        )
+        .filter((starId): starId is number => typeof starId === "number"),
+    ]);
     return game.galaxy.stars
       .filter((star) => sourceStarIds.has(star.id))
       .flatMap((star) => star.planets.filter(isPlanetSuitableForColonization));
@@ -407,16 +408,17 @@ export function AppShell(props: RouteSectionProps) {
   const colonizeModalStars = createMemo(() => {
     const game = state.game;
     if (!game) return [];
-    const sourceStarIds = new Set(
-      [
-        ...state.pendingColonyBasePlanets
+    const sourceStarIds = new Set([
+      ...state.pendingColonyBasePlanets
         .map((planetId) => findPlanet(game, planetId)?.parentStar)
         .filter((starId): starId is number => typeof starId === "number"),
-        ...state.pendingColonyShipFleets
-          .map((fleetId) => game.fleets.find((fleet) => fleet.id === fleetId)?.starId)
-          .filter((starId): starId is number => typeof starId === "number"),
-      ],
-    );
+      ...state.pendingColonyShipFleets
+        .map(
+          (fleetId) =>
+            game.fleets.find((fleet) => fleet.id === fleetId)?.starId,
+        )
+        .filter((starId): starId is number => typeof starId === "number"),
+    ]);
     return game.galaxy.stars.filter(
       (star) =>
         sourceStarIds.has(star.id) &&
@@ -567,15 +569,14 @@ export function AppShell(props: RouteSectionProps) {
         fallback={<main class="content content--route">{props.children}</main>}
       >
         <div class="workspace">
-          <aside class="sidebar panel" aria-label="Campaign">
-            <div class="sidebar-block sidebar-block--campaign">
-              <p class="eyebrow">Campaign</p>
-              <nav class="nav-list" aria-label="Game commands">
+          <nav class="campaign-nav panel" aria-label="Campaign">
+            <div class="campaign-nav-inner">
+              <div class="campaign-nav-list" aria-label="Game commands">
                 <For each={gameNavItems}>
                   {(item) => (
                     <A
                       href={item.href}
-                      class="nav-link"
+                      class="campaign-nav-link"
                       classList={{
                         active: activeCampaignNavHref() === item.href,
                       }}
@@ -589,9 +590,9 @@ export function AppShell(props: RouteSectionProps) {
                     </A>
                   )}
                 </For>
-              </nav>
+              </div>
             </div>
-          </aside>
+          </nav>
 
           <div class="game-main">
             <Show when={state.game}>
@@ -790,7 +791,11 @@ export function AppShell(props: RouteSectionProps) {
             >
               <div class="research-modal-header">
                 <div>
-                  <p class="eyebrow">{state.pendingColonyShipFleets.length > 0 ? "Colony Ship Ready" : "Colony Base Ready"}</p>
+                  <p class="eyebrow">
+                    {state.pendingColonyShipFleets.length > 0
+                      ? "Colony Ship Ready"
+                      : "Colony Base Ready"}
+                  </p>
                   <h2 id="colonize-modal-title">Select Target Planet</h2>
                 </div>
                 <button
@@ -807,7 +812,11 @@ export function AppShell(props: RouteSectionProps) {
                 fallback={
                   <div class="research-breakthrough-notice">
                     <span>No suitable planets for colonization</span>
-                    <strong>{state.pendingColonyShipFleets.length > 0 ? "Colony Ship retained" : "Colony Base lost"}</strong>
+                    <strong>
+                      {state.pendingColonyShipFleets.length > 0
+                        ? "Colony Ship retained"
+                        : "Colony Base lost"}
+                    </strong>
                   </div>
                 }
               >
@@ -815,18 +824,24 @@ export function AppShell(props: RouteSectionProps) {
                   <For each={colonizeModalStars()}>
                     {(star) => {
                       return (
-                        <article class="colonize-system-panel" aria-label={star.name}>
+                        <article
+                          class="colonize-system-panel"
+                          aria-label={star.name}
+                        >
                           <div class="planet-list">
                             <For each={star.planets}>
                               {(planet) => {
-                                const eligible = () => isPlanetSuitableForColonization(planet);
+                                const eligible = () =>
+                                  isPlanetSuitableForColonization(planet);
                                 return (
                                   <button
                                     type="button"
                                     class="planet-card colonize-planet-card"
                                     classList={{ "is-eligible": eligible() }}
                                     disabled={!eligible()}
-                                    onClick={() => selectColonizeTarget(planet.id)}
+                                    onClick={() =>
+                                      selectColonizeTarget(planet.id)
+                                    }
                                   >
                                     <div class="planet-card-visual">
                                       <PlanetVisual
@@ -840,7 +855,9 @@ export function AppShell(props: RouteSectionProps) {
                                           style={{
                                             color:
                                               planet.owner > 0
-                                                ? playerColorById().get(planet.owner) ?? "var(--text)"
+                                                ? (playerColorById().get(
+                                                    planet.owner,
+                                                  ) ?? "var(--text)")
                                                 : "var(--text)",
                                           }}
                                         >
@@ -848,12 +865,15 @@ export function AppShell(props: RouteSectionProps) {
                                         </span>
                                       </p>
                                       <p>
-                                        {labelForEnvironment(planet.environment)} ·{" "}
-                                        {labelForSize(planet.size)} ·{" "}
+                                        {labelForEnvironment(
+                                          planet.environment,
+                                        )}{" "}
+                                        · {labelForSize(planet.size)} ·{" "}
                                         {labelForMinerals(planet.mineralClass)}
                                       </p>
                                       <p>
-                                        Gravity: {labelForGravity(planet.gravity)}
+                                        Gravity:{" "}
+                                        {labelForGravity(planet.gravity)}
                                         <Show when={planet.owner > 0}>
                                           {" "}
                                           · Population {planet.population}/

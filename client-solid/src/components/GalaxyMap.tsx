@@ -385,7 +385,6 @@ export function GalaxyMap(props: GalaxyMapProps) {
   return (
     <div class="galaxy-map-shell">
       <div class="galaxy-map-toolbar" aria-label="Galaxy map controls">
-        <span>Num stars: {props.stars.length}</span>
         <button
           class="galaxy-map-control"
           type="button"
