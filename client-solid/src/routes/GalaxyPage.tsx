@@ -260,14 +260,15 @@ export function GalaxyPage() {
                       }
                     >
                       {star().planets.map((planet) => (
-                        <article class="planet-card">
-                          <div class="planet-card-visual">
-                            <A href={`/stars/${star().id}/planets/${planet.id}`}>
-                              <PlanetVisual
-                                environment={planet.environment}
-                                size="small"
-                              />
-                            </A>
+                        <A
+                          class="planet-card planet-card-link"
+                          href={`/stars/${star().id}/planets/${planet.id}`}
+                        >
+                          <div class="planet-card-visual" aria-hidden="true">
+                            <PlanetVisual
+                              environment={planet.environment}
+                              size="small"
+                            />
                           </div>
                           <div class="planet-card-info">
                             <p class="planet-title">
@@ -275,9 +276,8 @@ export function GalaxyPage() {
                                 when={planet.owner > 0}
                                 fallback={<span>{planet.name}</span>}
                               >
-                                <A
+                                <span
                                   class="planet-name-link"
-                                  href={`/stars/${star().id}/planets/${planet.id}`}
                                   style={{
                                     color:
                                       playerColorById().get(planet.owner) ??
@@ -285,7 +285,7 @@ export function GalaxyPage() {
                                   }}
                                 >
                                   {planet.name}
-                                </A>
+                                </span>
                               </Show>
                             </p>
                             <p>
@@ -307,7 +307,7 @@ export function GalaxyPage() {
                                 : "Uncontrolled"}
                             </p>
                           </div>
-                        </article>
+                        </A>
                       ))}
                     </Show>
                   </div>

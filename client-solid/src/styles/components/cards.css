@@ -139,6 +139,29 @@
   }
 }
 
+.planet-card-link {
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--surface-quiet);
+    outline: none;
+  }
+
+  &:focus-visible {
+    box-shadow: inset 2px 0 0 var(--accent);
+  }
+
+  &:hover .planet-name-link,
+  &:focus-visible .planet-name-link {
+    text-decoration-color: currentColor;
+  }
+}
+
 .planet-card-visual {
   flex-shrink: 0;
   width: 44px;
@@ -168,10 +191,6 @@
   transition:
     text-decoration-color 0.12s ease,
     opacity 0.12s ease;
-
-  &:hover {
-    text-decoration-color: currentColor;
-  }
 
   &:focus-visible {
     outline: 1px solid currentColor;
