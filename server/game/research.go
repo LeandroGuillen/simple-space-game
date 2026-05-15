@@ -29,9 +29,23 @@ func (g *Game) selectResearch(player *Player, cmd SelectResearchCommand) error {
 	if isResearchLevelComplete(player, level) {
 		return fmt.Errorf("research level %q is already complete", level.Name)
 	}
+	if tech, ok := g.findTechDefinition(cmd.TechName); ok {
+		if err := g.validateResearchTechForGovernment(player, tech); err != nil {
+			return err
+		}
+	}
 	if level.ForceAll {
 		if player.CurrentResearch != nil && player.CurrentResearch.LevelName == level.Name {
 			return nil
+		}
+		for _, techName := range level.AvailableTechs {
+			tech, ok := g.findTechDefinition(techName)
+			if !ok {
+				continue
+			}
+			if err := g.validateResearchTechForGovernment(player, tech); err != nil {
+				return err
+			}
 		}
 		player.CurrentResearch = &ResearchProject{
 			Subject:   level.Name,
@@ -58,6 +72,27 @@ func (g *Game) selectResearch(player *Player, cmd SelectResearchCommand) error {
 		TechNames: []string{cmd.TechName},
 		LevelName: level.Name,
 		Progress:  player.ResearchPoints,
+	}
+	return nil
+}
+
+func (g *Game) validateResearchTechForGovernment(player *Player, tech Tech) error {
+	if isGovernmentTech(tech) {
+		if isBaseGovernment(tech) {
+			return fmt.Errorf("base government %q cannot be selected as research", tech.Name)
+		}
+		active, ok := activeGovernmentTech(g, player)
+		if !ok || !isGovernmentUpgradeAllowed(player, tech, active) {
+			activeName := ""
+			if ok {
+				activeName = active.Name
+			}
+			return fmt.Errorf("advanced government %q does not upgrade current government %q", tech.Name, activeName)
+		}
+		return nil
+	}
+	if governmentMoraleNeutral(g, player) && techUnlocksMoraleBuilding(g.Resources, tech) {
+		return fmt.Errorf("government %q cannot research morale building tech %q", player.Race.Government, tech.Name)
 	}
 	return nil
 }

@@ -2,6 +2,7 @@ import type {
   ApiGame,
   ApiGameListItem,
   ApiGameUpdateMessage,
+  ApiGovernment,
   ApiPlayerColorOptions,
   ApiShipParts,
   ApiStatusResponse,
@@ -79,11 +80,18 @@ export class ApiClient {
       headers: this.headers(),
       body: JSON.stringify({
         name: design.name,
+        government: design.government,
         trait_ids: design.trait_ids,
       }),
     });
     const body = await readJson<{ custom_race: CustomRaceDesign }>(response);
     return body.custom_race;
+  }
+
+  async getGovernments() {
+    const response = await fetch(`${this.baseUrl}/resources/governments`);
+    const body = await readJson<{ governments: ApiGovernment[] }>(response);
+    return body.governments;
   }
 
   async deleteCustomRace(name: string) {

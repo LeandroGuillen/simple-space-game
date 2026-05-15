@@ -11,6 +11,7 @@ import (
 func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error {
 
 	hydratePlanetMorale(game, p, player)
+	hydratePlanetGovernment(game, p, player)
 	hydratePlanetOutputs(game, p)
 
 	// population movement
@@ -39,7 +40,7 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 	oldPopulation := p.Population
 	growth := PopulationGrowthFromFood(
 		p.Population,
-		PlanetFoodProduced(p),
+		GamePlanetFoodProduced(game, p),
 		maxPop,
 		player.Race.Stats.PopulationGrowthPercent,
 		PopulationGrowthBonus(game, p),
@@ -73,7 +74,7 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 	capAssignedPopulation(p)
 
 	// industry output
-	industryProduced := PlanetIndustryProduced(p)
+	industryProduced := GamePlanetIndustryProduced(game, p)
 
 	var planetBuildCommand *BuildCommand
 	for _, command := range commands.Build {
@@ -354,7 +355,22 @@ func effectiveBuildingCost(p *Planet, building Building, game *Game) int64 {
 		}
 		upgradeCredit = max(upgradeCredit, upgradedBuilding.Cost)
 	}
-	return max(0, building.Cost-upgradeCredit)
+	cost := max(0, building.Cost-upgradeCredit)
+	if isShipProductionProject(building.Name) {
+		player := gamePlayerForPlanet(game, p)
+		multiplier := governmentShipCostMultiplier(game, player)
+		if multiplier < 0 {
+			multiplier = 0
+		}
+		if multiplier != 0 && multiplier != 1 {
+			cost = int64(math.Ceil(float64(cost)*multiplier - 0.0000001))
+		}
+	}
+	return cost
+}
+
+func isShipProductionProject(buildingName string) bool {
+	return strings.HasSuffix(buildingName, " Ship")
 }
 
 func hasSuperiorBuilding(p *Planet, buildingName string, game *Game) bool {

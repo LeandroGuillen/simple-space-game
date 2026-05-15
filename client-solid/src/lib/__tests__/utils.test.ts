@@ -1,6 +1,11 @@
 import {
+  formatCommandPointsDisplay,
   formatGameLastTurnAt,
+  formatInteger,
+  formatSigned,
+  formatSignedBc,
   formatStardate,
+  formatTreasury,
   getEmpireFoodBalance,
   getColonyRows,
   getPlanetGrossIndustryForWorkers,
@@ -115,6 +120,32 @@ describe("formatStardate", () => {
   it("keeps one fractional digit", () => {
     expect(formatStardate(3500)).toBe("3500.0");
     expect(formatStardate(3500.9)).toBe("3500.9");
+  });
+});
+
+describe("top bar number formatting", () => {
+  it("adds thousands separators to integer and signed values", () => {
+    expect(formatInteger(1234567)).toBe("1,234,567");
+    expect(formatSigned(1234)).toBe("+1,234");
+    expect(formatSigned(-1234)).toBe("-1,234");
+    expect(formatSignedBc(1234)).toBe("+1,234 BC");
+  });
+
+  it("compacts large treasury values", () => {
+    expect(formatTreasury(99999)).toBe("99,999");
+    expect(formatTreasury(100000)).toBe("100K");
+    expect(formatTreasury(999999)).toBe("999K");
+    expect(formatTreasury(1000000)).toBe("1M");
+    expect(formatTreasury(1100000)).toBe("1.1M");
+  });
+
+  it("adds thousands separators to command point display", () => {
+    expect(
+      formatCommandPointsDisplay({
+        commandPointsRemaining: 1200,
+        commandPointsCapacity: 3000,
+      } as Parameters<typeof formatCommandPointsDisplay>[0]),
+    ).toBe("+1,200 (3,000)");
   });
 });
 

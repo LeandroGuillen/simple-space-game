@@ -11,7 +11,7 @@ import (
 func TestNewGalaxy(t *testing.T) {
 	g := game.NewGalaxy(1)
 	assert.Equal(t, len(g.Stars), 1)
-	assert.Equal(t, int64(700), g.Width)
+	assert.Equal(t, int64(600), g.Width)
 	assert.Equal(t, int64(400), g.Height)
 }
 
@@ -22,10 +22,10 @@ func TestNewGalaxyForSizeSetsDimensions(t *testing.T) {
 		wantWidth  int64
 		wantHeight int64
 	}{
-		{name: "tiny", galaxySize: "tiny", wantWidth: 700, wantHeight: 400},
-		{name: "medium", galaxySize: "medium", wantWidth: 990, wantHeight: 566},
-		{name: "huge", galaxySize: "huge", wantWidth: 1278, wantHeight: 730},
-		{name: "unknown", galaxySize: "massive", wantWidth: 700, wantHeight: 400},
+		{name: "tiny", galaxySize: "tiny", wantWidth: 240, wantHeight: 180},
+		{name: "medium", galaxySize: "medium", wantWidth: 600, wantHeight: 400},
+		{name: "huge", galaxySize: "huge", wantWidth: 1000, wantHeight: 800},
+		{name: "unknown", galaxySize: "massive", wantWidth: 600, wantHeight: 400},
 	}
 
 	for _, tt := range tests {
@@ -56,8 +56,8 @@ func TestNewHugeGalaxyPlacesStarsWithinBoundsAndMinSeparation(t *testing.T) {
 	game.SetRandomSeed(4242)
 	g := game.NewGalaxyForSize(50, "huge")
 	assert.Len(t, g.Stars, 50)
-	assert.Equal(t, int64(1278), g.Width)
-	assert.Equal(t, int64(730), g.Height)
+	assert.Equal(t, int64(1000), g.Width)
+	assert.Equal(t, int64(800), g.Height)
 
 	minDist := float64(60)
 	for i := 0; i < len(g.Stars); i++ {
@@ -94,6 +94,6 @@ func TestCalibratedParsecDistanceExamples(t *testing.T) {
 func TestNewEmptyGalaxy(t *testing.T) {
 	galaxy := game.NewEmptyGalaxy()
 	assert.Equal(t, len(galaxy.Stars), 0, "galaxy should be empty")
-	assert.Equal(t, int64(700), galaxy.Width)
+	assert.Equal(t, int64(600), galaxy.Width)
 	assert.Equal(t, int64(400), galaxy.Height)
 }

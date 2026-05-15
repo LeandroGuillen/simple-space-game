@@ -33,9 +33,10 @@ type RaceHomeworldModifier struct {
 }
 
 type CustomRaceDesign struct {
-	Name     string   `json:"name"`
-	TraitIDs []string `json:"trait_ids"`
-	Playable bool     `json:"playable"`
+	Name       string   `json:"name"`
+	Government string   `json:"government"`
+	TraitIDs   []string `json:"trait_ids"`
+	Playable   bool     `json:"playable"`
 }
 
 var raceTraitDefinitions = []RaceTraitDefinition{
@@ -63,10 +64,6 @@ var raceTraitDefinitions = []RaceTraitDefinition{
 	{ID: "ship_attack", Name: "Ship Attack", Category: "Future Traits", PickCost: 0, Enabled: false, Description: "Requires combat."},
 	{ID: "ground_combat", Name: "Ground Combat", Category: "Future Traits", PickCost: 0, Enabled: false, Description: "Requires ground combat."},
 	{ID: "spying", Name: "Spying", Category: "Future Traits", PickCost: 0, Enabled: false, Description: "Requires espionage."},
-	{ID: "feudal", Name: "Feudal", Category: "Future Traits", PickCost: -4, ExclusiveGroup: "government", Enabled: false, Description: "Requires government rules."},
-	{ID: "dictatorship", Name: "Dictatorship", Category: "Future Traits", PickCost: 0, ExclusiveGroup: "government", Enabled: false, Description: "Requires government rules."},
-	{ID: "democracy", Name: "Democracy", Category: "Future Traits", PickCost: 7, ExclusiveGroup: "government", Enabled: false, Description: "Requires government rules."},
-	{ID: "unification", Name: "Unification", Category: "Future Traits", PickCost: 6, ExclusiveGroup: "government", Enabled: false, Description: "Requires government rules."},
 	{ID: "low_g_world", Name: "Low-G World", Category: "Future Traits", PickCost: -5, Enabled: false, Description: "Requires gravity rules."},
 	{ID: "high_g_world", Name: "High-G World", Category: "Future Traits", PickCost: 6, Enabled: false, Description: "Requires gravity rules."},
 	{ID: "aquatic", Name: "Aquatic", Category: "Future Traits", PickCost: 5, Enabled: false, Description: "Requires aquatic planet capacity rules."},
@@ -91,26 +88,27 @@ func DefaultRace(name string) model.Race {
 	if name == "" {
 		name = "Human"
 	}
-	return model.Race{Name: name}
+	return model.Race{Name: name, Government: "Dictatorship"}
 }
 
-func BuildCustomRace(design CustomRaceDesign) (model.Race, error) {
-	return buildCustomRace(design, false)
+func BuildCustomRace(resources *ResourceManager, design CustomRaceDesign) (model.Race, error) {
+	return buildCustomRace(resources, design, false)
 }
 
-func SaveableCustomRace(design CustomRaceDesign) (CustomRaceDesign, error) {
-	race, err := buildCustomRace(design, true)
+func SaveableCustomRace(resources *ResourceManager, design CustomRaceDesign) (CustomRaceDesign, error) {
+	race, err := buildCustomRace(resources, design, true)
 	if err != nil {
 		return CustomRaceDesign{}, err
 	}
 	return CustomRaceDesign{
-		Name:     race.Name,
-		TraitIDs: append([]string(nil), race.TraitIDs...),
-		Playable: racePlayable(design.TraitIDs),
+		Name:       race.Name,
+		Government: race.Government,
+		TraitIDs:   append([]string{}, race.TraitIDs...),
+		Playable:   racePlayable(resources, race.Government, race.TraitIDs),
 	}, nil
 }
 
-func buildCustomRace(design CustomRaceDesign, allowUnplayable bool) (model.Race, error) {
+func buildCustomRace(resources *ResourceManager, design CustomRaceDesign, allowUnplayable bool) (model.Race, error) {
 	name := strings.TrimSpace(design.Name)
 	if name == "" {
 		return model.Race{}, fmt.Errorf("custom race name is required")
@@ -118,13 +116,28 @@ func buildCustomRace(design CustomRaceDesign, allowUnplayable bool) (model.Race,
 	if len(name) > 32 {
 		return model.Race{}, fmt.Errorf("custom race name cannot exceed 32 characters")
 	}
+	if resources == nil {
+		return model.Race{}, fmt.Errorf("resources are required")
+	}
+
+	governmentName := strings.TrimSpace(design.Government)
+	if governmentName == "" {
+		governmentName = defaultGovernmentName(&resources.Resources)
+	}
+	government, ok := findGovernmentTech(&resources.Resources, governmentName)
+	if !ok {
+		return model.Race{}, fmt.Errorf("unknown government %q", governmentName)
+	}
+	if !isBaseGovernment(government) {
+		return model.Race{}, fmt.Errorf("government %q is not available at race creation", governmentName)
+	}
 
 	byID := raceTraitDefinitionsByID()
 	seen := map[string]bool{}
 	exclusiveGroups := map[string]string{}
-	totalCost := 0
-	negativeCost := 0
-	race := model.Race{Name: name, TraitIDs: make([]string, 0, len(design.TraitIDs))}
+	totalCost := government.PickCost
+	negativeCost := max(0, -government.PickCost)
+	race := model.Race{Name: name, Government: government.Name, TraitIDs: make([]string, 0, len(design.TraitIDs))}
 
 	for _, traitID := range design.TraitIDs {
 		def, ok := byID[traitID]
@@ -173,10 +186,17 @@ func buildCustomRace(design CustomRaceDesign, allowUnplayable bool) (model.Race,
 	return race, nil
 }
 
-func racePlayable(traitIDs []string) bool {
+func racePlayable(resources *ResourceManager, governmentName string, traitIDs []string) bool {
+	if resources == nil {
+		return false
+	}
+	government, ok := findGovernmentTech(&resources.Resources, governmentName)
+	if !ok || !isBaseGovernment(government) {
+		return false
+	}
 	byID := raceTraitDefinitionsByID()
-	totalCost := 0
-	negativeCost := 0
+	totalCost := government.PickCost
+	negativeCost := max(0, -government.PickCost)
 	for _, traitID := range traitIDs {
 		def, ok := byID[traitID]
 		if !ok || !def.Enabled {

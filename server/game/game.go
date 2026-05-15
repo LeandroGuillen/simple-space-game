@@ -49,6 +49,9 @@ func NewGame(resources *ResourceManager, options NewGameOptions) (*Game, error) 
 	if race.Name == "" {
 		race = DefaultRace("Human")
 	}
+	if race.Government == "" {
+		race.Government = defaultGovernmentName(&resources.Resources)
+	}
 
 	firstPlayerID := uint(1)
 	player1 := NewPlayer(firstPlayerID, playerName, playerColor, race)
@@ -117,7 +120,7 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 			return err
 		}
 		totalIncome += colony.Income.Total
-		totalResearch += PlanetScienceProduced(colony)
+		totalResearch += GamePlanetScienceProduced(g, colony)
 	}
 
 	colonizeCommands := commands.ColonizeMany
@@ -205,6 +208,7 @@ func (g *Game) CreateCapitalPlanet(ownerID uint) error {
 	buildOnPlanet(g, planet, "Star Base")
 	buildOnPlanet(g, planet, "Marine Barracks")
 
+	hydratePlanetGovernment(g, planet, player)
 	hydratePlanetPopulationCapacity(g, planet, player)
 	hydratePlanetMorale(g, planet, player)
 	hydratePlanetOutputs(g, planet)
@@ -468,10 +472,11 @@ func (g *Game) GetColonyList(playerID uint) ([]*Planet, error) {
 	for _, star := range g.Galaxy.Stars {
 		for _, planet := range star.Planets {
 			if planet.Owner == playerID {
+				hydratePlanetGovernment(g, planet, player)
 				hydratePlanetMorale(g, planet, player)
 				hydratePlanetOutputs(g, planet)
 				hydratePlanetPopulationCapacity(g, planet, player)
-				hydratePlanetIncome(g, planet, PlanetIndustryProduced(planet))
+				hydratePlanetIncome(g, planet, GamePlanetIndustryProduced(g, planet))
 				colonyList = append(colonyList, planet)
 			}
 		}

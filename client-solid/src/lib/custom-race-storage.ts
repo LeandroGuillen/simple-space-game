@@ -1,5 +1,5 @@
 import type { CustomRaceDesign } from "./types/api";
-import { isRaceTraitId } from "./race-design";
+import { DEFAULT_GOVERNMENT, isRaceTraitId } from "./race-design";
 
 const CUSTOM_RACE_DRAFT_KEY = "client-solid.customRaceDraft";
 const SETUP_FORM_OPEN_KEY = "client-solid.setupFormOpen";
@@ -10,10 +10,11 @@ export function getCustomRaceDraft(): CustomRaceDesign | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<CustomRaceDesign>;
     const name = typeof parsed.name === "string" ? parsed.name : "";
+    const government = typeof parsed.government === "string" && parsed.government ? parsed.government : DEFAULT_GOVERNMENT;
     const traitIds = Array.isArray(parsed.trait_ids)
-      ? parsed.trait_ids.filter((id): id is CustomRaceDesign["trait_ids"][number] => typeof id === "string" && isRaceTraitId(id))
+      ? parsed.trait_ids.filter((id): id is NonNullable<CustomRaceDesign["trait_ids"]>[number] => typeof id === "string" && isRaceTraitId(id))
       : [];
-    return { name, trait_ids: traitIds, playable: parsed.playable === true };
+    return { name, government, trait_ids: traitIds, playable: parsed.playable === true };
   } catch {
     return null;
   }

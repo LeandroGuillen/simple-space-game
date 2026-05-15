@@ -29,6 +29,10 @@ type Tech struct {
 	Name        string   `json:"name"`
 	Description string   `json:"description,omitempty"`
 	Hidden      bool     `json:"hidden,omitempty"`
+	Type        string   `json:"type,omitempty"`
+	PickCost    int      `json:"pick_cost,omitempty"`
+	Default     bool     `json:"default,omitempty"`
+	Upgrades    []string `json:"upgrades,omitempty"`
 	Cost        int64    `json:"cost,omitempty"`
 	Maintenance int64    `json:"maintenance,omitempty"`
 	BuiltOn     []string `json:"built_on,omitempty"`

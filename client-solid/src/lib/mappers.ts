@@ -62,13 +62,20 @@ export function mapGame(apiGame: ApiGame): GameViewModel {
   const buildingByName = new Map(
     buildings.map((building) => [building.name.toLowerCase(), building]),
   );
+  const techs =
+    apiGame.resources.tech_tree?.all_techs?.map(mapTech) ??
+    apiGame.resources.tech_collection?.techs?.map(mapTech) ??
+    [];
+  const governmentByPlayerId = new Map(
+    players.map((player) => [player.id, activeGovernmentForPlayer(player, techs)]),
+  );
 
-return {
+  return {
     id: apiGame.id,
     currentTurn: apiGame.current_turn,
     galaxy: {
       stars: apiGame.galaxy.stars.map((star) =>
-        mapStar(star, playerColorById, buildingByName),
+        mapStar(star, playerColorById, buildingByName, governmentByPlayerId),
       ),
       width: apiGame.galaxy.width ?? DEFAULT_GALAXY_WIDTH,
       height: apiGame.galaxy.height ?? DEFAULT_GALAXY_HEIGHT,
@@ -105,10 +112,7 @@ return {
           apiGame.resources.tech_tree?.subjects?.map(mapTechSubject) ?? [],
       },
       techCollection: {
-        techs:
-          apiGame.resources.tech_tree?.all_techs?.map(mapTech) ??
-          apiGame.resources.tech_collection?.techs?.map(mapTech) ??
-          [],
+        techs,
       },
     },
     pendingColonyBases: apiGame.pending_colony_bases ?? {},
@@ -157,6 +161,7 @@ function mapPlayer(player: ApiPlayer): PlayerViewModel {
     name: player.name,
     color: player.color,
     raceName: player.race?.name || "Unassigned",
+    raceGovernment: player.race?.government || "Dictatorship",
     raceTraitIds: player.race?.trait_ids ?? [],
     raceGrants: mapGrants(player.race?.grants),
     treasury: player.treasury,
@@ -209,6 +214,10 @@ function mapTech(tech: ApiTech): TechViewModel {
     name: tech.name,
     description: tech.description ?? "",
     hidden: Boolean(tech.hidden),
+    type: tech.type ?? "",
+    pickCost: tech.pick_cost ?? 0,
+    default: Boolean(tech.default),
+    upgrades: tech.upgrades ?? [],
     cost: tech.cost ?? 0,
     maintenance: tech.maintenance ?? 0,
     builtOn: tech.built_on ?? [],
@@ -221,10 +230,11 @@ function mapStar(
   star: ApiStar,
   playerColorById: Map<number, string>,
   buildingByName: Map<string, BuildingViewModel>,
+  governmentByPlayerId: Map<number, TechViewModel | null>,
 ): StarSummary {
   const explored = Boolean(star.name);
   const planets = (star.planets ?? []).map((planet) =>
-    mapPlanet(planet, buildingByName),
+    mapPlanet(planet, buildingByName, governmentByPlayerId.get(planet.owner) ?? null),
   );
   const ownedBy = planets.find((planet) => planet.owner > 0)?.owner;
   return {
@@ -253,6 +263,7 @@ export function mapPlayerColorOptions(options: {
 function mapPlanet(
   planet: ApiPlanet,
   buildingByName: Map<string, BuildingViewModel>,
+  government: TechViewModel | null,
 ): PlanetViewModel {
   const buildings =
     planet.buildings
@@ -288,6 +299,7 @@ function mapPlanet(
           bonus: source.bonus,
         })) ?? [],
     },
+    government: mapPlanetGovernment(planet, government),
     pollution: planet.pollution ?? 0,
     marines: planet.marines,
     armor: planet.armor,
@@ -304,6 +316,65 @@ function mapPlanet(
     autobuild: planet.autobuild ?? false,
     maxPopulation: planet.max_population ?? planet.size * 4 * 1000,
   };
+}
+
+function activeGovernmentForPlayer(player: PlayerViewModel, techs: TechViewModel[]) {
+  let active =
+    techs.find((tech) => tech.type === "government" && tech.name === player.raceGovernment) ??
+    techs.find((tech) => tech.type === "government" && tech.default) ??
+    null;
+  if (!active) return null;
+  const researched = new Set(player.researchedTechs);
+  const seen = new Set([active.name]);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const tech of techs) {
+      if (tech.type !== "government" || tech.upgrades.length === 0 || !researched.has(tech.name)) {
+        continue;
+      }
+      if (!tech.upgrades.includes(active.name)) {
+        continue;
+      }
+      if (seen.has(tech.name)) {
+        return active;
+      }
+      seen.add(tech.name);
+      active = tech;
+      changed = true;
+      break;
+    }
+  }
+  return active;
+}
+
+function mapPlanetGovernment(planet: ApiPlanet, government: TechViewModel | null) {
+  if (planet.government) {
+    return {
+      name: planet.government.name ?? government?.name ?? "",
+      foodLaborMultiplier: planet.government.food_labor_multiplier ?? 1,
+      industryLaborMultiplier: planet.government.industry_labor_multiplier ?? 1,
+      scienceLaborMultiplier: planet.government.science_labor_multiplier ?? 1,
+      taxMultiplier: planet.government.tax_multiplier ?? 1,
+      moraleNeutral: Boolean(planet.government.morale_neutral),
+    };
+  }
+  return mapGovernmentOutputModifiers(government);
+}
+
+function mapGovernmentOutputModifiers(government: TechViewModel | null) {
+  return {
+    name: government?.name ?? "",
+    foodLaborMultiplier: governmentModifierValue(government, "food_labor_multiplier", 1),
+    industryLaborMultiplier: governmentModifierValue(government, "industry_labor_multiplier", 1),
+    scienceLaborMultiplier: governmentModifierValue(government, "science_labor_multiplier", 1),
+    taxMultiplier: governmentModifierValue(government, "tax_multiplier", 1),
+    moraleNeutral: Boolean(government?.grants.modifiers.some((modifier) => modifier.name === "morale_neutral")),
+  };
+}
+
+function governmentModifierValue(government: TechViewModel | null, modifierName: string, fallback: number) {
+  return government?.grants.modifiers.find((modifier) => modifier.name === modifierName)?.value ?? fallback;
 }
 
 function mapPlanetBuilding(

@@ -29,10 +29,25 @@
 .setup-games {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   padding: 14px 16px 14px 18px;
   border-left: 1px solid var(--rule);
   min-height: 240px;
+}
+
+.setup-games-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.setup-new-game-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
 }
 
 .setup-panel-header {
@@ -199,20 +214,16 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 22px 12px;
+  gap: 12px;
+  padding: 28px 12px;
   text-align: center;
   flex: 1;
   justify-content: center;
 }
 
 .empty-text {
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   color: var(--text-dim);
-}
-
-.create-first {
-  margin-top: 0;
 }
 
 .game-list {
@@ -320,60 +331,243 @@
   padding-top: 2px;
 }
 
-.new-game-button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 6px;
+/* ───────────────────────── New Game modal ───────────────────────── */
+
+.ng-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(2, 8, 14, 0.7);
+  backdrop-filter: blur(8px);
+  animation: ng-fade 0.16s ease-out;
 }
 
-.new-game-form {
+.ng-modal {
+  width: min(520px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow: auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 12px;
-  padding-top: 12px;
+  background: var(--bg-elev);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 20px 60px rgba(0, 0, 0, 0.55);
+  animation: ng-rise 0.18s ease-out;
 }
 
-.new-game-row {
+@keyframes ng-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes ng-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ng-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 24px 6px;
+
+  & h2 {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+}
+
+.ng-subtitle {
+  margin: 4px 0 0;
+  font-size: 0.78rem;
+  color: var(--text-mute);
+}
+
+.ng-close {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-mute);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+
+  &:hover {
+    background: var(--surface-quiet);
+    color: var(--text);
+  }
+}
+
+.ng-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px 24px 22px;
+}
+
+.ng-row {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
 }
 
-.field {
+.ng-row-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-mute);
+  font-weight: 600;
+}
+
+.ng-row-control {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
+}
 
-  & span {
-    font-size: 0.65rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+.ng-row-error {
+  margin: 2px 0 0;
+  color: var(--danger);
+  font-size: 0.72rem;
+}
+
+.ng-input {
+  padding: 8px 10px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--rule-strong);
+  border-radius: 0;
+  color: var(--text);
+  font-size: 0.88rem;
+  transition: border-color 0.12s ease;
+
+  &:focus {
+    outline: none;
+    border-bottom-color: var(--accent);
+  }
+
+  &::placeholder {
     color: var(--text-mute);
   }
+}
 
-  & input {
-    padding: 7px 9px;
-    background: var(--bg-elev);
-    border: 1px solid var(--rule-strong);
-    border-radius: var(--radius-sm);
+.ng-toggle-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ng-toggle {
+  min-height: 28px;
+  padding: 5px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--surface-quiet);
+  color: var(--text-dim);
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease,
+    color 0.12s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
     color: var(--text);
-    font-size: 0.82rem;
+  }
 
-    &:focus {
-      outline: none;
-      border-color: var(--accent-strong);
+  &.selected {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  &.ng-toggle--link {
+    background: transparent;
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    padding-inline: 6px;
+
+    &:hover {
+      background: var(--surface-quiet);
     }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  &:disabled {
+    opacity: 0.48;
+    cursor: not-allowed;
   }
 }
 
-.new-game-options {
+.color-swatches {
   display: flex;
-  flex-direction: column;
   gap: 6px;
+  flex-wrap: wrap;
 }
 
+.color-swatch {
+  width: 24px;
+  height: 24px;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  padding: 0;
+  background-clip: padding-box;
+  transition:
+    border-color 0.12s ease,
+    transform 0.12s ease;
+
+  &:hover {
+    transform: scale(1.08);
+  }
+
+  &.selected {
+    border-color: var(--text);
+  }
+}
+
+.ng-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* legacy option-row toggles used by ShipDesignModal */
 .option-row {
   display: grid;
   grid-template-columns: 92px minmax(0, 1fr);
@@ -423,20 +617,6 @@
     color: var(--text);
   }
 
-  &.option-toggle--link {
-    border-color: transparent;
-    background: transparent;
-    color: var(--accent-strong);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    padding-inline: 4px;
-
-    &:hover {
-      background: var(--surface-quiet);
-      border-color: transparent;
-    }
-  }
-
   &:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 1px;
@@ -446,77 +626,6 @@
     opacity: 0.48;
     cursor: not-allowed;
   }
-}
-
-.color-swatches {
-  display: flex;
-  gap: 5px;
-  flex-wrap: wrap;
-}
-
-.color-swatch {
-  width: 22px;
-  height: 22px;
-  border: 2px solid transparent;
-  border-radius: 50%;
-  cursor: pointer;
-  transition:
-    border-color 0.12s ease,
-    transform 0.12s ease;
-
-  &:hover {
-    transform: scale(1.08);
-  }
-
-  &.selected {
-    border-color: var(--text);
-  }
-}
-
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.setup-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 20;
-  display: grid;
-  place-items: center;
-  padding: 18px;
-  background: rgb(0 0 0 / 0.52);
-}
-
-.setup-modal {
-  width: min(360px, 100%);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  background: var(--surface);
-  border: 1px solid var(--rule-strong);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-soft);
-}
-
-.setup-modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  & h2 {
-    margin: 0;
-    font-size: 0.92rem;
-    color: var(--text);
-  }
-}
-
-.field-error {
-  margin: -6px 0 0;
-  color: var(--danger);
-  font-size: 0.72rem;
 }
 
 @media (max-width: 640px) {
@@ -537,7 +646,7 @@
     padding-top: 14px;
   }
 
-  .option-row {
+  .ng-row {
     grid-template-columns: 1fr;
     gap: 4px;
   }

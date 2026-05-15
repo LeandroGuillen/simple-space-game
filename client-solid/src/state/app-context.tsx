@@ -128,6 +128,17 @@ export function AppProvider(props: ParentProps) {
     });
   }
 
+  function resetPerGameUiState(info = '') {
+    setState({
+      pendingCommands: emptyPendingCommands(),
+      pendingColonyBasePlanets: [],
+      pendingColonyShipFleets: [],
+      showColonizeModal: false,
+      error: '',
+      info,
+    });
+  }
+
   function disconnect() {
     setState({
       session: {
@@ -138,6 +149,10 @@ export function AppProvider(props: ParentProps) {
       },
       games: [],
       game: null,
+      pendingCommands: emptyPendingCommands(),
+      pendingColonyBasePlanets: [],
+      pendingColonyShipFleets: [],
+      showColonizeModal: false,
       info: 'Disconnected',
     });
     clearError();
@@ -207,6 +222,8 @@ export function AppProvider(props: ParentProps) {
     try {
       const gameId = await api()!.createGame(options);
       setState('session', 'selectedGameId', gameId);
+      setState('game', null);
+      resetPerGameUiState();
       await refreshGames();
       setBusy(false, 'Game created');
       return gameId;
@@ -218,6 +235,10 @@ export function AppProvider(props: ParentProps) {
   }
 
   async function selectGame(gameId: string) {
+    if (gameId !== state.session.selectedGameId) {
+      setState('game', null);
+      resetPerGameUiState();
+    }
     setState('session', 'selectedGameId', gameId);
   }
 

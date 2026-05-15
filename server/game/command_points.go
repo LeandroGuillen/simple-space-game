@@ -1,6 +1,10 @@
 package game
 
-import . "ssg/model"
+import (
+	"math"
+
+	. "ssg/model"
+)
 
 const (
 	commandPointOverdrawBcPerCp int64 = 10
@@ -35,7 +39,12 @@ func (g *Game) playerCommandPointsCapacity(player *Player) int64 {
 			}
 		}
 	}
-	return startingCommandPointsBonus + int64(len(colonies)) + fromBuildings
+	baseCapacity := startingCommandPointsBonus + int64(len(colonies)) + fromBuildings
+	multiplier := governmentCommandPointsMultiplier(g, player)
+	if multiplier < 0 {
+		multiplier = 0
+	}
+	return int64(math.Floor(float64(baseCapacity) * multiplier))
 }
 
 func (g *Game) playerCommandPointsUsed(playerID uint) int64 {

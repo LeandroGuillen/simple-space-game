@@ -10,7 +10,16 @@ func hydratePlanetIncome(game *Game, p *model.Planet, industryProduced int64) {
 }
 
 func PlanetIncome(game *Game, planet *model.Planet, industryProduced int64) model.PlanetIncomeOutput {
-	taxes := int64(math.Floor(float64(planet.Population/1000) * effectiveMoraleMultiplier(planet.Morale)))
+	var player *model.Player
+	if game != nil {
+		found, err := game.getPlayer(planet.Owner)
+		if err == nil {
+			player = found
+		}
+	}
+	taxes := int64(math.Floor(float64(planet.Population/1000) *
+		governmentMoraleMultiplier(game, player, planet.Morale) *
+		governmentTaxMultiplier(game, player)))
 
 	var incomeFromBuildings int64
 	var incomeBonus float64
@@ -22,11 +31,7 @@ func PlanetIncome(game *Game, planet *model.Planet, industryProduced int64) mode
 		}
 	}
 
-	if game.Resources != nil && game.Resources.TechTree != nil {
-		player, err := game.getPlayer(planet.Owner)
-		if err != nil {
-			player = nil
-		}
+	if game != nil && game.Resources != nil && game.Resources.TechTree != nil {
 		if player != nil {
 			_, raceBonus := incomeModifiers(player.Race.Grants.Modifiers)
 			incomeBonus += raceBonus
@@ -41,7 +46,7 @@ func PlanetIncome(game *Game, planet *model.Planet, industryProduced int64) mode
 
 	var tradeGoods int64 = 0
 	if !planet.IsBuilding {
-		food := PlanetFoodProduced(planet)
+		food := GamePlanetFoodProduced(game, planet)
 		foodSurplus := food - planet.Population/1000
 		tradeGoods = maxInt64(0, industryProduced)/2 + maxInt64(0, foodSurplus)/2
 	}

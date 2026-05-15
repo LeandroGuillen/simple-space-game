@@ -1,4 +1,5 @@
 import {
+  governmentPickCost,
   isRaceTraitBlocked,
   raceNegativePicks,
   raceRemainingPicks,
@@ -13,6 +14,8 @@ describe("race design", () => {
 
     expect(raceRemainingPicks(traitIds)).toBe(9);
     expect(raceNegativePicks(traitIds)).toBe(3);
+    expect(governmentPickCost("Democracy")).toBe(7);
+    expect(raceRemainingPicks(traitIds, "Democracy")).toBe(2);
   });
 
   it("swaps traits in the same exclusive group", () => {
@@ -43,8 +46,8 @@ describe("race design", () => {
   });
 
   it("validates overspending and negative pick limits", () => {
-    expect(validateCustomRaceDesign({ name: "Ada", trait_ids: ["money_plus_1", "food_plus_2"] })).toEqual([]);
-    expect(validatePlayableCustomRaceDesign({ name: "Ada", trait_ids: ["money_plus_1", "food_plus_2"] })).toContain("Race spends more than 10 picks.");
-    expect(validatePlayableCustomRaceDesign({ name: "Ada", trait_ids: ["growth_minus_50", "food_minus_1", "production_minus_1", "money_minus_half"] })).toContain("Race uses more than 10 negative picks.");
+    expect(validateCustomRaceDesign({ name: "Ada", government: "Dictatorship", trait_ids: ["money_plus_1", "food_plus_2"] })).toEqual([]);
+    expect(validatePlayableCustomRaceDesign({ name: "Ada", government: "Dictatorship", trait_ids: ["money_plus_1", "food_plus_2"] })).toContain("Race spends more than 10 picks.");
+    expect(validatePlayableCustomRaceDesign({ name: "Ada", government: "Dictatorship", trait_ids: ["growth_minus_50", "food_minus_1", "production_minus_1", "money_minus_half"] })).toContain("Race uses more than 10 negative picks.");
   });
 });

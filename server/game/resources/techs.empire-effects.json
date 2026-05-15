@@ -13,22 +13,130 @@
     "description": "No description provided",
     "grants": { "unlocks": { "buildings": ["Colony Ship"] } }
   },
-  { "name": "Confederation", "description": "No description provided" },
+  {
+    "name": "Feudal",
+    "description": "A decentralized noble hierarchy with cheap ship construction and weak research.",
+    "type": "government",
+    "pick_cost": -4,
+    "grants": {
+      "modifiers": [
+        { "name": "ship_cost_multiplier", "value": 0.6666666667 },
+        { "name": "science_labor_multiplier", "value": 0.5 },
+        { "name": "missing_barracks_morale", "value": -0.2 },
+        { "name": "missing_capitol_morale", "value": -0.5 }
+      ]
+    }
+  },
+  {
+    "name": "Dictatorship",
+    "description": "A centralized authoritarian government with stable internal security.",
+    "type": "government",
+    "pick_cost": 0,
+    "default": true,
+    "grants": {
+      "modifiers": [
+        { "name": "defensive_spy_bonus", "value": 0.1 },
+        { "name": "missing_barracks_morale", "value": -0.2 },
+        { "name": "missing_capitol_morale", "value": -0.35 }
+      ]
+    }
+  },
+  {
+    "name": "Democracy",
+    "description": "A representative government with strong research and tax output but weaker counter-espionage.",
+    "type": "government",
+    "pick_cost": 7,
+    "grants": {
+      "modifiers": [
+        { "name": "science_labor_multiplier", "value": 1.5 },
+        { "name": "tax_multiplier", "value": 1.5 },
+        { "name": "defensive_spy_bonus", "value": -0.1 },
+        { "name": "missing_capitol_morale", "value": -0.2 }
+      ]
+    }
+  },
+  {
+    "name": "Unification",
+    "description": "A unified collective with strong farming and industry that ignores morale.",
+    "type": "government",
+    "pick_cost": 6,
+    "grants": {
+      "modifiers": [
+        { "name": "industry_labor_multiplier", "value": 1.5 },
+        { "name": "food_labor_multiplier", "value": 1.5 },
+        { "name": "defensive_spy_bonus", "value": 0.15 },
+        { "name": "morale_neutral", "value": 1 }
+      ]
+    }
+  },
+  {
+    "name": "Confederation",
+    "description": "An advanced feudal compact with dramatically cheaper ship construction.",
+    "type": "government",
+    "upgrades": ["Feudal"],
+    "grants": {
+      "modifiers": [
+        { "name": "ship_cost_multiplier", "value": 0.3333333333 },
+        { "name": "science_labor_multiplier", "value": 0.75 },
+        { "name": "missing_barracks_morale", "value": -0.2 },
+        { "name": "missing_capitol_morale", "value": -0.5 }
+      ]
+    }
+  },
   {
     "name": "Dauntless Guidance System",
     "description": "No description provided"
   },
   { "name": "Evolutionary Mutation", "description": "No description provided" },
   { "name": "Extended Fuel Tanks", "description": "No description provided" },
-  { "name": "Federation", "description": "No description provided" },
+  {
+    "name": "Federation",
+    "description": "An advanced democracy with exceptional research and tax output.",
+    "type": "government",
+    "upgrades": ["Democracy"],
+    "grants": {
+      "modifiers": [
+        { "name": "science_labor_multiplier", "value": 1.75 },
+        { "name": "tax_multiplier", "value": 1.75 },
+        { "name": "defensive_spy_bonus", "value": -0.1 },
+        { "name": "missing_capitol_morale", "value": -0.2 }
+      ]
+    }
+  },
   { "name": "Freighters", "description": "No description provided" },
   {
     "name": "Galactic Currency Exchange",
     "description": "Improves income across the empire.",
     "grants": { "modifiers": [{ "name": "income_bonus", "value": 0.5 }] }
   },
-  { "name": "Galactic Unification", "description": "No description provided" },
-  { "name": "Imperium", "description": "No description provided" },
+  {
+    "name": "Galactic Unification",
+    "description": "An advanced unification with doubled food and industry labor.",
+    "type": "government",
+    "upgrades": ["Unification"],
+    "grants": {
+      "modifiers": [
+        { "name": "industry_labor_multiplier", "value": 2 },
+        { "name": "food_labor_multiplier", "value": 2 },
+        { "name": "defensive_spy_bonus", "value": 0.15 },
+        { "name": "morale_neutral", "value": 1 }
+      ]
+    }
+  },
+  {
+    "name": "Imperium",
+    "description": "An advanced dictatorship with improved security, barracks morale, and command capacity.",
+    "type": "government",
+    "upgrades": ["Dictatorship"],
+    "grants": {
+      "modifiers": [
+        { "name": "defensive_spy_bonus", "value": 0.2 },
+        { "name": "barracks_morale_bonus", "value": 0.2 },
+        { "name": "missing_capitol_morale", "value": -0.35 },
+        { "name": "command_points_multiplier", "value": 1.5 }
+      ]
+    }
+  },
 
   { "name": "Laser Rifle", "description": "No description provided" },
   { "name": "Fusion Rifle", "description": "No description provided" },

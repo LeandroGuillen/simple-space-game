@@ -28,10 +28,11 @@ import {
   formatCommandPointsDisplay,
   formatEmpireFoodTooltip,
   formatEmpireIncomeTooltip,
+  formatInteger,
   formatSigned,
   formatSignedBc,
   formatStardate,
-  gameIdShort,
+  formatTreasury,
   getEmpireFoodBalance,
   getEmpireIncome,
   getPlanetScienceForScientists,
@@ -218,6 +219,7 @@ function researchChoices(
       );
       return level.availableTechs
         .filter((techName) => !knownTechs.has(techName.toLowerCase()))
+        .filter((techName) => isResearchChoiceAllowedForGovernment(game, player, techName))
         .map((techName) => ({
           subject,
           level,
@@ -229,6 +231,55 @@ function researchChoices(
         }));
     },
   );
+}
+
+function isResearchChoiceAllowedForGovernment(
+  game: GameViewModel,
+  player: PlayerViewModel,
+  techName: string,
+) {
+  const tech = game.resources.techCollection.techs.find((item) => item.name === techName);
+  if (!tech) return true;
+  const active = activeGovernmentForPlayer(game, player);
+  if (tech.type === "government") {
+    return Boolean(active && tech.upgrades.includes(active.name));
+  }
+  if (active?.grants.modifiers.some((modifier) => modifier.name === "morale_neutral")) {
+    return !tech.grants.unlocks.buildings.some((buildingName) => {
+      const building = game.resources.buildingCollection.buildings.find((item) => item.name === buildingName);
+      return building?.grants.modifiers.some((modifier) => modifier.name === "morale_bonus");
+    });
+  }
+  return true;
+}
+
+function activeGovernmentForPlayer(game: GameViewModel, player: PlayerViewModel) {
+  let active =
+    game.resources.techCollection.techs.find((tech) => tech.type === "government" && tech.name === player.raceGovernment) ??
+    game.resources.techCollection.techs.find((tech) => tech.type === "government" && tech.default);
+  if (!active) return null;
+  const researched = new Set(player.researchedTechs);
+  const seen = new Set([active.name]);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const tech of game.resources.techCollection.techs) {
+      if (tech.type !== "government" || tech.upgrades.length === 0 || !researched.has(tech.name)) {
+        continue;
+      }
+      if (!tech.upgrades.includes(active.name)) {
+        continue;
+      }
+      if (seen.has(tech.name)) {
+        return active;
+      }
+      seen.add(tech.name);
+      active = tech;
+      changed = true;
+      break;
+    }
+  }
+  return active;
 }
 
 function researchGroups(
@@ -295,6 +346,18 @@ function formatResearchTurns(
   return `~${Math.max(1, Math.ceil(remainingCost / rpPerTurn))} turns`;
 }
 
+function gameSwitcherPlayerLabel(
+  game: { players: { name: string; race_name?: string }[] },
+  fallbackRaceName?: string,
+) {
+  const player = game.players[0];
+  if (!player) {
+    return "Unassigned";
+  }
+  const raceName = player.race_name || fallbackRaceName;
+  return raceName ? `${player.name} · ${raceName}` : player.name;
+}
+
 export function AppShell(props: RouteSectionProps) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -303,6 +366,7 @@ export function AppShell(props: RouteSectionProps) {
     currentPlayer,
     enableDebugMode,
     endTurn,
+    selectGame,
     selectResearch,
     selectColonizeTarget,
     closeColonizeModal,
@@ -316,6 +380,15 @@ export function AppShell(props: RouteSectionProps) {
   const sessionStatusDotClass = createMemo(
     () => `status-dot status-dot--${state.session.connectionStatus}`,
   );
+  const quickSwitchGames = createMemo(() => state.games.slice(0, 3));
+  const quickSwitchLabel = (game: {
+    game_id: string;
+    players: { name: string; race_name?: string }[];
+  }) =>
+    gameSwitcherPlayerLabel(
+      game,
+      game.game_id === state.game?.id ? currentPlayer()?.raceName : undefined,
+    );
 
   const showGameChrome = createMemo(() => isGameCommandPath(location.pathname));
 
@@ -506,21 +579,32 @@ export function AppShell(props: RouteSectionProps) {
     void endTurn();
   }
 
+  async function handleQuickSwitchGame(gameId: string) {
+    if (gameId === state.session.selectedGameId) {
+      return;
+    }
+    await selectGame(gameId);
+    navigate("/galaxy");
+  }
+
   return (
     <div class="frame">
       <header class="app-topbar panel" aria-label="Application">
-        <div class="app-topbar-brand">
+        <A
+          href="/setup"
+          class="app-topbar-brand"
+          title="Open server and game setup"
+          aria-label="Open server and game setup"
+        >
           <span class="app-title">Simple Space Game</span>
           <span class="app-version" title="Client version">
             v{APP_VERSION}
           </span>
-        </div>
+        </A>
         <Show when={showGameChrome()}>
-          <A
-            href="/setup"
+          <div
             class="app-topbar-session"
-            title="Open server and game setup"
-            aria-label={`Session: ${state.session.serverUrl ?? "no server"}${state.session.selectedGameId ? `, game ${gameIdShort(state.session.selectedGameId)}` : ""}`}
+            aria-label={`Server: ${state.session.serverUrl ?? "no server"}`}
           >
             <span class={sessionStatusDotClass()} aria-hidden="true" />
             <Show when={state.session.serverUrl}>
@@ -528,22 +612,39 @@ export function AppShell(props: RouteSectionProps) {
                 {state.session.serverUrl}
               </span>
             </Show>
-            <Show
-              when={
-                Boolean(state.session.serverUrl) &&
-                Boolean(state.session.selectedGameId)
-              }
-            >
-              <span class="app-topbar-session-sep" aria-hidden="true">
-                ·
-              </span>
-            </Show>
-            <Show when={state.session.selectedGameId}>
-              <span class="app-topbar-session-game">
-                {gameIdShort(state.session.selectedGameId)}
-              </span>
-            </Show>
-          </A>
+          </div>
+        </Show>
+        <Show when={showGameChrome() && quickSwitchGames().length > 1}>
+          <div class="app-game-switcher" aria-label="Recent games">
+            <For each={quickSwitchGames()}>
+              {(game) => (
+                <button
+                  type="button"
+                  class="app-game-switcher-button"
+                  classList={{
+                    "app-game-switcher-button--active":
+                      game.game_id === state.session.selectedGameId,
+                  }}
+                  title={`${quickSwitchLabel(game)} · T${formatStardate(game.current_turn)} · ${game.game_id}`}
+                  aria-label={`Switch to ${quickSwitchLabel(game)} at stardate ${formatStardate(game.current_turn)}`}
+                  aria-current={
+                    game.game_id === state.session.selectedGameId
+                      ? "true"
+                      : undefined
+                  }
+                  disabled={state.isBusy}
+                  onClick={() => void handleQuickSwitchGame(game.game_id)}
+                >
+                  <span class="app-game-switcher-player">
+                    {quickSwitchLabel(game)}
+                  </span>
+                  <span class="app-game-switcher-turn">
+                    T{formatStardate(game.current_turn)}
+                  </span>
+                </button>
+              )}
+            </For>
+          </div>
         </Show>
         <div class="app-topbar-end">
           <a
@@ -611,7 +712,9 @@ export function AppShell(props: RouteSectionProps) {
 
                     <div class="turn-stat turn-stat--accent">
                       <span>Treasury</span>
-                      <strong>{currentPlayer()?.treasury ?? 0} BC</strong>
+                      <strong>
+                        {formatTreasury(currentPlayer()?.treasury ?? 0)} BC
+                      </strong>
                     </div>
 
                     <div
@@ -632,7 +735,7 @@ export function AppShell(props: RouteSectionProps) {
                     >
                       <span>Research</span>
                       <strong>
-                        {playerResearchPerTurn()}RP
+                        {formatInteger(playerResearchPerTurn())}RP
                         <Show when={researchTurnsText()}>
                           {" "}
                           {researchTurnsText()}

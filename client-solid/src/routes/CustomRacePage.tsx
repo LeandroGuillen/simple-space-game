@@ -4,6 +4,9 @@ import { createMemo, createSignal, For, onMount, Show } from "solid-js";
 import { getCustomRaceDraft, markSetupFormOpen, setCustomRaceDraft } from "../lib/custom-race-storage";
 import { ApiClient } from "../lib/api";
 import {
+  defaultGovernment,
+  fallbackGovernments,
+  governmentPickCost,
   isRaceTraitBlocked,
   raceNegativePicks,
   raceRemainingPicks,
@@ -13,7 +16,7 @@ import {
   validateCustomRaceDesign,
   validatePlayableCustomRaceDesign,
 } from "../lib/race-design";
-import type { RaceTraitId } from "../lib/types/api";
+import type { ApiGovernment, RaceTraitId } from "../lib/types/api";
 import type { CustomRaceDesign } from "../lib/types/api";
 import { useAppContext } from "../state/app-context";
 
@@ -23,6 +26,8 @@ export function CustomRacePage() {
   const navigate = useNavigate();
   const { state } = useAppContext();
   const [name, setName] = createSignal("Custom");
+  const [government, setGovernment] = createSignal("Dictatorship");
+  const [governments, setGovernments] = createSignal<ApiGovernment[]>(fallbackGovernments);
   const [traitIds, setTraitIds] = createSignal<RaceTraitId[]>([]);
   const [savedRaces, setSavedRaces] = createSignal<CustomRaceDesign[]>([]);
   const [saveError, setSaveError] = createSignal("");
@@ -37,17 +42,19 @@ export function CustomRacePage() {
     const draft = getCustomRaceDraft();
     if (!draft) return;
     setName(draft.name || "Custom");
-    setTraitIds(draft.trait_ids);
+    setGovernment(draft.government || defaultGovernment(governments()));
+    setTraitIds([...(draft.trait_ids ?? [])]);
   });
 
   onMount(() => {
     void refreshSavedRaces();
+    void refreshGovernments();
   });
 
-  const design = createMemo(() => ({ name: name().trim(), trait_ids: traitIds() }));
+  const design = createMemo(() => ({ name: name().trim(), government: government(), trait_ids: traitIds() }));
   const selectedTraits = createMemo(() => selectedRaceTraits(traitIds()));
   const errors = createMemo(() => validateCustomRaceDesign(design()));
-  const playableErrors = createMemo(() => validatePlayableCustomRaceDesign(design()));
+  const playableErrors = createMemo(() => validatePlayableCustomRaceDesign(design(), governments()));
   const groupedTraits = createMemo(() =>
     categoryOrder.map((category) => ({
       category,
@@ -68,7 +75,21 @@ export function CustomRacePage() {
 
   const handleClear = () => {
     setName("Custom");
+    setGovernment(defaultGovernment(governments()));
     setTraitIds([]);
+  };
+
+  const refreshGovernments = async () => {
+    if (!client()) return;
+    try {
+      const fetched = await client()!.getGovernments();
+      if (fetched.length > 0) {
+        setGovernments(fetched);
+        setGovernment((current) => current || defaultGovernment(fetched));
+      }
+    } catch {
+      setGovernments(fallbackGovernments);
+    }
   };
 
   const refreshSavedRaces = async () => {
@@ -82,6 +103,7 @@ export function CustomRacePage() {
 
   const loadSavedRace = (race: CustomRaceDesign) => {
     setName(race.name);
+    setGovernment(race.government || defaultGovernment(governments()));
     setTraitIds([...(race.trait_ids ?? [])]);
     setSaveError("");
     setSaveMessage("");
@@ -90,6 +112,7 @@ export function CustomRacePage() {
 
   const copySavedRace = (race: CustomRaceDesign) => {
     setName(nextCopyName(race.name, savedRaces()));
+    setGovernment(race.government || defaultGovernment(governments()));
     setTraitIds([...(race.trait_ids ?? [])]);
     setSaveError("");
     setSaveMessage("");
@@ -167,11 +190,11 @@ export function CustomRacePage() {
           <div class="custom-race-picks" aria-label="Race design picks">
             <div>
               <span>Remaining</span>
-              <strong classList={{ danger: raceRemainingPicks(traitIds()) < 0 }}>{raceRemainingPicks(traitIds())}</strong>
+              <strong classList={{ danger: raceRemainingPicks(traitIds(), government(), governments()) < 0 }}>{raceRemainingPicks(traitIds(), government(), governments())}</strong>
             </div>
             <div>
               <span>Negative</span>
-              <strong classList={{ danger: raceNegativePicks(traitIds()) > 10 }}>{raceNegativePicks(traitIds())}/10</strong>
+              <strong classList={{ danger: raceNegativePicks(traitIds(), government(), governments()) > 10 }}>{raceNegativePicks(traitIds(), government(), governments())}/10</strong>
             </div>
           </div>
           <div class="custom-race-actions">
@@ -184,6 +207,33 @@ export function CustomRacePage() {
 
         <div class="custom-race-grid">
           <main class="custom-race-traits" aria-label="Race traits">
+            <section class="custom-race-section">
+              <h2>Government</h2>
+              <div class="race-trait-list">
+                <For each={governments()}>
+                  {(item) => {
+                    const selected = () => government() === item.name;
+                    return (
+                      <button
+                        type="button"
+                        class="race-trait"
+                        classList={{ selected: selected() }}
+                        aria-pressed={selected()}
+                        onClick={() => setGovernment(item.name)}
+                      >
+                        <span class="race-trait-main">
+                          <span class="race-trait-name">{item.name}</span>
+                          <span class="race-trait-description">{item.description ?? ""}</span>
+                        </span>
+                        <span classList={{ "race-trait-cost": true, negative: item.pick_cost < 0 }}>
+                          {item.pick_cost > 0 ? `+${item.pick_cost}` : item.pick_cost}
+                        </span>
+                      </button>
+                    );
+                  }}
+                </For>
+              </div>
+            </section>
             <For each={groupedTraits()}>
               {(group) => (
                 <section class="custom-race-section">
@@ -234,7 +284,7 @@ export function CustomRacePage() {
                         <div class="custom-race-saved-main">
                           <strong>{saved.name}</strong>
                           <span classList={{ unplayable: saved.playable === false }}>
-                            {saved.playable === false ? "Unplayable" : "Playable"} · {(saved.trait_ids ?? []).length} traits
+                            {saved.playable === false ? "Unplayable" : "Playable"} · {saved.government || "Dictatorship"} · {(saved.trait_ids ?? []).length} traits
                           </span>
                         </div>
                         <div class="custom-race-saved-actions">
@@ -261,6 +311,14 @@ export function CustomRacePage() {
               </section>
             </Show>
             <h2>Summary</h2>
+            <ul class="custom-race-selected">
+              <li>
+                <span>{government()}</span>
+                <strong classList={{ negative: governmentPickCost(government(), governments()) < 0 }}>
+                  {governmentPickCost(government(), governments()) > 0 ? `+${governmentPickCost(government(), governments())}` : governmentPickCost(government(), governments())}
+                </strong>
+              </li>
+            </ul>
             <Show
               when={selectedTraits().length > 0}
               fallback={<p class="custom-race-empty">No traits selected</p>}
@@ -281,11 +339,11 @@ export function CustomRacePage() {
             <dl class="custom-race-totals">
               <div>
                 <dt>Positive Picks</dt>
-                <dd>{selectedTraits().reduce((total, trait) => total + Math.max(0, trait.pickCost), 0)}</dd>
+                <dd>{selectedTraits().reduce((total, trait) => total + Math.max(0, trait.pickCost), Math.max(0, governmentPickCost(government(), governments())))}</dd>
               </div>
               <div>
                 <dt>Disadvantages</dt>
-                <dd>{raceNegativePicks(traitIds())}</dd>
+                <dd>{raceNegativePicks(traitIds(), government(), governments())}</dd>
               </div>
             </dl>
             <Show when={errors().length > 0}>

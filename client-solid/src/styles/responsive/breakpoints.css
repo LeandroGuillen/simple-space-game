@@ -2,6 +2,10 @@
   .galaxy-layout {
     grid-template-columns: 1fr;
   }
+
+  .app-game-switcher-button:nth-child(n + 3) {
+    display: none;
+  }
 }
 
 @media (max-width: 720px) {
@@ -33,6 +37,10 @@
 
   .app-topbar-session {
     max-width: 100%;
+  }
+
+  .app-game-switcher {
+    display: none;
   }
 
   .game-topbar,

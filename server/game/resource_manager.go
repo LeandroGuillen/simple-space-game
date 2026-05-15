@@ -273,6 +273,39 @@ func (r *ResourceManager) validateTechDefinitions() error {
 			}
 		}
 	}
+	if err := r.validateGovernments(); err != nil {
+		validationErrors = append(validationErrors, err)
+	}
+	return errors.Join(validationErrors...)
+}
+
+func (r *ResourceManager) validateGovernments() error {
+	var validationErrors []error
+	defaults := 0
+	for _, government := range governmentTechs(&r.Resources) {
+		if government.Default {
+			if !isBaseGovernment(government) {
+				validationErrors = append(validationErrors, fmt.Errorf("advanced government %q cannot be default", government.Name))
+			}
+			defaults++
+		}
+		for _, upgraded := range government.Upgrades {
+			tech, ok := findGovernmentTech(&r.Resources, upgraded)
+			if !ok {
+				validationErrors = append(validationErrors, fmt.Errorf("government %q upgrades missing government %q", government.Name, upgraded))
+				continue
+			}
+			if !isGovernmentTech(tech) {
+				validationErrors = append(validationErrors, fmt.Errorf("government %q upgrades non-government %q", government.Name, upgraded))
+			}
+		}
+	}
+	if defaults != 1 {
+		validationErrors = append(validationErrors, fmt.Errorf("expected exactly one default base government, found %d", defaults))
+	}
+	if defaultGovernmentName(&r.Resources) != "Dictatorship" {
+		validationErrors = append(validationErrors, fmt.Errorf("default government must be Dictatorship"))
+	}
 	return errors.Join(validationErrors...)
 }
 

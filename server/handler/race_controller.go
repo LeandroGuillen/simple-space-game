@@ -34,9 +34,10 @@ func SaveCustomRace(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	design, err := game.SaveableCustomRace(game.CustomRaceDesign{
-		Name:     req.Name,
-		TraitIDs: req.TraitIDs,
+	design, err := game.SaveableCustomRace(server.ResourceManager, game.CustomRaceDesign{
+		Name:       req.Name,
+		Government: req.Government,
+		TraitIDs:   req.TraitIDs,
 	})
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

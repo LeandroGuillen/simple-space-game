@@ -42,8 +42,11 @@ func (g *Game) GetVisibleGameForPlayer(playerID uint) (*Game, error) {
 			for _, planet := range star.Planets {
 				planetCopy := *planet
 				if planet.Owner != 0 && planet.Owner == playerID {
+					hydratePlanetGovernment(g, &planetCopy, player)
+					hydratePlanetMorale(g, &planetCopy, player)
 					hydratePlanetOutputs(g, &planetCopy)
 					hydratePlanetPopulationCapacity(g, &planetCopy, player)
+					hydratePlanetIncome(g, &planetCopy, GamePlanetIndustryProduced(g, &planetCopy))
 				}
 				starCopy.Planets = append(starCopy.Planets, &planetCopy)
 			}

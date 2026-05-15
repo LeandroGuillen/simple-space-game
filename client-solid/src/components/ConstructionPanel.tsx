@@ -12,6 +12,7 @@ import type {
   BuildingViewModel,
   PlanetViewModel,
   ShipDesignViewModel,
+  TechViewModel,
 } from "../lib/types/domain";
 import {
   getPlanetIndustryForWorkers,
@@ -340,8 +341,42 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
         );
       return Math.max(credit, upgradedBuilding?.cost ?? 0);
     }, 0);
-    return Math.max(0, project.cost - upgradeCredit);
+    const baseCost = Math.max(0, project.cost - upgradeCredit);
+    if (!project.name.endsWith(" Ship")) {
+      return baseCost;
+    }
+    return Math.ceil(baseCost * shipCostMultiplier());
   }
+  const activeGovernment = createMemo(() => {
+    const techs = state.game?.resources.techCollection.techs ?? [];
+    let active = techs.find((tech) => tech.type === "government" && tech.name === (currentPlayer()?.raceGovernment || "Dictatorship"));
+    if (!active) {
+      active = techs.find((tech) => tech.type === "government" && tech.default);
+    }
+    if (!active) return null;
+    const researched = researchedTechs();
+    const seen = new Set([active.name]);
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const tech of techs) {
+        if (tech.type !== "government" || tech.upgrades.length === 0 || !researched.has(tech.name)) {
+          continue;
+        }
+        if (tech.upgrades.includes(active.name)) {
+          if (seen.has(tech.name)) {
+            return active;
+          }
+          seen.add(tech.name);
+          active = tech;
+          changed = true;
+          break;
+        }
+      }
+    }
+    return active;
+  });
+  const shipCostMultiplier = createMemo(() => governmentModifierValue(activeGovernment(), "ship_cost_multiplier", 1));
   const currentInvestedProduction = createMemo(() => {
     if (!props.planet.isBuilding || !props.planet.currentProject) {
       return 0;
@@ -938,4 +973,9 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
       </Show>
     </section>
   );
+}
+
+function governmentModifierValue(government: TechViewModel | null, modifierName: string, fallback: number) {
+  const modifier = government?.grants.modifiers.find((item) => item.name === modifierName);
+  return modifier?.value ?? fallback;
 }

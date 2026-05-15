@@ -188,6 +188,9 @@ export function getPlanetIndustry(planet: PlanetViewModel) {
 }
 
 export function getMoraleMultiplier(planet: PlanetViewModel) {
+  if (planet.government?.moraleNeutral) {
+    return 1;
+  }
   return planet.morale.multiplier ?? 1;
 }
 
@@ -201,12 +204,31 @@ export function getMoraleAdjustedLaborOutput(
   );
 }
 
+export function getGovernmentAdjustedLaborOutput(
+  count: number,
+  outputPerWorker: number,
+  planet: PlanetViewModel,
+  governmentMultiplier: number,
+) {
+  return Math.floor(
+    Math.max(0, count) *
+      outputPerWorker *
+      Math.max(0, governmentMultiplier || 1) *
+      getMoraleMultiplier(planet),
+  );
+}
+
 export function getPlanetFoodForFarmers(
   planet: PlanetViewModel,
   farmers: number,
 ) {
   return (
-    getMoraleAdjustedLaborOutput(farmers, planet.food.produced_per_farmer, planet) +
+    getGovernmentAdjustedLaborOutput(
+      farmers,
+      planet.food.produced_per_farmer,
+      planet,
+      planet.government?.foodLaborMultiplier ?? 1,
+    ) +
     planet.food.produced_per_building
   );
 }
@@ -216,14 +238,24 @@ export function getPlanetScienceForScientists(
   scientists: number,
 ) {
   return (
-    getMoraleAdjustedLaborOutput(scientists, planet.science.produced_per_scientist, planet) +
+    getGovernmentAdjustedLaborOutput(
+      scientists,
+      planet.science.produced_per_scientist,
+      planet,
+      planet.government?.scienceLaborMultiplier ?? 1,
+    ) +
     planet.science.produced_per_building
   );
 }
 
 export function getPlanetGrossIndustryForWorkers(planet: PlanetViewModel, workers: number) {
   return (
-    getMoraleAdjustedLaborOutput(workers, planet.industry.produced_per_worker, planet) +
+    getGovernmentAdjustedLaborOutput(
+      workers,
+      planet.industry.produced_per_worker,
+      planet,
+      planet.government?.industryLaborMultiplier ?? 1,
+    ) +
     planet.industry.produced_per_building +
     Math.floor(planet.population / 1000) * planet.industry.produced_per_colonist
   );
@@ -267,7 +299,11 @@ export function getPlanetProjectedIncome(planet: PlanetViewModel, pendingCommand
   const tradeGoods = producesTradeGoods
     ? Math.floor(foodSurplus / 2) + Math.floor(industry / 2)
     : 0;
-  const taxes = Math.floor(Math.floor(planet.population / 1000) * getMoraleMultiplier(planet));
+  const taxes = Math.floor(
+    Math.floor(planet.population / 1000) *
+      getMoraleMultiplier(planet) *
+      (planet.government?.taxMultiplier ?? 1),
+  );
   const gross = taxes + planet.income.buildings + tradeGoods;
   const total = Math.trunc(gross * (1 + planet.income.bonus)) - planet.income.maintenance;
 
@@ -463,7 +499,7 @@ export function formatCommandPointsDisplay(player: PlayerViewModel | null | unde
   const rem = player.commandPointsRemaining ?? 0;
   const cap = player.commandPointsCapacity ?? 0;
   const sign = rem > 0 ? "+" : "";
-  return `${sign}${rem} (${cap})`;
+  return `${sign}${formatInteger(rem)} (${formatInteger(cap)})`;
 }
 
 function commandPointsPerBuiltBuilding(building: BuildingViewModel): number {
@@ -559,11 +595,36 @@ export function formatCommandCapacityTooltip(
 }
 
 export function formatSignedBc(value: number) {
-  return `${value > 0 ? "+" : ""}${value} BC`;
+  return `${value > 0 ? "+" : ""}${formatInteger(value)} BC`;
 }
 
 export function formatSigned(value: number) {
-  return `${value > 0 ? "+" : ""}${value}`;
+  return `${value > 0 ? "+" : ""}${formatInteger(value)}`;
+}
+
+export function formatInteger(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+export function formatTreasury(value: number) {
+  const sign = value < 0 ? "-" : "";
+  const absValue = Math.abs(value);
+
+  if (absValue >= 1_000_000) {
+    const millions = absValue / 1_000_000;
+    const formatted = new Intl.NumberFormat("en-US", {
+      maximumFractionDigits: 1,
+    }).format(millions);
+    return `${sign}${formatted}M`;
+  }
+
+  if (absValue >= 100_000) {
+    return `${sign}${Math.floor(absValue / 1_000)}K`;
+  }
+
+  return `${sign}${formatInteger(absValue)}`;
 }
 
 function getProjectedWorkerAllocation(planet: PlanetViewModel, moves: MovePopulationCommand[]) {

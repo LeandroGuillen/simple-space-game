@@ -20,6 +20,9 @@ func PlanetMoraleBonus(game *Game, p *model.Planet, player *model.Player) float6
 
 func PlanetMoraleSources(game *Game, p *model.Planet, player *model.Player) []model.PlanetMoraleSource {
 	sources := []model.PlanetMoraleSource{}
+	if governmentMoraleNeutral(game, player) {
+		return sources
+	}
 	var bonus float64
 	for _, buildingName := range p.Buildings {
 		if building, err := getBuildingFromName(game, buildingName); err == nil {
@@ -48,8 +51,56 @@ func PlanetMoraleSources(game *Game, p *model.Planet, player *model.Player) []mo
 			}
 		}
 	}
+	if player != nil {
+		if bonus = governmentModifierValue(game, player, "missing_barracks_morale", 0); bonus != 0 && !planetHasBarracks(p) {
+			sources = append(sources, model.PlanetMoraleSource{
+				Name:  activeGovernmentName(game, player) + ": no Barracks",
+				Type:  "government",
+				Bonus: bonus,
+			})
+		}
+		if bonus = governmentModifierValue(game, player, "barracks_morale_bonus", 0); bonus != 0 && planetHasBarracks(p) {
+			sources = append(sources, model.PlanetMoraleSource{
+				Name:  activeGovernmentName(game, player) + ": Barracks",
+				Type:  "government",
+				Bonus: bonus,
+			})
+		}
+		if bonus = governmentModifierValue(game, player, "missing_capitol_morale", 0); bonus != 0 && !playerHasCapitol(game, player.ID) {
+			sources = append(sources, model.PlanetMoraleSource{
+				Name:  activeGovernmentName(game, player) + ": no Capitol",
+				Type:  "government",
+				Bonus: bonus,
+			})
+		}
+	}
 
 	return sources
+}
+
+func activeGovernmentName(game *Game, player *model.Player) string {
+	if tech, ok := activeGovernmentTech(game, player); ok {
+		return tech.Name
+	}
+	return "Government"
+}
+
+func planetHasBarracks(p *model.Planet) bool {
+	return hasBuilding(p, "Marine Barracks") || hasBuilding(p, "Armor Barracks")
+}
+
+func playerHasCapitol(game *Game, playerID uint) bool {
+	if game == nil {
+		return false
+	}
+	for _, star := range game.Galaxy.Stars {
+		for _, planet := range star.Planets {
+			if planet.Owner == playerID && hasBuilding(planet, "Capitol") {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func moraleSourcesBonus(sources []model.PlanetMoraleSource) float64 {

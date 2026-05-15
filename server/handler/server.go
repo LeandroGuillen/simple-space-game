@@ -90,6 +90,7 @@ func (s *Server) registerRoutes(r *gin.Engine) {
 		resources.PUT("/shipdesigns", UpdateShipDesign)
 
 		resources.GET("/shipparts", GetShipPartsList)
+		resources.GET("/governments", GetGovernments)
 	}
 
 	r.GET("/gameupdates", func(c *gin.Context) {

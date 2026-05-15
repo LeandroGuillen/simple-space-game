@@ -22,6 +22,55 @@
       "operation": "ADD"
     },
     {
+      "name": "command_points_multiplier",
+      "description": "Multiplies the empire command point capacity.",
+      "scope": "EMPIRE",
+      "stat": "command_points",
+      "operation": "MULTIPLY"
+    },
+    {
+      "name": "ship_cost_multiplier",
+      "description": "Multiplies ship construction costs.",
+      "scope": "EMPIRE",
+      "stat": "ship_cost",
+      "operation": "MULTIPLY"
+    },
+    {
+      "name": "defensive_spy_bonus",
+      "description": "Adds a defensive espionage bonus.",
+      "scope": "EMPIRE",
+      "stat": "defensive_spying",
+      "operation": "ADD_PERCENT"
+    },
+    {
+      "name": "missing_barracks_morale",
+      "description": "Applies morale when a colony lacks barracks.",
+      "scope": "EMPIRE",
+      "stat": "morale",
+      "operation": "ADD_PERCENT"
+    },
+    {
+      "name": "barracks_morale_bonus",
+      "description": "Applies morale when a colony has barracks.",
+      "scope": "EMPIRE",
+      "stat": "morale",
+      "operation": "ADD_PERCENT"
+    },
+    {
+      "name": "missing_capitol_morale",
+      "description": "Applies morale when an empire lacks a Capitol.",
+      "scope": "EMPIRE",
+      "stat": "morale",
+      "operation": "ADD_PERCENT"
+    },
+    {
+      "name": "morale_neutral",
+      "description": "Makes an empire ignore morale effects.",
+      "scope": "EMPIRE",
+      "stat": "morale",
+      "operation": "SET"
+    },
+    {
       "name": "environment_bonus",
       "description": "Reduces pollution.",
       "scope": "PLANET",
@@ -71,6 +120,13 @@
       "operation": "ADD"
     },
     {
+      "name": "industry_labor_multiplier",
+      "description": "Multiplies worker labor production.",
+      "scope": "EMPIRE",
+      "stat": "industry_labor",
+      "operation": "MULTIPLY"
+    },
+    {
       "name": "industry_flat",
       "description": "Adds fixed production.",
       "scope": "PLANET",
@@ -85,6 +141,13 @@
       "operation": "ADD"
     },
     {
+      "name": "food_labor_multiplier",
+      "description": "Multiplies farmer labor food output.",
+      "scope": "EMPIRE",
+      "stat": "food_labor",
+      "operation": "MULTIPLY"
+    },
+    {
       "name": "food_flat",
       "description": "Adds fixed food.",
       "scope": "PLANET",
@@ -97,6 +160,13 @@
       "scope": "PLANET",
       "stat": "science_per_scientist",
       "operation": "ADD"
+    },
+    {
+      "name": "science_labor_multiplier",
+      "description": "Multiplies scientist labor research output.",
+      "scope": "EMPIRE",
+      "stat": "science_labor",
+      "operation": "MULTIPLY"
     },
     {
       "name": "science_flat",
@@ -118,6 +188,13 @@
       "scope": "PLANET",
       "stat": "income",
       "operation": "ADD_PERCENT"
+    },
+    {
+      "name": "tax_multiplier",
+      "description": "Multiplies tax income.",
+      "scope": "EMPIRE",
+      "stat": "tax",
+      "operation": "MULTIPLY"
     },
     {
       "name": "armored_production",

@@ -7,6 +7,7 @@ import {
   onMount,
   Show,
 } from "solid-js";
+import { Portal } from "solid-js/web";
 
 import type {
   ApiGameListItem,
@@ -140,32 +141,38 @@ function ArrowIcon() {
 function OptionRow<T extends string | number>(props: {
   label: string;
   options: ToggleOption<T>[];
-  selected: T;
+  selected: T | null;
   onSelect: (value: T) => void;
   linkValues?: readonly T[];
+  error?: string;
 }) {
   return (
-    <div class="option-row">
-      <span class="option-label">{props.label}</span>
-      <div class="option-toggle-group" role="group" aria-label={props.label}>
-        <For each={props.options}>
-          {(option) => (
-            <button
-              type="button"
-              class="option-toggle"
-              classList={{
-                selected: props.selected === option.value,
-                "option-toggle--link": props.linkValues?.includes(option.value),
-              }}
-              disabled={option.disabled}
-              title={option.title}
-              aria-pressed={props.selected === option.value}
-              onClick={() => props.onSelect(option.value)}
-            >
-              {option.label}
-            </button>
-          )}
-        </For>
+    <div class="ng-row">
+      <span class="ng-row-label">{props.label}</span>
+      <div class="ng-row-control">
+        <div class="ng-toggle-group" role="group" aria-label={props.label}>
+          <For each={props.options}>
+            {(option) => (
+              <button
+                type="button"
+                class="ng-toggle"
+                classList={{
+                  selected: props.selected === option.value,
+                  "ng-toggle--link": props.linkValues?.includes(option.value),
+                }}
+                disabled={option.disabled}
+                title={option.title}
+                aria-pressed={props.selected === option.value}
+                onClick={() => props.onSelect(option.value)}
+              >
+                {option.label}
+              </button>
+            )}
+          </For>
+        </div>
+        <Show when={props.error}>
+          <p class="ng-row-error">{props.error}</p>
+        </Show>
       </div>
     </div>
   );
@@ -182,7 +189,7 @@ export function SetupPage() {
   );
   const [showServerForm, setShowServerForm] = createSignal(false);
   const [newServerUrl, setNewServerUrl] = createSignal("http://127.0.0.1:8080");
-  const [playerName, setPlayerName] = createSignal("Admiral");
+  const [playerName, setPlayerName] = createSignal("Player");
   const [difficulty, setDifficulty] =
     createSignal<NewGameOptions["difficulty"]>("medium");
   const [galaxySize, setGalaxySize] =
@@ -192,17 +199,18 @@ export function SetupPage() {
   const [players, setPlayers] = createSignal(1);
   const [techLevel, setTechLevel] =
     createSignal<NewGameOptions["tech_level"]>("average");
-  const [race, setRace] = createSignal<RaceSelection>("human");
+  const [race, setRace] = createSignal<RaceSelection | null>(null);
   const [customRace, setCustomRace] = createSignal<CustomRaceDesign | null>(
     null,
   );
   const [savedCustomRaces, setSavedCustomRaces] = createSignal<
     CustomRaceDesign[]
   >([]);
-  const [playerColor, setPlayerColor] = createSignal("#FFFFFF");
-  const [isNewGameFormOpen, setIsNewGameFormOpen] = createSignal(false);
+  const [playerColor, setPlayerColor] = createSignal("");
+  const [isNewGameModalOpen, setIsNewGameModalOpen] = createSignal(false);
   const [isConnecting, setIsConnecting] = createSignal(false);
   const [confirmRemove, setConfirmRemove] = createSignal<string | null>(null);
+  const [validationAttempted, setValidationAttempted] = createSignal(false);
 
   const activeServer = createMemo(() =>
     servers().find((s) => s.url === selectedServerUrl()),
@@ -210,9 +218,6 @@ export function SetupPage() {
 
   const isConnected = createMemo(() => activeServer()?.status === "connected");
   const gameCount = createMemo(() => activeServer()?.games.length ?? 0);
-  const shouldShowNewGameForm = createMemo(
-    () => isConnected() && (gameCount() === 0 || isNewGameFormOpen()),
-  );
   const raceOptions = createMemo(
     () =>
       [
@@ -228,8 +233,17 @@ export function SetupPage() {
             ? "Edit this race before using it in a game."
             : undefined,
         })),
-        { label: "Custom", value: "custom-link" },
+        { label: "Custom...", value: "custom-link" },
       ] satisfies ToggleOption<RaceSelection>[],
+  );
+
+  const trimmedPlayerName = createMemo(() => playerName().trim());
+  const isFormValid = createMemo(
+    () =>
+      trimmedPlayerName().length > 0 &&
+      race() !== null &&
+      race() !== "custom-link" &&
+      playerColor().length > 0,
   );
 
   createEffect(() => {
@@ -280,11 +294,14 @@ export function SetupPage() {
 
   onMount(() => {
     const draft = getCustomRaceDraft();
+    const shouldReopen = consumeSetupFormOpen();
     if (draft?.name.trim()) {
       setCustomRace(draft);
       setRace(`custom:${draft.name}`);
     }
-    consumeSetupFormOpen();
+    if (shouldReopen) {
+      setIsNewGameModalOpen(true);
+    }
     const sel = selectedServerUrl();
     if (!sel) {
       return;
@@ -328,10 +345,32 @@ export function SetupPage() {
     if (colors.length === 0) {
       return;
     }
-    if (!colors.includes(playerColor())) {
-      setPlayerColor(colors[0]!);
+    if (!playerColor() || !colors.includes(playerColor())) {
+      const red = colors.find((c) => c.toLowerCase() === "#ff3b30");
+      setPlayerColor(red ?? colors[0]!);
     }
   });
+
+  createEffect(() => {
+    if (!isNewGameModalOpen()) return;
+    const handler = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeModal();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  });
+
+  const closeModal = () => {
+    setIsNewGameModalOpen(false);
+    setValidationAttempted(false);
+  };
+
+  const openModal = () => {
+    setValidationAttempted(false);
+    setIsNewGameModalOpen(true);
+  };
 
   const handleAddServer = async (event: SubmitEvent) => {
     event.preventDefault();
@@ -367,7 +406,7 @@ export function SetupPage() {
       if (selectedServerUrl() === url) {
         setSelectedServerUrl("");
       }
-      setIsNewGameFormOpen(false);
+      setIsNewGameModalOpen(false);
       setConfirmRemove(null);
     } else {
       setConfirmRemove(url);
@@ -377,8 +416,13 @@ export function SetupPage() {
 
   const handleCreate = async (event: SubmitEvent) => {
     event.preventDefault();
+    setValidationAttempted(true);
+    if (!isFormValid()) {
+      return;
+    }
     try {
       const selectedRace = race();
+      if (!selectedRace || selectedRace === "custom-link") return;
       const selectedCustomRace = selectedRace.startsWith("custom:")
         ? (savedCustomRaces().find(
             (saved) => `custom:${saved.name}` === selectedRace,
@@ -398,7 +442,7 @@ export function SetupPage() {
           ? "psilon"
           : "human";
       const gameId = await createGame({
-        player_name: playerName(),
+        player_name: trimmedPlayerName(),
         player_color: playerColor(),
         num_stars: galaxySizeStars[galaxySize()],
         difficulty: difficulty(),
@@ -435,6 +479,7 @@ export function SetupPage() {
         setCustomRace(saved);
         setCustomRaceDraft({
           name: saved.name,
+          government: saved.government || "Dictatorship",
           trait_ids: [...(saved.trait_ids ?? [])] as RaceTraitId[],
           playable: saved.playable,
         });
@@ -529,7 +574,19 @@ export function SetupPage() {
           </aside>
 
           <section class="setup-games" aria-label="Games">
-            <PanelHeader title="Games" count={gameCount()} />
+            <div class="setup-games-header">
+              <PanelHeader title="Games" count={isConnected() ? gameCount() : undefined} />
+              <Show when={isConnected() && gameCount() > 0}>
+                <button
+                  class="primary-button setup-new-game-btn"
+                  type="button"
+                  onClick={openModal}
+                >
+                  <PlusIcon />
+                  New Game
+                </button>
+              </Show>
+            </div>
 
             <Show
               when={isConnected()}
@@ -540,16 +597,17 @@ export function SetupPage() {
               }
             >
               <Show
-                when={activeServer()?.games.length}
+                when={gameCount() > 0}
                 fallback={
                   <div class="empty-state">
-                    <span class="empty-text">No games yet</span>
+                    <span class="empty-text">No games on this server yet</span>
                     <button
-                      class="secondary-button create-first"
+                      class="primary-button"
                       type="button"
-                      onClick={() => setIsNewGameFormOpen(true)}
+                      onClick={openModal}
                     >
-                      Create one
+                      <PlusIcon />
+                      Create your first game
                     </button>
                   </div>
                 }
@@ -611,76 +669,110 @@ export function SetupPage() {
                   </For>
                 </ul>
               </Show>
+            </Show>
+          </section>
+        </div>
+      </div>
 
-              <Show
-                when={shouldShowNewGameForm()}
-                fallback={
-                  <Show when={activeServer()?.games.length}>
-                    <button
-                      class="secondary-button new-game-button"
-                      type="button"
-                      onClick={() => setIsNewGameFormOpen(true)}
+      <Show when={isNewGameModalOpen()}>
+        <Portal>
+          <div
+            class="ng-backdrop"
+            onClick={closeModal}
+            role="presentation"
+          >
+            <div
+              class="ng-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="ng-title"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <header class="ng-header">
+                <div>
+                  <h2 id="ng-title">New Game</h2>
+                  <p class="ng-subtitle">Configure a fresh galaxy.</p>
+                </div>
+                <button
+                  type="button"
+                  class="ng-close"
+                  onClick={closeModal}
+                  aria-label="Close"
+                >
+                  ×
+                </button>
+              </header>
+
+              <form class="ng-form" onSubmit={handleCreate}>
+                <div class="ng-row">
+                  <span class="ng-row-label">Commander</span>
+                  <div class="ng-row-control">
+                    <input
+                      class="ng-input"
+                      value={playerName()}
+                      onInput={(event) =>
+                        setPlayerName(event.currentTarget.value)
+                      }
+                      placeholder="Your name"
+                      autofocus
+                    />
+                    <Show
+                      when={
+                        validationAttempted() &&
+                        trimmedPlayerName().length === 0
+                      }
                     >
-                      <PlusIcon />
-                      New Game
-                    </button>
-                  </Show>
-                }
-              >
-                <form class="new-game-form" onSubmit={handleCreate}>
-                  <div class="new-game-row">
-                    <label class="field">
-                      <span>Commander</span>
-                      <input
-                        value={playerName()}
-                        onInput={(event) =>
-                          setPlayerName(event.currentTarget.value)
-                        }
-                        autofocus
-                      />
-                    </label>
+                      <p class="ng-row-error">Enter a commander name.</p>
+                    </Show>
                   </div>
-                  <div class="new-game-options">
-                    <OptionRow
-                      label="Difficulty"
-                      options={difficultyOptions}
-                      selected={difficulty()}
-                      onSelect={setDifficulty}
-                    />
-                    <OptionRow
-                      label="Galaxy Size"
-                      options={galaxySizeOptions}
-                      selected={galaxySize()}
-                      onSelect={setGalaxySize}
-                    />
-                    <OptionRow
-                      label="Galaxy Age"
-                      options={galaxyAgeOptions}
-                      selected={galaxyAge()}
-                      onSelect={setGalaxyAge}
-                    />
-                    <OptionRow
-                      label="Players"
-                      options={playerOptions}
-                      selected={players()}
-                      onSelect={setPlayers}
-                    />
-                    <OptionRow
-                      label="Tech Level"
-                      options={techLevelOptions}
-                      selected={techLevel()}
-                      onSelect={setTechLevel}
-                    />
-                    <OptionRow
-                      label="Race"
-                      options={raceOptions()}
-                      selected={race()}
-                      onSelect={handleSelectRace}
-                      linkValues={["custom-link"]}
-                    />
-                  </div>
-                  <label class="field">
-                    <span>Color</span>
+                </div>
+
+                <OptionRow
+                  label="Race"
+                  options={raceOptions()}
+                  selected={race()}
+                  onSelect={handleSelectRace}
+                  linkValues={["custom-link"]}
+                  error={
+                    validationAttempted() && race() === null
+                      ? "Select a race to continue."
+                      : undefined
+                  }
+                />
+                <OptionRow
+                  label="Difficulty"
+                  options={difficultyOptions}
+                  selected={difficulty()}
+                  onSelect={setDifficulty}
+                />
+                <OptionRow
+                  label="Galaxy Size"
+                  options={galaxySizeOptions}
+                  selected={galaxySize()}
+                  onSelect={setGalaxySize}
+                />
+                <OptionRow
+                  label="Galaxy Age"
+                  options={galaxyAgeOptions}
+                  selected={galaxyAge()}
+                  onSelect={setGalaxyAge}
+                />
+                <OptionRow
+                  label="Players"
+                  options={playerOptions}
+                  selected={players()}
+                  onSelect={setPlayers}
+                />
+                <OptionRow
+                  label="Tech Level"
+                  options={techLevelOptions}
+                  selected={techLevel()}
+                  onSelect={setTechLevel}
+                />
+
+                <div class="ng-row">
+                  <span class="ng-row-label">Color</span>
+                  <div class="ng-row-control">
                     <div class="color-swatches">
                       <For each={state.playerColorOptions.colors}>
                         {(color) => (
@@ -690,34 +782,36 @@ export function SetupPage() {
                             classList={{ selected: playerColor() === color }}
                             style={{ "background-color": color }}
                             onClick={() => setPlayerColor(color)}
+                            aria-label={`Pick color ${color}`}
                           />
                         )}
                       </For>
                     </div>
-                  </label>
-                  <div class="form-actions">
-                    <button
-                      class="link-button"
-                      type="button"
-                      onClick={() => setIsNewGameFormOpen(false)}
-                      disabled={state.isBusy}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      class="primary-button"
-                      type="submit"
-                      disabled={state.isBusy}
-                    >
-                      Create
-                    </button>
                   </div>
-                </form>
-              </Show>
-            </Show>
-          </section>
-        </div>
-      </div>
+                </div>
+
+                <footer class="ng-footer">
+                  <button
+                    class="link-button"
+                    type="button"
+                    onClick={closeModal}
+                    disabled={state.isBusy}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    class="primary-button"
+                    type="submit"
+                    disabled={state.isBusy || !isFormValid()}
+                  >
+                    Create Game
+                  </button>
+                </footer>
+              </form>
+            </div>
+          </div>
+        </Portal>
+      </Show>
     </section>
   );
 }

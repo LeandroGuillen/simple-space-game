@@ -10,37 +10,43 @@ import (
 )
 
 func TestBuildCustomRaceRejectsUnknownTrait(t *testing.T) {
-	_, err := BuildCustomRace(CustomRaceDesign{Name: "Ada", TraitIDs: []string{"nope"}})
+	resources := testResources(t)
+	_, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Ada", TraitIDs: []string{"nope"}})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "unknown race trait")
 }
 
 func TestBuildCustomRaceRejectsDisabledTrait(t *testing.T) {
-	_, err := BuildCustomRace(CustomRaceDesign{Name: "Ada", TraitIDs: []string{"creative"}})
+	resources := testResources(t)
+	_, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Ada", TraitIDs: []string{"creative"}})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "not implemented")
 }
 
 func TestBuildCustomRaceRejectsDuplicateTrait(t *testing.T) {
-	_, err := BuildCustomRace(CustomRaceDesign{Name: "Ada", TraitIDs: []string{"food_plus_1", "food_plus_1"}})
+	resources := testResources(t)
+	_, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Ada", TraitIDs: []string{"food_plus_1", "food_plus_1"}})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "duplicate")
 }
 
 func TestBuildCustomRaceRejectsOverspentPicks(t *testing.T) {
-	_, err := BuildCustomRace(CustomRaceDesign{Name: "Ada", TraitIDs: []string{"money_plus_1", "food_plus_2"}})
+	resources := testResources(t)
+	_, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Ada", TraitIDs: []string{"money_plus_1", "food_plus_2"}})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "overspends")
 }
 
 func TestBuildCustomRaceRejectsTooManyNegativePicks(t *testing.T) {
-	_, err := BuildCustomRace(CustomRaceDesign{Name: "Ada", TraitIDs: []string{"growth_minus_50", "food_minus_1", "production_minus_1", "money_minus_half"}})
+	resources := testResources(t)
+	_, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Ada", TraitIDs: []string{"growth_minus_50", "food_minus_1", "production_minus_1", "money_minus_half"}})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "negative picks")
 }
 
 func TestBuildCustomRaceRejectsExclusiveGroupConflict(t *testing.T) {
-	_, err := BuildCustomRace(CustomRaceDesign{Name: "Ada", TraitIDs: []string{"research_plus_1", "research_plus_2"}})
+	resources := testResources(t)
+	_, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Ada", TraitIDs: []string{"research_plus_1", "research_plus_2"}})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "mutually exclusive")
 }
@@ -48,7 +54,7 @@ func TestBuildCustomRaceRejectsExclusiveGroupConflict(t *testing.T) {
 func TestNewGameAppliesCustomRaceNameAndTraitIDs(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)
-	race, err := BuildCustomRace(CustomRaceDesign{Name: "Synths", TraitIDs: []string{"research_plus_1"}})
+	race, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Synths", TraitIDs: []string{"research_plus_1"}})
 	require.NoError(t, err)
 
 	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: race})
@@ -86,7 +92,7 @@ func TestRaceIncomeBonusAffectsPlanetIncome(t *testing.T) {
 	income := PlanetIncome(g, planet, 0)
 
 	assert.Equal(t, 0.5, income.Bonus)
-	assert.Equal(t, int64(15), income.Total)
+	assert.Equal(t, int64(14), income.Total)
 }
 
 func TestRacePopulationGrowthPercentAffectsTurnGrowth(t *testing.T) {
@@ -138,7 +144,7 @@ func gameWithCustomRacePlanet(t *testing.T, traitIDs []string) (*Game, *model.Pl
 	g := newGameWithRaceTraits(t, traitIDs)
 	planet, err := g.getPlanet(1)
 	require.NoError(t, err)
-	planet.Buildings = nil
+	planet.Buildings = []string{"Capitol", "Marine Barracks"}
 	planet.Population = 10000
 	planet.Food.Farmers = 5
 	planet.Industry.Workers = 3
@@ -151,9 +157,16 @@ func newGameWithRaceTraits(t *testing.T, traitIDs []string) *Game {
 	t.Helper()
 	resources, err := NewResourceManager()
 	require.NoError(t, err)
-	race, err := BuildCustomRace(CustomRaceDesign{Name: "Synths", TraitIDs: traitIDs})
+	race, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Synths", TraitIDs: traitIDs})
 	require.NoError(t, err)
 	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: race})
 	require.NoError(t, err)
 	return g
+}
+
+func testResources(t *testing.T) *ResourceManager {
+	t.Helper()
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+	return resources
 }

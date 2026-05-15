@@ -97,6 +97,14 @@ export type PlanetViewModel = {
     multiplier: number;
     sources: MoraleSourceViewModel[];
   };
+  government?: {
+    name: string;
+    foodLaborMultiplier: number;
+    industryLaborMultiplier: number;
+    scienceLaborMultiplier: number;
+    taxMultiplier: number;
+    moraleNeutral: boolean;
+  };
   pollution: number;
   currentProject: BuildingViewModel | null;
   buildQueue: BuildingViewModel[];
@@ -137,6 +145,7 @@ export type PlayerViewModel = {
   name: string;
   color: string;
   raceName: string;
+  raceGovernment: string;
   raceTraitIds: string[];
   raceGrants: GrantsViewModel;
   treasury: number;
@@ -309,6 +318,10 @@ export type TechViewModel = {
   name: string;
   description: string;
   hidden: boolean;
+  type: string;
+  pickCost: number;
+  default: boolean;
+  upgrades: string[];
   cost: number;
   maintenance: number;
   builtOn: string[];

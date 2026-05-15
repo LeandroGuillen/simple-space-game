@@ -1,4 +1,4 @@
-import type { CustomRaceDesign, RaceTraitId } from "./types/api";
+import type { ApiGovernment, CustomRaceDesign, RaceTraitId } from "./types/api";
 
 export type RaceTraitDefinition = {
   id: string;
@@ -12,6 +12,15 @@ export type RaceTraitDefinition = {
 
 export const RACE_PICK_BUDGET = 10;
 export const RACE_NEGATIVE_PICK_LIMIT = 10;
+
+export const DEFAULT_GOVERNMENT = "Dictatorship";
+
+export const fallbackGovernments: ApiGovernment[] = [
+  { name: "Feudal", description: "A decentralized noble hierarchy with cheap ship construction and weak research.", pick_cost: -4 },
+  { name: "Dictatorship", description: "A centralized authoritarian government with stable internal security.", pick_cost: 0, default: true },
+  { name: "Democracy", description: "A representative government with strong research and tax output but weaker counter-espionage.", pick_cost: 7 },
+  { name: "Unification", description: "A unified collective with strong farming and industry that ignores morale.", pick_cost: 6 },
+];
 
 export const raceTraitDefinitions: RaceTraitDefinition[] = [
   { id: "growth_minus_50", name: "-50% Growth", category: "Population", pickCost: -4, exclusiveGroup: "growth", enabled: true, description: "Colonies grow at half speed." },
@@ -38,10 +47,6 @@ export const raceTraitDefinitions: RaceTraitDefinition[] = [
   { id: "ship_attack", name: "Ship Attack", category: "Future Traits", pickCost: 0, enabled: false, description: "Requires combat." },
   { id: "ground_combat", name: "Ground Combat", category: "Future Traits", pickCost: 0, enabled: false, description: "Requires ground combat." },
   { id: "spying", name: "Spying", category: "Future Traits", pickCost: 0, enabled: false, description: "Requires espionage." },
-  { id: "feudal", name: "Feudal", category: "Future Traits", pickCost: -4, enabled: false, description: "Requires government rules." },
-  { id: "dictatorship", name: "Dictatorship", category: "Future Traits", pickCost: 0, enabled: false, description: "Requires government rules." },
-  { id: "democracy", name: "Democracy", category: "Future Traits", pickCost: 7, enabled: false, description: "Requires government rules." },
-  { id: "unification", name: "Unification", category: "Future Traits", pickCost: 6, enabled: false, description: "Requires government rules." },
   { id: "low_g_world", name: "Low-G World", category: "Future Traits", pickCost: -5, enabled: false, description: "Requires gravity rules." },
   { id: "high_g_world", name: "High-G World", category: "Future Traits", pickCost: 6, enabled: false, description: "Requires gravity rules." },
   { id: "aquatic", name: "Aquatic", category: "Future Traits", pickCost: 5, enabled: false, description: "Requires aquatic planet capacity rules." },
@@ -63,20 +68,38 @@ export const raceTraitDefinitions: RaceTraitDefinition[] = [
 
 export const raceTraitById = new Map(raceTraitDefinitions.map((trait) => [trait.id, trait]));
 
-export function selectedRaceTraits(traitIds: readonly string[]) {
-  return traitIds.map((id) => raceTraitById.get(id)).filter((trait): trait is RaceTraitDefinition => Boolean(trait));
+type TraitIdInput = readonly string[] | null | undefined;
+
+function normalizeTraitIds(traitIds: TraitIdInput) {
+  return Array.isArray(traitIds) ? traitIds : [];
 }
 
-export function racePickCost(traitIds: readonly string[]) {
+export function selectedRaceTraits(traitIds: TraitIdInput) {
+  return normalizeTraitIds(traitIds).map((id) => raceTraitById.get(id)).filter((trait): trait is RaceTraitDefinition => Boolean(trait));
+}
+
+export function racePickCost(traitIds: TraitIdInput) {
   return selectedRaceTraits(traitIds).reduce((total, trait) => total + trait.pickCost, 0);
 }
 
-export function raceRemainingPicks(traitIds: readonly string[]) {
-  return RACE_PICK_BUDGET - racePickCost(traitIds);
+export function governmentPickCost(government: string, governments: readonly ApiGovernment[] = fallbackGovernments) {
+  return governments.find((item) => item.name === government)?.pick_cost ?? 0;
 }
 
-export function raceNegativePicks(traitIds: readonly string[]) {
-  return selectedRaceTraits(traitIds).reduce((total, trait) => total + Math.max(0, -trait.pickCost), 0);
+export function defaultGovernment(governments: readonly ApiGovernment[] = fallbackGovernments) {
+  return governments.find((item) => item.default)?.name ?? DEFAULT_GOVERNMENT;
+}
+
+export function raceTotalPickCost(traitIds: TraitIdInput, government: string, governments: readonly ApiGovernment[] = fallbackGovernments) {
+  return racePickCost(traitIds) + governmentPickCost(government || defaultGovernment(governments), governments);
+}
+
+export function raceRemainingPicks(traitIds: TraitIdInput, government = DEFAULT_GOVERNMENT, governments: readonly ApiGovernment[] = fallbackGovernments) {
+  return RACE_PICK_BUDGET - raceTotalPickCost(traitIds, government, governments);
+}
+
+export function raceNegativePicks(traitIds: TraitIdInput, government = DEFAULT_GOVERNMENT, governments: readonly ApiGovernment[] = fallbackGovernments) {
+  return selectedRaceTraits(traitIds).reduce((total, trait) => total + Math.max(0, -trait.pickCost), Math.max(0, -governmentPickCost(government || defaultGovernment(governments), governments)));
 }
 
 export function isRaceTraitBlocked(trait: RaceTraitDefinition) {
@@ -98,18 +121,19 @@ export function validateCustomRaceDesign(design: CustomRaceDesign) {
   const errors: string[] = [];
   if (!design.name.trim()) errors.push("Enter a race name.");
   if (design.name.trim().length > 32) errors.push("Race name must be 32 characters or fewer.");
+  if (!design.government?.trim()) errors.push("Select a government.");
   return errors;
 }
 
-export function validatePlayableCustomRaceDesign(design: CustomRaceDesign) {
+export function validatePlayableCustomRaceDesign(design: CustomRaceDesign, governments: readonly ApiGovernment[] = fallbackGovernments) {
   const errors = validateCustomRaceDesign(design);
-  if (raceRemainingPicks(design.trait_ids) < 0) errors.push("Race spends more than 10 picks.");
-  if (raceNegativePicks(design.trait_ids) > RACE_NEGATIVE_PICK_LIMIT) errors.push("Race uses more than 10 negative picks.");
+  if (raceRemainingPicks(design.trait_ids, design.government, governments) < 0) errors.push("Race spends more than 10 picks.");
+  if (raceNegativePicks(design.trait_ids, design.government, governments) > RACE_NEGATIVE_PICK_LIMIT) errors.push("Race uses more than 10 negative picks.");
   return errors;
 }
 
-export function isPlayableCustomRaceDesign(design: CustomRaceDesign) {
-  return validatePlayableCustomRaceDesign(design).length === 0;
+export function isPlayableCustomRaceDesign(design: CustomRaceDesign, governments: readonly ApiGovernment[] = fallbackGovernments) {
+  return validatePlayableCustomRaceDesign(design, governments).length === 0;
 }
 
 export function isRaceTraitId(id: string): id is RaceTraitId {

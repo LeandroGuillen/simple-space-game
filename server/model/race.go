@@ -1,11 +1,12 @@
 package model
 
 type Race struct {
-	ID       uint      `json:"id"`
-	Name     string    `json:"name"`
-	TraitIDs []string  `json:"trait_ids,omitempty"`
-	Grants   Grants    `json:"grants"`
-	Stats    RaceStats `json:"stats"`
+	ID         uint      `json:"id"`
+	Name       string    `json:"name"`
+	Government string    `json:"government"`
+	TraitIDs   []string  `json:"trait_ids,omitempty"`
+	Grants     Grants    `json:"grants"`
+	Stats      RaceStats `json:"stats"`
 }
 
 type RaceStats struct {

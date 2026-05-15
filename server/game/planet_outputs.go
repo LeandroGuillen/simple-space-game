@@ -84,8 +84,22 @@ func PlanetGrossIndustry(p *Planet) int64 {
 		colonistUnits(p)*p.Industry.ProducedPerColonist
 }
 
+func GamePlanetGrossIndustry(game *Game, p *Planet) int64 {
+	player := gamePlayerForPlanet(game, p)
+	return governmentAdjustedLaborOutput(
+		p.Industry.Workers,
+		p.Industry.ProducedPerWorker,
+		governmentLaborMultiplier(game, player, "industry_labor_multiplier"),
+		governmentMoraleMultiplier(game, player, p.Morale),
+	) + p.Industry.ProducedPerBuilding + colonistUnits(p)*p.Industry.ProducedPerColonist
+}
+
 func PlanetIndustryProduced(p *Planet) int64 {
 	return PlanetGrossIndustry(p) - Pollution(p)
+}
+
+func GamePlanetIndustryProduced(game *Game, p *Planet) int64 {
+	return GamePlanetGrossIndustry(game, p) - Pollution(p)
 }
 
 func PlanetFoodProduced(p *Planet) int64 {
@@ -93,9 +107,47 @@ func PlanetFoodProduced(p *Planet) int64 {
 		p.Food.ProducedPerBuilding
 }
 
+func GamePlanetFoodProduced(game *Game, p *Planet) int64 {
+	player := gamePlayerForPlanet(game, p)
+	return governmentAdjustedLaborOutput(
+		p.Food.Farmers,
+		p.Food.ProducedPerFarmer,
+		governmentLaborMultiplier(game, player, "food_labor_multiplier"),
+		governmentMoraleMultiplier(game, player, p.Morale),
+	) + p.Food.ProducedPerBuilding
+}
+
 func PlanetScienceProduced(p *Planet) int64 {
 	return moraleAdjustedLaborOutput(p.Science.Scientists, p.Science.ProducedPerScientist, effectiveMoraleMultiplier(p.Morale)) +
 		p.Science.ProducedPerBuilding
+}
+
+func GamePlanetScienceProduced(game *Game, p *Planet) int64 {
+	player := gamePlayerForPlanet(game, p)
+	return governmentAdjustedLaborOutput(
+		p.Science.Scientists,
+		p.Science.ProducedPerScientist,
+		governmentLaborMultiplier(game, player, "science_labor_multiplier"),
+		governmentMoraleMultiplier(game, player, p.Morale),
+	) + p.Science.ProducedPerBuilding
+}
+
+func gamePlayerForPlanet(game *Game, p *Planet) *Player {
+	if game == nil || p == nil {
+		return nil
+	}
+	player, err := game.getPlayer(p.Owner)
+	if err != nil {
+		return nil
+	}
+	return player
+}
+
+func governmentMoraleMultiplier(game *Game, player *Player, morale PlanetMoraleOutput) float64 {
+	if governmentMoraleNeutral(game, player) {
+		return 1
+	}
+	return effectiveMoraleMultiplier(morale)
 }
 
 func colonistUnits(p *Planet) int64 {
@@ -113,4 +165,20 @@ func moraleAdjustedLaborOutput(workers, outputPerWorker int64, multiplier float6
 		multiplier = 0
 	}
 	return int64(math.Floor(float64(workers*outputPerWorker) * multiplier))
+}
+
+func governmentAdjustedLaborOutput(workers, outputPerWorker int64, governmentMultiplier, moraleMultiplier float64) int64 {
+	if governmentMultiplier == 0 {
+		governmentMultiplier = 1
+	}
+	if governmentMultiplier < 0 {
+		governmentMultiplier = 0
+	}
+	if moraleMultiplier == 0 {
+		moraleMultiplier = 1
+	}
+	if moraleMultiplier < 0 {
+		moraleMultiplier = 0
+	}
+	return int64(math.Floor(float64(workers*outputPerWorker) * governmentMultiplier * moraleMultiplier))
 }

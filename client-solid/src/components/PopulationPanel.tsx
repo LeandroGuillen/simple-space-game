@@ -3,11 +3,14 @@ import type { MovePopulationCommand } from "../lib/types/commands";
 import type { PlanetViewModel } from "../lib/types/domain";
 import { raceTraitById } from "../lib/race-design";
 import {
-  getMoraleAdjustedLaborOutput,
+  getGovernmentAdjustedLaborOutput,
+  getPlanetFoodForFarmers,
+  getPlanetGrossIndustryForWorkers,
   getPlanetIndustryForWorkers,
   getPlanetPollutionDivisor,
   getPlanetPollutionForWorkers,
   getPlanetPollutionSize,
+  getPlanetScienceForScientists,
 } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
 
@@ -46,6 +49,11 @@ const POP_COLORS: Record<PopCategory, string> = {
 
 function formatSigned(value: number) {
   return `${value > 0 ? "+" : ""}${value}`;
+}
+
+function formatSignedPercent(value: number) {
+  const percent = Math.round((value - 1) * 100);
+  return `${percent > 0 ? "+" : ""}${percent}%`;
 }
 
 type PopulationPanelProps = {
@@ -165,15 +173,16 @@ export function PopulationPanel(props: PopulationPanelProps) {
         (sum, contribution) => sum + contribution.total / Math.max(1, getPopCount("farmers")),
         0,
       );
-      const fromPopulation = getMoraleAdjustedLaborOutput(
+      const fromPopulation = getGovernmentAdjustedLaborOutput(
         getPopCount("farmers"),
         Math.max(0, props.planet.food.produced_per_farmer - raceBonus),
         props.planet,
+        props.planet.government?.foodLaborMultiplier ?? 1,
       );
-      const fromBuildings = props.planet.food.produced_per_building +
-        getMoraleAdjustedLaborOutput(getPopCount("farmers"), raceBonus, props.planet);
+      const total = getPlanetFoodForFarmers(props.planet, getPopCount("farmers"));
+      const fromBuildings = total - fromPopulation;
       return {
-        total: fromPopulation + fromBuildings,
+        total,
         fromPopulation,
         fromBuildings,
       };
@@ -188,22 +197,16 @@ export function PopulationPanel(props: PopulationPanelProps) {
         0,
         props.planet.industry.produced_per_worker - perWorkerBuildingBonus - perWorkerRaceBonus,
       );
-      const fromPopulation = getMoraleAdjustedLaborOutput(
+      const fromPopulation = getGovernmentAdjustedLaborOutput(
         getPopCount("workers"),
         basePerWorker,
         props.planet,
+        props.planet.government?.industryLaborMultiplier ?? 1,
       );
-      const fromBuildings =
-        props.planet.industry.produced_per_building +
-        getMoraleAdjustedLaborOutput(
-          getPopCount("workers"),
-          perWorkerBuildingBonus + perWorkerRaceBonus,
-          props.planet,
-        ) +
-        Math.floor(props.planet.population / 1000) *
-          props.planet.industry.produced_per_colonist;
+      const total = getPlanetGrossIndustryForWorkers(props.planet, getPopCount("workers"));
+      const fromBuildings = total - fromPopulation;
       return {
-        total: fromPopulation + fromBuildings,
+        total,
         fromPopulation,
         fromBuildings,
       };
@@ -217,20 +220,16 @@ export function PopulationPanel(props: PopulationPanelProps) {
       0,
       props.planet.science.produced_per_scientist - perScientistBuildingBonus - perScientistRaceBonus,
     );
-    const fromPopulation = getMoraleAdjustedLaborOutput(
+    const fromPopulation = getGovernmentAdjustedLaborOutput(
       getPopCount("scientists"),
       basePerScientist,
       props.planet,
+      props.planet.government?.scienceLaborMultiplier ?? 1,
     );
-    const fromBuildings =
-      props.planet.science.produced_per_building +
-      getMoraleAdjustedLaborOutput(
-        getPopCount("scientists"),
-        perScientistBuildingBonus + perScientistRaceBonus,
-        props.planet,
-      );
+    const total = getPlanetScienceForScientists(props.planet, getPopCount("scientists"));
+    const fromBuildings = total - fromPopulation;
     return {
-      total: fromPopulation + fromBuildings,
+      total,
       fromPopulation,
       fromBuildings,
     };
@@ -260,6 +259,25 @@ export function PopulationPanel(props: PopulationPanelProps) {
           )}
         </For>
       </>
+    );
+  };
+
+  const governmentMultiplierForCategory = (cat: PopCategory) => {
+    if (cat === "farmers") return props.planet.government?.foodLaborMultiplier ?? 1;
+    if (cat === "workers") return props.planet.government?.industryLaborMultiplier ?? 1;
+    return props.planet.government?.scienceLaborMultiplier ?? 1;
+  };
+
+  const renderGovernmentContributionRow = (cat: PopCategory) => {
+    const multiplier = governmentMultiplierForCategory(cat);
+    if (multiplier === 1) {
+      return null;
+    }
+    return (
+      <div class="pop-output-tooltip-row pop-output-tooltip-row--detail">
+        <span>{props.planet.government?.name ? `${props.planet.government.name} bonus` : "Government bonus"}</span>
+        <strong>{formatSignedPercent(multiplier)}</strong>
+      </div>
     );
   };
 
@@ -500,6 +518,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
                 <strong>{getOutputBreakdown("farmers").fromBuildings}</strong>
               </div>
               {renderRaceContributionRows("farmers")}
+              {renderGovernmentContributionRow("farmers")}
               {renderBuildingContributionRows("farmers")}
             </div>
           </div>
@@ -563,6 +582,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
                 <strong>{getOutputBreakdown("workers").fromBuildings}</strong>
               </div>
               {renderRaceContributionRows("workers")}
+              {renderGovernmentContributionRow("workers")}
               <div class="pop-output-tooltip-row pop-output-tooltip-row--detail">
                 <span>Planet absorption:</span>
                 <strong>{getPollutionPlanetSize()}</strong>
@@ -617,6 +637,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
                 </strong>
               </div>
               {renderRaceContributionRows("scientists")}
+              {renderGovernmentContributionRow("scientists")}
               {renderBuildingContributionRows("scientists")}
             </div>
           </div>

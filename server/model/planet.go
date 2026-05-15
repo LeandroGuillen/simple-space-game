@@ -17,12 +17,13 @@ type Planet struct {
 	MaxPopulation     int64 `json:"max_population"`
 	LastTurnPopGrowth int64 `json:"last_turn_pop_growth"`
 
-	Industry  PlanetIndustryOutput `json:"industry"`
-	Food      PlanetFoodOutput     `json:"food"`
-	Science   PlanetScienceOutput  `json:"science"`
-	Income    PlanetIncomeOutput   `json:"income"`
-	Morale    PlanetMoraleOutput   `json:"morale"`
-	Pollution int64                `json:"pollution"`
+	Industry   PlanetIndustryOutput   `json:"industry"`
+	Food       PlanetFoodOutput       `json:"food"`
+	Science    PlanetScienceOutput    `json:"science"`
+	Income     PlanetIncomeOutput     `json:"income"`
+	Morale     PlanetMoraleOutput     `json:"morale"`
+	Government PlanetGovernmentOutput `json:"government,omitempty"`
+	Pollution  int64                  `json:"pollution"`
 	// HomeworldScienceBonus is currently used for the custom race Artifacts World trait.
 	HomeworldScienceBonus int64 `json:"homeworld_science_bonus,omitempty"`
 
@@ -80,6 +81,15 @@ type PlanetMoraleSource struct {
 	Name  string  `json:"name"`
 	Type  string  `json:"type"`
 	Bonus float64 `json:"bonus"`
+}
+
+type PlanetGovernmentOutput struct {
+	Name                    string  `json:"name,omitempty"`
+	FoodLaborMultiplier     float64 `json:"food_labor_multiplier,omitempty"`
+	IndustryLaborMultiplier float64 `json:"industry_labor_multiplier,omitempty"`
+	ScienceLaborMultiplier  float64 `json:"science_labor_multiplier,omitempty"`
+	TaxMultiplier           float64 `json:"tax_multiplier,omitempty"`
+	MoraleNeutral           bool    `json:"morale_neutral,omitempty"`
 }
 
 //go:generate stringer -type=PlanetMineral

@@ -25,8 +25,9 @@ type NewGameRequest struct {
 }
 
 type CustomRaceRequest struct {
-	Name     string   `json:"name"`
-	TraitIDs []string `json:"trait_ids"`
+	Name       string   `json:"name"`
+	Government string   `json:"government"`
+	TraitIDs   []string `json:"trait_ids"`
 }
 
 type GameListResponse struct {
@@ -44,6 +45,7 @@ type GameListResponseItem struct {
 
 type GameListPlayerInfo struct {
 	Name     string `json:"name"`
+	RaceName string `json:"race_name"`
 	Color    string `json:"color"`
 	NumStars int    `json:"num_stars"`
 }
@@ -65,7 +67,7 @@ func NewGame(c *gin.Context) {
 	}
 	server := rawServer.(*Server)
 
-	race, err := raceFromRequest(req)
+	race, err := raceFromRequest(server.ResourceManager, req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -88,7 +90,7 @@ func NewGame(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"ok": true, "gameID": g.ID})
 }
 
-func raceFromRequest(req NewGameRequest) (model.Race, error) {
+func raceFromRequest(resources *game.ResourceManager, req NewGameRequest) (model.Race, error) {
 	switch req.Race {
 	case "", "human":
 		return game.DefaultRace("Human"), nil
@@ -96,13 +98,14 @@ func raceFromRequest(req NewGameRequest) (model.Race, error) {
 		return game.DefaultRace("Psilon"), nil
 	case "custom":
 		if req.CustomRace != nil {
-			return game.BuildCustomRace(game.CustomRaceDesign{
-				Name:     req.CustomRace.Name,
-				TraitIDs: req.CustomRace.TraitIDs,
+			return game.BuildCustomRace(resources, game.CustomRaceDesign{
+				Name:       req.CustomRace.Name,
+				Government: req.CustomRace.Government,
+				TraitIDs:   req.CustomRace.TraitIDs,
 			})
 		}
 		if req.CustomRaceName != "" {
-			return game.BuildCustomRace(game.CustomRaceDesign{Name: req.CustomRaceName})
+			return game.BuildCustomRace(resources, game.CustomRaceDesign{Name: req.CustomRaceName})
 		}
 		return model.Race{}, fmt.Errorf("custom race payload is required")
 	default:
@@ -143,6 +146,7 @@ func GetGameList(c *gin.Context) {
 			}
 			playerInfos[i] = GameListPlayerInfo{
 				Name:     p.Name,
+				RaceName: p.Race.Name,
 				Color:    p.Color,
 				NumStars: ownedStars,
 			}

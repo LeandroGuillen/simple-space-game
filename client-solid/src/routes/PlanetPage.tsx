@@ -51,6 +51,10 @@ export function PlanetPage() {
   });
   const formatMoralePercent = (bonus: number) =>
     `${bonus >= 0 ? '+' : ''}${Math.round(bonus * 100)}%`;
+  const formatMultiplierPercent = (multiplier: number) => {
+    const percent = Math.round((multiplier - 1) * 100);
+    return `${percent >= 0 ? '+' : ''}${percent}%`;
+  };
   const moraleIcons = createMemo(() => {
     const bonus = planet()?.morale.bonus ?? 0;
     return Array.from({ length: Math.max(0, Math.floor(bonus * 10 + 0.000001)) });
@@ -174,6 +178,12 @@ export function PlanetPage() {
                       <span>Taxes:</span>
                       <strong>{incomeBreakdown().taxes} BC</strong>
                     </div>
+                    <Show when={(currentPlanet().government?.taxMultiplier ?? 1) !== 1}>
+                      <div class='pop-output-tooltip-row'>
+                        <span>{currentPlanet().government?.name ? `${currentPlanet().government?.name} bonus:` : 'Government bonus:'}</span>
+                        <strong>{formatMultiplierPercent(currentPlanet().government?.taxMultiplier ?? 1)}</strong>
+                      </div>
+                    </Show>
                     <div class='pop-output-tooltip-row'>
                       <span>Buildings:</span>
                       <strong>{incomeBreakdown().buildings} BC</strong>

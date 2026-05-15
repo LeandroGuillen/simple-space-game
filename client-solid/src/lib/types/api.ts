@@ -15,6 +15,7 @@ export type ApiGameListItem = {
 
 export type ApiGameListPlayer = {
   name: string;
+  race_name?: string;
   color: string;
   num_stars: number;
 };
@@ -43,8 +44,16 @@ export type RaceTraitId =
 
 export type CustomRaceDesign = {
   name: string;
-  trait_ids: RaceTraitId[];
+  government: string;
+  trait_ids: RaceTraitId[] | null;
   playable?: boolean;
+};
+
+export type ApiGovernment = {
+  name: string;
+  description?: string;
+  pick_cost: number;
+  default?: boolean;
 };
 
 export type NewGameOptions = {
@@ -68,6 +77,7 @@ export type ApiCustomRaceListResponse = {
 export type ApiRace = {
   id: number;
   name: string;
+  government?: string;
   trait_ids?: string[];
   grants?: ApiGrants;
   Stats?: {
@@ -165,6 +175,14 @@ export type ApiPlanet = {
     bonus?: number;
     multiplier?: number;
     sources?: ApiMoraleSource[];
+  };
+  government?: {
+    name?: string;
+    food_labor_multiplier?: number;
+    industry_labor_multiplier?: number;
+    science_labor_multiplier?: number;
+    tax_multiplier?: number;
+    morale_neutral?: boolean;
   };
   pollution?: number;
   marines: number;
@@ -303,6 +321,10 @@ export type ApiTech = {
   name: string;
   description?: string;
   hidden?: boolean;
+  type?: string;
+  pick_cost?: number;
+  default?: boolean;
+  upgrades?: string[];
   cost?: number;
   maintenance?: number;
   built_on?: string[];
