@@ -16,6 +16,8 @@ import {
 import { Portal } from "solid-js/web";
 
 import { APP_VERSION } from "../lib/app-meta";
+import { recordPlanetReturnCandidate } from "../lib/navigation-history";
+import { createShortcut, withShortcutHint } from "../lib/shortcuts";
 import type { MovePopulationCommand } from "../lib/types/commands";
 import type {
   GameViewModel,
@@ -47,11 +49,13 @@ import { useAppContext } from "../state/app-context";
 import { PlanetVisual } from "./PlanetVisual";
 
 const gameNavItems = [
-  { href: "/galaxy", label: "Galaxy" },
-  { href: "/colonies", label: "Colonies" },
-  { href: "/fleets", label: "Fleets" },
-  { href: "/technology", label: "Technology" },
+  { href: "/galaxy", label: "Galaxy", shortcutKey: "g" },
+  { href: "/colonies", label: "Colonies", shortcutKey: "c" },
+  { href: "/fleets", label: "Fleets", shortcutKey: "f" },
+  { href: "/technology", label: "Technology", shortcutKey: "r" },
 ] as const;
+
+const END_TURN_SHORTCUT = "t";
 
 const REPO_PLACEHOLDER_HREF =
   "https://github.com/leandroguillen/simple-space-game";
@@ -527,6 +531,31 @@ export function AppShell(props: RouteSectionProps) {
   });
 
   createEffect(() => {
+    recordPlanetReturnCandidate(location.pathname);
+  });
+
+  createShortcut(
+    END_TURN_SHORTCUT,
+    () => {
+      if (!showGameChrome() || state.isBusy) return;
+      handleEndTurn();
+    },
+    { when: () => !isResearchOpen() },
+  );
+
+  for (const item of gameNavItems) {
+    createShortcut(
+      item.shortcutKey,
+      () => {
+        if (!showGameChrome()) return;
+        if (location.pathname === item.href) return;
+        navigate(item.href);
+      },
+      { when: () => !isResearchOpen() },
+    );
+  }
+
+  createEffect(() => {
     const gameId = state.game?.id ?? "";
     const player = currentPlayer();
     const knownTechs = player?.researchedTechs ?? [];
@@ -687,8 +716,12 @@ export function AppShell(props: RouteSectionProps) {
                           ? "page"
                           : undefined
                       }
+                      title={withShortcutHint(item.label, item.shortcutKey)}
                     >
                       {item.label}
+                      <span class="campaign-nav-link-shortcut" aria-hidden="true">
+                        {item.shortcutKey.toUpperCase()}
+                      </span>
                     </A>
                   )}
                 </For>
@@ -769,8 +802,12 @@ export function AppShell(props: RouteSectionProps) {
                       onClick={handleEndTurn}
                       disabled={state.isBusy}
                       aria-busy={state.isBusy}
+                      title={withShortcutHint("End Turn", END_TURN_SHORTCUT)}
                     >
                       End Turn
+                      <span class="game-turn-button-shortcut" aria-hidden="true">
+                        {END_TURN_SHORTCUT.toUpperCase()}
+                      </span>
                     </button>
                   </div>
                 </div>

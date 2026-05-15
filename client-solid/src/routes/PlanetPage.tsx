@@ -1,16 +1,23 @@
-import { A, useParams } from '@solidjs/router';
+import { A, useNavigate, useParams } from '@solidjs/router';
 import { createMemo, createSignal, For, Show } from 'solid-js';
 import { ConstructionPanel } from '../components/ConstructionPanel';
 import { FleetOrbitModal } from '../components/FleetOrbitModal';
 import { PlanetVisual } from '../components/PlanetVisual';
 import { PopulationPanel } from '../components/PopulationPanel';
+import { planetReturnPath } from '../lib/navigation-history';
+import { createShortcut } from '../lib/shortcuts';
 import { findPlanet, findPlayerFleetsAtStar, findStar, getPlanetProjectedIncome, getPlanetProjectedPopulationGrowth, getPrimaryPlayer, labelForEnvironment, labelForGravity, labelForMinerals, labelForSize, sortFleetsForStarTabs } from '../lib/utils';
 import { useAppContext } from '../state/app-context';
 
 export function PlanetPage() {
   const params = useParams();
+  const navigate = useNavigate();
   const { state } = useAppContext();
   const [isFleetModalOpen, setIsFleetModalOpen] = createSignal(false);
+
+  createShortcut('Escape', () => {
+    navigate(planetReturnPath());
+  });
   const planet = () => findPlanet(state.game, Number(params.planetId));
   const populationUnits = (population: number) => Math.floor(population / 1000);
   const hasPopulationCapacity = (maxPopulation: number) => populationUnits(maxPopulation) > 0;
@@ -71,11 +78,24 @@ export function PlanetPage() {
     fleetsAtParentStar().reduce((total, f) => total + f.ships.length, 0),
   );
 
+  const backLabel = createMemo(() =>
+    planetReturnPath() === '/colonies' ? 'Colonies' : 'Galaxy',
+  );
+
   return (
     <Show when={planet()} fallback={<section class='panel'>Planet not found.</section>}>
       {(currentPlanet) => (
         <section class='page-grid'>
           <section class='panel'>
+            <button
+              type='button'
+              class='planet-back-link'
+              onClick={() => navigate(planetReturnPath())}
+              title={`Back to ${backLabel()} (shortcut: Esc)`}
+            >
+              <span aria-hidden='true'>←</span> {backLabel()}
+              <span class='planet-back-link-shortcut' aria-hidden='true'>ESC</span>
+            </button>
             <div class='feature-header'>
               <Show when={star()?.planets.length}>
                 <nav class='system-planet-nav' aria-label={`${star()?.name ?? 'System'} planets`}>
