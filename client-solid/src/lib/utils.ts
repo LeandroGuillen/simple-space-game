@@ -598,6 +598,20 @@ export function formatSignedBc(value: number) {
   return `${value > 0 ? "+" : ""}${formatInteger(value)} BC`;
 }
 
+/**
+ * Treasury cost (in BC) to immediately finish a build project with `remaining` PP left
+ * out of `effectiveCost` total. Mirrors the server formula: 4 BC/PP while invested progress
+ * is below 50%, 2 BC/PP once it reaches 50% or more.
+ */
+export function getBuyProductionCost(effectiveCost: number, remaining: number) {
+  if (remaining <= 0 || effectiveCost <= 0) {
+    return 0;
+  }
+  const invested = Math.max(0, effectiveCost - remaining);
+  const rate = invested * 2 >= effectiveCost ? 2 : 4;
+  return remaining * rate;
+}
+
 export function formatSigned(value: number) {
   return `${value > 0 ? "+" : ""}${formatInteger(value)}`;
 }

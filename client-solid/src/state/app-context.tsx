@@ -62,6 +62,8 @@ type AppContextValue = {
   selectColonizeTarget: (planetId: number) => void;
   closeColonizeModal: () => void;
   selectResearch: (command: SelectResearchCommand) => void;
+  buyProduction: (planetId: number) => void;
+  cancelBuyProduction: (planetId: number) => void;
   enableDebugMode: () => Promise<void>;
   colonize: (planetId: number) => Promise<void>;
   exploreStar: (starId: number) => Promise<void>;
@@ -83,6 +85,7 @@ export function AppProvider(props: ParentProps) {
     fleetMove: [],
     selectResearch: undefined,
     colonize: [],
+    buyProduction: [],
   });
 
   const [state, setState] = createStore<AppState>({
@@ -447,6 +450,33 @@ export function AppProvider(props: ParentProps) {
     setState('info', 'Research project queued for next turn');
   }
 
+  function buyProduction(planetId: number) {
+    const existing = state.pendingCommands.buyProduction.some(
+      (command) => command.planetId === planetId,
+    );
+    if (existing) {
+      return;
+    }
+    setState('pendingCommands', 'buyProduction', (commands) => [
+      ...commands,
+      { planetId },
+    ]);
+    setState('info', 'Buy production queued for next turn');
+  }
+
+  function cancelBuyProduction(planetId: number) {
+    const hadPending = state.pendingCommands.buyProduction.some(
+      (command) => command.planetId === planetId,
+    );
+    if (!hadPending) {
+      return;
+    }
+    setState('pendingCommands', 'buyProduction', (commands) =>
+      commands.filter((command) => command.planetId !== planetId),
+    );
+    setState('info', 'Buy production cancelled');
+  }
+
   async function enableDebugMode() {
     if (state.debugMode) {
       return;
@@ -678,6 +708,8 @@ export function AppProvider(props: ParentProps) {
     selectColonizeTarget,
     closeColonizeModal,
     selectResearch,
+    buyProduction,
+    cancelBuyProduction,
     enableDebugMode,
     colonize,
     exploreStar,
@@ -708,6 +740,12 @@ function toTurnCommands(commands: PendingCommands, game: GameViewModel | null): 
       fleet_id: cmd.fleet_id,
       destination_star_id: cmd.destination_star_id,
       ship_indexes: [...cmd.ship_indexes],
+    }));
+  }
+
+  if (commands.buyProduction.length > 0) {
+    turnCommands.buy_production = commands.buyProduction.map((cmd) => ({
+      planetId: cmd.planetId,
     }));
   }
 

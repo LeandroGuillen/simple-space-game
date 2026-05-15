@@ -15,6 +15,8 @@ import type {
   TechViewModel,
 } from "../lib/types/domain";
 import {
+  formatInteger,
+  getBuyProductionCost,
   getPlanetIndustryForWorkers,
   findStar,
   getSuitablePlanetsForColonization,
@@ -72,8 +74,14 @@ function isSpecialConstructionProject(projectName: string) {
 }
 
 export function ConstructionPanel(props: ConstructionPanelProps) {
-  const { state, currentPlayer, changeBuildQueue, setPlanetAutobuild } =
-    useAppContext();
+  const {
+    state,
+    currentPlayer,
+    changeBuildQueue,
+    setPlanetAutobuild,
+    buyProduction,
+    cancelBuyProduction,
+  } = useAppContext();
   const [isChoosing, setIsChoosing] = createSignal(false);
   const [selectedProjectId, setSelectedProjectId] = createSignal<number | null>(
     null,
@@ -430,6 +438,53 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   const isRepeatableProject = (projectName: string) =>
     projectName === "Colony Base" || projectName === "Colony Ship";
 
+  const isBuyPending = createMemo(() =>
+    state.pendingCommands.buyProduction.some(
+      (command) => command.planetId === props.planet.id,
+    ),
+  );
+  const canBuyProject = createMemo(() => {
+    const project = activeProject();
+    if (project.id === TRADE_GOODS.id) return false;
+    return effectiveProjectCost(project) > 0 && displayedBuildBucket() > 0;
+  });
+  const buyCost = createMemo(() =>
+    canBuyProject()
+      ? getBuyProductionCost(
+          effectiveProjectCost(activeProject()),
+          displayedBuildBucket(),
+        )
+      : 0,
+  );
+  const playerTreasury = createMemo(() => currentPlayer()?.treasury ?? 0);
+  const canAffordBuy = createMemo(() => playerTreasury() >= buyCost());
+  const buyRateLabel = createMemo(() => {
+    const cost = effectiveProjectCost(activeProject());
+    const invested = Math.max(0, cost - displayedBuildBucket());
+    return invested * 2 >= cost ? "2 BC/PP" : "4 BC/PP";
+  });
+  const buyTooltip = createMemo(() => {
+    if (!canBuyProject()) {
+      return "Trade Goods cannot be bought";
+    }
+    if (isBuyPending()) {
+      return `Buy queued: ${formatInteger(buyCost())} BC · click to cancel`;
+    }
+    if (!canAffordBuy()) {
+      return `Need ${formatInteger(buyCost())} BC (treasury: ${formatInteger(playerTreasury())} BC)`;
+    }
+    return `Pay ${formatInteger(buyCost())} BC to finish next turn (${buyRateLabel()})`;
+  });
+  function handleBuyClick() {
+    if (!canBuyProject()) return;
+    if (isBuyPending()) {
+      cancelBuyProduction(props.planet.id);
+      return;
+    }
+    if (!canAffordBuy()) return;
+    buyProduction(props.planet.id);
+  }
+
   function cancelSelection() {
     setIsChoosing(false);
     setSelectedProjectId(null);
@@ -688,6 +743,23 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
             </div>
           </Show>
         </div>
+        <Show when={canBuyProject()}>
+          <button
+            type="button"
+            class="construction-buy-button"
+            classList={{ "is-pending": isBuyPending() }}
+            onClick={handleBuyClick}
+            disabled={state.isBusy || (!isBuyPending() && !canAffordBuy())}
+            title={buyTooltip()}
+          >
+            <span class="construction-buy-button-label">
+              {isBuyPending() ? "Buying" : "Buy"}
+            </span>
+            <span class="construction-buy-button-cost">
+              {formatInteger(buyCost())} BC
+            </span>
+          </button>
+        </Show>
         <Show when={!props.compact}>
           <label class="construction-autobuild construction-autobuild--header">
             <span>Autobuild</span>

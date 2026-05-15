@@ -2,8 +2,31 @@ import { A } from "@solidjs/router";
 import { createMemo, createSignal, For } from "solid-js";
 
 import { ConstructionPanel } from "../components/ConstructionPanel";
-import { formatSignedBc } from "../lib/utils";
+import type { PlanetViewModel } from "../lib/types/domain";
+import { formatInteger, formatSignedBc, getBuyProductionCost } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
+
+const TRADE_GOODS_NAME = "Trade Goods";
+
+function planetBuyContext(planet: PlanetViewModel | undefined) {
+  if (
+    !planet ||
+    !planet.isBuilding ||
+    !planet.currentProject ||
+    planet.currentProject.name === TRADE_GOODS_NAME ||
+    planet.buildBucket <= 0
+  ) {
+    return null;
+  }
+  const baseCost = planet.currentProject.cost;
+  if (baseCost <= 0) {
+    return null;
+  }
+  return {
+    cost: getBuyProductionCost(baseCost, planet.buildBucket),
+    projectName: planet.currentProject.name,
+  };
+}
 
 type SortKey =
   | "name"
@@ -14,7 +37,14 @@ type SortKey =
   | "morale";
 
 export function ColoniesPage() {
-  const { colonies, state, setPlanetAutobuild } = useAppContext();
+  const {
+    colonies,
+    state,
+    currentPlayer,
+    setPlanetAutobuild,
+    buyProduction,
+    cancelBuyProduction,
+  } = useAppContext();
   const [filter, setFilter] = createSignal("");
   const [sortKey, setSortKey] = createSignal<SortKey>("name");
   const [sortAsc, setSortAsc] = createSignal(true);
@@ -166,23 +196,70 @@ export function ColoniesPage() {
                     )}
                 </td>
                 <td class="colonies-autobuild-cell">
-                  <label class="construction-autobuild colonies-autobuild-toggle">
-                    <span class="sr-only">Autobuild {row()?.name}</span>
-                    <span class="construction-autobuild-switch">
-                      <input
-                        type="checkbox"
-                        checked={planet()?.autobuild ?? false}
-                        aria-label={`Autobuild ${row()?.name}`}
-                        onChange={(event) =>
-                          setPlanetAutobuild(
-                            rowId,
-                            event.currentTarget.checked,
-                          )
+                  <div class="colonies-autobuild-controls">
+                    <label class="construction-autobuild colonies-autobuild-toggle">
+                      <span class="sr-only">Autobuild {row()?.name}</span>
+                      <span class="construction-autobuild-switch">
+                        <input
+                          type="checkbox"
+                          checked={planet()?.autobuild ?? false}
+                          aria-label={`Autobuild ${row()?.name}`}
+                          onChange={(event) =>
+                            setPlanetAutobuild(
+                              rowId,
+                              event.currentTarget.checked,
+                            )
+                          }
+                        />
+                        <span aria-hidden="true" />
+                      </span>
+                    </label>
+                    {(() => {
+                      const buy = () => planetBuyContext(planet());
+                      const isPending = () =>
+                        state.pendingCommands.buyProduction.some(
+                          (command) => command.planetId === rowId,
+                        );
+                      const canAfford = () =>
+                        Boolean(buy()) &&
+                        (currentPlayer()?.treasury ?? 0) >= (buy()?.cost ?? 0);
+                      const onClick = () => {
+                        const ctx = buy();
+                        if (!ctx) return;
+                        if (isPending()) {
+                          cancelBuyProduction(rowId);
+                          return;
                         }
-                      />
-                      <span aria-hidden="true" />
-                    </span>
-                  </label>
+                        if (!canAfford()) return;
+                        buyProduction(rowId);
+                      };
+                      const title = () => {
+                        const ctx = buy();
+                        if (!ctx) return "Nothing to buy";
+                        if (isPending()) return "Buy queued · click to cancel";
+                        if (!canAfford())
+                          return `Need ${formatInteger(ctx.cost)} BC to rush ${ctx.projectName}`;
+                        return `Pay ${formatInteger(ctx.cost)} BC to rush ${ctx.projectName}`;
+                      };
+                      return (
+                        <button
+                          type="button"
+                          class="colonies-buy-button"
+                          classList={{ "is-pending": isPending() }}
+                          onClick={onClick}
+                          disabled={
+                            state.isBusy ||
+                            !buy() ||
+                            (!isPending() && !canAfford())
+                          }
+                          title={title()}
+                          aria-label={title()}
+                        >
+                          {isPending() ? "Buying" : "Buy"}
+                        </button>
+                      );
+                    })()}
+                  </div>
                 </td>
               </tr>
                 );

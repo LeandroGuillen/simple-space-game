@@ -6,6 +6,7 @@ import {
   formatSignedBc,
   formatStardate,
   formatTreasury,
+  getBuyProductionCost,
   getEmpireFoodBalance,
   getColonyRows,
   getPlanetGrossIndustryForWorkers,
@@ -120,6 +121,25 @@ describe("formatStardate", () => {
   it("keeps one fractional digit", () => {
     expect(formatStardate(3500)).toBe("3500.0");
     expect(formatStardate(3500.9)).toBe("3500.9");
+  });
+});
+
+describe("getBuyProductionCost", () => {
+  it("charges 4 BC per remaining PP when invested progress is below 50%", () => {
+    expect(getBuyProductionCost(100, 100)).toBe(400);
+    expect(getBuyProductionCost(100, 51)).toBe(204);
+  });
+
+  it("charges 2 BC per remaining PP at or above 50% invested progress", () => {
+    expect(getBuyProductionCost(100, 50)).toBe(100);
+    expect(getBuyProductionCost(100, 40)).toBe(80);
+    expect(getBuyProductionCost(100, 1)).toBe(2);
+  });
+
+  it("returns zero for finished projects and non-positive inputs", () => {
+    expect(getBuyProductionCost(100, 0)).toBe(0);
+    expect(getBuyProductionCost(100, -10)).toBe(0);
+    expect(getBuyProductionCost(0, 50)).toBe(0);
   });
 });
 
@@ -282,6 +302,7 @@ describe("getColonyRows", () => {
         build: [],
         fleetMove: [],
         colonize: [],
+        buyProduction: [],
         selectResearch: undefined,
         movePopulation: [
           { planetId: colony.id, from: "workers", to: "scientists", count: 2 },
@@ -361,6 +382,7 @@ describe("getEmpireFoodBalance", () => {
         build: [],
         fleetMove: [],
         colonize: [],
+        buyProduction: [],
         selectResearch: undefined,
         movePopulation: [
           { planetId: colony.id, from: "workers", to: "farmers", count: 2 },

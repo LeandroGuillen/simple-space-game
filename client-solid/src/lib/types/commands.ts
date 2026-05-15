@@ -27,12 +27,17 @@ export type FleetMoveCommand = {
   ship_indexes: number[];
 };
 
+export type BuyProductionCommand = {
+  planetId: number;
+};
+
 export type PendingCommands = {
   build: BuildCommand[];
   movePopulation: MovePopulationCommand[];
   selectResearch?: SelectResearchCommand;
   colonize: ColonizeCommand[];
   fleetMove: FleetMoveCommand[];
+  buyProduction: BuyProductionCommand[];
 };
 
 export type TurnMovePopulationCommand = {
@@ -49,4 +54,5 @@ export type TurnCommands = {
   colonize?: ColonizeCommand;
   colonize_many?: ColonizeCommand[];
   fleet_move?: FleetMoveCommand[];
+  buy_production?: BuyProductionCommand[];
 };

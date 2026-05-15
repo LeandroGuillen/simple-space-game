@@ -125,6 +125,16 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 		}
 	}
 
+	for _, command := range commands.BuyProduction {
+		if command == nil || command.PlanetID != p.ID {
+			continue
+		}
+		if err := applyBuyProduction(p, player, game); err != nil {
+			return err
+		}
+		break
+	}
+
 	hydratePlanetIncome(game, p, industryProduced)
 
 	// Advance build project
@@ -404,4 +414,51 @@ func isEmpireUniqueBuildingLocked(game *Game, ownerID uint, buildingName string,
 
 func isRepeatableProject(buildingName string) bool {
 	return buildingName == "Colony Base" || buildingName == "Colony Ship"
+}
+
+// BuyProductionCost returns the treasury cost (in BC) to immediately finish a build project
+// that has `remaining` PP left out of `effectiveCost` total. The rate is 4 BC/PP while the
+// project is below 50% complete and 2 BC/PP once it reaches 50% or more.
+func BuyProductionCost(effectiveCost, remaining int64) int64 {
+	if remaining <= 0 || effectiveCost <= 0 {
+		return 0
+	}
+	invested := effectiveCost - remaining
+	if invested < 0 {
+		invested = 0
+	}
+	rate := int64(4)
+	if invested*2 >= effectiveCost {
+		rate = 2
+	}
+	return remaining * rate
+}
+
+func applyBuyProduction(p *Planet, player *Player, game *Game) error {
+	if p.CurrentProject == "Trade Goods" {
+		return fmt.Errorf("cannot buy Trade Goods")
+	}
+	if !p.IsBuilding || p.CurrentProject == "" {
+		return fmt.Errorf("cannot buy production: planet %d is not building", p.ID)
+	}
+	building, err := getBuildingFromName(game, p.CurrentProject)
+	if err != nil {
+		return fmt.Errorf("cannot buy production: unknown project %q on planet %d", p.CurrentProject, p.ID)
+	}
+	effectiveCost := effectiveBuildingCost(p, building, game)
+	if effectiveCost <= 0 {
+		p.BuildBucket = 0
+		return nil
+	}
+	remaining := p.BuildBucket
+	if remaining <= 0 {
+		return nil
+	}
+	cost := BuyProductionCost(effectiveCost, remaining)
+	if player.Treasury < cost {
+		return fmt.Errorf("cannot buy production: need %d BC, have %d BC", cost, player.Treasury)
+	}
+	player.Treasury -= cost
+	p.BuildBucket = 0
+	return nil
 }

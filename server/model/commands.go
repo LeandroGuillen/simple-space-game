@@ -31,6 +31,10 @@ type FleetMoveCommand struct {
 	ShipIndexes       *[]uint `json:"ship_indexes,omitempty"`
 }
 
+type BuyProductionCommand struct {
+	PlanetID uint `json:"planetId"`
+}
+
 type Commands struct {
 	Build          []*BuildCommand           `json:"build"`
 	MovePopulation []*MovePopulationCommand  `json:"movePopulation,omitempty"`
@@ -39,4 +43,5 @@ type Commands struct {
 	ColonizeMany   []*ColonizeCommand        `json:"colonize_many,omitempty"`
 	ColonyShip     *PrepareColonyShipCommand `json:"colony_ship,omitempty"`
 	FleetMove      []*FleetMoveCommand       `json:"fleet_move,omitempty"`
+	BuyProduction  []*BuyProductionCommand   `json:"buy_production,omitempty"`
 }
