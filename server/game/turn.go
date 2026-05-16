@@ -8,25 +8,18 @@ import (
 	"strings"
 )
 
-func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error {
+func planetTurn(p *Planet, commands Commands, player *Player, game *Game, foodReceivedValues ...int64) error {
+	foodReceived := int64(0)
+	if len(foodReceivedValues) > 0 {
+		foodReceived = foodReceivedValues[0]
+	}
 
 	hydratePlanetMorale(game, p, player)
 	hydratePlanetGovernment(game, p, player)
 	hydratePlanetOutputs(game, p)
 
-	// population movement
-	for _, movePopulation := range commands.MovePopulation {
-		if movePopulation.PlanetID != p.ID {
-			continue
-		}
-		newTotal := movePopulation.Farmers + movePopulation.Workers + movePopulation.Scientists
-		if newTotal > p.Population/1000 {
-			return fmt.Errorf("bad pop movement: too many units")
-		}
-		p.Food.Farmers = movePopulation.Farmers
-		p.Industry.Workers = movePopulation.Workers
-		p.Science.Scientists = movePopulation.Scientists
-		break
+	if err := applyMovePopulationCommands(p, commands.MovePopulation); err != nil {
+		return err
 	}
 
 	maxPop := MaxPop(game, p, player)
@@ -40,7 +33,7 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 	oldPopulation := p.Population
 	growth := PopulationGrowthFromFood(
 		p.Population,
-		GamePlanetFoodProduced(game, p),
+		GamePlanetFoodProduced(game, p)+foodReceived,
 		maxPop,
 		player.Race.Stats.PopulationGrowthPercent,
 		PopulationGrowthBonus(game, p),
@@ -165,6 +158,8 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 					Name: "Colony Ship",
 					Icon: "🚀",
 				})
+			} else if completedProject == "Freighters" {
+				player.Freighters += 5
 			} else if design, ok := game.findBuildableShipDesign(player, completedProject); ok {
 				game.addShipToOrbitFleet(player.ID, p.ParentStar, fleetShipFromDesign(*design))
 			} else {
@@ -202,6 +197,23 @@ func assignNewPopulation(game *Game, p *Planet, popIncrease int64) {
 			p.Science.Scientists++
 		}
 	}
+}
+
+func applyMovePopulationCommands(p *Planet, commands []*MovePopulationCommand) error {
+	for _, movePopulation := range commands {
+		if movePopulation.PlanetID != p.ID {
+			continue
+		}
+		newTotal := movePopulation.Farmers + movePopulation.Workers + movePopulation.Scientists
+		if newTotal > p.Population/1000 {
+			return fmt.Errorf("bad pop movement: too many units")
+		}
+		p.Food.Farmers = movePopulation.Farmers
+		p.Industry.Workers = movePopulation.Workers
+		p.Science.Scientists = movePopulation.Scientists
+		break
+	}
+	return nil
 }
 
 func nextAutobuildProject(p *Planet, availableBuildings []string, game *Game) string {
@@ -513,7 +525,7 @@ func isEmpireUniqueBuildingLocked(game *Game, ownerID uint, buildingName string,
 }
 
 func isRepeatableProject(buildingName string) bool {
-	return buildingName == "Colony Base" || buildingName == "Colony Ship" || buildingName == artificialPlanetProject
+	return buildingName == "Colony Base" || buildingName == "Colony Ship" || buildingName == "Freighters" || buildingName == artificialPlanetProject
 }
 
 // BuyProductionCost returns the treasury cost (in BC) to immediately finish a build project
@@ -560,10 +572,10 @@ func applyBuyProduction(p *Planet, player *Player, game *Game) error {
 		return nil
 	}
 	cost := BuyProductionCost(effectiveCost, remaining)
-	if player.Treasury < cost {
-		return fmt.Errorf("cannot buy production: need %d BC, have %d BC", cost, player.Treasury)
+	if player.Treasury < float64(cost) {
+		return fmt.Errorf("cannot buy production: need %d BC, have %.1f BC", cost, player.Treasury)
 	}
-	player.Treasury -= cost
+	player.Treasury -= float64(cost)
 	p.IndustryStack = 0
 	p.BuildBucket = 0
 	return nil

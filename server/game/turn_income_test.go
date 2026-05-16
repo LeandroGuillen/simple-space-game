@@ -77,7 +77,7 @@ func TestTurnSubtractsNegativeIncomeFromTreasury(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, colonies, 1)
 	assert.Equal(t, int64(-3), colonies[0].Income.Total)
-	assert.Equal(t, int64(7), g.Players[0].Treasury)
+	assert.Equal(t, float64(7), g.Players[0].Treasury)
 }
 
 func TestTurnStartsConstructionWithBuildingCostAndNoTradeGoods(t *testing.T) {

@@ -36,9 +36,16 @@ export type BuyProductionCommand = {
   planetId: number;
 };
 
+export type TransferPopulationCommand = {
+  source_planet_id: number;
+  destination_planet_id: number;
+  population_units: number;
+};
+
 export type PendingCommands = {
   build: BuildCommand[];
   movePopulation: MovePopulationCommand[];
+  transferPopulation?: TransferPopulationCommand[];
   selectResearch?: SelectResearchCommand;
   colonize: ColonizeCommand[];
   artificialPlanet: ArtificialPlanetCommand[];
@@ -63,4 +70,5 @@ export type TurnCommands = {
   artificial_planet_many?: ArtificialPlanetCommand[];
   fleet_move?: FleetMoveCommand[];
   buy_production?: BuyProductionCommand[];
+  transfer_population?: TransferPopulationCommand[];
 };

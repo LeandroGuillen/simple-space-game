@@ -421,6 +421,83 @@ export function getEmpireFoodBalance(
     }, 0);
 }
 
+export function getProjectedFoodFreightersUsed(
+  game?: GameViewModel | null,
+  playerId = 1,
+  pendingCommands?: PendingCommands,
+  player?: PlayerViewModel | null,
+) {
+  if (!game) {
+    return 0;
+  }
+  const me = player ?? game.players.find((p) => p.id === playerId) ?? null;
+  if (!me) {
+    return 0;
+  }
+  const available = Math.max(0, me.freighters - me.freightersUsed);
+  if (available <= 0) {
+    return 0;
+  }
+  let surplus = 0;
+  let deficit = 0;
+  for (const star of game.galaxy.stars) {
+    for (const planet of star.planets) {
+      if (planet.owner !== playerId) {
+        continue;
+      }
+      const allocation = getProjectedWorkerAllocation(
+        planet,
+        pendingCommands?.movePopulation ?? [],
+      );
+      const produced = getPlanetFoodForFarmers(planet, allocation.farmers);
+      const consumed = Math.floor(planet.population / 1000);
+      surplus += Math.max(0, produced - consumed);
+      deficit += Math.max(0, consumed - produced);
+    }
+  }
+  return Math.min(available, surplus, deficit);
+}
+
+export function formatBcValue(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: Number.isInteger(value) ? 0 : 1,
+    maximumFractionDigits: 1,
+  }).format(value);
+}
+
+export function formatFreighterDisplay(
+  player: PlayerViewModel | null | undefined,
+  projectedFoodFreightersUsed: number,
+) {
+  const total = player?.freighters ?? 0;
+  const available = Math.max(
+    0,
+    total - (player?.freightersUsed ?? 0) - projectedFoodFreightersUsed,
+  );
+  const sign = available > 0 ? "+" : "";
+  return `${sign}${formatInteger(available)} (${formatInteger(total)})`;
+}
+
+export function formatFreighterTooltip(
+  player: PlayerViewModel | null | undefined,
+  projectedFoodFreightersUsed: number,
+) {
+  if (!player) {
+    return "";
+  }
+  const total = player.freighters;
+  const reserved = player.freightersUsed;
+  const available = Math.max(0, total - reserved - projectedFoodFreightersUsed);
+  const cost = projectedFoodFreightersUsed * 0.5;
+  return [
+    `Total freighters: ${formatInteger(total)}`,
+    `Reserved for population transfers: ${formatInteger(reserved)}`,
+    `Projected food transfers: ${formatInteger(projectedFoodFreightersUsed)}`,
+    `Projected food operating cost: ${formatBcValue(cost)} BC`,
+    `Available: ${formatInteger(available)}`,
+  ].join("\n");
+}
+
 export function formatEmpireFoodTooltip(
   game: GameViewModel | null | undefined,
   player: PlayerViewModel | null | undefined,
@@ -638,7 +715,7 @@ export function formatTreasury(value: number) {
     return `${sign}${Math.floor(absValue / 1_000)}K`;
   }
 
-  return `${sign}${formatInteger(absValue)}`;
+  return `${sign}${formatBcValue(absValue)}`;
 }
 
 function getProjectedWorkerAllocation(planet: PlanetViewModel, moves: MovePopulationCommand[]) {

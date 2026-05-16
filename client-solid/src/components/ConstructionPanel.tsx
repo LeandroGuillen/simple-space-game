@@ -500,6 +500,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   const isRepeatableProject = (projectName: string) =>
     projectName === "Colony Base" ||
     projectName === "Colony Ship" ||
+    projectName === "Freighters" ||
     projectName === "Artificial Planet Construction" ||
     isShipDesignProject(projectByName().get(projectName.toLowerCase()) ?? null);
 

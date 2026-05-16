@@ -452,6 +452,14 @@
       "maintenance": 0
     },
     {
+      "name": "Freighters",
+      "description": "Builds a freighter fleet, adding 5 freighters to empire logistics capacity.",
+      "icon": "🚚",
+      "built_on": "PLANET",
+      "cost": 50,
+      "maintenance": 0
+    },
+    {
       "name": "Cloning Center",
       "description": "No description provided",
       "built_on": "PLANET",

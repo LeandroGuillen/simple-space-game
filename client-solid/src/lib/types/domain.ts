@@ -188,6 +188,19 @@ export type FleetViewModel = {
   ships: FleetShipViewModel[];
 };
 
+export type PopulationTransferViewModel = {
+  id: number;
+  owner: number;
+  sourcePlanetId: number;
+  destinationPlanetId: number;
+  populationUnits: number;
+  freightersReserved: number;
+  originStarId: number;
+  destinationStarId: number;
+  totalTurns: number;
+  turnsRemaining: number;
+};
+
 export type PlayerAvailabilityViewModel = {
   buildings: string[];
   hullSizes: string[];
@@ -337,6 +350,7 @@ export type GameViewModel = {
   galaxy: GalaxyViewModel;
   players: PlayerViewModel[];
   fleets: FleetViewModel[];
+  populationTransfers?: PopulationTransferViewModel[];
   resources: ResourcesViewModel;
   pendingColonyBases: Record<number, number[]>; // playerID -> planetIDs
   pendingColonyShips: Record<number, number[]>; // playerID -> fleetIDs

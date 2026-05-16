@@ -56,6 +56,20 @@ describe('mapGame', () => {
         ],
       },
       pending_artificial_planets: { 1: [3] },
+      population_transfers: [
+        {
+          id: 9,
+          owner: 1,
+          source_planet_id: 3,
+          destination_planet_id: 4,
+          population_units: 1,
+          freighters_reserved: 5,
+          origin_star_id: 7,
+          destination_star_id: 8,
+          total_turns: 2,
+          turns_remaining: 1,
+        },
+      ],
       players: [
         {
           id: 1,
@@ -162,6 +176,18 @@ describe('mapGame', () => {
       ],
     })
     expect(game.pendingArtificialPlanets).toEqual({ 1: [3] })
+    expect(game.populationTransfers?.[0]).toEqual({
+      id: 9,
+      owner: 1,
+      sourcePlanetId: 3,
+      destinationPlanetId: 4,
+      populationUnits: 1,
+      freightersReserved: 5,
+      originStarId: 7,
+      destinationStarId: 8,
+      totalTurns: 2,
+      turnsRemaining: 1,
+    })
   })
 
   it('defaults missing galaxy dimensions for old payloads', () => {

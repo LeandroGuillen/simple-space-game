@@ -10,6 +10,7 @@ import {
   findPlanet,
   findPlayerFleetsAtStar,
   findStar,
+  calculateFleetTravelTurnsFromCoordinates,
   getPlanetProjectedIncome,
   getPlanetProjectedPopulationGrowth,
   getPrimaryPlayer,
@@ -24,8 +25,10 @@ import { useAppContext } from "../state/app-context";
 export function PlanetPage() {
   const params = useParams();
   const navigate = useNavigate();
-  const { state } = useAppContext();
+  const { state, addTransferPopulationCommand } = useAppContext();
   const [isFleetModalOpen, setIsFleetModalOpen] = createSignal(false);
+  const [transferDestinationId, setTransferDestinationId] = createSignal<number | null>(null);
+  const [transferUnits, setTransferUnits] = createSignal(1);
 
   createShortcut("Escape", () => {
     navigate(planetReturnPath());
@@ -105,6 +108,78 @@ export function PlanetPage() {
   const fleetShipCountAtParentStar = createMemo(() =>
     fleetsAtParentStar().reduce((total, f) => total + f.ships.length, 0),
   );
+  const ownedColonies = createMemo(() => {
+    const playerId = primaryPlayer()?.id ?? 0;
+    return (state.game?.galaxy.stars ?? [])
+      .flatMap((system) =>
+        system.planets
+          .filter((candidate) => candidate.owner === playerId)
+          .map((candidate) => ({ planet: candidate, star: system })),
+      )
+      .sort((a, b) => a.star.name.localeCompare(b.star.name) || a.planet.name.localeCompare(b.planet.name));
+  });
+  const transferDestinations = createMemo(() => {
+    const current = planet();
+    return ownedColonies().filter((item) => item.planet.id !== current?.id);
+  });
+  const selectedTransferDestination = createMemo(() => {
+    const destinations = transferDestinations();
+    if (destinations.length === 0) {
+      return null;
+    }
+    const selectedId = transferDestinationId();
+    return destinations.find((item) => item.planet.id === selectedId) ?? destinations[0] ?? null;
+  });
+  const availableTransferFreighters = createMemo(() => {
+    const player = primaryPlayer();
+    if (!player) return 0;
+    const pendingReserved = (state.pendingCommands.transferPopulation ?? []).reduce(
+      (total, command) => total + command.population_units * 5,
+      0,
+    );
+    return Math.max(0, player.freighters - player.freightersUsed - pendingReserved);
+  });
+  const maxTransferUnits = createMemo(() => {
+    const current = planet();
+    const destination = selectedTransferDestination()?.planet;
+    if (!current || !destination) return 0;
+    const pendingOut = (state.pendingCommands.transferPopulation ?? [])
+      .filter((command) => command.source_planet_id === current.id)
+      .reduce((total, command) => total + command.population_units, 0);
+    const pendingIn = (state.pendingCommands.transferPopulation ?? [])
+      .filter((command) => command.destination_planet_id === destination.id)
+      .reduce((total, command) => total + command.population_units, 0);
+    const sourceUnits = Math.floor(current.population / 1000);
+    const destinationFree = Math.floor(destination.maxPopulation / 1000) - Math.floor(destination.population / 1000) - pendingIn;
+    return Math.max(
+      0,
+      Math.min(sourceUnits - 1 - pendingOut, destinationFree, Math.floor(availableTransferFreighters() / 5)),
+    );
+  });
+  const transferEta = createMemo(() => {
+    const current = planet();
+    const destination = selectedTransferDestination();
+    const originStar = current ? findStar(state.game, current.parentStar) : null;
+    if (!originStar || !destination) return 0;
+    return calculateFleetTravelTurnsFromCoordinates(
+      originStar.x,
+      originStar.y,
+      destination.star.x,
+      destination.star.y,
+    );
+  });
+  function queuePopulationTransfer() {
+    const current = planet();
+    const destination = selectedTransferDestination();
+    const units = Math.min(Math.max(1, transferUnits()), maxTransferUnits());
+    if (!current || !destination || units <= 0) return;
+    addTransferPopulationCommand({
+      source_planet_id: current.id,
+      destination_planet_id: destination.planet.id,
+      population_units: units,
+    });
+    setTransferUnits(1);
+  }
 
   return (
     <Show
@@ -368,6 +443,59 @@ export function PlanetPage() {
           </section>
 
           <PopulationPanel planet={currentPlanet()} />
+          <section class="panel transfer-pop-panel">
+            <div class="fleet-list-header">
+              <h2>Transfer Pop</h2>
+            </div>
+            <Show
+              when={transferDestinations().length > 0}
+              fallback={<p class="lede">No owned destination colonies.</p>}
+            >
+              <div class="form-grid">
+                <label class="form-field">
+                  <span>Destination</span>
+                  <select
+                    value={selectedTransferDestination()?.planet.id ?? ""}
+                    onChange={(event) => setTransferDestinationId(Number(event.currentTarget.value))}
+                  >
+                    <For each={transferDestinations()}>
+                      {(item) => (
+                        <option value={item.planet.id}>
+                          {item.star.name} · {item.planet.name}
+                        </option>
+                      )}
+                    </For>
+                  </select>
+                </label>
+                <label class="form-field">
+                  <span>Population units</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max={Math.max(1, maxTransferUnits())}
+                    value={Math.min(transferUnits(), Math.max(1, maxTransferUnits()))}
+                    onInput={(event) => setTransferUnits(Number(event.currentTarget.value))}
+                  />
+                </label>
+                <article class="metric-card">
+                  <span>ETA</span>
+                  <strong>{transferEta()} turn{transferEta() === 1 ? "" : "s"}</strong>
+                </article>
+                <article class="metric-card">
+                  <span>Freighters</span>
+                  <strong>{Math.min(maxTransferUnits(), transferUnits()) * 5}/{availableTransferFreighters()}</strong>
+                </article>
+                <button
+                  class="primary-button"
+                  type="button"
+                  disabled={maxTransferUnits() <= 0}
+                  onClick={queuePopulationTransfer}
+                >
+                  Queue Transfer
+                </button>
+              </div>
+            </Show>
+          </section>
           <FleetOrbitModal
             starId={currentPlanet().parentStar}
             isOpen={isFleetModalOpen()}

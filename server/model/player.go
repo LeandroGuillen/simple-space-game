@@ -7,7 +7,7 @@ type Player struct {
 
 	Race `json:"race"`
 
-	Treasury        int64             `json:"treasury"`
+	Treasury        float64           `json:"treasury"`
 	TaxRate         float64           `json:"tax_rate"`
 	ResearchPoints  uint64            `json:"research_points"`
 	CurrentResearch *ResearchProject  `json:"current_research,omitempty"`

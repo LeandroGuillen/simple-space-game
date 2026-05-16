@@ -57,7 +57,7 @@ func TestCommandPointOverdrawChargesTreasury(t *testing.T) {
 		colonyIncome += colony.Income.Total
 	}
 
-	assert.Equal(t, treasuryBefore+colonyIncome-10, player.Treasury)
+	assert.Equal(t, treasuryBefore+float64(colonyIncome)-10, player.Treasury)
 }
 
 func TestShipCommandPointCostColonyShip(t *testing.T) {

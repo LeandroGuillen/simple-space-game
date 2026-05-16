@@ -30,6 +30,8 @@ import {
   formatCommandPointsDisplay,
   formatEmpireFoodTooltip,
   formatEmpireIncomeTooltip,
+  formatFreighterDisplay,
+  formatFreighterTooltip,
   formatInteger,
   formatSigned,
   formatSignedBc,
@@ -37,6 +39,7 @@ import {
   formatTreasury,
   getEmpireFoodBalance,
   getEmpireIncome,
+  getProjectedFoodFreightersUsed,
   getPlanetScienceForScientists,
   getArtificialPlanetTargets,
   findPlanet,
@@ -442,6 +445,17 @@ export function AppShell(props: RouteSectionProps) {
   const commandCapacityTitle = createMemo(() =>
     formatCommandCapacityTooltip(state.game, currentPlayer() ?? null),
   );
+  const projectedFoodFreightersUsed = createMemo(() =>
+    getProjectedFoodFreightersUsed(
+      state.game,
+      currentPlayer()?.id ?? state.session.playerId,
+      state.pendingCommands,
+      currentPlayer() ?? null,
+    ),
+  );
+  const freighterTitle = createMemo(() =>
+    formatFreighterTooltip(currentPlayer() ?? null, projectedFoodFreightersUsed()),
+  );
   const queuedResearchName = createMemo(
     () => state.pendingCommands.selectResearch?.tech_name,
   );
@@ -792,6 +806,28 @@ export function AppShell(props: RouteSectionProps) {
                     >
                       <span>Food</span>
                       <strong>{formatSigned(empireFoodBalance())}</strong>
+                    </div>
+
+                    <div
+                      class="turn-stat"
+                      classList={{
+                        "turn-stat--negative":
+                          projectedFoodFreightersUsed() >
+                          Math.max(
+                            0,
+                            (currentPlayer()?.freighters ?? 0) -
+                              (currentPlayer()?.freightersUsed ?? 0),
+                          ),
+                      }}
+                      title={freighterTitle()}
+                    >
+                      <span>Freighters</span>
+                      <strong>
+                        {formatFreighterDisplay(
+                          currentPlayer() ?? null,
+                          projectedFoodFreightersUsed(),
+                        )}
+                      </strong>
                     </div>
 
                     <button

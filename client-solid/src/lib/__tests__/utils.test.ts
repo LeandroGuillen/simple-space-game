@@ -1,6 +1,7 @@
 import {
   formatCommandPointsDisplay,
   formatGameLastTurnAt,
+  formatFreighterDisplay,
   formatInteger,
   formatSigned,
   formatSignedBc,
@@ -9,6 +10,7 @@ import {
   getBuyProductionCost,
   getArtificialPlanetTargets,
   getEmpireFoodBalance,
+  getProjectedFoodFreightersUsed,
   getColonyRows,
   getPlanetGrossIndustryForWorkers,
   getPlanetProjectedIncome,
@@ -197,6 +199,66 @@ describe("top bar number formatting", () => {
         commandPointsCapacity: 3000,
       } as Parameters<typeof formatCommandPointsDisplay>[0]),
     ).toBe("+1,200 (3,000)");
+  });
+
+  it("formats freighter availability", () => {
+    expect(
+      formatFreighterDisplay(
+        { freighters: 15, freightersUsed: 1 } as Parameters<typeof formatFreighterDisplay>[0],
+        0,
+      ),
+    ).toBe("+14 (15)");
+  });
+});
+
+describe("freighter food projection", () => {
+  it("caps projected food freighter use by available capacity", () => {
+    const game: GameViewModel = {
+      id: "game",
+      currentTurn: 3500,
+      players: [
+        {
+          id: 1,
+          freighters: 2,
+          freightersUsed: 1,
+        } as GameViewModel["players"][number],
+      ],
+      fleets: [],
+      resources: {
+        shipParts: { hullSizes: [], drives: [], armors: [], computers: [], fuelCells: [], shields: [] },
+        shipSystemCollection: { shipSystems: [] },
+        buildingCollection: { buildings: [] },
+        modifierCollection: { modifiers: [] },
+        shipDesignCollection: { shipDesigns: [] },
+        techCollection: { techs: [] },
+        techTree: { subjects: [] },
+      },
+      pendingColonyBases: {},
+      pendingColonyShips: {},
+      pendingArtificialPlanets: {},
+      galaxy: {
+        width: 100,
+        height: 100,
+        stars: [
+          {
+            id: 1,
+            name: "Sol",
+            color: 1,
+            x: 0,
+            y: 0,
+            explored: true,
+            ownedPlanets: 2,
+            ownerColor: null,
+            planets: [
+              planet({ id: 1, population: 2000, food: { farmers: 2, produced_per_farmer: 2, produced_per_building: 0 } }),
+              planet({ id: 2, population: 2000, food: { farmers: 0, produced_per_farmer: 2, produced_per_building: 0 } }),
+            ],
+          },
+        ],
+      },
+    };
+
+    expect(getProjectedFoodFreightersUsed(game, 1, undefined, game.players[0])).toBe(1);
   });
 });
 

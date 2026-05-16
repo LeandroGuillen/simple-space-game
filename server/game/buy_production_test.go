@@ -53,7 +53,7 @@ func TestTurnBuyProductionFinishesProjectAndDeductsTreasury(t *testing.T) {
 	expectedCost := BuyProductionCost(effectiveCost, remainingBeforeBuy)
 
 	// guarantee the player can afford the buyout regardless of starting treasury
-	player.Treasury = expectedCost + 50
+	player.Treasury = float64(expectedCost + 50)
 	treasuryBeforeBuy := player.Treasury
 
 	require.NoError(t, g.Turn(player.ID, model.Commands{
@@ -67,7 +67,7 @@ func TestTurnBuyProductionFinishesProjectAndDeductsTreasury(t *testing.T) {
 	assert.Contains(t, finished.Buildings, "Automated Factory")
 	// treasury at end of turn = pre-turn - buy cost + this turn's income.
 	assert.Less(t, player.Treasury, treasuryBeforeBuy, "buyout must reduce treasury net of income")
-	assert.GreaterOrEqual(t, player.Treasury, treasuryBeforeBuy-expectedCost, "treasury should never drop more than the buy cost (income only adds back)")
+	assert.GreaterOrEqual(t, player.Treasury, treasuryBeforeBuy-float64(expectedCost), "treasury should never drop more than the buy cost (income only adds back)")
 }
 
 func TestTurnBuyProductionRejectsInsufficientTreasury(t *testing.T) {
@@ -83,7 +83,7 @@ func TestTurnBuyProductionRejectsInsufficientTreasury(t *testing.T) {
 	assert.Contains(t, err.Error(), "cannot buy production")
 
 	assert.Equal(t, int64(100), planet.BuildBucket, "failed buy must not change bucket")
-	assert.Equal(t, int64(0), player.Treasury)
+	assert.Equal(t, float64(0), player.Treasury)
 }
 
 func TestTurnBuyProductionRejectsTradeGoods(t *testing.T) {
@@ -99,7 +99,7 @@ func TestTurnBuyProductionRejectsTradeGoods(t *testing.T) {
 	})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "Trade Goods")
-	assert.Equal(t, int64(1000), player.Treasury, "treasury must be unchanged when buy fails")
+	assert.Equal(t, float64(1000), player.Treasury, "treasury must be unchanged when buy fails")
 }
 
 func TestTurnBuyProductionIgnoresOtherPlayersPlanets(t *testing.T) {
@@ -129,8 +129,8 @@ func TestTurnBuyProductionCostMatchesBelowFiftyTier(t *testing.T) {
 	// turn income gets added on top, so isolate the buy-cost delta.
 	income := planetIncomeAfterTurn(t, g, player.ID, planet.ID)
 	netTreasuryChange := player.Treasury - startingTreasury
-	buyCost := income - netTreasuryChange
-	assert.Equal(t, int64(400), buyCost, "below-50%% rate should be 4 BC/PP")
+	buyCost := float64(income) - netTreasuryChange
+	assert.Equal(t, float64(400), buyCost, "below-50%% rate should be 4 BC/PP")
 	assert.False(t, planet.IsBuilding)
 	assert.Contains(t, planet.Buildings, "Cheap Lab")
 }
@@ -149,8 +149,8 @@ func TestTurnBuyProductionCostMatchesAboveFiftyTier(t *testing.T) {
 
 	income := planetIncomeAfterTurn(t, g, player.ID, planet.ID)
 	netTreasuryChange := player.Treasury - startingTreasury
-	buyCost := income - netTreasuryChange
-	assert.Equal(t, int64(80), buyCost, "above-50%% rate should be 2 BC/PP")
+	buyCost := float64(income) - netTreasuryChange
+	assert.Equal(t, float64(80), buyCost, "above-50%% rate should be 2 BC/PP")
 	assert.Contains(t, planet.Buildings, "Cheap Lab")
 }
 
@@ -167,8 +167,8 @@ func TestTurnBuyProductionUsesStackedProduction(t *testing.T) {
 
 	income := planetIncomeAfterTurn(t, g, player.ID, planet.ID)
 	netTreasuryChange := player.Treasury - startingTreasury
-	buyCost := income - netTreasuryChange
-	assert.Equal(t, int64(80), buyCost, "stacked PP should reduce the remaining buyout cost")
+	buyCost := float64(income) - netTreasuryChange
+	assert.Equal(t, float64(80), buyCost, "stacked PP should reduce the remaining buyout cost")
 	assert.Equal(t, int64(0), planet.IndustryStack)
 	assert.Contains(t, planet.Buildings, "Cheap Lab")
 }
@@ -191,7 +191,7 @@ func newSinglePlanetBuyHarness(t *testing.T, treasury int64) *Game {
 	return &Game{
 		Players: []*model.Player{{
 			ID:        1,
-			Treasury:  treasury,
+			Treasury:  float64(treasury),
 			Available: model.AvailableTech{Buildings: []string{"Cheap Lab"}},
 		}},
 		Resources: &Resources{

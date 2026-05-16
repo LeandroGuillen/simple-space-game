@@ -407,6 +407,19 @@ export type ApiFleet = {
   ships: ApiFleetShip[];
 };
 
+export type ApiPopulationTransfer = {
+  id: number;
+  owner: number;
+  source_planet_id: number;
+  destination_planet_id: number;
+  population_units: number;
+  freighters_reserved: number;
+  origin_star_id: number;
+  destination_star_id: number;
+  total_turns: number;
+  turns_remaining: number;
+};
+
 export type ApiResearchProject = {
   subject: string;
   tech_name?: string;
@@ -424,6 +437,7 @@ export type ApiGame = {
   galaxy: ApiGalaxy;
   players: ApiPlayer[];
   fleets?: ApiFleet[] | null;
+  population_transfers?: ApiPopulationTransfer[] | null;
   id: string;
   current_turn: number;
   created_at?: string | null;

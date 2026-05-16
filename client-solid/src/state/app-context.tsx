@@ -5,7 +5,7 @@ import { ApiClient, parseGameUpdate } from '../lib/api';
 import { mapGame, mapPlayerColorOptions } from '../lib/mappers';
 import type { ApiGameListItem, NewGameOptions } from '../lib/types/api';
 import type { BuildingViewModel, GameViewModel, PlayerColorOptions, ShipDesignForm } from '../lib/types/domain';
-import type { ArtificialPlanetCommand, ColonizeCommand, FleetMoveCommand, MovePopulationCommand, PendingCommands, SelectResearchCommand, TurnCommands } from '../lib/types/commands';
+import type { ArtificialPlanetCommand, ColonizeCommand, FleetMoveCommand, MovePopulationCommand, PendingCommands, SelectResearchCommand, TransferPopulationCommand, TurnCommands } from '../lib/types/commands';
 import { clearSessionLastSetupServerUrl } from '../lib/setup-session-storage';
 import { isAutobuildProject } from '../lib/construction';
 import { findPlanet, getColonyRows, getPrimaryPlayer, normalizeServerUrl, toWebSocketUrl } from '../lib/utils';
@@ -57,6 +57,7 @@ type AppContextValue = {
   changeBuildQueue: (planetId: number, buildingNames: string[]) => void;
   setPlanetAutobuild: (planetId: number, enabled: boolean) => Promise<void>;
   addMovePopulationCommand: (command: MovePopulationCommand) => void;
+  addTransferPopulationCommand: (command: TransferPopulationCommand) => void;
   addFleetMoveCommand: (command: FleetMoveCommand) => void;
   addColonizeCommand: (command: ColonizeCommand) => void;
   beginColonyShipColonization: (fleetId: number) => void;
@@ -86,6 +87,7 @@ export function AppProvider(props: ParentProps) {
   const emptyPendingCommands = (): PendingCommands => ({
     build: [],
     movePopulation: [],
+    transferPopulation: [],
     fleetMove: [],
     selectResearch: undefined,
     colonize: [],
@@ -341,6 +343,18 @@ export function AppProvider(props: ParentProps) {
 
   function addMovePopulationCommand(command: MovePopulationCommand) {
     setState('pendingCommands', 'movePopulation', (cmds) => [...cmds, command]);
+  }
+
+  function addTransferPopulationCommand(command: TransferPopulationCommand) {
+    setState('pendingCommands', 'transferPopulation', (commands) => [
+      ...(commands ?? []).filter(
+        (item) =>
+          item.source_planet_id !== command.source_planet_id ||
+          item.destination_planet_id !== command.destination_planet_id,
+      ),
+      command,
+    ]);
+    setState('info', 'Population transfer queued for next turn');
   }
 
   function addFleetMoveCommand(command: FleetMoveCommand) {
@@ -755,6 +769,7 @@ export function AppProvider(props: ParentProps) {
     changeBuildQueue,
     setPlanetAutobuild,
     addMovePopulationCommand,
+    addTransferPopulationCommand,
     addFleetMoveCommand,
     addColonizeCommand,
     beginColonyShipColonization,
@@ -807,6 +822,14 @@ export function toTurnCommands(commands: PendingCommands, game: GameViewModel | 
   if (commands.buyProduction.length > 0) {
     turnCommands.buy_production = commands.buyProduction.map((cmd) => ({
       planetId: cmd.planetId,
+    }));
+  }
+
+  if ((commands.transferPopulation ?? []).length > 0) {
+    turnCommands.transfer_population = (commands.transferPopulation ?? []).map((cmd) => ({
+      source_planet_id: cmd.source_planet_id,
+      destination_planet_id: cmd.destination_planet_id,
+      population_units: cmd.population_units,
     }));
   }
 

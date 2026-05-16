@@ -40,15 +40,22 @@ type BuyProductionCommand struct {
 	PlanetID uint `json:"planetId"`
 }
 
+type TransferPopulationCommand struct {
+	SourcePlanetID      uint `json:"source_planet_id"`
+	DestinationPlanetID uint `json:"destination_planet_id"`
+	PopulationUnits     uint `json:"population_units"`
+}
+
 type Commands struct {
-	Build                []*BuildCommand            `json:"build"`
-	MovePopulation       []*MovePopulationCommand   `json:"movePopulation,omitempty"`
-	SelectResearch       *SelectResearchCommand     `json:"selectResearch,omitempty"`
-	Colonize             *ColonizeCommand           `json:"colonize,omitempty"`
-	ColonizeMany         []*ColonizeCommand         `json:"colonize_many,omitempty"`
-	ArtificialPlanet     *ArtificialPlanetCommand   `json:"artificial_planet,omitempty"`
-	ArtificialPlanetMany []*ArtificialPlanetCommand `json:"artificial_planet_many,omitempty"`
-	ColonyShip           *PrepareColonyShipCommand  `json:"colony_ship,omitempty"`
-	FleetMove            []*FleetMoveCommand        `json:"fleet_move,omitempty"`
-	BuyProduction        []*BuyProductionCommand    `json:"buy_production,omitempty"`
+	Build                []*BuildCommand              `json:"build"`
+	MovePopulation       []*MovePopulationCommand     `json:"movePopulation,omitempty"`
+	TransferPopulation   []*TransferPopulationCommand `json:"transfer_population,omitempty"`
+	SelectResearch       *SelectResearchCommand       `json:"selectResearch,omitempty"`
+	Colonize             *ColonizeCommand             `json:"colonize,omitempty"`
+	ColonizeMany         []*ColonizeCommand           `json:"colonize_many,omitempty"`
+	ArtificialPlanet     *ArtificialPlanetCommand     `json:"artificial_planet,omitempty"`
+	ArtificialPlanetMany []*ArtificialPlanetCommand   `json:"artificial_planet_many,omitempty"`
+	ColonyShip           *PrepareColonyShipCommand    `json:"colony_ship,omitempty"`
+	FleetMove            []*FleetMoveCommand          `json:"fleet_move,omitempty"`
+	BuyProduction        []*BuyProductionCommand      `json:"buy_production,omitempty"`
 }

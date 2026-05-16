@@ -7,6 +7,7 @@ import type {
   ApiFleetShip,
   ApiFuelCell,
   ApiGame,
+  ApiPopulationTransfer,
   ApiGrants,
   ApiHullSize,
   ApiPlanet,
@@ -32,6 +33,7 @@ import type {
   ModifierDefinitionViewModel,
   PlanetViewModel,
   PlayerColorOptions,
+  PopulationTransferViewModel,
   PlayerViewModel,
   ShieldViewModel,
   ShipDesignViewModel,
@@ -97,6 +99,7 @@ export function mapGame(apiGame: ApiGame): GameViewModel {
     },
     players,
     fleets: (apiGame.fleets ?? []).map(mapFleet),
+    populationTransfers: (apiGame.population_transfers ?? []).map(mapPopulationTransfer),
     resources: {
       shipParts: {
         hullSizes: apiGame.resources.ship_parts.hull_sizes.map(mapHullSize),
@@ -130,6 +133,21 @@ export function mapGame(apiGame: ApiGame): GameViewModel {
     pendingColonyBases: apiGame.pending_colony_bases ?? {},
     pendingColonyShips: apiGame.pending_colony_ships ?? {},
     pendingArtificialPlanets: apiGame.pending_artificial_planets ?? {},
+  };
+}
+
+function mapPopulationTransfer(transfer: ApiPopulationTransfer): PopulationTransferViewModel {
+  return {
+    id: transfer.id,
+    owner: transfer.owner,
+    sourcePlanetId: transfer.source_planet_id,
+    destinationPlanetId: transfer.destination_planet_id,
+    populationUnits: transfer.population_units,
+    freightersReserved: transfer.freighters_reserved,
+    originStarId: transfer.origin_star_id,
+    destinationStarId: transfer.destination_star_id,
+    totalTurns: transfer.total_turns,
+    turnsRemaining: transfer.turns_remaining,
   };
 }
 

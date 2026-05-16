@@ -103,7 +103,11 @@
       ]
     }
   },
-  { "name": "Freighters", "description": "No description provided" },
+  {
+    "name": "Freighters",
+    "description": "Enables construction of freighter fleets.",
+    "grants": { "unlocks": { "buildings": ["Freighters"] } }
+  },
   {
     "name": "Galactic Currency Exchange",
     "description": "Improves income across the empire.",

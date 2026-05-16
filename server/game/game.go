@@ -15,17 +15,18 @@ type Turnable interface {
 }
 
 type Game struct {
-	Galaxy                   Galaxy          `json:"galaxy"`
-	Players                  []*Player       `json:"players"`
-	Fleets                   []*Fleet        `json:"fleets"`
-	ID                       string          `json:"id"`
-	CurrentTurn              float64         `json:"current_turn"`
-	CreatedAt                time.Time       `json:"created_at"`
-	LastTurnAt               *time.Time      `json:"last_turn_at,omitempty"`
-	Resources                *Resources      `json:"resources"`
-	PendingColonyBases       map[uint][]uint `json:"pending_colony_bases"`
-	PendingColonyShips       map[uint][]uint `json:"pending_colony_ships"`
-	PendingArtificialPlanets map[uint][]uint `json:"pending_artificial_planets"`
+	Galaxy                   Galaxy               `json:"galaxy"`
+	Players                  []*Player            `json:"players"`
+	Fleets                   []*Fleet             `json:"fleets"`
+	PopulationTransfers      []PopulationTransfer `json:"population_transfers"`
+	ID                       string               `json:"id"`
+	CurrentTurn              float64              `json:"current_turn"`
+	CreatedAt                time.Time            `json:"created_at"`
+	LastTurnAt               *time.Time           `json:"last_turn_at,omitempty"`
+	Resources                *Resources           `json:"resources"`
+	PendingColonyBases       map[uint][]uint      `json:"pending_colony_bases"`
+	PendingColonyShips       map[uint][]uint      `json:"pending_colony_ships"`
+	PendingArtificialPlanets map[uint][]uint      `json:"pending_artificial_planets"`
 }
 
 type NewGameOptions struct {
@@ -61,6 +62,7 @@ func NewGame(resources *ResourceManager, options NewGameOptions) (*Game, error) 
 		Galaxy:                   NewGalaxyForSize(numStars, options.GalaxySize),
 		Players:                  []*Player{player1},
 		Fleets:                   []*Fleet{},
+		PopulationTransfers:      []PopulationTransfer{},
 		ID:                       uuid.New().String(),
 		CurrentTurn:              3500.0,
 		CreatedAt:                created,
@@ -104,6 +106,10 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 	if err := g.issueFleetMoveCommands(playerID, commands.FleetMove); err != nil {
 		return err
 	}
+	existingPopulationTransfers := g.populationTransferIDs()
+	if err := g.issuePopulationTransferCommands(playerID, commands.TransferPopulation); err != nil {
+		return err
+	}
 	if commands.ColonyShip != nil {
 		if err := g.prepareColonyShip(playerID, commands.ColonyShip.FleetID); err != nil {
 			return err
@@ -115,10 +121,11 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 	if err != nil {
 		return err
 	}
+	foodTransfers := g.calculateAutomaticFoodTransfers(player, colonyList, commands)
 	totalIncome := int64(0)
 	totalResearch := int64(0)
 	for _, colony := range colonyList {
-		if err := planetTurn(colony, commands, player, g); err != nil {
+		if err := planetTurn(colony, commands, player, g, foodTransfers.PlanetReceived[colony.ID]); err != nil {
 			return err
 		}
 		totalIncome += colony.Income.Total
@@ -152,13 +159,15 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 	g.prunePendingArtificialPlanets(playerID)
 
 	// empire turn processing
-	player.Treasury += totalIncome
+	player.Treasury += float64(totalIncome)
+	player.Treasury -= foodTransfers.OperatingCostBC
 	g.HydrateCommandPoints()
-	player.Treasury -= player.CommandOverdrawBC
+	player.Treasury -= float64(player.CommandOverdrawBC)
 	if err := g.applyResearch(player, uint64(max(totalResearch, 0))); err != nil {
 		return err
 	}
 	g.advanceFleetMovements()
+	g.advancePopulationTransfers(existingPopulationTransfers)
 
 	g.CurrentTurn = advanceStardate(g.CurrentTurn)
 	now := time.Now().UTC()
