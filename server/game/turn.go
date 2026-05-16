@@ -308,10 +308,10 @@ func capAssignedPopulation(p *Planet) {
 	maxAssignedPopulation := p.Population / 1000
 	for p.Food.Farmers+p.Industry.Workers+p.Science.Scientists > maxAssignedPopulation {
 		switch {
-		case p.Industry.Workers >= p.Food.Farmers && p.Industry.Workers >= p.Science.Scientists && p.Industry.Workers > 0:
-			p.Industry.Workers--
-		case p.Food.Farmers >= p.Industry.Workers && p.Food.Farmers >= p.Science.Scientists && p.Food.Farmers > 0:
+		case p.Food.Farmers > 0:
 			p.Food.Farmers--
+		case p.Industry.Workers > 0:
+			p.Industry.Workers--
 		case p.Science.Scientists > 0:
 			p.Science.Scientists--
 		default:

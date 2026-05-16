@@ -8,7 +8,7 @@ import type { BuildingViewModel, GameViewModel, PlayerColorOptions, ShipDesignFo
 import type { ArtificialPlanetCommand, ColonizeCommand, FleetMoveCommand, MovePopulationCommand, PendingCommands, SelectResearchCommand, TransferPopulationCommand, TurnCommands } from '../lib/types/commands';
 import { clearSessionLastSetupServerUrl } from '../lib/setup-session-storage';
 import { isAutobuildProject, isBuildingApplicableToPlanet } from '../lib/construction';
-import { findPlanet, getColonyRows, getPrimaryPlayer, normalizeServerUrl, toWebSocketUrl } from '../lib/utils';
+import { findPlanet, getColonyRows, getPlayerById, normalizeServerUrl, toWebSocketUrl } from '../lib/utils';
 
 type ConnectionStatus = 'idle' | 'checking' | 'connected' | 'error';
 
@@ -19,6 +19,30 @@ function gameActivityTime(game: ApiGameListItem) {
   }
   const parsed = Date.parse(timestamp);
   return Number.isNaN(parsed) ? 0 : parsed;
+}
+
+function playerNames(game: GameViewModel, playerIds: number[]) {
+  const nameById = new Map(game.players.map((player) => [player.id, player.name]));
+  return playerIds.map((id) => nameById.get(id) ?? `Player ${id}`);
+}
+
+function turnReadinessMessage(game: GameViewModel, playerId: number, fallback: string) {
+  const status = game.turnStatus;
+  if (!status) {
+    return fallback;
+  }
+  const ready = new Set(status.readyPlayerIds);
+  const waiting = new Set(status.waitingPlayerIds);
+  if (ready.has(playerId) && status.waitingPlayerIds.length > 0) {
+    return `Orders submitted; waiting for ${playerNames(game, status.waitingPlayerIds).join(', ')}`;
+  }
+  if (waiting.has(playerId) && status.readyPlayerIds.length > 0) {
+    return `${playerNames(game, status.readyPlayerIds).join(', ')} ready; your orders are pending`;
+  }
+  if (ready.has(playerId) && status.waitingPlayerIds.length === 0) {
+    return 'All players ready; resolving turn';
+  }
+  return fallback;
 }
 
 type AppState = {
@@ -45,7 +69,7 @@ type AppState = {
 
 type AppContextValue = {
   state: AppState;
-  currentPlayer: () => ReturnType<typeof getPrimaryPlayer>;
+  currentPlayer: () => ReturnType<typeof getPlayerById>;
   colonies: () => ReturnType<typeof getColonyRows>;
   connect: (serverUrl: string) => Promise<void>;
   disconnect: () => void;
@@ -125,7 +149,7 @@ export function AppProvider(props: ParentProps) {
     state.session.serverUrl ? new ApiClient(state.session.serverUrl, state.session.playerId) : null,
   );
 
-  const currentPlayer = createMemo(() => getPrimaryPlayer(state.game));
+  const currentPlayer = createMemo(() => getPlayerById(state.game, state.session.playerId));
   const colonies = createMemo(() =>
     getColonyRows(state.game, state.pendingCommands, state.session.playerId),
   );
@@ -584,11 +608,21 @@ export function AppProvider(props: ParentProps) {
     setBusy(true, 'Ending turn');
     clearError();
     try {
-      await api()!.endTurn(state.session.selectedGameId, toTurnCommands(state.pendingCommands, state.game));
+      const turnResponse = await api()!.endTurn(state.session.selectedGameId, toTurnCommands(state.pendingCommands, state.game));
       const rawGame = await api()!.getGame(state.session.selectedGameId);
       const mappedGame = mapGame(rawGame);
       setState('pendingCommands', emptyPendingCommands());
       setState('game', mappedGame);
+
+      if (!turnResponse.advanced) {
+        setState('pendingColonyBasePlanets', []);
+        setState('pendingColonyShipFleets', []);
+        setState('pendingArtificialPlanetSourcePlanets', []);
+        setState('showColonizeModal', false);
+        setState('showArtificialPlanetModal', false);
+        setBusy(false, turnReadinessMessage(mappedGame, state.session.playerId, 'Orders submitted; waiting for other players'));
+        return;
+      }
 
       // Check for pending colony bases
       const playerId = state.session.playerId;
@@ -731,8 +765,14 @@ export function AppProvider(props: ParentProps) {
       try {
         const payload = parseGameUpdate(event.data);
         if (payload.game_update.id === state.session.selectedGameId) {
-          setState('game', mapGame(payload.game_update));
-          setState({ isBusy: false, info: 'Live update received' });
+          const previousTurn = state.game?.currentTurn;
+          const mappedGame = mapGame(payload.game_update);
+          const info =
+            previousTurn != null && mappedGame.currentTurn !== previousTurn
+              ? 'Turn complete'
+              : turnReadinessMessage(mappedGame, state.session.playerId, 'Live update received');
+          setState('game', mappedGame);
+          setState({ isBusy: false, info });
         }
       } catch {
         setState('info', 'Ignored malformed websocket update');

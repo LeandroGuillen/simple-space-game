@@ -361,6 +361,14 @@ export type GameViewModel = {
   pendingColonyBases: Record<number, number[]>; // playerID -> planetIDs
   pendingColonyShips: Record<number, number[]>; // playerID -> fleetIDs
   pendingArtificialPlanets: Record<number, number[]>; // playerID -> source planet IDs
+  turnStatus?: TurnStatusViewModel;
+};
+
+export type TurnStatusViewModel = {
+  mode: "simultaneous";
+  readyPlayerIds: number[];
+  waitingPlayerIds: number[];
+  requiredPlayerIds: number[];
 };
 
 export type ColonyRow = {

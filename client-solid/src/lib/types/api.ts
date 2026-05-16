@@ -14,6 +14,7 @@ export type ApiGameListItem = {
 };
 
 export type ApiGameListPlayer = {
+  id?: number;
   name: string;
   race_name?: string;
   color: string;
@@ -456,6 +457,19 @@ export type ApiPlayerColorOptions = {
   colors: string[];
 };
 
+export type ApiTurnStatus = {
+  mode: "simultaneous";
+  ready_player_ids: number[];
+  waiting_player_ids: number[];
+  required_player_ids: number[];
+};
+
+export type ApiTurnResponse = {
+  ok: boolean;
+  advanced: boolean;
+  turn_status: ApiTurnStatus;
+};
+
 export type ApiGame = {
   galaxy: ApiGalaxy;
   players: ApiPlayer[];
@@ -469,6 +483,7 @@ export type ApiGame = {
   pending_colony_bases?: Record<number, number[]>; // playerID -> planetIDs
   pending_colony_ships?: Record<number, number[]>; // playerID -> fleetIDs
   pending_artificial_planets?: Record<number, number[]>; // playerID -> source planet IDs
+  turn_status?: ApiTurnStatus;
 };
 
 export type ApiGameUpdateMessage = {

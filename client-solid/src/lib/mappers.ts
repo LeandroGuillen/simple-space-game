@@ -166,6 +166,12 @@ export function mapGame(apiGame: ApiGame): GameViewModel {
     pendingColonyBases: apiGame.pending_colony_bases ?? {},
     pendingColonyShips: apiGame.pending_colony_ships ?? {},
     pendingArtificialPlanets: apiGame.pending_artificial_planets ?? {},
+    turnStatus: {
+      mode: apiGame.turn_status?.mode ?? "simultaneous",
+      readyPlayerIds: apiGame.turn_status?.ready_player_ids ?? [],
+      waitingPlayerIds: apiGame.turn_status?.waiting_player_ids ?? [],
+      requiredPlayerIds: apiGame.turn_status?.required_player_ids ?? players.map((player) => player.id),
+    },
   };
 }
 

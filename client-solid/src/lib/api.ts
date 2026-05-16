@@ -1,6 +1,7 @@
 import type {
   ApiGame,
   ApiGameListItem,
+  ApiTurnResponse,
   ApiGameUpdateMessage,
   ApiGovernment,
   ApiPlayerColorOptions,
@@ -211,7 +212,7 @@ export class ApiClient {
         commands,
       }),
     });
-    return readJson<{ ok: boolean }>(response);
+    return readJson<ApiTurnResponse>(response);
   }
 
   async setPlanetAutobuild(gameId: string, planetId: number, enabled: boolean) {

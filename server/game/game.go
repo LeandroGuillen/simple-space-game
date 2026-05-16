@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"math"
 	"slices"
+	"sort"
 	. "ssg/model"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -12,6 +14,13 @@ import (
 
 type Turnable interface {
 	Turn()
+}
+
+type TurnStatus struct {
+	Mode              string `json:"mode"`
+	ReadyPlayerIDs    []uint `json:"ready_player_ids"`
+	WaitingPlayerIDs  []uint `json:"waiting_player_ids"`
+	RequiredPlayerIDs []uint `json:"required_player_ids"`
 }
 
 type Game struct {
@@ -27,6 +36,9 @@ type Game struct {
 	PendingColonyBases       map[uint][]uint      `json:"pending_colony_bases"`
 	PendingColonyShips       map[uint][]uint      `json:"pending_colony_ships"`
 	PendingArtificialPlanets map[uint][]uint      `json:"pending_artificial_planets"`
+	TurnSubmissions          map[uint]Commands    `json:"-"`
+	TurnStatus               TurnStatus           `json:"turn_status"`
+	mu                       *sync.Mutex          `json:"-"`
 }
 
 type NewGameOptions struct {
@@ -35,12 +47,23 @@ type NewGameOptions struct {
 	NumStars    uint
 	GalaxySize  string
 	Race        Race
+	NumPlayers  uint
 }
 
 func NewGame(resources *ResourceManager, options NewGameOptions) (*Game, error) {
 	playerName := options.PlayerName
 	playerColor := options.PlayerColor
 	numStars := options.NumStars
+	numPlayers := options.NumPlayers
+	if numPlayers == 0 {
+		numPlayers = 1
+	}
+	if numPlayers > MaxPlayers {
+		return nil, fmt.Errorf("players must be between 1 and %d", MaxPlayers)
+	}
+	if numPlayers > numStars {
+		return nil, fmt.Errorf("players (%d) cannot exceed stars (%d)", numPlayers, numStars)
+	}
 	if playerColor == "" {
 		playerColor = DefaultPlayerColor()
 	}
@@ -56,11 +79,21 @@ func NewGame(resources *ResourceManager, options NewGameOptions) (*Game, error) 
 	}
 
 	firstPlayerID := uint(1)
+	players := make([]*Player, 0, numPlayers)
 	player1 := NewPlayer(firstPlayerID, playerName, playerColor, race)
+	players = append(players, player1)
+	for slot := uint(2); slot <= numPlayers; slot++ {
+		color, err := PlayerColorBySlot(slot)
+		if err != nil {
+			return nil, err
+		}
+		players = append(players, NewPlayer(slot, fmt.Sprintf("Player %d", slot), color, DefaultRace("Human")))
+	}
+
 	created := time.Now().UTC()
 	g := &Game{
 		Galaxy:                   NewGalaxyForSize(numStars, options.GalaxySize),
-		Players:                  []*Player{player1},
+		Players:                  players,
 		Fleets:                   []*Fleet{},
 		PopulationTransfers:      []PopulationTransfer{},
 		ID:                       uuid.New().String(),
@@ -70,13 +103,52 @@ func NewGame(resources *ResourceManager, options NewGameOptions) (*Game, error) 
 		PendingColonyBases:       make(map[uint][]uint),
 		PendingColonyShips:       make(map[uint][]uint),
 		PendingArtificialPlanets: make(map[uint][]uint),
+		TurnSubmissions:          make(map[uint]Commands),
+		mu:                       &sync.Mutex{},
 	}
-	g.hydratePlayerAvailability(player1)
+	for _, player := range g.Players {
+		g.hydratePlayerAvailability(player)
+	}
+	g.resetTurnStatus()
 
-	_ = g.CreateCapitalPlanet(firstPlayerID)
-	_ = g.ExploreStar(firstPlayerID, 1)
+	startingStars := startingStarIDs(numPlayers, numStars)
+	for index, player := range g.Players {
+		starID := startingStars[index]
+		if err := g.CreateCapitalPlanetAtStar(player.ID, starID); err != nil {
+			return nil, err
+		}
+		if err := g.ExploreStar(player.ID, starID); err != nil {
+			return nil, err
+		}
+	}
 
 	return g, nil
+}
+
+func startingStarIDs(numPlayers, numStars uint) []uint {
+	if numPlayers == 0 {
+		return []uint{}
+	}
+	ids := make([]uint, 0, numPlayers)
+	used := make(map[uint]bool, numPlayers)
+	for slot := uint(1); slot <= numPlayers; slot++ {
+		starID := uint(1)
+		if slot > 1 {
+			starID = uint(math.Round(float64(slot-1)*float64(numStars)/float64(numPlayers))) + 1
+			if starID > numStars {
+				starID = numStars
+			}
+		}
+		for used[starID] {
+			starID++
+			if starID > numStars {
+				starID = 1
+			}
+		}
+		used[starID] = true
+		ids = append(ids, starID)
+	}
+	return ids
 }
 
 /*
@@ -93,6 +165,65 @@ Each time "Turn" button was pushed next actions take place:
 https://strategywiki.org/wiki/Master_of_Orion_II:_Battle_at_Antares/Calculations
 */
 func (g *Game) Turn(playerID uint, commands Commands) error {
+	_, _, err := g.SubmitTurn(playerID, commands)
+	return err
+}
+
+func (g *Game) SubmitTurn(playerID uint, commands Commands) (TurnStatus, bool, error) {
+	if g.mu == nil {
+		g.mu = &sync.Mutex{}
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	if _, err := g.getPlayer(playerID); err != nil {
+		return g.currentTurnStatus(), false, err
+	}
+	if g.TurnSubmissions == nil {
+		g.TurnSubmissions = make(map[uint]Commands)
+	}
+	g.TurnSubmissions[playerID] = commands
+	status := g.calculateTurnStatus()
+	g.TurnStatus = status
+	if len(status.WaitingPlayerIDs) > 0 {
+		return status, false, nil
+	}
+
+	submissions := make(map[uint]Commands, len(g.TurnSubmissions))
+	for id, submitted := range g.TurnSubmissions {
+		submissions[id] = submitted
+	}
+	if err := g.AdvanceTurn(submissions); err != nil {
+		return g.currentTurnStatus(), false, err
+	}
+	return g.TurnStatus, true, nil
+}
+
+func (g *Game) AdvanceTurn(submissions map[uint]Commands) error {
+	existingPopulationTransfers := g.populationTransferIDs()
+	playerIDs := g.playerIDs()
+	for _, playerID := range playerIDs {
+		commands, ok := submissions[playerID]
+		if !ok {
+			return fmt.Errorf("missing turn submission for player %d", playerID)
+		}
+		if err := g.applyPlayerTurn(playerID, commands); err != nil {
+			return err
+		}
+	}
+
+	g.advanceFleetMovements()
+	g.advancePopulationTransfers(existingPopulationTransfers)
+	g.HydrateCommandPoints()
+	g.CurrentTurn = advanceStardate(g.CurrentTurn)
+	now := time.Now().UTC()
+	g.LastTurnAt = &now
+	g.TurnSubmissions = make(map[uint]Commands)
+	g.resetTurnStatus()
+	return nil
+}
+
+func (g *Game) applyPlayerTurn(playerID uint, commands Commands) error {
 	player, err := g.getPlayer(playerID)
 	if err != nil {
 		return err
@@ -106,7 +237,6 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 	if err := g.issueFleetMoveCommands(playerID, commands.FleetMove); err != nil {
 		return err
 	}
-	existingPopulationTransfers := g.populationTransferIDs()
 	if err := g.issuePopulationTransferCommands(playerID, commands.TransferPopulation); err != nil {
 		return err
 	}
@@ -166,13 +296,52 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 	if err := g.applyResearch(player, uint64(max(totalResearch, 0))); err != nil {
 		return err
 	}
-	g.advanceFleetMovements()
-	g.advancePopulationTransfers(existingPopulationTransfers)
-
-	g.CurrentTurn = advanceStardate(g.CurrentTurn)
-	now := time.Now().UTC()
-	g.LastTurnAt = &now
 	return nil
+}
+
+func (g *Game) playerIDs() []uint {
+	ids := make([]uint, 0, len(g.Players))
+	for _, player := range g.Players {
+		ids = append(ids, player.ID)
+	}
+	sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
+	return ids
+}
+
+func (g *Game) calculateTurnStatus() TurnStatus {
+	required := g.playerIDs()
+	ready := make([]uint, 0, len(g.TurnSubmissions))
+	waiting := make([]uint, 0, len(required))
+	for _, playerID := range required {
+		if _, ok := g.TurnSubmissions[playerID]; ok {
+			ready = append(ready, playerID)
+		} else {
+			waiting = append(waiting, playerID)
+		}
+	}
+	return TurnStatus{
+		Mode:              "simultaneous",
+		ReadyPlayerIDs:    ready,
+		WaitingPlayerIDs:  waiting,
+		RequiredPlayerIDs: required,
+	}
+}
+
+func (g *Game) currentTurnStatus() TurnStatus {
+	if g.TurnStatus.Mode == "" {
+		return g.calculateTurnStatus()
+	}
+	return g.TurnStatus
+}
+
+func (g *Game) resetTurnStatus() {
+	required := g.playerIDs()
+	g.TurnStatus = TurnStatus{
+		Mode:              "simultaneous",
+		ReadyPlayerIDs:    []uint{},
+		WaitingPlayerIDs:  required,
+		RequiredPlayerIDs: required,
+	}
 }
 
 func advanceStardate(stardate float64) float64 {
@@ -199,16 +368,23 @@ func (g *Game) processColonizeCommand(playerID uint, command *ColonizeCommand) e
 }
 
 func (g *Game) CreateCapitalPlanet(ownerID uint) error {
+	return g.CreateCapitalPlanetAtStar(ownerID, 1)
+}
+
+func (g *Game) CreateCapitalPlanetAtStar(ownerID, starID uint) error {
 	player, err := g.getPlayer(ownerID)
 	if err != nil {
 		return err
 	}
 
-	// TODO find a better way to get the first planet
-	planet, err := g.getPlanet(1)
+	star, err := g.getStar(starID)
 	if err != nil {
 		return err
 	}
+	if len(star.Planets) == 0 {
+		return fmt.Errorf("star %d has no planets", starID)
+	}
+	planet := star.Planets[0]
 
 	planet.Owner = ownerID
 

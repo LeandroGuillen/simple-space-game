@@ -30,11 +30,16 @@ func Turn(c *gin.Context) {
 		return
 	}
 
-	if err := g.Turn(playerID, req.Commands); err != nil {
+	turnStatus, advanced, err := g.SubmitTurn(playerID, req.Commands)
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"ok": true})
+	c.JSON(http.StatusOK, gin.H{
+		"ok":          true,
+		"advanced":    advanced,
+		"turn_status": turnStatus,
+	})
 	s.hub.BroadcastGameUpdate(g)
 }

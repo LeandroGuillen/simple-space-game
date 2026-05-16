@@ -468,6 +468,10 @@ export function AppShell(props: RouteSectionProps) {
       currentResearch?.subject
     );
   });
+  const isCurrentPlayerReady = createMemo(() => {
+    const playerId = currentPlayer()?.id ?? state.session.playerId;
+    return state.game?.turnStatus?.readyPlayerIds.includes(playerId) ?? false;
+  });
   const hyperAdvancedLevels = createMemo(
     () => currentPlayer()?.hyperAdvanced ?? {},
   );
@@ -648,6 +652,9 @@ export function AppShell(props: RouteSectionProps) {
   }
 
   function handleEndTurn() {
+    if (isCurrentPlayerReady()) {
+      return;
+    }
     if (!hasSelectedResearch()) {
       setIsResearchOpen(true);
       return;
@@ -869,11 +876,11 @@ export function AppShell(props: RouteSectionProps) {
                       type="button"
                       class="primary-button game-turn-button"
                       onClick={handleEndTurn}
-                      disabled={state.isBusy}
+                      disabled={state.isBusy || isCurrentPlayerReady()}
                       aria-busy={state.isBusy}
-                      title={withShortcutHint("End Turn", END_TURN_SHORTCUT)}
+                      title={withShortcutHint(isCurrentPlayerReady() ? "Waiting for players" : "End Turn", END_TURN_SHORTCUT)}
                     >
-                      End Turn
+                      {isCurrentPlayerReady() ? "Waiting" : "End Turn"}
                       <span class="game-turn-button-shortcut" aria-hidden="true">
                         {END_TURN_SHORTCUT.toUpperCase()}
                       </span>
@@ -890,6 +897,10 @@ export function AppShell(props: RouteSectionProps) {
 
       <Show when={state.error}>
         <div class="status-banner error">{state.error}</div>
+      </Show>
+
+      <Show when={!state.error && state.info}>
+        <div class="status-banner info">{state.info}</div>
       </Show>
 
       <Show when={isResearchOpen()}>

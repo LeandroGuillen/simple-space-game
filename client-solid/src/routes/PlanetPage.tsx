@@ -13,7 +13,6 @@ import {
   calculateFleetTravelTurnsFromCoordinates,
   getPlanetProjectedIncome,
   getPlanetProjectedPopulationGrowth,
-  getPrimaryPlayer,
   labelForEnvironment,
   labelForGravity,
   labelForMinerals,
@@ -25,7 +24,7 @@ import { useAppContext } from "../state/app-context";
 export function PlanetPage() {
   const params = useParams();
   const navigate = useNavigate();
-  const { state, addTransferPopulationCommand } = useAppContext();
+  const { state, currentPlayer, addTransferPopulationCommand } = useAppContext();
   const [isFleetModalOpen, setIsFleetModalOpen] = createSignal(false);
   const [transferDestinationId, setTransferDestinationId] = createSignal<number | null>(null);
   const [transferUnits, setTransferUnits] = createSignal(1);
@@ -37,7 +36,6 @@ export function PlanetPage() {
   const populationUnits = (population: number) => Math.floor(population / 1000);
   const hasPopulationCapacity = (maxPopulation: number) =>
     populationUnits(maxPopulation) > 0;
-  const primaryPlayer = createMemo(() => getPrimaryPlayer(state.game));
   const playerColorById = createMemo(
     () =>
       new Map(
@@ -48,7 +46,7 @@ export function PlanetPage() {
     `${[14, 16, 21, 26, 31][size - 1] ?? 22}px`;
   const planetOwnerColor = (owner: number) =>
     playerColorById().get(owner) ?? "var(--text-mute)";
-  const canVisitPlanet = (owner: number) => owner === primaryPlayer()?.id;
+  const canVisitPlanet = (owner: number) => owner === currentPlayer()?.id;
   const star = createMemo(() => {
     const current = planet();
     return current ? findStar(state.game, current.parentStar) : null;
@@ -87,7 +85,7 @@ export function PlanetPage() {
     const current = planet();
     if (!current) return null;
     const multiplier = current.gravityMultiplier ?? 1;
-    const traits = primaryPlayer()?.raceTraitIds ?? [];
+    const traits = currentPlayer()?.raceTraitIds ?? [];
     const adapted = traits.includes("low_g_world") || traits.includes("high_g_world");
     if (multiplier === 1) {
       return adapted ? { label: "Adapted", tone: "good" as const } : null;
@@ -109,7 +107,7 @@ export function PlanetPage() {
   });
   const fleetsAtParentStar = createMemo(() => {
     const current = planet();
-    const playerId = primaryPlayer()?.id ?? 0;
+    const playerId = currentPlayer()?.id ?? 0;
     if (!current || !playerId) {
       return [];
     }
@@ -121,7 +119,7 @@ export function PlanetPage() {
     fleetsAtParentStar().reduce((total, f) => total + f.ships.length, 0),
   );
   const ownedColonies = createMemo(() => {
-    const playerId = primaryPlayer()?.id ?? 0;
+    const playerId = currentPlayer()?.id ?? 0;
     return (state.game?.galaxy.stars ?? [])
       .flatMap((system) =>
         system.planets
@@ -143,7 +141,7 @@ export function PlanetPage() {
     return destinations.find((item) => item.planet.id === selectedId) ?? destinations[0] ?? null;
   });
   const availableTransferFreighters = createMemo(() => {
-    const player = primaryPlayer();
+    const player = currentPlayer();
     if (!player) return 0;
     const pendingReserved = (state.pendingCommands.transferPopulation ?? []).reduce(
       (total, command) => total + command.population_units * 5,

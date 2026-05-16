@@ -47,6 +47,7 @@ type GameListResponseItem struct {
 }
 
 type GameListPlayerInfo struct {
+	ID       uint   `json:"id"`
 	Name     string `json:"name"`
 	RaceName string `json:"race_name"`
 	Color    string `json:"color"`
@@ -81,6 +82,7 @@ func NewGame(c *gin.Context) {
 		NumStars:    req.NumStars,
 		GalaxySize:  req.GalaxySize,
 		Race:        race,
+		NumPlayers:  req.Players,
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -169,6 +171,7 @@ func GetGameList(c *gin.Context) {
 				}
 			}
 			playerInfos[i] = GameListPlayerInfo{
+				ID:       p.ID,
 				Name:     p.Name,
 				RaceName: p.Race.Name,
 				Color:    p.Color,

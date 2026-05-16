@@ -45,7 +45,7 @@ func PlanetIncome(game *Game, planet *model.Planet, industryProduced int64) mode
 	}
 
 	var tradeGoods int64 = 0
-	if !planet.IsBuilding && planet.CurrentProject == tradeGoodsProject {
+	if !planet.IsBuilding && (planet.CurrentProject == "" || planet.CurrentProject == tradeGoodsProject) {
 		food := GamePlanetFoodProduced(game, planet)
 		foodSurplus := food - planet.Population/1000
 		tradeGoods = maxInt64(0, industryProduced)/2 + maxInt64(0, foodSurplus)/2

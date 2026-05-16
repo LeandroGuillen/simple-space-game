@@ -131,6 +131,10 @@ export function getPrimaryPlayer(game?: GameViewModel | null) {
   return game?.players[0] ?? null;
 }
 
+export function getPlayerById(game: GameViewModel | null | undefined, playerId: number) {
+  return game?.players.find((player) => player.id === playerId) ?? null;
+}
+
 export function findFleetInOrbit(game: GameViewModel | null | undefined, playerId: number, starId: number): FleetViewModel | null {
   if (!game) {
     return null;
