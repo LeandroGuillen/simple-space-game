@@ -18,6 +18,32 @@ func TestResourceManagerLoadsShipSystems(t *testing.T) {
 	assert.True(t, shipSystemExists(shipSystems.ShipSystems, "Anti-Missile Rockets"))
 }
 
+func TestResourceManagerLoadsBuildableStarterFrigate(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	require.NotEmpty(t, resources.ShipDesigns)
+	design := resources.ShipDesigns[0]
+	assert.Equal(t, "Flunker I", design.Name)
+	assert.Equal(t, "Frigate", design.HullSize.Name)
+	assert.Equal(t, "Nuclear", design.Drive.Name)
+	assert.Equal(t, "Titanium", design.Armor.Name)
+	assert.Equal(t, "None", design.Computer.Name)
+	assert.Equal(t, "None", design.Shield.Name)
+	assert.Equal(t, "Standard", design.FuelCell.Name)
+
+	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: DefaultPlayerColor(), Race: DefaultRace("Ada")})
+	require.NoError(t, err)
+	player := g.Players[0]
+
+	assert.Contains(t, player.Available.HullSizes, design.HullSize.Name)
+	assert.Contains(t, player.Available.Drives, design.Drive.Name)
+	assert.Contains(t, player.Available.Armors, design.Armor.Name)
+	assert.Contains(t, player.Available.Computers, design.Computer.Name)
+	assert.Contains(t, player.Available.Shields, design.Shield.Name)
+	assert.Contains(t, player.Available.FuelCells, design.FuelCell.Name)
+}
+
 func TestValidateTechDefinitionsRequiresShipSystemUnlocksToExist(t *testing.T) {
 	resources := &ResourceManager{
 		Resources: Resources{

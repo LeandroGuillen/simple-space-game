@@ -522,14 +522,35 @@ func (g *Game) CreateShipDesign(
 	fuelCellName string) error {
 
 	parts := g.Resources.ShipPartsCollection
+	player, err := g.getPlayer(playerID)
+	if err != nil {
+		return err
+	}
 
-	// I can ignore errors here because I just checked that all part names are valid
-	armor, _ := ArmorFromName(armorName, parts.Armors)
-	drive, _ := DriveFromName(driveName, parts.Drives)
-	hullSize, _ := HullSizeFromName(hullSizeName, parts.HullSizes)
-	computer, _ := ComputerFromName(computerName, parts.Computers)
-	fuelCell, _ := FuelCellFromName(fuelCellName, parts.FuelCells)
-	shield, _ := ShieldFromName(shieldName, parts.Shields)
+	armor, err := ArmorFromName(armorName, parts.Armors)
+	if err != nil {
+		return err
+	}
+	drive, err := DriveFromName(driveName, parts.Drives)
+	if err != nil {
+		return err
+	}
+	hullSize, err := HullSizeFromName(hullSizeName, parts.HullSizes)
+	if err != nil {
+		return err
+	}
+	computer, err := ComputerFromName(computerName, parts.Computers)
+	if err != nil {
+		return err
+	}
+	fuelCell, err := FuelCellFromName(fuelCellName, parts.FuelCells)
+	if err != nil {
+		return err
+	}
+	shield, err := ShieldFromName(shieldName, parts.Shields)
+	if err != nil {
+		return err
+	}
 
 	basicDesign := NewShipDesign(
 		name,
@@ -543,22 +564,21 @@ func (g *Game) CreateShipDesign(
 		shield,
 	)
 
-	if player, err := g.getPlayer(playerID); err != nil {
+	if err := validatePlayerCanUseShipDesignParts(player, basicDesign); err != nil {
 		return err
-	} else {
-		for _, design := range player.ShipDesigns {
-			if design.Name == name {
-				return fmt.Errorf("cannot create a design with name '%s', name already exists", name)
-			}
-		}
-		for _, design := range g.Resources.ShipDesigns {
-			if design.Name == name {
-				return fmt.Errorf("cannot create a design with name %q, name already exists", name)
-			}
-		}
-		player.ShipDesigns = append(player.ShipDesigns, basicDesign)
-		return nil
 	}
+	for _, design := range player.ShipDesigns {
+		if design.Name == name {
+			return fmt.Errorf("cannot create a design with name '%s', name already exists", name)
+		}
+	}
+	for _, design := range g.Resources.ShipDesigns {
+		if design.Name == name {
+			return fmt.Errorf("cannot create a design with name %q, name already exists", name)
+		}
+	}
+	player.ShipDesigns = append(player.ShipDesigns, basicDesign)
+	return nil
 }
 
 func (g *Game) UpdateShipDesign(
@@ -573,17 +593,49 @@ func (g *Game) UpdateShipDesign(
 
 	parts := g.Resources.ShipPartsCollection
 
-	// I can ignore errors here because I just checked that all part names are valid
-	armor, _ := ArmorFromName(armorName, parts.Armors)
-	drive, _ := DriveFromName(driveName, parts.Drives)
-	hullSize, _ := HullSizeFromName(hullSizeName, parts.HullSizes)
-	computer, _ := ComputerFromName(computerName, parts.Computers)
-	fuelCell, _ := FuelCellFromName(fuelCellName, parts.FuelCells)
-	shield, _ := ShieldFromName(shieldName, parts.Shields)
+	armor, err := ArmorFromName(armorName, parts.Armors)
+	if err != nil {
+		return err
+	}
+	drive, err := DriveFromName(driveName, parts.Drives)
+	if err != nil {
+		return err
+	}
+	hullSize, err := HullSizeFromName(hullSizeName, parts.HullSizes)
+	if err != nil {
+		return err
+	}
+	computer, err := ComputerFromName(computerName, parts.Computers)
+	if err != nil {
+		return err
+	}
+	fuelCell, err := FuelCellFromName(fuelCellName, parts.FuelCells)
+	if err != nil {
+		return err
+	}
+	shield, err := ShieldFromName(shieldName, parts.Shields)
+	if err != nil {
+		return err
+	}
 
 	// get player reference
 	player, err := g.getPlayer(playerID)
 	if err != nil {
+		return err
+	}
+
+	updatedDesign := NewShipDesign(
+		name,
+		[]Beam{},
+		[]SpecialSystem{},
+		hullSize,
+		drive,
+		armor,
+		computer,
+		fuelCell,
+		shield,
+	)
+	if err := validatePlayerCanUseShipDesignParts(player, updatedDesign); err != nil {
 		return err
 	}
 

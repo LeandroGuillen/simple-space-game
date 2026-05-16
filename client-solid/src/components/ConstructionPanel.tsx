@@ -174,8 +174,60 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
           availableBuildingNames().has(project.name),
       ) ?? null,
   );
+  const availableHullSizes = createMemo(
+    () => new Set(currentPlayer()?.available.hullSizes ?? []),
+  );
+  const availableDrives = createMemo(
+    () => new Set(currentPlayer()?.available.drives ?? []),
+  );
+  const availableArmors = createMemo(
+    () => new Set(currentPlayer()?.available.armors ?? []),
+  );
+  const availableComputers = createMemo(
+    () => new Set(currentPlayer()?.available.computers ?? []),
+  );
+  const availableFuelCells = createMemo(
+    () => new Set(currentPlayer()?.available.fuelCells ?? []),
+  );
+  const availableShields = createMemo(
+    () => new Set(currentPlayer()?.available.shields ?? []),
+  );
+  const shipDesigns = createMemo(() => {
+    const designs = [
+      ...(currentPlayer()?.shipDesigns ?? []),
+      ...(state.game?.resources.shipDesignCollection.shipDesigns ?? []),
+    ];
+    const seenHullSizes = new Set<string>();
+    const uniqueByHull: ShipDesignViewModel[] = [];
+    for (const design of designs) {
+      const hullName = design.hullSize.name;
+      if (
+        availableHullSizes().size > 0 &&
+        !availableHullSizes().has(hullName)
+      ) {
+        continue;
+      }
+      if (!seenHullSizes.has(hullName)) {
+        seenHullSizes.add(hullName);
+        uniqueByHull.push(design);
+      }
+      if (uniqueByHull.length >= 6) {
+        break;
+      }
+    }
+    return Array.from({ length: 6 }, (_, index) => uniqueByHull[index] ?? null);
+  });
+  const buildableShipDesigns = createMemo(() =>
+    shipDesigns().filter(
+      (design): design is ShipDesignViewModel =>
+        Boolean(design) && canBuildShipDesign(design),
+    ),
+  );
+  const shipDesignProjects = createMemo(() =>
+    buildableShipDesigns().map((design) => shipDesignProject(design)),
+  );
   const availableProjects = createMemo(() => {
-    const projects = [TRADE_GOODS, ...buildableProjects()];
+    const projects = [TRADE_GOODS, ...buildableProjects(), ...shipDesignProjects()];
     if (colonyBaseProject()) {
       projects.push(colonyBaseProject()!);
     }
@@ -240,9 +292,6 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   const researchedTechs = createMemo(
     () => new Set(currentPlayer()?.researchedTechs ?? []),
   );
-  const availableHullSizes = createMemo(
-    () => new Set(currentPlayer()?.available.hullSizes ?? []),
-  );
   const currentStar = createMemo(() =>
     findStar(state.game, props.planet.parentStar),
   );
@@ -254,31 +303,6 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   const hasSuitablePlanetsForColonization = createMemo(
     () => suitablePlanetsForColonization().length > 0,
   );
-  const shipDesigns = createMemo(() => {
-    const designs = [
-      ...(currentPlayer()?.shipDesigns ?? []),
-      ...(state.game?.resources.shipDesignCollection.shipDesigns ?? []),
-    ];
-    const seenHullSizes = new Set<string>();
-    const uniqueByHull: ShipDesignViewModel[] = [];
-    for (const design of designs) {
-      const hullName = design.hullSize.name;
-      if (
-        availableHullSizes().size > 0 &&
-        !availableHullSizes().has(hullName)
-      ) {
-        continue;
-      }
-      if (!seenHullSizes.has(hullName)) {
-        seenHullSizes.add(hullName);
-        uniqueByHull.push(design);
-      }
-      if (uniqueByHull.length >= 6) {
-        break;
-      }
-    }
-    return Array.from({ length: 6 }, (_, index) => uniqueByHull[index] ?? null);
-  });
   const sectionOneCommands = createMemo(() => {
     const commands = [
       specialCommand("Colony Base", "Colony Base"),
@@ -350,7 +374,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
       return Math.max(credit, upgradedBuilding?.cost ?? 0);
     }, 0);
     const baseCost = Math.max(0, project.cost - upgradeCredit);
-    if (!project.name.endsWith(" Ship")) {
+    if (!project.name.endsWith(" Ship") && !isShipDesignProject(project)) {
       return baseCost;
     }
     return Math.ceil(baseCost * shipCostMultiplier());
@@ -436,7 +460,9 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     return Math.max(1, Math.ceil(displayedBuildBucket() / industryPerTurn()));
   });
   const isRepeatableProject = (projectName: string) =>
-    projectName === "Colony Base" || projectName === "Colony Ship";
+    projectName === "Colony Base" ||
+    projectName === "Colony Ship" ||
+    isShipDesignProject(projectByName().get(projectName.toLowerCase()) ?? null);
 
   const isBuyPending = createMemo(() =>
     state.pendingCommands.buyProduction.some(
@@ -572,6 +598,45 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
         researchedTechs().has(unlockName) ||
         availableBuildingNames().has(unlockName),
     };
+  }
+
+  function canBuildShipDesign(design: ShipDesignViewModel) {
+    return (
+      design.hullSize.name === "Frigate" &&
+      availableHullSizes().has(design.hullSize.name) &&
+      availableDrives().has(design.drive.name) &&
+      availableArmors().has(design.armor.name) &&
+      availableComputers().has(design.computer.name) &&
+      availableFuelCells().has(design.fuelCell.name) &&
+      availableShields().has(design.shield.name)
+    );
+  }
+
+  function shipDesignProject(design: ShipDesignViewModel): BuildingViewModel {
+    return {
+      id: shipDesignProjectId(design.name),
+      name: design.name,
+      description: `${design.hullSize.name} ship design`,
+      icon: "🚢",
+      cost: 100,
+      maintenance: 0,
+      unique: false,
+      upgrades: [],
+      grants: TRADE_GOODS.grants,
+      modifiers: [],
+    };
+  }
+
+  function isShipDesignProject(project: BuildingViewModel | null) {
+    return Boolean(project && project.id <= -10000);
+  }
+
+  function shipDesignProjectId(name: string) {
+    let hash = 0;
+    for (let index = 0; index < name.length; index += 1) {
+      hash += name.charCodeAt(index) * (index + 1);
+    }
+    return -10000 - hash;
   }
 
   function handleProjectClick(project: BuildingViewModel, event: MouseEvent) {
@@ -987,7 +1052,41 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
                             <button
                               type="button"
                               class="construction-design-slot"
-                              disabled
+                              disabled={
+                                state.isBusy ||
+                                !design ||
+                                !canBuildShipDesign(design)
+                              }
+                              onMouseEnter={() => {
+                                if (!design || !canBuildShipDesign(design)) {
+                                  return;
+                                }
+                                const project = projectByName().get(
+                                  design.name.toLowerCase(),
+                                );
+                                if (project) {
+                                  setHoveredProjectId(project.id);
+                                }
+                              }}
+                              onMouseLeave={() => setHoveredProjectId(null)}
+                              onClick={(event) => {
+                                if (!design) return;
+                                const project = projectByName().get(
+                                  design.name.toLowerCase(),
+                                );
+                                if (project) {
+                                  handleProjectClick(project, event);
+                                }
+                              }}
+                              onDblClick={() => {
+                                if (!design) return;
+                                const project = projectByName().get(
+                                  design.name.toLowerCase(),
+                                );
+                                if (project) {
+                                  handleProjectDoubleClick(project);
+                                }
+                              }}
                             >
                               <Show when={design} fallback={<span>Empty</span>}>
                                 {(item) => (

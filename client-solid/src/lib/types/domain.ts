@@ -171,6 +171,8 @@ export type FleetShipViewModel = {
   type: string;
   name: string;
   icon: string;
+  designName: string;
+  hullSize: string;
 };
 
 export type FleetViewModel = {

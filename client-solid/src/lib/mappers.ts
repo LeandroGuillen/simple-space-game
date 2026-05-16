@@ -47,6 +47,10 @@ const DEFAULT_GALAXY_HEIGHT = 400;
 
 export function mapGame(apiGame: ApiGame): GameViewModel {
   const players = apiGame.players.map(mapPlayer);
+  const commonShipDesigns =
+    apiGame.resources.ship_design_collection?.ship_designs?.map((design) =>
+      mapShipDesign(design, true),
+    ) ?? [];
   const playerColorById = new Map(
     players.map((player) => [player.id, player.color]),
   );
@@ -62,6 +66,11 @@ export function mapGame(apiGame: ApiGame): GameViewModel {
   const buildingByName = new Map(
     buildings.map((building) => [building.name.toLowerCase(), building]),
   );
+  const shipDesignProjectByName = new Map(
+    [...commonShipDesigns, ...players.flatMap((player) => player.shipDesigns)].map(
+      (design) => [design.name.toLowerCase(), mapShipDesignProject(design)],
+    ),
+  );
   const techs =
     apiGame.resources.tech_tree?.all_techs?.map(mapTech) ??
     apiGame.resources.tech_collection?.techs?.map(mapTech) ??
@@ -75,7 +84,13 @@ export function mapGame(apiGame: ApiGame): GameViewModel {
     currentTurn: apiGame.current_turn,
     galaxy: {
       stars: apiGame.galaxy.stars.map((star) =>
-        mapStar(star, playerColorById, buildingByName, governmentByPlayerId),
+        mapStar(
+          star,
+          playerColorById,
+          buildingByName,
+          shipDesignProjectByName,
+          governmentByPlayerId,
+        ),
       ),
       width: apiGame.galaxy.width ?? DEFAULT_GALAXY_WIDTH,
       height: apiGame.galaxy.height ?? DEFAULT_GALAXY_HEIGHT,
@@ -102,10 +117,7 @@ export function mapGame(apiGame: ApiGame): GameViewModel {
         modifiers,
       },
       shipDesignCollection: {
-        shipDesigns:
-          apiGame.resources.ship_design_collection?.ship_designs?.map(
-            (design) => mapShipDesign(design, true),
-          ) ?? [],
+        shipDesigns: commonShipDesigns,
       },
       techTree: {
         subjects:
@@ -140,6 +152,8 @@ function mapFleetShip(ship: ApiFleetShip): FleetShipViewModel {
     type: ship.type,
     name: ship.name,
     icon: ship.icon ?? "🚀",
+    designName: ship.design_name ?? "",
+    hullSize: ship.hull_size ?? "",
   };
 }
 
@@ -230,11 +244,17 @@ function mapStar(
   star: ApiStar,
   playerColorById: Map<number, string>,
   buildingByName: Map<string, BuildingViewModel>,
+  shipDesignProjectByName: Map<string, BuildingViewModel>,
   governmentByPlayerId: Map<number, TechViewModel | null>,
 ): StarSummary {
   const explored = Boolean(star.name);
   const planets = (star.planets ?? []).map((planet) =>
-    mapPlanet(planet, buildingByName, governmentByPlayerId.get(planet.owner) ?? null),
+    mapPlanet(
+      planet,
+      buildingByName,
+      shipDesignProjectByName,
+      governmentByPlayerId.get(planet.owner) ?? null,
+    ),
   );
   const ownedBy = planets.find((planet) => planet.owner > 0)?.owner;
   return {
@@ -263,6 +283,7 @@ export function mapPlayerColorOptions(options: {
 function mapPlanet(
   planet: ApiPlanet,
   buildingByName: Map<string, BuildingViewModel>,
+  shipDesignProjectByName: Map<string, BuildingViewModel>,
   government: TechViewModel | null,
 ): PlanetViewModel {
   const buildings =
@@ -303,10 +324,16 @@ function mapPlanet(
     pollution: planet.pollution ?? 0,
     marines: planet.marines,
     armor: planet.armor,
-    currentProject: mapPlanetBuilding(planet.current_project, buildingByName),
+    currentProject: mapPlanetProject(
+      planet.current_project,
+      buildingByName,
+      shipDesignProjectByName,
+    ),
     buildQueue:
       planet.build_queue
-        ?.map((building) => mapPlanetBuilding(building, buildingByName))
+        ?.map((building) =>
+          mapPlanetProject(building, buildingByName, shipDesignProjectByName),
+        )
         .filter((building): building is BuildingViewModel => Boolean(building)) ??
       [],
     buildings,
@@ -378,8 +405,8 @@ function governmentModifierValue(government: TechViewModel | null, modifierName:
 }
 
 function mapPlanetBuilding(
-  building: ApiBuilding | string | undefined,
-  buildingByName: Map<string, BuildingViewModel>,
+	building: ApiBuilding | string | undefined,
+	buildingByName: Map<string, BuildingViewModel>,
 ): BuildingViewModel | null {
   if (!building) {
     return null;
@@ -389,8 +416,29 @@ function mapPlanetBuilding(
   }
   if (!building.name) {
     return null;
-  }
-  return mapBuilding(building);
+	}
+	return mapBuilding(building);
+}
+
+function mapPlanetProject(
+	project: ApiBuilding | string | undefined,
+	buildingByName: Map<string, BuildingViewModel>,
+	shipDesignProjectByName: Map<string, BuildingViewModel>,
+): BuildingViewModel | null {
+	if (!project) {
+		return null;
+	}
+	if (typeof project === "string") {
+		return (
+			buildingByName.get(project.toLowerCase()) ??
+			shipDesignProjectByName.get(project.toLowerCase()) ??
+			null
+		);
+	}
+	if (!project.name) {
+		return null;
+	}
+	return mapBuilding(project);
 }
 
 function mapIncome(planet: ApiPlanet, buildingsOnPlanet: BuildingViewModel[]) {
@@ -467,8 +515,8 @@ function mapPlanetPollution(planet: ApiPlanet, workers: number) {
 }
 
 function mapShipDesign(
-  ship: ApiShipDesign,
-  isCommon: boolean,
+	ship: ApiShipDesign,
+	isCommon: boolean,
 ): ShipDesignViewModel {
   return {
     name: ship.name,
@@ -480,7 +528,43 @@ function mapShipDesign(
     hullSize: mapHullSize(ship.hull_size),
     fuelCell: mapFuelCell(ship.fuel_cell),
     isCommon,
-  };
+	};
+}
+
+function mapShipDesignProject(design: ShipDesignViewModel): BuildingViewModel {
+	return {
+		id: shipDesignProjectId(design.name),
+		name: design.name,
+		description: `${design.hullSize.name} ship design`,
+		icon: "🚢",
+		cost: design.hullSize.name === "Frigate" ? 100 : 0,
+		maintenance: 0,
+		unique: false,
+		upgrades: [],
+		grants: {
+			unlocks: {
+				buildings: [],
+				hullSizes: [],
+				drives: [],
+				armors: [],
+				computers: [],
+				fuelCells: [],
+				shields: [],
+				beams: [],
+				shipSystems: [],
+			},
+			modifiers: [],
+		},
+		modifiers: [],
+	};
+}
+
+function shipDesignProjectId(name: string) {
+	let hash = 0;
+	for (let index = 0; index < name.length; index += 1) {
+		hash += name.charCodeAt(index) * (index + 1);
+	}
+	return -10000 - hash;
 }
 
 function mapShipSystem(shipSystem: ApiShipSystem): ShipSystemViewModel {

@@ -159,6 +159,8 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 					Name: "Colony Ship",
 					Icon: "🚀",
 				})
+			} else if design, ok := game.findBuildableShipDesign(player, completedProject); ok {
+				game.addShipToOrbitFleet(player.ID, p.ParentStar, fleetShipFromDesign(*design))
 			} else {
 				buildOnPlanet(game, p, completedProject)
 			}
@@ -237,7 +239,7 @@ func sanitizeBuildQueue(p *Planet, buildQueue []string, availableBuildings []str
 		if buildingName == "" || buildingName == "Trade Goods" {
 			continue
 		}
-		if !isRepeatableProject(buildingName) && seen[buildingName] {
+		if !isRepeatableProject(buildingName) && !isShipDesignProductionProject(p, buildingName, game) && seen[buildingName] {
 			continue
 		}
 		if !canBuild(p, buildingName, availableBuildings, game) {
@@ -259,6 +261,13 @@ func popNextQueuedBuild(p *Planet) string {
 }
 
 func Build(p *Planet, buildingName string, availableBuildings []string, game *Game) bool {
+	if buildingName == "" {
+		return false
+	}
+	if buildShipDesignProject(p, buildingName, game) {
+		return true
+	}
+
 	// is the building already built on this planet
 	found := false
 	for _, buildingInPlanet := range p.Buildings {
@@ -311,6 +320,9 @@ func currentBuildProgress(p *Planet, game *Game) int64 {
 	if !p.IsBuilding || p.CurrentProject == "" {
 		return 0
 	}
+	if cost, ok := effectiveShipDesignCost(p, p.CurrentProject, game); ok {
+		return max(0, cost-p.BuildBucket)
+	}
 	building, err := getBuildingFromName(game, p.CurrentProject)
 	if err != nil {
 		return 0
@@ -319,6 +331,9 @@ func currentBuildProgress(p *Planet, game *Game) int64 {
 }
 
 func canBuild(p *Planet, buildingName string, availableBuildings []string, game *Game) bool {
+	if canBuildShipDesignProject(p, buildingName, game) {
+		return true
+	}
 	if p.IsBuilding && p.CurrentProject == buildingName {
 		return false
 	}
@@ -377,6 +392,49 @@ func effectiveBuildingCost(p *Planet, building Building, game *Game) int64 {
 		}
 	}
 	return cost
+}
+
+func canBuildShipDesignProject(p *Planet, projectName string, game *Game) bool {
+	if p == nil || game == nil || p.IsBuilding && p.CurrentProject == projectName {
+		return false
+	}
+	player := gamePlayerForPlanet(game, p)
+	_, ok := game.findBuildableShipDesign(player, projectName)
+	return ok
+}
+
+func buildShipDesignProject(p *Planet, projectName string, game *Game) bool {
+	cost, ok := effectiveShipDesignCost(p, projectName, game)
+	if !ok {
+		return false
+	}
+	investedProduction := currentBuildProgress(p, game)
+	p.CurrentProject = projectName
+	p.IsBuilding = true
+	p.BuildBucket = max(0, cost-investedProduction)
+	return true
+}
+
+func effectiveShipDesignCost(p *Planet, projectName string, game *Game) (int64, bool) {
+	player := gamePlayerForPlanet(game, p)
+	design, ok := game.findBuildableShipDesign(player, projectName)
+	if !ok {
+		return 0, false
+	}
+	cost := shipDesignProductionCost(*design)
+	multiplier := governmentShipCostMultiplier(game, player)
+	if multiplier < 0 {
+		multiplier = 0
+	}
+	if multiplier != 0 && multiplier != 1 {
+		cost = int64(math.Ceil(float64(cost)*multiplier - 0.0000001))
+	}
+	return cost, true
+}
+
+func isShipDesignProductionProject(p *Planet, projectName string, game *Game) bool {
+	_, ok := effectiveShipDesignCost(p, projectName, game)
+	return ok
 }
 
 func isShipProductionProject(buildingName string) bool {
@@ -441,11 +499,14 @@ func applyBuyProduction(p *Planet, player *Player, game *Game) error {
 	if !p.IsBuilding || p.CurrentProject == "" {
 		return fmt.Errorf("cannot buy production: planet %d is not building", p.ID)
 	}
-	building, err := getBuildingFromName(game, p.CurrentProject)
-	if err != nil {
-		return fmt.Errorf("cannot buy production: unknown project %q on planet %d", p.CurrentProject, p.ID)
+	effectiveCost, ok := effectiveShipDesignCost(p, p.CurrentProject, game)
+	if !ok {
+		building, err := getBuildingFromName(game, p.CurrentProject)
+		if err != nil {
+			return fmt.Errorf("cannot buy production: unknown project %q on planet %d", p.CurrentProject, p.ID)
+		}
+		effectiveCost = effectiveBuildingCost(p, building, game)
 	}
-	effectiveCost := effectiveBuildingCost(p, building, game)
 	if effectiveCost <= 0 {
 		p.BuildBucket = 0
 		return nil

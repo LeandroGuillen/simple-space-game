@@ -10,7 +10,7 @@
         "drives": ["None", "Nuclear"],
         "armors": ["None", "Titanium"],
         "computers": ["None"],
-        "fuel_cells": ["None"],
+        "fuel_cells": ["None", "Standard"],
         "shields": ["None"]
       }
     }

@@ -62,5 +62,6 @@ func TestCommandPointOverdrawChargesTreasury(t *testing.T) {
 
 func TestShipCommandPointCostColonyShip(t *testing.T) {
 	assert.Equal(t, int64(1), shipCommandPointCost(model.FleetShip{Type: "colony_ship"}))
+	assert.Equal(t, int64(1), shipCommandPointCost(model.FleetShip{Type: "ship_design", Name: "Flunker I", HullSize: "Frigate"}))
 	assert.Equal(t, int64(0), shipCommandPointCost(model.FleetShip{Type: "frigate", Name: "Scout"}))
 }

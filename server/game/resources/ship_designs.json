@@ -3,7 +3,7 @@
     {
       "name": "Flunker I",
       "drive": "Nuclear",
-      "computer": "Electronic",
+      "computer": "None",
       "shield": "None",
       "armor": "Titanium",
       "hull_size": "Frigate",

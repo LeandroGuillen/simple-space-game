@@ -12,12 +12,15 @@ const (
 	startingCommandPointsBonus int64 = 5
 )
 
-// shipCommandPointCost returns how many command points one ship consumes (Phase 1: colony ships only).
 func shipCommandPointCost(ship FleetShip) int64 {
-	if ship.Type == "colony_ship" {
+	switch {
+	case ship.Type == "colony_ship":
 		return 1
+	case ship.HullSize == "Frigate":
+		return 1
+	default:
+		return 0
 	}
-	return 0
 }
 
 func (g *Game) playerCommandPointsCapacity(player *Player) int64 {

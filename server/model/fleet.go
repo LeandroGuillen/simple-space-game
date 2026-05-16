@@ -1,9 +1,11 @@
 package model
 
 type FleetShip struct {
-	Type string `json:"type"`
-	Name string `json:"name"`
-	Icon string `json:"icon,omitempty"`
+	Type       string `json:"type"`
+	Name       string `json:"name"`
+	Icon       string `json:"icon,omitempty"`
+	DesignName string `json:"design_name,omitempty"`
+	HullSize   string `json:"hull_size,omitempty"`
 }
 
 type Fleet struct {

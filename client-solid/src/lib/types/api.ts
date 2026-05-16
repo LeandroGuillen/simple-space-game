@@ -390,6 +390,8 @@ export type ApiFleetShip = {
   type: string;
   name: string;
   icon?: string;
+  design_name?: string;
+  hull_size?: string;
 };
 
 export type ApiFleet = {
