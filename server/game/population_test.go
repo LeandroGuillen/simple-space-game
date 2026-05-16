@@ -142,6 +142,80 @@ func TestTurnAddsCloningCenterPopulationGrowth(t *testing.T) {
 	assert.Equal(t, growthWithoutCloningCenter+100, planet.LastTurnPopGrowth)
 }
 
+func TestMedicineGrowthPercentIgnoresUpgradedTech(t *testing.T) {
+	techTree := &model.TechTree{
+		AllTechs: []model.Tech{
+			{
+				Name: "Microbiotics",
+				Grants: model.Grants{Modifiers: []model.Modifier{
+					{Name: "population_growth_percent", Value: 25},
+				}},
+			},
+			{
+				Name:     "Universal Antidote",
+				Upgrades: []string{"Microbiotics"},
+				Grants: model.Grants{Modifiers: []model.Modifier{
+					{Name: "population_growth_percent", Value: 50},
+				}},
+			},
+		},
+	}
+
+	cases := []struct {
+		name     string
+		techs    []string
+		expected int64
+	}{
+		{"none researched", nil, 0},
+		{"only microbiotics", []string{"Microbiotics"}, 25},
+		{"only universal antidote", []string{"Universal Antidote"}, 50},
+		{"both researched (no stacking)", []string{"Microbiotics", "Universal Antidote"}, 50},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			player := &model.Player{ID: 1, ResearchedTechs: tc.techs}
+			g := &Game{Players: []*model.Player{player}, Resources: &Resources{TechTree: techTree}}
+			assert.Equal(t, tc.expected, MedicineGrowthPercent(g, player))
+		})
+	}
+}
+
+func TestTurnAppliesMicrobioticsGrowthBonus(t *testing.T) {
+	techTree := &model.TechTree{
+		AllTechs: []model.Tech{
+			{
+				Name: "Microbiotics",
+				Grants: model.Grants{Modifiers: []model.Modifier{
+					{Name: "population_growth_percent", Value: 25},
+				}},
+			},
+		},
+	}
+
+	growth := func(player *model.Player) int64 {
+		g := &Game{
+			Players:   []*model.Player{player},
+			Resources: &Resources{BuildingCollection: &BuildingCollection{}, TechTree: techTree},
+		}
+		planet := &model.Planet{
+			Owner:      player.ID,
+			Size:       model.PlanetSizeHuge,
+			Population: 10000,
+			Food: model.PlanetFoodOutput{
+				Farmers:           10,
+				ProducedPerFarmer: 2,
+			},
+		}
+		require.NoError(t, planetTurn(planet, model.Commands{}, player, g))
+		return planet.LastTurnPopGrowth
+	}
+
+	baseline := growth(&model.Player{ID: 1})
+	withMicrobiotics := growth(&model.Player{ID: 1, ResearchedTechs: []string{"Microbiotics"}})
+
+	assert.Greater(t, withMicrobiotics, baseline)
+}
+
 func TestTurnAssignsNewPopulationToFarmingWhenPlanetWouldStarve(t *testing.T) {
 	player := &model.Player{ID: 1}
 	g := &Game{

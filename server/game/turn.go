@@ -64,7 +64,7 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game, foodRe
 		p.Population,
 		GamePlanetFoodProduced(game, p)+foodReceived,
 		maxPop,
-		player.Race.Stats.PopulationGrowthPercent,
+		player.Race.Stats.PopulationGrowthPercent+MedicineGrowthPercent(game, player),
 		PopulationGrowthBonus(game, p),
 		housingBonus,
 	)

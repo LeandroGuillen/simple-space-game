@@ -265,6 +265,13 @@
       "scope": "PLANET",
       "stat": "population_growth",
       "operation": "ADD"
+    },
+    {
+      "name": "population_growth_percent",
+      "description": "Adds a percentage bonus to colony population growth.",
+      "scope": "EMPIRE",
+      "stat": "population_growth_percent",
+      "operation": "ADD_PERCENT"
     }
   ]
 }

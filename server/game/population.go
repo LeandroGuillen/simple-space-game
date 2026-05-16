@@ -80,6 +80,50 @@ func populationGrowthModifiers(modifiers []Modifier) int64 {
 	return growthBonus
 }
 
+// MedicineGrowthPercent returns the additive percentage population-growth bonus
+// from researched empire-effect techs (e.g. Microbiotics, Universal Antidote).
+// A tech that is upgraded by another researched tech is skipped so upgrade
+// chains do not stack with their lower-tier predecessor.
+func MedicineGrowthPercent(game *Game, player *Player) int64 {
+	if game == nil || player == nil || game.Resources == nil || game.Resources.TechTree == nil {
+		return 0
+	}
+	upgraded := researchedTechUpgradeTargets(game, player)
+	var bonus int64
+	for _, techName := range player.ResearchedTechs {
+		if upgraded[techName] {
+			continue
+		}
+		tech, ok := game.findTechDefinition(techName)
+		if !ok {
+			continue
+		}
+		for _, modifier := range tech.Grants.Modifiers {
+			if modifier.Name == "population_growth_percent" {
+				bonus += int64(modifier.Value)
+			}
+		}
+	}
+	return bonus
+}
+
+func researchedTechUpgradeTargets(game *Game, player *Player) map[string]bool {
+	upgraded := map[string]bool{}
+	if game == nil || player == nil {
+		return upgraded
+	}
+	for _, techName := range player.ResearchedTechs {
+		tech, ok := game.findTechDefinition(techName)
+		if !ok {
+			continue
+		}
+		for _, upgradedName := range tech.Upgrades {
+			upgraded[upgradedName] = true
+		}
+	}
+	return upgraded
+}
+
 // PopulationGrowth returns the per-turn population delta for a planet.
 func PopulationGrowth(population, foodPerBuilding, foodPerFarmer, numFarmers, maxPop, raceGrowthPercent, flatGrowthBonus int64) int64 {
 	totalFoodProduced := foodPerBuilding + foodPerFarmer*numFarmers

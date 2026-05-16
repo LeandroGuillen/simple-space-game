@@ -162,7 +162,14 @@
   { "name": "Space Academy", "description": "No description provided" },
   { "name": "Space Scanner", "description": "No description provided" },
   { "name": "Transport", "description": "No description provided" },
-  { "name": "Universal Antidote", "description": "No description provided" },
+  {
+    "name": "Universal Antidote",
+    "description": "Empire-wide medical breakthrough: colonies grow 50% faster (replaces Microbiotics).",
+    "upgrades": ["Microbiotics"],
+    "grants": {
+      "modifiers": [{ "name": "population_growth_percent", "value": 50 }]
+    }
+  },
   { "name": "Xeno Psychology", "description": "No description provided" },
   { "name": "Cyber Security Link", "description": "No description provided" },
   { "name": "Personal Shield", "description": "No description provided" },
@@ -177,9 +184,9 @@
   { "name": "Telepathic Training", "description": "No description provided" },
   {
     "name": "Microbiotics",
-    "description": "No description provided",
+    "description": "Empire-wide medical breakthrough: colonies grow 25% faster.",
     "grants": {
-      "modifiers": [{ "name": "population_growth", "value": 25 }]
+      "modifiers": [{ "name": "population_growth_percent", "value": 25 }]
     }
   },
   { "name": "Psionics", "description": "No description provided" },
