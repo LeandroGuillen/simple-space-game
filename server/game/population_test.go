@@ -141,3 +141,110 @@ func TestTurnAddsCloningCenterPopulationGrowth(t *testing.T) {
 
 	assert.Equal(t, growthWithoutCloningCenter+100, planet.LastTurnPopGrowth)
 }
+
+func TestTurnAssignsNewPopulationToFarmingWhenPlanetWouldStarve(t *testing.T) {
+	player := &model.Player{ID: 1}
+	g := &Game{
+		Players: []*model.Player{player},
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{
+				Buildings: []model.Building{
+					{
+						Name: "Growth Pod",
+						Grants: model.Grants{Modifiers: []model.Modifier{
+							{Name: "population_growth", Value: 200},
+						}},
+					},
+				},
+			},
+		},
+	}
+	planet := &model.Planet{
+		Owner:      1,
+		Size:       model.PlanetSizeHuge,
+		Population: 1900,
+		Industry: model.PlanetIndustryOutput{
+			Workers: 1,
+		},
+		Buildings: []string{"Growth Pod"},
+	}
+
+	require.NoError(t, planetTurn(planet, model.Commands{}, player, g))
+
+	assert.Equal(t, int64(1), planet.Food.Farmers)
+	assert.Equal(t, int64(1), planet.Industry.Workers)
+	assert.Equal(t, int64(0), planet.Science.Scientists)
+}
+
+func TestTurnAssignsNewPopulationToLargerIndustryOrScienceWorkforceWhenFed(t *testing.T) {
+	tests := []struct {
+		name           string
+		workers        int64
+		scientists     int64
+		wantWorkers    int64
+		wantScientists int64
+	}{
+		{
+			name:           "industry",
+			workers:        1,
+			scientists:     0,
+			wantWorkers:    2,
+			wantScientists: 0,
+		},
+		{
+			name:           "science",
+			workers:        0,
+			scientists:     1,
+			wantWorkers:    0,
+			wantScientists: 2,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			player := &model.Player{ID: 1}
+			g := &Game{
+				Players: []*model.Player{player},
+				Resources: &Resources{
+					BuildingCollection: &BuildingCollection{
+						Buildings: []model.Building{
+							{
+								Name: "Growth Pod",
+								Grants: model.Grants{Modifiers: []model.Modifier{
+									{Name: "population_growth", Value: 300},
+								}},
+							},
+							{
+								Name: "Hydroponic Farms",
+								Grants: model.Grants{Modifiers: []model.Modifier{
+									{Name: "food_flat", Value: 10},
+								}},
+							},
+						},
+					},
+				},
+			}
+			planet := &model.Planet{
+				Owner:      1,
+				Size:       model.PlanetSizeHuge,
+				Population: 2900,
+				Food: model.PlanetFoodOutput{
+					Farmers: 1,
+				},
+				Industry: model.PlanetIndustryOutput{
+					Workers: tt.workers,
+				},
+				Science: model.PlanetScienceOutput{
+					Scientists: tt.scientists,
+				},
+				Buildings: []string{"Growth Pod", "Hydroponic Farms"},
+			}
+
+			require.NoError(t, planetTurn(planet, model.Commands{}, player, g))
+
+			assert.Equal(t, int64(1), planet.Food.Farmers)
+			assert.Equal(t, tt.wantWorkers, planet.Industry.Workers)
+			assert.Equal(t, tt.wantScientists, planet.Science.Scientists)
+		})
+	}
+}

@@ -60,16 +60,8 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 
 	// should we increase/decrease pop units?
 	popIncrease := int64(math.Floor(float64(p.Population/1000)) - math.Floor(float64(oldPopulation/1000)))
-	if popIncrease != 0 {
-		// whoever has more units, add one more. This reinforces colonies that are
-		// focused on one type of production
-		if p.Industry.Workers >= p.Food.Farmers && p.Industry.Workers >= p.Science.Scientists {
-			p.Industry.Workers += popIncrease
-		} else if p.Food.Farmers >= p.Industry.Workers && p.Food.Farmers >= p.Science.Scientists {
-			p.Food.Farmers += popIncrease
-		} else {
-			p.Science.Scientists += popIncrease
-		}
+	if popIncrease > 0 {
+		assignNewPopulation(game, p, popIncrease)
 	}
 	capAssignedPopulation(p)
 
@@ -183,6 +175,18 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 	}
 
 	return nil
+}
+
+func assignNewPopulation(game *Game, p *Planet, popIncrease int64) {
+	for range popIncrease {
+		if GamePlanetFoodProduced(game, p) < p.Population/1000 {
+			p.Food.Farmers++
+		} else if p.Industry.Workers >= p.Science.Scientists {
+			p.Industry.Workers++
+		} else {
+			p.Science.Scientists++
+		}
+	}
 }
 
 func nextAutobuildProject(p *Planet, availableBuildings []string, game *Game) string {
