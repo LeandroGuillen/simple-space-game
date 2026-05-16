@@ -106,10 +106,6 @@ export function PlanetPage() {
     fleetsAtParentStar().reduce((total, f) => total + f.ships.length, 0),
   );
 
-  const backLabel = createMemo(() =>
-    planetReturnPath() === "/colonies" ? "Colonies" : "Galaxy",
-  );
-
   return (
     <Show
       when={planet()}

@@ -1,4 +1,5 @@
 import {
+  createEffect,
   createMemo,
   createSignal,
   For,
@@ -14,6 +15,7 @@ import type {
   ShipDesignViewModel,
   TechViewModel,
 } from "../lib/types/domain";
+import { toggleQueuedConstructionProject } from "../lib/construction";
 import {
   formatInteger,
   getBuyProductionCost,
@@ -103,7 +105,6 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     null,
   );
   let modalRef: HTMLElement | undefined;
-  let projectClickTimer: ReturnType<typeof setTimeout> | undefined;
   let dragClickTimer: ReturnType<typeof setTimeout> | undefined;
 
   const builtBuildingIds = createMemo(
@@ -267,6 +268,14 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
       .map((name) => projectByName().get(name.toLowerCase()) ?? null)
       .filter((project): project is BuildingViewModel => Boolean(project));
   });
+  createEffect(() => {
+    if (!isChoosing() || pendingBuild()) {
+      return;
+    }
+    setQueuedProjects(
+      [activeProject(), ...props.planet.buildQueue].slice(0, 10),
+    );
+  });
   const activeProject = createMemo(() => {
     const pendingProject = availableProjects().find(
       (project) => project.name === pendingBuild()?.building,
@@ -289,6 +298,9 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     const queued = queuedProjects().slice(0, 10);
     return Array.from({ length: 10 }, (_, index) => queued[index] ?? null);
   });
+  const queuedProjectIds = createMemo(
+    () => new Set(queuedProjects().map((project) => project.id)),
+  );
   const researchedTechs = createMemo(
     () => new Set(currentPlayer()?.researchedTechs ?? []),
   );
@@ -410,13 +422,15 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   });
   const shipCostMultiplier = createMemo(() => governmentModifierValue(activeGovernment(), "ship_cost_multiplier", 1));
   const currentInvestedProduction = createMemo(() => {
+    const stackedProduction = props.planet.industryStack;
     if (!props.planet.isBuilding || !props.planet.currentProject) {
-      return 0;
+      return stackedProduction;
     }
     return Math.max(
       0,
       effectiveProjectCost(props.planet.currentProject) -
-        props.planet.buildBucket,
+        props.planet.buildBucket +
+        stackedProduction,
     );
   });
   const displayedBuildBucket = createMemo(() => {
@@ -433,7 +447,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
         effectiveProjectCost(project) - currentInvestedProduction(),
       );
     }
-    return props.planet.buildBucket;
+    return Math.max(0, props.planet.buildBucket - props.planet.industryStack);
   });
   const completedProduction = createMemo(() => {
     const project = activeProject();
@@ -557,23 +571,10 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     }
     setSelectedProjectId(project.id);
     const currentProjects = queuedProjects();
-    const projects =
-      project.id !== 0 &&
-      currentProjects.length === 1 &&
-      currentProjects[0]?.id === TRADE_GOODS.id
-        ? []
-        : currentProjects;
-    if (projects.length >= 10) {
-      return projects;
-    }
-    if (
-      !isRepeatable &&
-      project.id !== 0 &&
-      projects.some((queued) => queued.id === project.id)
-    ) {
-      return projects;
-    }
-    const nextProjects = [...projects, project];
+    const nextProjects = toggleQueuedConstructionProject(currentProjects, project, {
+      isRepeatable,
+      tradeGoodsId: TRADE_GOODS.id,
+    });
     updateQueuedProjects(nextProjects);
     return nextProjects;
   }
@@ -639,26 +640,8 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     return -10000 - hash;
   }
 
-  function handleProjectClick(project: BuildingViewModel, event: MouseEvent) {
-    if (event.detail !== 1) {
-      return;
-    }
-    if (projectClickTimer) {
-      clearTimeout(projectClickTimer);
-    }
-    projectClickTimer = setTimeout(() => {
-      addProjectToQueue(project);
-      projectClickTimer = undefined;
-    }, 180);
-  }
-
-  function handleProjectDoubleClick(project: BuildingViewModel) {
-    if (projectClickTimer) {
-      clearTimeout(projectClickTimer);
-      projectClickTimer = undefined;
-    }
+  function handleProjectClick(project: BuildingViewModel) {
     addProjectToQueue(project);
-    cancelSelection();
   }
 
   function reorderQueue(toIndex: number) {
@@ -744,9 +727,6 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   }
 
   onCleanup(() => {
-    if (projectClickTimer) {
-      clearTimeout(projectClickTimer);
-    }
     if (dragClickTimer) {
       clearTimeout(dragClickTimer);
     }
@@ -878,15 +858,20 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
                       {(project) => (
                         <button
                           type="button"
-                          class={`construction-project-option ${selectedProject().id === project.id ? "is-selected" : ""}`}
+                          class="construction-project-option"
+                          classList={{
+                            "is-selected": selectedProject().id === project.id,
+                            "is-queued": queuedProjectIds().has(project.id),
+                          }}
                           disabled={state.isBusy}
                           onMouseEnter={() => setHoveredProjectId(project.id)}
                           onMouseLeave={() => setHoveredProjectId(null)}
-                          onClick={(event) =>
-                            handleProjectClick(project, event)
-                          }
-                          onDblClick={() => handleProjectDoubleClick(project)}
+                          onClick={() => handleProjectClick(project)}
                         >
+                          <span
+                            class="construction-project-queue-marker"
+                            aria-hidden="true"
+                          />
                           <span class="construction-project-name">
                             {project.name}
                           </span>
@@ -1004,7 +989,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
                                   command.project &&
                                   setHoveredProjectId(null)
                                 }
-                                onClick={(event) => {
+                                onClick={() => {
                                   if (isColonyBase) {
                                     if (!colonyBaseDisabled && hasTech) {
                                       const project = colonyBaseProject();
@@ -1013,20 +998,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
                                       }
                                     }
                                   } else if (command.project) {
-                                    handleProjectClick(command.project, event);
-                                  }
-                                }}
-                                onDblClick={() => {
-                                  if (isColonyBase) {
-                                    if (!colonyBaseDisabled && hasTech) {
-                                      const project = colonyBaseProject();
-                                      if (project) {
-                                        addProjectToQueue(project);
-                                        cancelSelection();
-                                      }
-                                    }
-                                  } else if (command.project) {
-                                    handleProjectDoubleClick(command.project);
+                                    handleProjectClick(command.project);
                                   }
                                 }}
                               >
@@ -1069,22 +1041,13 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
                                 }
                               }}
                               onMouseLeave={() => setHoveredProjectId(null)}
-                              onClick={(event) => {
+                              onClick={() => {
                                 if (!design) return;
                                 const project = projectByName().get(
                                   design.name.toLowerCase(),
                                 );
                                 if (project) {
-                                  handleProjectClick(project, event);
-                                }
-                              }}
-                              onDblClick={() => {
-                                if (!design) return;
-                                const project = projectByName().get(
-                                  design.name.toLowerCase(),
-                                );
-                                if (project) {
-                                  handleProjectDoubleClick(project);
+                                  handleProjectClick(project);
                                 }
                               }}
                             >
@@ -1120,13 +1083,9 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
                               onMouseLeave={() =>
                                 command.project && setHoveredProjectId(null)
                               }
-                              onClick={(event) =>
+                              onClick={() =>
                                 command.project &&
-                                handleProjectClick(command.project, event)
-                              }
-                              onDblClick={() =>
-                                command.project &&
-                                handleProjectDoubleClick(command.project)
+                                handleProjectClick(command.project)
                               }
                             >
                               <span>{command.label}</span>

@@ -18,3 +18,41 @@ export function isAutobuildProject(project: Pick<BuildingViewModel, 'name'>): bo
   }
   return !project.name.endsWith(' Ship');
 }
+
+type ToggleQueuedProjectOptions = {
+  maxQueueSize?: number;
+  isRepeatable?: boolean;
+  tradeGoodsId?: number;
+};
+
+export function toggleQueuedConstructionProject(
+  currentProjects: BuildingViewModel[],
+  project: BuildingViewModel,
+  options: ToggleQueuedProjectOptions = {},
+): BuildingViewModel[] {
+  const maxQueueSize = options.maxQueueSize ?? 10;
+  const tradeGoodsId = options.tradeGoodsId ?? 0;
+  const isRepeatable = options.isRepeatable ?? false;
+
+  if (!isRepeatable) {
+    const existingIndex = currentProjects.findIndex(
+      (queuedProject) => queuedProject.id === project.id,
+    );
+    if (existingIndex >= 0) {
+      return currentProjects.filter((_, index) => index !== existingIndex);
+    }
+  }
+
+  const projects =
+    project.id !== tradeGoodsId &&
+    currentProjects.length === 1 &&
+    currentProjects[0]?.id === tradeGoodsId
+      ? []
+      : currentProjects;
+
+  if (projects.length >= maxQueueSize) {
+    return projects;
+  }
+
+  return [...projects, project];
+}

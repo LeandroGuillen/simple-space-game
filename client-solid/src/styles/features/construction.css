@@ -708,7 +708,7 @@
   min-height: 32px;
   padding: 6px 8px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
   cursor: pointer;
@@ -720,6 +720,28 @@
 .construction-project-option.is-selected {
   border-color: var(--accent);
   background: rgba(255, 255, 255, 0.04);
+}
+
+.construction-project-option.is-queued {
+  background: rgba(100, 210, 255, 0.08);
+}
+
+.construction-project-option.is-queued:hover,
+.construction-project-option.is-queued.is-selected {
+  background: rgba(100, 210, 255, 0.12);
+}
+
+.construction-project-queue-marker {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.construction-project-option.is-queued .construction-project-queue-marker {
+  background: var(--accent);
+  box-shadow: 0 0 0 2px rgba(100, 210, 255, 0.16);
 }
 
 .construction-project-name,

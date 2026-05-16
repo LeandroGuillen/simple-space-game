@@ -154,6 +154,25 @@ func TestTurnBuyProductionCostMatchesAboveFiftyTier(t *testing.T) {
 	assert.Contains(t, planet.Buildings, "Cheap Lab")
 }
 
+func TestTurnBuyProductionUsesStackedProduction(t *testing.T) {
+	g := newSinglePlanetBuyHarness(t, 10_000)
+	player := g.Players[0]
+	planet := g.Galaxy.Stars[0].Planets[0]
+	planet.IndustryStack = 60
+	startingTreasury := player.Treasury
+
+	require.NoError(t, g.Turn(player.ID, model.Commands{
+		BuyProduction: []*model.BuyProductionCommand{{PlanetID: planet.ID}},
+	}))
+
+	income := planetIncomeAfterTurn(t, g, player.ID, planet.ID)
+	netTreasuryChange := player.Treasury - startingTreasury
+	buyCost := income - netTreasuryChange
+	assert.Equal(t, int64(80), buyCost, "stacked PP should reduce the remaining buyout cost")
+	assert.Equal(t, int64(0), planet.IndustryStack)
+	assert.Contains(t, planet.Buildings, "Cheap Lab")
+}
+
 // newSinglePlanetBuyHarness builds a minimal game with one player and one planet currently
 // constructing a 100-PP building called "Cheap Lab". The planet has no industry workers so
 // the only way for the project to complete is via a Buy command.
@@ -171,8 +190,8 @@ func newSinglePlanetBuyHarness(t *testing.T, treasury int64) *Game {
 	}
 	return &Game{
 		Players: []*model.Player{{
-			ID:       1,
-			Treasury: treasury,
+			ID:        1,
+			Treasury:  treasury,
 			Available: model.AvailableTech{Buildings: []string{"Cheap Lab"}},
 		}},
 		Resources: &Resources{
@@ -198,4 +217,3 @@ func planetIncomeAfterTurn(t *testing.T, g *Game, playerID, planetID uint) int64
 	t.Fatalf("planet %d not found", planetID)
 	return 0
 }
-

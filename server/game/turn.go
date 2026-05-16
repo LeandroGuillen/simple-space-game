@@ -77,12 +77,14 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 	buildingName := ""
 	if planetBuildCommand != nil {
 		buildingName = planetBuildCommand.Building
-		p.BuildQueue = sanitizeBuildQueue(p, planetBuildCommand.BuildQueue, player.Available.Buildings, game)
-		if buildingName != "" && len(p.BuildQueue) > 0 && p.BuildQueue[0] == buildingName {
-			p.BuildQueue = p.BuildQueue[1:]
-		}
-		if buildingName == "" && len(p.BuildQueue) > 0 {
-			buildingName = popNextQueuedBuild(p)
+		if planetBuildCommand.BuildQueue != nil {
+			p.BuildQueue = sanitizeBuildQueue(p, buildingName, planetBuildCommand.BuildQueue, player.Available.Buildings, game)
+			if buildingName != "" && len(p.BuildQueue) > 0 && p.BuildQueue[0] == buildingName {
+				p.BuildQueue = p.BuildQueue[1:]
+			}
+			if buildingName == "" && len(p.BuildQueue) > 0 {
+				buildingName = popNextQueuedBuild(p)
+			}
 		}
 	}
 	if buildingName == "" && !(p.IsBuilding && p.CurrentProject != "") {
@@ -107,13 +109,11 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 		p.CurrentProject = "Trade Goods"
 		p.IsBuilding = false
 		p.BuildBucket = 0
-		p.BuildQueue = nil
 	} else if buildingName != "" {
 		if !Build(p, buildingName, player.Available.Buildings, game) {
 			p.CurrentProject = "Trade Goods"
 			p.IsBuilding = false
 			p.BuildBucket = 0
-			p.BuildQueue = nil
 		}
 	}
 
@@ -131,12 +131,19 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 
 	// Advance build project
 	if p.IsBuilding {
-		nextBucket := p.BuildBucket - industryProduced
-		if nextBucket <= 0 {
-			// project is complete
+		availableProduction := p.IndustryStack + industryProduced
+		p.IndustryStack = 0
+		for p.IsBuilding {
+			nextBucket := p.BuildBucket - availableProduction
+			if nextBucket > 0 {
+				// project is not complete
+				p.BuildBucket = nextBucket
+				break
+			}
+
 			completedProject := p.CurrentProject
+			availableProduction = -nextBucket
 			p.IsBuilding = false
-			p.IndustryStack += -nextBucket
 			p.BuildBucket = 0
 			p.CurrentProject = ""
 
@@ -157,19 +164,20 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 				buildOnPlanet(game, p, completedProject)
 			}
 
-			if len(p.BuildQueue) > 0 {
-				nextProject := popNextQueuedBuild(p)
-				if !Build(p, nextProject, player.Available.Buildings, game) {
-					p.CurrentProject = "Trade Goods"
-					p.IsBuilding = false
-					p.BuildBucket = 0
-				}
+			if len(p.BuildQueue) == 0 {
+				p.IndustryStack += availableProduction
+				break
 			}
-		} else {
-			// project is not complete
-			p.BuildBucket = nextBucket
+			nextProject := popNextQueuedBuild(p)
+			if !Build(p, nextProject, player.Available.Buildings, game) {
+				p.CurrentProject = "Trade Goods"
+				p.IsBuilding = false
+				p.BuildBucket = 0
+				p.IndustryStack += availableProduction
+				break
+			}
 		}
-	} else {
+	} else if p.CurrentProject != "Trade Goods" {
 		// if nothing to work on, save production
 		p.IndustryStack += industryProduced
 	}
@@ -233,7 +241,7 @@ func capAssignedPopulation(p *Planet) {
 	}
 }
 
-func sanitizeBuildQueue(p *Planet, buildQueue []string, availableBuildings []string, game *Game) []string {
+func sanitizeBuildQueue(p *Planet, selectedProject string, buildQueue []string, availableBuildings []string, game *Game) []string {
 	queue := make([]string, 0, min(len(buildQueue), 10))
 	seen := make(map[string]bool)
 	for _, buildingName := range buildQueue {
@@ -244,6 +252,11 @@ func sanitizeBuildQueue(p *Planet, buildQueue []string, availableBuildings []str
 			continue
 		}
 		if !isRepeatableProject(buildingName) && !isShipDesignProductionProject(p, buildingName, game) && seen[buildingName] {
+			continue
+		}
+		if p.IsBuilding && p.CurrentProject == buildingName && selectedProject != buildingName {
+			queue = append(queue, buildingName)
+			seen[buildingName] = true
 			continue
 		}
 		if !canBuild(p, buildingName, availableBuildings, game) {
@@ -312,10 +325,11 @@ func Build(p *Planet, buildingName string, availableBuildings []string, game *Ga
 		return false
 	}
 
-	investedProduction := currentBuildProgress(p, game)
+	projectCost := effectiveBuildingCost(p, building, game)
+	investedProduction := consumeStackedBuildProduction(p, projectCost, game)
 	p.CurrentProject = buildingName
 	p.IsBuilding = true
-	p.BuildBucket = max(0, effectiveBuildingCost(p, building, game)-investedProduction)
+	p.BuildBucket = max(0, projectCost-investedProduction)
 
 	return true
 }
@@ -332,6 +346,13 @@ func currentBuildProgress(p *Planet, game *Game) int64 {
 		return 0
 	}
 	return max(0, effectiveBuildingCost(p, building, game)-p.BuildBucket)
+}
+
+func consumeStackedBuildProduction(p *Planet, projectCost int64, game *Game) int64 {
+	stackedProduction := p.IndustryStack + currentBuildProgress(p, game)
+	investedProduction := min(projectCost, stackedProduction)
+	p.IndustryStack = max(0, stackedProduction-projectCost)
+	return investedProduction
 }
 
 func canBuild(p *Planet, buildingName string, availableBuildings []string, game *Game) bool {
@@ -412,7 +433,7 @@ func buildShipDesignProject(p *Planet, projectName string, game *Game) bool {
 	if !ok {
 		return false
 	}
-	investedProduction := currentBuildProgress(p, game)
+	investedProduction := consumeStackedBuildProduction(p, cost, game)
 	p.CurrentProject = projectName
 	p.IsBuilding = true
 	p.BuildBucket = max(0, cost-investedProduction)
@@ -515,8 +536,10 @@ func applyBuyProduction(p *Planet, player *Player, game *Game) error {
 		p.BuildBucket = 0
 		return nil
 	}
-	remaining := p.BuildBucket
+	remaining := max(0, p.BuildBucket-p.IndustryStack)
 	if remaining <= 0 {
+		p.IndustryStack = max(0, p.IndustryStack-p.BuildBucket)
+		p.BuildBucket = 0
 		return nil
 	}
 	cost := BuyProductionCost(effectiveCost, remaining)
@@ -524,6 +547,7 @@ func applyBuyProduction(p *Planet, player *Player, game *Game) error {
 		return fmt.Errorf("cannot buy production: need %d BC, have %d BC", cost, player.Treasury)
 	}
 	player.Treasury -= cost
+	p.IndustryStack = 0
 	p.BuildBucket = 0
 	return nil
 }
