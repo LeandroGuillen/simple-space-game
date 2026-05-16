@@ -431,6 +431,7 @@ export type ApiGame = {
   resources: ApiResources;
   pending_colony_bases?: Record<number, number[]>; // playerID -> planetIDs
   pending_colony_ships?: Record<number, number[]>; // playerID -> fleetIDs
+  pending_artificial_planets?: Record<number, number[]>; // playerID -> source planet IDs
 };
 
 export type ApiGameUpdateMessage = {

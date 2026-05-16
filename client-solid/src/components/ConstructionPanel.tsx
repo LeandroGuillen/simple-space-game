@@ -21,6 +21,7 @@ import {
   getBuyProductionCost,
   getPlanetIndustryForWorkers,
   findStar,
+  getArtificialPlanetTargets,
   getSuitablePlanetsForColonization,
 } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
@@ -69,6 +70,7 @@ function isSpecialConstructionProject(projectName: string) {
   return (
     projectName === "Colony Base" ||
     projectName === "Colony Ship" ||
+    projectName === "Artificial Planet Construction" ||
     projectName === "Android Farmers" ||
     projectName === "Android Workers" ||
     projectName === "Android Scientists"
@@ -175,6 +177,14 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
           availableBuildingNames().has(project.name),
       ) ?? null,
   );
+  const artificialPlanetProject = createMemo(
+    () =>
+      state.game?.resources.buildingCollection.buildings.find(
+        (project) =>
+          project.name === "Artificial Planet Construction" &&
+          availableBuildingNames().has(project.name),
+      ) ?? null,
+  );
   const availableHullSizes = createMemo(
     () => new Set(currentPlayer()?.available.hullSizes ?? []),
   );
@@ -234,6 +244,9 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     }
     if (colonyShipProject()) {
       projects.push(colonyShipProject()!);
+    }
+    if (artificialPlanetProject()) {
+      projects.push(artificialPlanetProject()!);
     }
     return projects;
   });
@@ -315,9 +328,14 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   const hasSuitablePlanetsForColonization = createMemo(
     () => suitablePlanetsForColonization().length > 0,
   );
+  const hasArtificialPlanetTargets = createMemo(() => {
+    const star = currentStar();
+    return Boolean(star && getArtificialPlanetTargets(star).length > 0);
+  });
   const sectionOneCommands = createMemo(() => {
     const commands = [
       specialCommand("Colony Base", "Colony Base"),
+      specialCommand("Artificial Planet", "Artificial Planet Construction"),
       specialCommand("Freighter Fleet", "Freighters"),
       specialCommand("Colony Ship", "Colony Ship"),
       specialCommand("Outpost", "Outpost Ship"),
@@ -334,6 +352,12 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
             isAvailable,
             hasSuitablePlanets: hasPlanets,
             hasTech,
+          };
+        }
+        if (command.unlockName === "Artificial Planet Construction") {
+          return {
+            ...command,
+            isAvailable: command.isAvailable && hasArtificialPlanetTargets(),
           };
         }
         return command;
@@ -476,6 +500,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   const isRepeatableProject = (projectName: string) =>
     projectName === "Colony Base" ||
     projectName === "Colony Ship" ||
+    projectName === "Artificial Planet Construction" ||
     isShipDesignProject(projectByName().get(projectName.toLowerCase()) ?? null);
 
   const isBuyPending = createMemo(() =>
@@ -960,7 +985,6 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
                 <aside class="construction-modal-sidebar construction-specials">
                   <Show when={sectionOneCommands().length > 0}>
                     <section class="construction-special-section">
-                      <h3>Fleet Orders</h3>
                       <div class="construction-special-list">
                         <For each={sectionOneCommands()}>
                           {(command) => {
@@ -1017,7 +1041,6 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
 
                   <Show when={shipDesigns().some(Boolean)}>
                     <section class="construction-special-section">
-                      <h3>Ship Designs</h3>
                       <div class="construction-design-slots">
                         <For each={shipDesigns()}>
                           {(design) => (
@@ -1068,7 +1091,6 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
 
                   <Show when={personnelCommands().length > 0}>
                     <section class="construction-special-section">
-                      <h3>Personnel</h3>
                       <div class="construction-special-list">
                         <For each={personnelCommands()}>
                           {(command) => (

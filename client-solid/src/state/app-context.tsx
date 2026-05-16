@@ -5,7 +5,7 @@ import { ApiClient, parseGameUpdate } from '../lib/api';
 import { mapGame, mapPlayerColorOptions } from '../lib/mappers';
 import type { ApiGameListItem, NewGameOptions } from '../lib/types/api';
 import type { BuildingViewModel, GameViewModel, PlayerColorOptions, ShipDesignForm } from '../lib/types/domain';
-import type { ColonizeCommand, FleetMoveCommand, MovePopulationCommand, PendingCommands, SelectResearchCommand, TurnCommands } from '../lib/types/commands';
+import type { ArtificialPlanetCommand, ColonizeCommand, FleetMoveCommand, MovePopulationCommand, PendingCommands, SelectResearchCommand, TurnCommands } from '../lib/types/commands';
 import { clearSessionLastSetupServerUrl } from '../lib/setup-session-storage';
 import { isAutobuildProject } from '../lib/construction';
 import { findPlanet, getColonyRows, getPrimaryPlayer, normalizeServerUrl, toWebSocketUrl } from '../lib/utils';
@@ -38,7 +38,9 @@ type AppState = {
   pendingCommands: PendingCommands;
   pendingColonyBasePlanets: number[]; // planets where Colony Base completed
   pendingColonyShipFleets: number[]; // fleets where Colony Ship command completed
+  pendingArtificialPlanetSourcePlanets: number[]; // planets where Artificial Planet Construction completed
   showColonizeModal: boolean;
+  showArtificialPlanetModal: boolean;
 };
 
 type AppContextValue = {
@@ -61,6 +63,8 @@ type AppContextValue = {
   cancelColonyShipColonization: (fleetId: number) => void;
   selectColonizeTarget: (planetId: number) => void;
   closeColonizeModal: () => void;
+  selectArtificialPlanetTarget: (sourcePlanetId: number, targetPlanetId: number) => void;
+  closeArtificialPlanetModal: () => void;
   selectResearch: (command: SelectResearchCommand) => void;
   buyProduction: (planetId: number) => void;
   cancelBuyProduction: (planetId: number) => void;
@@ -85,6 +89,7 @@ export function AppProvider(props: ParentProps) {
     fleetMove: [],
     selectResearch: undefined,
     colonize: [],
+    artificialPlanet: [],
     buyProduction: [],
   });
 
@@ -108,7 +113,9 @@ export function AppProvider(props: ParentProps) {
     pendingCommands: emptyPendingCommands(),
     pendingColonyBasePlanets: [],
     pendingColonyShipFleets: [],
+    pendingArtificialPlanetSourcePlanets: [],
     showColonizeModal: false,
+    showArtificialPlanetModal: false,
   });
 
   const api = createMemo(() =>
@@ -136,7 +143,9 @@ export function AppProvider(props: ParentProps) {
       pendingCommands: emptyPendingCommands(),
       pendingColonyBasePlanets: [],
       pendingColonyShipFleets: [],
+      pendingArtificialPlanetSourcePlanets: [],
       showColonizeModal: false,
+      showArtificialPlanetModal: false,
       error: '',
       info,
     });
@@ -155,7 +164,9 @@ export function AppProvider(props: ParentProps) {
       pendingCommands: emptyPendingCommands(),
       pendingColonyBasePlanets: [],
       pendingColonyShipFleets: [],
+      pendingArtificialPlanetSourcePlanets: [],
       showColonizeModal: false,
+      showArtificialPlanetModal: false,
       info: 'Disconnected',
     });
     clearError();
@@ -423,12 +434,44 @@ export function AppProvider(props: ParentProps) {
     setState('showColonizeModal', false);
     setState('pendingColonyBasePlanets', []);
     setState('pendingColonyShipFleets', []);
+    if (state.pendingArtificialPlanetSourcePlanets.length > 0) {
+      setState('showArtificialPlanetModal', true);
+    }
   }
 
   function closeColonizeModal() {
     setState('showColonizeModal', false);
     setState('pendingColonyBasePlanets', []);
     setState('pendingColonyShipFleets', []);
+    if (state.pendingArtificialPlanetSourcePlanets.length > 0) {
+      setState('showArtificialPlanetModal', true);
+    }
+  }
+
+  function addArtificialPlanetCommand(command: ArtificialPlanetCommand) {
+    setState('pendingCommands', 'artificialPlanet', (commands) => [
+      ...commands.filter((item) => item.source_planet_id !== command.source_planet_id && item.target_planet_id !== command.target_planet_id),
+      command,
+    ]);
+    setState('info', 'Artificial planet target queued for next turn');
+  }
+
+  function selectArtificialPlanetTarget(sourcePlanetId: number, targetPlanetId: number) {
+    addArtificialPlanetCommand({
+      source_planet_id: sourcePlanetId,
+      target_planet_id: targetPlanetId,
+    });
+    setState('pendingArtificialPlanetSourcePlanets', (sources) =>
+      sources.filter((sourceId) => sourceId !== sourcePlanetId),
+    );
+    if (state.pendingArtificialPlanetSourcePlanets.length <= 1) {
+      setState('showArtificialPlanetModal', false);
+    }
+  }
+
+  function closeArtificialPlanetModal() {
+    setState('showArtificialPlanetModal', false);
+    setState('pendingArtificialPlanetSourcePlanets', []);
   }
 
   function beginColonyShipColonization(fleetId: number) {
@@ -532,15 +575,26 @@ export function AppProvider(props: ParentProps) {
       const playerId = state.session.playerId;
       const pendingBases = mappedGame.pendingColonyBases[playerId] ?? [];
       const pendingShips = mappedGame.pendingColonyShips[playerId] ?? [];
+      const pendingArtificialPlanets = mappedGame.pendingArtificialPlanets[playerId] ?? [];
       let completionInfo = 'Turn complete';
       if (pendingBases.length > 0 || pendingShips.length > 0) {
         setState('pendingColonyBasePlanets', pendingBases);
         setState('pendingColonyShipFleets', pendingShips);
+        setState('pendingArtificialPlanetSourcePlanets', pendingArtificialPlanets);
         setState('showColonizeModal', true);
+        setState('showArtificialPlanetModal', false);
+      } else if (pendingArtificialPlanets.length > 0) {
+        setState('pendingColonyBasePlanets', []);
+        setState('pendingColonyShipFleets', []);
+        setState('pendingArtificialPlanetSourcePlanets', pendingArtificialPlanets);
+        setState('showColonizeModal', false);
+        setState('showArtificialPlanetModal', true);
       } else {
         setState('pendingColonyBasePlanets', []);
         setState('pendingColonyShipFleets', []);
+        setState('pendingArtificialPlanetSourcePlanets', []);
         setState('showColonizeModal', false);
+        setState('showArtificialPlanetModal', false);
       }
 
       setBusy(false, completionInfo);
@@ -707,6 +761,8 @@ export function AppProvider(props: ParentProps) {
     cancelColonyShipColonization,
     selectColonizeTarget,
     closeColonizeModal,
+    selectArtificialPlanetTarget,
+    closeArtificialPlanetModal,
     selectResearch,
     buyProduction,
     cancelBuyProduction,
@@ -721,7 +777,7 @@ export function AppProvider(props: ParentProps) {
   return <AppContext.Provider value={value}>{props.children}</AppContext.Provider>;
 }
 
-function toTurnCommands(commands: PendingCommands, game: GameViewModel | null): TurnCommands {
+export function toTurnCommands(commands: PendingCommands, game: GameViewModel | null): TurnCommands {
   const turnCommands: TurnCommands = {
     build: commands.build,
   };
@@ -734,6 +790,11 @@ function toTurnCommands(commands: PendingCommands, game: GameViewModel | null): 
     turnCommands.colonize = commands.colonize[0];
   } else if (commands.colonize.length > 1) {
     turnCommands.colonize_many = commands.colonize;
+  }
+  if (commands.artificialPlanet.length === 1) {
+    turnCommands.artificial_planet = commands.artificialPlanet[0];
+  } else if (commands.artificialPlanet.length > 1) {
+    turnCommands.artificial_planet_many = commands.artificialPlanet;
   }
   if (commands.fleetMove.length > 0) {
     turnCommands.fleet_move = commands.fleetMove.map((cmd) => ({

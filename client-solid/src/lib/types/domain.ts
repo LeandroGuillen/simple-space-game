@@ -340,6 +340,7 @@ export type GameViewModel = {
   resources: ResourcesViewModel;
   pendingColonyBases: Record<number, number[]>; // playerID -> planetIDs
   pendingColonyShips: Record<number, number[]>; // playerID -> fleetIDs
+  pendingArtificialPlanets: Record<number, number[]>; // playerID -> source planet IDs
 };
 
 export type ColonyRow = {

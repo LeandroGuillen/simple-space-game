@@ -38,6 +38,7 @@ describe('isAutobuildProject', () => {
 
     expect(isAutobuildProject({ name: 'Colony Base' })).toBe(false);
     expect(isAutobuildProject({ name: 'Colony Ship' })).toBe(false);
+    expect(isAutobuildProject({ name: 'Artificial Planet Construction' })).toBe(false);
     expect(isAutobuildProject({ name: 'Outpost Ship' })).toBe(false);
     expect(isAutobuildProject({ name: 'Transport' })).toBe(false);
     expect(isAutobuildProject({ name: 'Freighters' })).toBe(false);

@@ -3,6 +3,7 @@ import type { BuildingViewModel } from './types/domain';
 const AUTOBUILD_EXCLUDED_PROJECTS = new Set([
   'Colony Base',
   'Colony Ship',
+  'Artificial Planet Construction',
   'Outpost Ship',
   'Transport',
   'Freighters',

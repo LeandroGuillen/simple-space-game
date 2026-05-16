@@ -20,6 +20,11 @@ export type ColonizeCommand = {
   fleet_id?: number;
 };
 
+export type ArtificialPlanetCommand = {
+  source_planet_id?: number;
+  target_planet_id: number;
+};
+
 export type FleetMoveCommand = {
   fleet_id: number;
   destination_star_id: number;
@@ -36,6 +41,7 @@ export type PendingCommands = {
   movePopulation: MovePopulationCommand[];
   selectResearch?: SelectResearchCommand;
   colonize: ColonizeCommand[];
+  artificialPlanet: ArtificialPlanetCommand[];
   fleetMove: FleetMoveCommand[];
   buyProduction: BuyProductionCommand[];
 };
@@ -53,6 +59,8 @@ export type TurnCommands = {
   selectResearch?: SelectResearchCommand;
   colonize?: ColonizeCommand;
   colonize_many?: ColonizeCommand[];
+  artificial_planet?: ArtificialPlanetCommand;
+  artificial_planet_many?: ArtificialPlanetCommand[];
   fleet_move?: FleetMoveCommand[];
   buy_production?: BuyProductionCommand[];
 };

@@ -55,6 +55,7 @@ describe('mapGame', () => {
           },
         ],
       },
+      pending_artificial_planets: { 1: [3] },
       players: [
         {
           id: 1,
@@ -160,6 +161,7 @@ describe('mapGame', () => {
         { name: 'Penalty', type: 'building', bonus: -0.2 },
       ],
     })
+    expect(game.pendingArtificialPlanets).toEqual({ 1: [3] })
   })
 
   it('defaults missing galaxy dimensions for old payloads', () => {

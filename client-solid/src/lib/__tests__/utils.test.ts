@@ -7,11 +7,13 @@ import {
   formatStardate,
   formatTreasury,
   getBuyProductionCost,
+  getArtificialPlanetTargets,
   getEmpireFoodBalance,
   getColonyRows,
   getPlanetGrossIndustryForWorkers,
   getPlanetProjectedIncome,
   getPlanetProjectedPopulationGrowth,
+  isArtificialPlanetTarget,
 } from "../utils";
 import type { BuildingViewModel, GameViewModel, PlanetViewModel } from "../types/domain";
 
@@ -143,6 +145,35 @@ describe("getBuyProductionCost", () => {
   });
 });
 
+describe("artificial planet targets", () => {
+  it("matches unowned gas giants and asteroid belts only", () => {
+    expect(isArtificialPlanetTarget(planet({ owner: 0, environment: 1 }))).toBe(true);
+    expect(isArtificialPlanetTarget(planet({ owner: 0, environment: 2 }))).toBe(true);
+    expect(isArtificialPlanetTarget(planet({ owner: 1, environment: 1 }))).toBe(false);
+    expect(isArtificialPlanetTarget(planet({ owner: 0, environment: 5 }))).toBe(false);
+  });
+
+  it("returns artificial planet targets in a star", () => {
+    const gasGiant = planet({ id: 2, owner: 0, environment: 1 });
+    const asteroid = planet({ id: 3, owner: 0, environment: 2 });
+    const barren = planet({ id: 4, owner: 0, environment: 5 });
+
+    expect(
+      getArtificialPlanetTargets({
+        id: 1,
+        name: "Ada",
+        planets: [gasGiant, asteroid, barren],
+        color: 0,
+        x: 0,
+        y: 0,
+        ownedPlanets: 1,
+        explored: true,
+        ownerColor: null,
+      }),
+    ).toEqual([gasGiant, asteroid]);
+  });
+});
+
 describe("top bar number formatting", () => {
   it("adds thousands separators to integer and signed values", () => {
     expect(formatInteger(1234567)).toBe("1,234,567");
@@ -261,6 +292,7 @@ describe("getColonyRows", () => {
       fleets: [],
       pendingColonyBases: {},
       pendingColonyShips: {},
+      pendingArtificialPlanets: {},
       resources: {
         shipParts: {
           hullSizes: [],
@@ -302,6 +334,7 @@ describe("getColonyRows", () => {
         build: [],
         fleetMove: [],
         colonize: [],
+        artificialPlanet: [],
         buyProduction: [],
         selectResearch: undefined,
         movePopulation: [
@@ -341,6 +374,7 @@ describe("getEmpireFoodBalance", () => {
       fleets: [],
       pendingColonyBases: {},
       pendingColonyShips: {},
+      pendingArtificialPlanets: {},
       resources: {
         shipParts: {
           hullSizes: [],
@@ -382,6 +416,7 @@ describe("getEmpireFoodBalance", () => {
         build: [],
         fleetMove: [],
         colonize: [],
+        artificialPlanet: [],
         buyProduction: [],
         selectResearch: undefined,
         movePopulation: [

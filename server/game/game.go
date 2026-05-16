@@ -15,16 +15,17 @@ type Turnable interface {
 }
 
 type Game struct {
-	Galaxy             Galaxy          `json:"galaxy"`
-	Players            []*Player       `json:"players"`
-	Fleets             []*Fleet        `json:"fleets"`
-	ID                 string          `json:"id"`
-	CurrentTurn        float64         `json:"current_turn"`
-	CreatedAt          time.Time       `json:"created_at"`
-	LastTurnAt         *time.Time      `json:"last_turn_at,omitempty"`
-	Resources          *Resources      `json:"resources"`
-	PendingColonyBases map[uint][]uint `json:"pending_colony_bases"`
-	PendingColonyShips map[uint][]uint `json:"pending_colony_ships"`
+	Galaxy                   Galaxy          `json:"galaxy"`
+	Players                  []*Player       `json:"players"`
+	Fleets                   []*Fleet        `json:"fleets"`
+	ID                       string          `json:"id"`
+	CurrentTurn              float64         `json:"current_turn"`
+	CreatedAt                time.Time       `json:"created_at"`
+	LastTurnAt               *time.Time      `json:"last_turn_at,omitempty"`
+	Resources                *Resources      `json:"resources"`
+	PendingColonyBases       map[uint][]uint `json:"pending_colony_bases"`
+	PendingColonyShips       map[uint][]uint `json:"pending_colony_ships"`
+	PendingArtificialPlanets map[uint][]uint `json:"pending_artificial_planets"`
 }
 
 type NewGameOptions struct {
@@ -57,15 +58,16 @@ func NewGame(resources *ResourceManager, options NewGameOptions) (*Game, error) 
 	player1 := NewPlayer(firstPlayerID, playerName, playerColor, race)
 	created := time.Now().UTC()
 	g := &Game{
-		Galaxy:             NewGalaxyForSize(numStars, options.GalaxySize),
-		Players:            []*Player{player1},
-		Fleets:             []*Fleet{},
-		ID:                 uuid.New().String(),
-		CurrentTurn:        3500.0,
-		CreatedAt:          created,
-		Resources:          &resources.Resources,
-		PendingColonyBases: make(map[uint][]uint),
-		PendingColonyShips: make(map[uint][]uint),
+		Galaxy:                   NewGalaxyForSize(numStars, options.GalaxySize),
+		Players:                  []*Player{player1},
+		Fleets:                   []*Fleet{},
+		ID:                       uuid.New().String(),
+		CurrentTurn:              3500.0,
+		CreatedAt:                created,
+		Resources:                &resources.Resources,
+		PendingColonyBases:       make(map[uint][]uint),
+		PendingColonyShips:       make(map[uint][]uint),
+		PendingArtificialPlanets: make(map[uint][]uint),
 	}
 	g.hydratePlayerAvailability(player1)
 
@@ -132,12 +134,22 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 			return err
 		}
 	}
+	artificialPlanetCommands := commands.ArtificialPlanetMany
+	if commands.ArtificialPlanet != nil {
+		artificialPlanetCommands = append(artificialPlanetCommands, commands.ArtificialPlanet)
+	}
+	for _, command := range artificialPlanetCommands {
+		if err := g.processArtificialPlanetCommand(playerID, command); err != nil {
+			return err
+		}
+	}
 	if len(g.PendingColonyBases[playerID]) > 0 && !g.hasColonizablePlanetsInSourceSystems(g.PendingColonyBases[playerID], playerID) {
 		delete(g.PendingColonyBases, playerID)
 	}
 	if len(g.PendingColonyShips[playerID]) > 0 && !g.hasColonizablePlanetsForPendingShips(g.PendingColonyShips[playerID], playerID) {
 		delete(g.PendingColonyShips, playerID)
 	}
+	g.prunePendingArtificialPlanets(playerID)
 
 	// empire turn processing
 	player.Treasury += totalIncome

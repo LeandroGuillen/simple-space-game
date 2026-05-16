@@ -152,6 +152,13 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game) error 
 					game.PendingColonyBases = make(map[uint][]uint)
 				}
 				game.PendingColonyBases[player.ID] = append(game.PendingColonyBases[player.ID], p.ID)
+			} else if completedProject == artificialPlanetProject {
+				if game.hasArtificialPlanetTargetsInStar(p.ParentStar) {
+					if game.PendingArtificialPlanets == nil {
+						game.PendingArtificialPlanets = make(map[uint][]uint)
+					}
+					game.PendingArtificialPlanets[player.ID] = append(game.PendingArtificialPlanets[player.ID], p.ID)
+				}
 			} else if completedProject == "Colony Ship" {
 				game.addShipToOrbitFleet(player.ID, p.ParentStar, FleetShip{
 					Type: "colony_ship",
@@ -213,6 +220,7 @@ func isAutobuildProject(buildingName string) bool {
 	switch buildingName {
 	case "Colony Base",
 		"Colony Ship",
+		artificialPlanetProject,
 		"Outpost Ship",
 		"Transport",
 		"Freighters",
@@ -279,6 +287,12 @@ func popNextQueuedBuild(p *Planet) string {
 
 func Build(p *Planet, buildingName string, availableBuildings []string, game *Game) bool {
 	if buildingName == "" {
+		return false
+	}
+	if buildingName == artificialPlanetProject && p.IsBuilding && p.CurrentProject == buildingName {
+		return true
+	}
+	if buildingName == artificialPlanetProject && !canBuildArtificialPlanetProject(p, availableBuildings, game) {
 		return false
 	}
 	if buildShipDesignProject(p, buildingName, game) {
@@ -358,6 +372,9 @@ func consumeStackedBuildProduction(p *Planet, projectCost int64, game *Game) int
 func canBuild(p *Planet, buildingName string, availableBuildings []string, game *Game) bool {
 	if canBuildShipDesignProject(p, buildingName, game) {
 		return true
+	}
+	if buildingName == artificialPlanetProject {
+		return canBuildArtificialPlanetProject(p, availableBuildings, game)
 	}
 	if p.IsBuilding && p.CurrentProject == buildingName {
 		return false
@@ -496,7 +513,7 @@ func isEmpireUniqueBuildingLocked(game *Game, ownerID uint, buildingName string,
 }
 
 func isRepeatableProject(buildingName string) bool {
-	return buildingName == "Colony Base" || buildingName == "Colony Ship"
+	return buildingName == "Colony Base" || buildingName == "Colony Ship" || buildingName == artificialPlanetProject
 }
 
 // BuyProductionCost returns the treasury cost (in BC) to immediately finish a build project

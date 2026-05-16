@@ -38,8 +38,10 @@ import {
   getEmpireFoodBalance,
   getEmpireIncome,
   getPlanetScienceForScientists,
+  getArtificialPlanetTargets,
   findPlanet,
   isPlanetSuitableForColonization,
+  isArtificialPlanetTarget,
   labelForEnvironment,
   labelForGravity,
   labelForMinerals,
@@ -374,6 +376,8 @@ export function AppShell(props: RouteSectionProps) {
     selectResearch,
     selectColonizeTarget,
     closeColonizeModal,
+    selectArtificialPlanetTarget,
+    closeArtificialPlanetModal,
   } = useAppContext();
   const [isResearchOpen, setIsResearchOpen] = createSignal(false);
   const [recentBreakthroughs, setRecentBreakthroughs] = createSignal<string[]>(
@@ -503,6 +507,35 @@ export function AppShell(props: RouteSectionProps) {
         star.planets.some(isPlanetSuitableForColonization),
     );
   });
+  const artificialPlanetModalStars = createMemo(() => {
+    const game = state.game;
+    if (!game) return [];
+    const sourceStarIds = new Set(
+      state.pendingArtificialPlanetSourcePlanets
+        .map((planetId) => findPlanet(game, planetId)?.parentStar)
+        .filter((starId): starId is number => typeof starId === "number"),
+    );
+    return game.galaxy.stars.filter(
+      (star) =>
+        sourceStarIds.has(star.id) &&
+        getArtificialPlanetTargets(star).length > 0,
+    );
+  });
+  const artificialPlanetModalTargets = createMemo(() =>
+    artificialPlanetModalStars().flatMap((star) =>
+      star.planets.filter(isArtificialPlanetTarget),
+    ),
+  );
+  const artificialPlanetSourceForTarget = (targetParentStar: number) => {
+    const game = state.game;
+    if (!game) return null;
+    return (
+      state.pendingArtificialPlanetSourcePlanets.find(
+        (sourcePlanetId) =>
+          findPlanet(game, sourcePlanetId)?.parentStar === targetParentStar,
+      ) ?? null
+    );
+  };
   const availableResearchGroups = createMemo(() =>
     researchGroups(state.game, currentPlayer(), hyperAdvancedLevels()),
   );
@@ -1041,6 +1074,106 @@ export function AppShell(props: RouteSectionProps) {
                         </article>
                       );
                     }}
+                  </For>
+                </div>
+              </Show>
+            </section>
+          </div>
+        </Portal>
+      </Show>
+
+      <Show when={state.showArtificialPlanetModal}>
+        <Portal>
+          <div class="research-modal-backdrop" onClick={closeArtificialPlanetModal}>
+            <section
+              class="research-modal panel"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="artificial-planet-modal-title"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div class="research-modal-header">
+                <div>
+                  <p class="eyebrow">System Inspector</p>
+                  <h2 id="artificial-planet-modal-title">
+                    Select Artificial Planet Target
+                  </h2>
+                </div>
+                <button
+                  class="secondary-button research-close-button"
+                  type="button"
+                  onClick={closeArtificialPlanetModal}
+                >
+                  Close
+                </button>
+              </div>
+
+              <Show
+                when={artificialPlanetModalTargets().length > 0}
+                fallback={
+                  <div class="research-breakthrough-notice">
+                    <span>No valid artificial planet targets</span>
+                    <strong>Production lost</strong>
+                  </div>
+                }
+              >
+                <div class="colonize-system-grid">
+                  <For each={artificialPlanetModalStars()}>
+                    {(star) => (
+                      <article
+                        class="colonize-system-panel"
+                        aria-label={star.name}
+                      >
+                        <div class="planet-list">
+                          <For each={star.planets.filter(isArtificialPlanetTarget)}>
+                            {(planet) => {
+                              const sourcePlanetId = () =>
+                                artificialPlanetSourceForTarget(planet.parentStar);
+                              const resultLabel = () =>
+                                planet.environment === 1
+                                  ? "Creates Huge Barren"
+                                  : "Creates Large Barren";
+                              return (
+                                <button
+                                  type="button"
+                                  class="planet-card colonize-planet-card is-eligible"
+                                  disabled={!sourcePlanetId()}
+                                  onClick={() => {
+                                    const sourceId = sourcePlanetId();
+                                    if (sourceId) {
+                                      selectArtificialPlanetTarget(
+                                        sourceId,
+                                        planet.id,
+                                      );
+                                    }
+                                  }}
+                                >
+                                  <div class="planet-card-visual">
+                                    <PlanetVisual
+                                      planetId={planet.id}
+                                      environment={planet.environment}
+                                      size="small"
+                                    />
+                                  </div>
+                                  <div class="planet-card-info">
+                                    <p class="planet-title">
+                                      <span>{planet.name}</span>
+                                    </p>
+                                    <p>
+                                      {labelForEnvironment(planet.environment)}{" "}
+                                      · {labelForSize(planet.size)} ·{" "}
+                                      {labelForMinerals(planet.mineralClass)}
+                                    </p>
+                                    <p>{resultLabel()}</p>
+                                  </div>
+                                  <span class="game-card-cue">Select</span>
+                                </button>
+                              );
+                            }}
+                          </For>
+                        </div>
+                      </article>
+                    )}
                   </For>
                 </div>
               </Show>

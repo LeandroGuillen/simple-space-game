@@ -129,6 +129,7 @@ export function mapGame(apiGame: ApiGame): GameViewModel {
     },
     pendingColonyBases: apiGame.pending_colony_bases ?? {},
     pendingColonyShips: apiGame.pending_colony_ships ?? {},
+    pendingArtificialPlanets: apiGame.pending_artificial_planets ?? {},
   };
 }
 

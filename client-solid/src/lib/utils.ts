@@ -714,3 +714,11 @@ export function isPlanetSuitableForColonization(planet: PlanetViewModel): boolea
 export function getSuitablePlanetsForColonization(star: StarSummary): PlanetViewModel[] {
   return star.planets.filter(isPlanetSuitableForColonization);
 }
+
+export function isArtificialPlanetTarget(planet: PlanetViewModel): boolean {
+  return planet.owner === 0 && (planet.environment === 1 || planet.environment === 2);
+}
+
+export function getArtificialPlanetTargets(star: StarSummary): PlanetViewModel[] {
+  return star.planets.filter(isArtificialPlanetTarget);
+}
