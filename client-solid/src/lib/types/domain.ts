@@ -106,6 +106,7 @@ export type PlanetViewModel = {
     moraleNeutral: boolean;
   };
   pollution: number;
+  gravityMultiplier: number;
   currentProject: BuildingViewModel | null;
   buildQueue: BuildingViewModel[];
   buildings: BuildingViewModel[];

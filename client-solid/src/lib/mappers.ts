@@ -374,6 +374,7 @@ function mapPlanet(
     },
     government: mapPlanetGovernment(planet, government),
     pollution: planet.pollution ?? 0,
+    gravityMultiplier: planet.gravity_multiplier ?? 1,
     marines: planet.marines,
     armor: planet.armor,
     currentProject: mapPlanetProject(

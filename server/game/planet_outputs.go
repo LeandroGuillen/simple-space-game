@@ -52,6 +52,7 @@ func hydratePlanetOutputs(game *Game, p *Planet) {
 		}
 	}
 	sciencePerScientist += p.HomeworldScienceBonus
+	p.GravityMultiplier = gravityOutputMultiplier(p, gamePlayerForPlanet(game, p))
 	foodPerFarmer = maxInt64(0, foodPerFarmer)
 	industryPerWorker = maxInt64(0, industryPerWorker)
 	sciencePerScientist = maxInt64(0, sciencePerScientist)
@@ -91,6 +92,7 @@ func GamePlanetGrossIndustry(game *Game, p *Planet) int64 {
 		p.Industry.ProducedPerWorker,
 		governmentLaborMultiplier(game, player, "industry_labor_multiplier"),
 		governmentMoraleMultiplier(game, player, p.Morale),
+		gravityOutputMultiplier(p, player),
 	) + p.Industry.ProducedPerBuilding + colonistUnits(p)*p.Industry.ProducedPerColonist
 }
 
@@ -114,6 +116,7 @@ func GamePlanetFoodProduced(game *Game, p *Planet) int64 {
 		p.Food.ProducedPerFarmer,
 		governmentLaborMultiplier(game, player, "food_labor_multiplier"),
 		governmentMoraleMultiplier(game, player, p.Morale),
+		gravityOutputMultiplier(p, player),
 	) + p.Food.ProducedPerBuilding
 }
 
@@ -129,6 +132,7 @@ func GamePlanetScienceProduced(game *Game, p *Planet) int64 {
 		p.Science.ProducedPerScientist,
 		governmentLaborMultiplier(game, player, "science_labor_multiplier"),
 		governmentMoraleMultiplier(game, player, p.Morale),
+		gravityOutputMultiplier(p, player),
 	) + p.Science.ProducedPerBuilding
 }
 
@@ -167,7 +171,7 @@ func moraleAdjustedLaborOutput(workers, outputPerWorker int64, multiplier float6
 	return int64(math.Floor(float64(workers*outputPerWorker) * multiplier))
 }
 
-func governmentAdjustedLaborOutput(workers, outputPerWorker int64, governmentMultiplier, moraleMultiplier float64) int64 {
+func governmentAdjustedLaborOutput(workers, outputPerWorker int64, governmentMultiplier, moraleMultiplier, gravityMultiplier float64) int64 {
 	if governmentMultiplier == 0 {
 		governmentMultiplier = 1
 	}
@@ -180,5 +184,11 @@ func governmentAdjustedLaborOutput(workers, outputPerWorker int64, governmentMul
 	if moraleMultiplier < 0 {
 		moraleMultiplier = 0
 	}
-	return int64(math.Floor(float64(workers*outputPerWorker) * governmentMultiplier * moraleMultiplier))
+	if gravityMultiplier == 0 {
+		gravityMultiplier = 1
+	}
+	if gravityMultiplier < 0 {
+		gravityMultiplier = 0
+	}
+	return int64(math.Floor(float64(workers*outputPerWorker) * governmentMultiplier * moraleMultiplier * gravityMultiplier))
 }

@@ -185,6 +185,7 @@ export type ApiPlanet = {
     morale_neutral?: boolean;
   };
   pollution?: number;
+  gravity_multiplier?: number;
   marines: number;
   armor: number;
   current_project?: ApiBuilding | string;

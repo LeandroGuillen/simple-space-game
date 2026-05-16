@@ -204,6 +204,12 @@ export function getMoraleAdjustedLaborOutput(
   );
 }
 
+export function getGravityMultiplier(planet: PlanetViewModel) {
+  const value = planet.gravityMultiplier;
+  if (value == null || value <= 0) return 1;
+  return value;
+}
+
 export function getGovernmentAdjustedLaborOutput(
   count: number,
   outputPerWorker: number,
@@ -214,7 +220,8 @@ export function getGovernmentAdjustedLaborOutput(
     Math.max(0, count) *
       outputPerWorker *
       Math.max(0, governmentMultiplier || 1) *
-      getMoraleMultiplier(planet),
+      getMoraleMultiplier(planet) *
+      getGravityMultiplier(planet),
   );
 }
 

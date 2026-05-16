@@ -83,6 +83,18 @@ export function PlanetPage() {
       ...Array.from({ length: coins }, () => "🪙"),
     ];
   });
+  const gravityEffect = createMemo(() => {
+    const current = planet();
+    if (!current) return null;
+    const multiplier = current.gravityMultiplier ?? 1;
+    const traits = primaryPlayer()?.raceTraitIds ?? [];
+    const adapted = traits.includes("low_g_world") || traits.includes("high_g_world");
+    if (multiplier === 1) {
+      return adapted ? { label: "Adapted", tone: "good" as const } : null;
+    }
+    const percent = Math.round((multiplier - 1) * 100);
+    return { label: `${percent}% farming/production/research`, tone: "bad" as const };
+  });
   const formatMoralePercent = (bonus: number) =>
     `${bonus >= 0 ? "+" : ""}${Math.round(bonus * 100)}%`;
   const formatMultiplierPercent = (multiplier: number) => {
@@ -314,6 +326,19 @@ export function PlanetPage() {
                   {labelForSize(currentPlanet().size)} ·{" "}
                   {labelForGravity(currentPlanet().gravity)} gravity ·{" "}
                   {labelForMinerals(currentPlanet().mineralClass)}
+                  <Show when={gravityEffect()}>
+                    {(effect) => (
+                      <span
+                        style={{
+                          "margin-left": "0.5em",
+                          color: effect().tone === "good" ? "var(--text-success, #4ade80)" : "var(--text-warning, #f87171)",
+                        }}
+                        title={`Gravity effect: ${effect().label}`}
+                      >
+                        ({effect().label})
+                      </span>
+                    )}
+                  </Show>
                 </p>
                 <article class="metric-card">
                   <span>Population</span>

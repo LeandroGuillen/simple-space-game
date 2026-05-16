@@ -24,6 +24,9 @@ type Planet struct {
 	Morale     PlanetMoraleOutput     `json:"morale"`
 	Government PlanetGovernmentOutput `json:"government,omitempty"`
 	Pollution  int64                  `json:"pollution"`
+	// GravityMultiplier is the per-unit labor output multiplier resulting from
+	// planetary gravity vs. the owning race's adaptation trait.
+	GravityMultiplier float64 `json:"gravity_multiplier,omitempty"`
 	// HomeworldScienceBonus is currently used for the custom race Artifacts World trait.
 	HomeworldScienceBonus int64 `json:"homeworld_science_bonus,omitempty"`
 

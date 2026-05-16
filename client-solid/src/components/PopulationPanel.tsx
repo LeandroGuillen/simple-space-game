@@ -11,6 +11,7 @@ import {
   getPlanetPollutionForWorkers,
   getPlanetPollutionSize,
   getPlanetScienceForScientists,
+  labelForGravity,
 } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
 
@@ -281,6 +282,18 @@ export function PopulationPanel(props: PopulationPanelProps) {
     );
   };
 
+  const renderGravityContributionRow = () => {
+    const multiplier = props.planet.gravityMultiplier ?? 1;
+    if (multiplier === 1) return null;
+    const gravityName = labelForGravity(props.planet.gravity);
+    return (
+      <div class="pop-output-tooltip-row pop-output-tooltip-row--detail">
+        <span>{gravityName}-G penalty</span>
+        <strong>{formatSignedPercent(multiplier)}</strong>
+      </div>
+    );
+  };
+
   const getBuildingContributions = (
     cat: PopCategory,
   ): BuildingContribution[] => {
@@ -519,6 +532,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
               </div>
               {renderRaceContributionRows("farmers")}
               {renderGovernmentContributionRow("farmers")}
+              {renderGravityContributionRow()}
               {renderBuildingContributionRows("farmers")}
             </div>
           </div>
@@ -583,6 +597,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
               </div>
               {renderRaceContributionRows("workers")}
               {renderGovernmentContributionRow("workers")}
+              {renderGravityContributionRow()}
               <div class="pop-output-tooltip-row pop-output-tooltip-row--detail">
                 <span>Planet absorption:</span>
                 <strong>{getPollutionPlanetSize()}</strong>
@@ -638,6 +653,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
               </div>
               {renderRaceContributionRows("scientists")}
               {renderGovernmentContributionRow("scientists")}
+              {renderGravityContributionRow()}
               {renderBuildingContributionRows("scientists")}
             </div>
           </div>
