@@ -146,6 +146,15 @@
   font-family: var(--font-mono);
 }
 
+.fleet-route-layer .is-blocked .fleet-route-line {
+  stroke: #f87171;
+  stroke-dasharray: 2 7;
+}
+
+.fleet-route-layer .is-blocked .fleet-route-eta {
+  fill: #fca5a5;
+}
+
 @keyframes fleetRouteDash {
   to {
     stroke-dashoffset: -20;

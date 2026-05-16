@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"strings"
 	. "ssg/model"
 )
 
@@ -181,6 +182,163 @@ func (g *Game) beginFleetMovement(fleet *Fleet, destStarID uint) error {
 	return nil
 }
 
+func distanceParsecs(x1, y1, x2, y2 float64) float64 {
+	dx := x2 - x1
+	dy := y2 - y1
+	return math.Sqrt(dx*dx+dy*dy) / float64(parsecInPixels)
+}
+
+func fuelCellUnlimited(cell FuelCell) bool {
+	return strings.EqualFold(cell.Name, "Thorium") || cell.Autonomy >= 100
+}
+
+func (g *Game) playerOwnedSupplyStars(playerID uint) []*Star {
+	if g == nil {
+		return nil
+	}
+	stars := make([]*Star, 0)
+	for _, star := range g.Galaxy.Stars {
+		if star == nil {
+			continue
+		}
+		for _, planet := range star.Planets {
+			if planet != nil && planet.Owner == playerID {
+				stars = append(stars, star)
+				break
+			}
+		}
+	}
+	return stars
+}
+
+func bestAvailableFuelCell(player *Player, resources *Resources) (FuelCell, bool) {
+	if player == nil || resources == nil || resources.ShipPartsCollection == nil {
+		return FuelCell{}, false
+	}
+	var best FuelCell
+	found := false
+	for _, fuelCellName := range player.Available.FuelCells {
+		cell, err := FuelCellFromName(fuelCellName, resources.FuelCells)
+		if err != nil {
+			continue
+		}
+		if !found || fuelCellUnlimited(cell) || (!fuelCellUnlimited(best) && cell.Autonomy > best.Autonomy) {
+			best = cell
+			found = true
+		}
+	}
+	return best, found
+}
+
+func (g *Game) findShipDesignForFleetShip(player *Player, ship FleetShip) (ShipDesign, bool) {
+	if g == nil || g.Resources == nil || player == nil || ship.DesignName == "" {
+		return ShipDesign{}, false
+	}
+	for _, design := range player.ShipDesigns {
+		if design.Name == ship.DesignName {
+			return design, true
+		}
+	}
+	for _, design := range g.Resources.ShipDesigns {
+		if design.Name == ship.DesignName {
+			return design, true
+		}
+	}
+	return ShipDesign{}, false
+}
+
+func (g *Game) fleetShipFuelRange(player *Player, ship FleetShip) (rangeParsecs int64, unlimited bool, ok bool) {
+	if ship.UnlimitedFuelRange {
+		return 0, true, true
+	}
+	if ship.FuelRangeParsecs > 0 {
+		return ship.FuelRangeParsecs, false, true
+	}
+	if g != nil && g.Resources != nil && g.Resources.ShipPartsCollection != nil && ship.FuelCell != "" {
+		if cell, err := FuelCellFromName(ship.FuelCell, g.Resources.FuelCells); err == nil {
+			return cell.Autonomy, fuelCellUnlimited(cell), true
+		}
+	}
+	if ship.DesignName != "" {
+		if design, found := g.findShipDesignForFleetShip(player, ship); found {
+			return design.FuelCell.Autonomy, fuelCellUnlimited(design.FuelCell), true
+		}
+		return 0, false, false
+	}
+	if cell, found := bestAvailableFuelCell(player, g.Resources); found {
+		return cell.Autonomy, fuelCellUnlimited(cell), true
+	}
+	return 0, false, false
+}
+
+func (g *Game) selectedShipsFuelRange(player *Player, ships []FleetShip) (rangeParsecs int64, unlimited bool, err error) {
+	if len(ships) == 0 {
+		return 0, false, fmt.Errorf("no ships selected for fleet move")
+	}
+	allUnlimited := true
+	limitedFound := false
+	var minRange int64
+	for _, ship := range ships {
+		shipRange, shipUnlimited, ok := g.fleetShipFuelRange(player, ship)
+		if !ok {
+			return 0, false, fmt.Errorf("cannot determine fuel range for ship %q", ship.Name)
+		}
+		if shipUnlimited {
+			continue
+		}
+		allUnlimited = false
+		if !limitedFound || shipRange < minRange {
+			minRange = shipRange
+			limitedFound = true
+		}
+	}
+	if allUnlimited {
+		return 0, true, nil
+	}
+	return minRange, false, nil
+}
+
+func (g *Game) destinationInFuelRange(playerID uint, destStarID uint, rangeParsecs int64, unlimited bool) bool {
+	if unlimited {
+		return true
+	}
+	destination, err := g.getStar(destStarID)
+	if err != nil {
+		return false
+	}
+	for _, supplyStar := range g.playerOwnedSupplyStars(playerID) {
+		if distanceParsecs(float64(supplyStar.X), float64(supplyStar.Y), float64(destination.X), float64(destination.Y)) <= float64(rangeParsecs) {
+			return true
+		}
+	}
+	return false
+}
+
+func (g *Game) validateFleetMoveFuelRange(player *Player, ships []FleetShip, destStarID uint) error {
+	if g == nil || player == nil || g.Resources == nil || g.Resources.ShipPartsCollection == nil {
+		return nil
+	}
+	rangeParsecs, unlimited, err := g.selectedShipsFuelRange(player, ships)
+	if err != nil {
+		return err
+	}
+	if g.destinationInFuelRange(player.ID, destStarID, rangeParsecs, unlimited) {
+		return nil
+	}
+	if unlimited {
+		return fmt.Errorf("destination is outside fleet fuel range")
+	}
+	return fmt.Errorf("destination is outside fleet fuel range (%d parsecs)", rangeParsecs)
+}
+
+func shipsByIndexes(ships []FleetShip, indexes []uint) []FleetShip {
+	selected := make([]FleetShip, 0, len(indexes))
+	for _, index := range indexes {
+		selected = append(selected, ships[index])
+	}
+	return selected
+}
+
 func (g *Game) issueFleetMove(playerID uint, command *FleetMoveCommand) error {
 	fleet, err := g.getFleet(command.FleetID)
 	if err != nil {
@@ -225,6 +383,9 @@ func (g *Game) issueFleetMove(playerID uint, command *FleetMoveCommand) error {
 	}
 
 	if _, err := g.getStar(command.DestinationStarID); err != nil {
+		return err
+	}
+	if err := g.validateFleetMoveFuelRange(player, shipsByIndexes(fleet.Ships, shipIdxs), command.DestinationStarID); err != nil {
 		return err
 	}
 
@@ -351,6 +512,15 @@ func (g *Game) issueFleetMoveGroup(playerID uint, commands []*FleetMoveCommand) 
 
 	originStarID := fleet.StarID
 	originalShips := append([]FleetShip(nil), fleet.Ships...)
+	player, err := g.getPlayer(playerID)
+	if err != nil {
+		return err
+	}
+	for _, batch := range batches {
+		if err := g.validateFleetMoveFuelRange(player, shipsByIndexes(originalShips, batch.indexes), batch.destinationStarID); err != nil {
+			return err
+		}
+	}
 	remaining := make([]FleetShip, 0, len(originalShips)-len(selected))
 	for i, ship := range originalShips {
 		if _, moving := selected[uint(i)]; !moving {

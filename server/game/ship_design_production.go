@@ -58,10 +58,13 @@ func shipDesignProductionCost(design ShipDesign) int64 {
 
 func fleetShipFromDesign(design ShipDesign) FleetShip {
 	return FleetShip{
-		Type:       "ship_design",
-		Name:       design.Name,
-		DesignName: design.Name,
-		HullSize:   design.HullSize.Name,
+		Type:               "ship_design",
+		Name:               design.Name,
+		DesignName:         design.Name,
+		HullSize:           design.HullSize.Name,
+		FuelCell:           design.FuelCell.Name,
+		FuelRangeParsecs:   design.FuelCell.Autonomy,
+		UnlimitedFuelRange: fuelCellUnlimited(design.FuelCell),
 	}
 }
 

@@ -206,6 +206,9 @@ function mapFleetShip(ship: ApiFleetShip): FleetShipViewModel {
     icon: ship.icon ?? "🚀",
     designName: ship.design_name ?? "",
     hullSize: ship.hull_size ?? "",
+    fuelCell: ship.fuel_cell ?? "",
+    fuelRangeParsecs: ship.fuel_range_parsecs ?? 0,
+    unlimitedFuelRange: Boolean(ship.unlimited_fuel_range),
   };
 }
 

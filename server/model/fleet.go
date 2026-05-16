@@ -1,11 +1,14 @@
 package model
 
 type FleetShip struct {
-	Type       string `json:"type"`
-	Name       string `json:"name"`
-	Icon       string `json:"icon,omitempty"`
-	DesignName string `json:"design_name,omitempty"`
-	HullSize   string `json:"hull_size,omitempty"`
+	Type               string `json:"type"`
+	Name               string `json:"name"`
+	Icon               string `json:"icon,omitempty"`
+	DesignName         string `json:"design_name,omitempty"`
+	HullSize           string `json:"hull_size,omitempty"`
+	FuelCell           string `json:"fuel_cell,omitempty"`
+	FuelRangeParsecs   int64  `json:"fuel_range_parsecs,omitempty"`
+	UnlimitedFuelRange bool   `json:"unlimited_fuel_range,omitempty"`
 }
 
 type Fleet struct {

@@ -1,7 +1,15 @@
 import { For, Show, createEffect, createMemo, createSignal, on } from "solid-js";
 
 import type { FleetShipViewModel } from "../lib/types/domain";
-import { findPlayerFleetsAtStar, findStar, fleetTabLabel, isPlanetSuitableForColonization, sortFleetsForStarTabs } from "../lib/utils";
+import {
+  findPlayerFleetsAtStar,
+  findStar,
+  fleetSelectionFuelRange,
+  fleetTabLabel,
+  formatFuelRange,
+  isPlanetSuitableForColonization,
+  sortFleetsForStarTabs,
+} from "../lib/utils";
 import { useAppContext } from "../state/app-context";
 
 type FleetStackShip = FleetShipViewModel & {
@@ -119,6 +127,14 @@ export function FleetInspectorPanel(props: FleetInspectorPanelProps) {
   const isColonizing = createMemo(() =>
     state.pendingCommands.colonize.some((command) => command.fleet_id === activeStack()?.fleetId),
   );
+  const selectedFuelRange = createMemo(() => {
+    const stack = activeStack();
+    if (!stack) {
+      return null;
+    }
+    const selected = stack.ships.filter((ship) => selectedIndexes().includes(ship.originalIndex));
+    return fleetSelectionFuelRange(selected, currentPlayer(), state.game?.resources);
+  });
 
   createEffect(
     on(
@@ -229,6 +245,9 @@ export function FleetInspectorPanel(props: FleetInspectorPanelProps) {
               </button>
               <span class="fleet-orbit-selection-summary">
                 {selectedIndexes().length} of {stack().ships.length} ships selected
+              </span>
+              <span class="fleet-orbit-selection-summary">
+                Range {formatFuelRange(selectedFuelRange())}
               </span>
             </div>
             <Show when={props.isMoveTargeting && props.onCancelMove}>

@@ -6,10 +6,12 @@ import type {
 import type {
   BuildingViewModel,
   ColonyRow,
+  FleetShipViewModel,
   FleetViewModel,
   GameViewModel,
   PlanetViewModel,
   PlayerViewModel,
+  ResourcesViewModel,
   ShipDesignForm,
   StarSummary,
 } from "./types/domain";
@@ -182,6 +184,117 @@ export function calculateFleetTravelTurnsFromCoordinates(fromX: number, fromY: n
   const dy = toY - fromY;
   const distance = Math.sqrt(dx * dx + dy * dy);
   return Math.max(1, Math.ceil(distance / 90));
+}
+
+const PARSEC_IN_PIXELS = 60;
+
+export function distanceParsecsFromCoordinates(fromX: number, fromY: number, toX: number, toY: number) {
+  const dx = toX - fromX;
+  const dy = toY - fromY;
+  return Math.sqrt(dx * dx + dy * dy) / PARSEC_IN_PIXELS;
+}
+
+export function formatFuelRange(range: { rangeParsecs: number; unlimited: boolean } | null | undefined) {
+  if (!range) {
+    return "Unknown";
+  }
+  if (range.unlimited) {
+    return "Unlimited";
+  }
+  return `${range.rangeParsecs} parsecs`;
+}
+
+function isUnlimitedFuel(name: string, autonomy: number) {
+  return name.toLowerCase() === "thorium" || autonomy >= 100;
+}
+
+function bestAvailableFuelRange(player: PlayerViewModel | null | undefined, resources: ResourcesViewModel | null | undefined) {
+  if (!player || !resources) {
+    return null;
+  }
+  let best: { rangeParsecs: number; unlimited: boolean } | null = null;
+  for (const fuelName of player.available.fuelCells) {
+    const fuel = resources.shipParts.fuelCells.find((item) => item.name === fuelName);
+    if (!fuel) {
+      continue;
+    }
+    const candidate = {
+      rangeParsecs: fuel.autonomy,
+      unlimited: isUnlimitedFuel(fuel.name, fuel.autonomy),
+    };
+    if (!best || candidate.unlimited || (!best.unlimited && candidate.rangeParsecs > best.rangeParsecs)) {
+      best = candidate;
+    }
+  }
+  return best;
+}
+
+function shipFuelRange(
+  ship: FleetShipViewModel,
+  player?: PlayerViewModel | null,
+  resources?: ResourcesViewModel | null,
+) {
+  if (ship.unlimitedFuelRange) {
+    return { rangeParsecs: 0, unlimited: true };
+  }
+  if (ship.fuelRangeParsecs > 0) {
+    return { rangeParsecs: ship.fuelRangeParsecs, unlimited: false };
+  }
+  if (ship.designName) {
+    return null;
+  }
+  return bestAvailableFuelRange(player, resources);
+}
+
+export function fleetSelectionFuelRange(
+  ships: FleetShipViewModel[],
+  player?: PlayerViewModel | null,
+  resources?: ResourcesViewModel | null,
+) {
+  if (ships.length === 0) {
+    return null;
+  }
+  let allUnlimited = true;
+  let minRange: number | null = null;
+  for (const ship of ships) {
+    const range = shipFuelRange(ship, player, resources);
+    if (!range) {
+      return null;
+    }
+    if (range.unlimited) {
+      continue;
+    }
+    allUnlimited = false;
+    minRange = minRange == null ? range.rangeParsecs : Math.min(minRange, range.rangeParsecs);
+  }
+  if (allUnlimited) {
+    return { rangeParsecs: 0, unlimited: true };
+  }
+  return { rangeParsecs: minRange ?? 0, unlimited: false };
+}
+
+export function destinationInSupplyRange(
+  game: GameViewModel | null | undefined,
+  playerId: number,
+  destinationStarId: number,
+  range: { rangeParsecs: number; unlimited: boolean } | null | undefined,
+) {
+  if (!game || !range) {
+    return false;
+  }
+  if (range.unlimited) {
+    return true;
+  }
+  const destination = findStar(game, destinationStarId);
+  if (!destination) {
+    return false;
+  }
+  return game.galaxy.stars.some((star) => {
+    if (!star.planets.some((planet) => planet.owner === playerId)) {
+      return false;
+    }
+    return distanceParsecsFromCoordinates(star.x, star.y, destination.x, destination.y) <= range.rangeParsecs;
+  });
 }
 
 export function getPlanetIndustry(planet: PlanetViewModel) {

@@ -486,7 +486,7 @@ export function SetupPage() {
           <aside class="setup-sidebar" aria-label="Servers">
             <PanelHeader title="Servers" />
 
-            <ul class="server-list">
+            <ul class="server-list" classList={{ "server-list--empty": servers().length === 0 }}>
               <For each={servers()}>
                 {(server) => (
                   <li class="server-item-wrap">
@@ -524,7 +524,7 @@ export function SetupPage() {
 
             <Show when={!showServerForm()}>
               <button
-                class="link-button setup-add-server"
+                class="setup-add-server"
                 type="button"
                 onClick={() => setShowServerForm(true)}
               >
@@ -565,26 +565,6 @@ export function SetupPage() {
           </aside>
 
           <section class="setup-games" aria-label="Games">
-            <div class="setup-landing-tools" role="group" aria-label="Design tools">
-              <button
-                type="button"
-                class="setup-landing-tool setup-landing-tool--race"
-                disabled={!isConnected()}
-                onClick={() => navigate("/race-editor")}
-              >
-                <span class="setup-landing-tool-label">Race Editor</span>
-                <span class="setup-landing-tool-hint">Design or edit custom races</span>
-              </button>
-              <button
-                type="button"
-                class="setup-landing-tool setup-landing-tool--ship"
-                disabled={!isConnected()}
-                onClick={() => navigate("/ship-editor")}
-              >
-                <span class="setup-landing-tool-label">Ship Editor</span>
-                <span class="setup-landing-tool-hint">Design or edit custom ship templates</span>
-              </button>
-            </div>
             <div class="setup-games-header">
               <PanelHeader title="Games" count={isConnected() ? gameCount() : undefined} />
               <Show when={isConnected() && gameCount() > 0}>
@@ -683,6 +663,27 @@ export function SetupPage() {
             </Show>
           </section>
         </div>
+      </div>
+
+      <div class="setup-landing-tools" role="group" aria-label="Design tools">
+        <button
+          type="button"
+          class="setup-landing-tool setup-landing-tool--race"
+          disabled={!isConnected()}
+          onClick={() => navigate("/race-editor")}
+        >
+          <span class="setup-landing-tool-label">Race Editor</span>
+          <span class="setup-landing-tool-hint">Design or edit custom races</span>
+        </button>
+        <button
+          type="button"
+          class="setup-landing-tool setup-landing-tool--ship"
+          disabled={!isConnected()}
+          onClick={() => navigate("/ship-editor")}
+        >
+          <span class="setup-landing-tool-label">Ship Editor</span>
+          <span class="setup-landing-tool-hint">Design or edit custom ship templates</span>
+        </button>
       </div>
 
       <Show when={isNewGameModalOpen()}>

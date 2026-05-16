@@ -52,6 +52,7 @@ type GalaxyMapProps = {
     toY: number;
     eta: number;
     preview?: boolean;
+    blocked?: boolean;
   }[];
   onHoverSnappedStar?: (starId: number | null) => void;
   gameId?: string;
@@ -450,7 +451,7 @@ export function GalaxyMap(props: GalaxyMapProps) {
             <For each={props.routeLines ?? []}>
               {(route) => {
                 return (
-                  <g classList={{ "is-preview": Boolean(route.preview) }}>
+                  <g classList={{ "is-preview": Boolean(route.preview), "is-blocked": Boolean(route.blocked) }}>
                     <line
                       x1={route.fromX}
                       y1={route.fromY}

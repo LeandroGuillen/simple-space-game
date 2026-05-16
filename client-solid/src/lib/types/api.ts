@@ -410,6 +410,9 @@ export type ApiFleetShip = {
   icon?: string;
   design_name?: string;
   hull_size?: string;
+  fuel_cell?: string;
+  fuel_range_parsecs?: number;
+  unlimited_fuel_range?: boolean;
 };
 
 export type ApiFleet = {

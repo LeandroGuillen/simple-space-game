@@ -6,8 +6,10 @@ import { GalaxyMap } from "../components/GalaxyMap";
 import { PlanetVisual } from "../components/PlanetVisual";
 import {
   calculateFleetTravelTurnsFromCoordinates,
+  destinationInSupplyRange,
   findPlayerFleetsAtStar,
   findStar,
+  fleetSelectionFuelRange,
   labelForEnvironment,
   labelForGravity,
   labelForMinerals,
@@ -19,7 +21,7 @@ import { useAppContext } from "../state/app-context";
 const populationUnits = (population: number) => Math.floor(population / 1000);
 
 export function GalaxyPage() {
-  const { state, currentPlayer, addFleetMoveCommand } = useAppContext();
+  const { state, currentPlayer, addFleetMoveCommand, setInfo } = useAppContext();
   const [selectedStarId, setSelectedStarId] = createSignal<number>();
   const [selectedFleetStarId, setSelectedFleetStarId] = createSignal<number | null>(null);
   const [selectedFleetId, setSelectedFleetId] = createSignal<number | null>(null);
@@ -96,6 +98,9 @@ export function GalaxyPage() {
     if (!fleet || !to) {
       return null;
     }
+    const selectedShips = fleet.ships.filter((_, index) => mode.shipIndexes.includes(index));
+    const range = fleetSelectionFuelRange(selectedShips, currentPlayer(), state.game?.resources);
+    const blocked = !destinationInSupplyRange(state.game, currentPlayer()?.id ?? 0, toStarId, range);
     return {
       fromX: fleet.x,
       fromY: fleet.y,
@@ -103,6 +108,7 @@ export function GalaxyPage() {
       toY: to.y,
       eta: calculateFleetTravelTurnsFromCoordinates(fleet.x, fleet.y, to.x, to.y),
       preview: true,
+      blocked,
     };
   });
   const fleetRouteLines = createMemo(() => {
@@ -143,6 +149,14 @@ export function GalaxyPage() {
         ship_indexes: mode.shipIndexes,
       });
       exitFleetTravelMode();
+      setSelectedStarId(starId);
+      return;
+    }
+    const fleet = ownedFleets().find((item) => item.id === mode.fleetId);
+    const selectedShips = fleet?.ships.filter((_, index) => mode.shipIndexes.includes(index)) ?? [];
+    const range = fleetSelectionFuelRange(selectedShips, currentPlayer(), state.game?.resources);
+    if (!destinationInSupplyRange(state.game, currentPlayer()?.id ?? 0, starId, range)) {
+      setInfo('Destination is outside fleet fuel range');
       setSelectedStarId(starId);
       return;
     }

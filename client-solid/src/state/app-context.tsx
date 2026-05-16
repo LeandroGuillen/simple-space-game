@@ -74,6 +74,7 @@ type AppContextValue = {
   exploreStar: (starId: number) => Promise<void>;
   endTurn: () => Promise<void>;
   saveShipDesign: (form: ShipDesignForm, mode: 'create' | 'update') => Promise<void>;
+  setInfo: (info: string) => void;
   clearError: () => void;
 };
 
@@ -151,6 +152,10 @@ export function AppProvider(props: ParentProps) {
       error: '',
       info,
     });
+  }
+
+  function setInfo(info: string) {
+    setState('info', info);
   }
 
   function disconnect() {
@@ -786,6 +791,7 @@ export function AppProvider(props: ParentProps) {
     exploreStar,
     endTurn,
     saveShipDesign,
+    setInfo,
     clearError,
   };
 
