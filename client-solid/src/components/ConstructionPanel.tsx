@@ -15,7 +15,10 @@ import type {
   ShipDesignViewModel,
   TechViewModel,
 } from "../lib/types/domain";
-import { toggleQueuedConstructionProject } from "../lib/construction";
+import {
+  isBuildingApplicableToPlanet,
+  toggleQueuedConstructionProject,
+} from "../lib/construction";
 import {
   formatInteger,
   getBuyProductionCost,
@@ -173,7 +176,12 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
           !hasSuperiorBuilding(project, props.planet.buildings) &&
           !isSpecialConstructionProject(project.name) &&
           (!project.unique ||
-            !uniqueBuildingsLockedElsewhere().has(project.name)),
+            !uniqueBuildingsLockedElsewhere().has(project.name)) &&
+          isBuildingApplicableToPlanet(
+            project,
+            props.planet,
+            currentPlayer()?.raceTraitIds,
+          ),
       ) ?? [],
   );
   const colonyBaseProject = createMemo(

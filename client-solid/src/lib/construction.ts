@@ -1,4 +1,4 @@
-import type { BuildingViewModel } from './types/domain';
+import type { BuildingViewModel, PlanetViewModel } from './types/domain';
 
 const AUTOBUILD_EXCLUDED_PROJECTS = new Set([
   'Colony Base',
@@ -18,6 +18,30 @@ export function isAutobuildProject(project: Pick<BuildingViewModel, 'name'>): bo
     return false;
   }
   return !project.name.endsWith(' Ship');
+}
+
+export const GRAVITY_GENERATOR_BUILDING_NAME = 'Gravity Generator';
+
+const PLANET_GRAVITY_LOW = 1;
+const PLANET_GRAVITY_NORMAL = 2;
+const PLANET_GRAVITY_HIGH = 3;
+
+export function preferredGravityForRace(traitIds: string[] | undefined): number {
+  if (!traitIds) return PLANET_GRAVITY_NORMAL;
+  if (traitIds.includes('low_g_world')) return PLANET_GRAVITY_LOW;
+  if (traitIds.includes('high_g_world')) return PLANET_GRAVITY_HIGH;
+  return PLANET_GRAVITY_NORMAL;
+}
+
+export function isBuildingApplicableToPlanet(
+  project: Pick<BuildingViewModel, 'name'>,
+  planet: Pick<PlanetViewModel, 'gravity'>,
+  raceTraitIds: string[] | undefined,
+): boolean {
+  if (project.name === GRAVITY_GENERATOR_BUILDING_NAME) {
+    return planet.gravity !== preferredGravityForRace(raceTraitIds);
+  }
+  return true;
 }
 
 type ToggleQueuedProjectOptions = {

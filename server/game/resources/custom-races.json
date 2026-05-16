@@ -1,22 +1,3 @@
 {
-  "custom_races": [
-    {
-      "name": "Humanos 2",
-      "government": "Democracy",
-      "trait_ids": [
-        "growth_plus_100",
-        "research_minus_1"
-      ],
-      "playable": true
-    },
-    {
-      "name": "Humanos 3",
-      "government": "Democracy",
-      "trait_ids": [
-        "growth_plus_100",
-        "research_minus_1"
-      ],
-      "playable": true
-    }
-  ]
+  "custom_races": []
 }

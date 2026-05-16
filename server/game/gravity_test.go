@@ -65,6 +65,72 @@ func TestGravityOutputMultiplier(t *testing.T) {
 	}
 }
 
+func TestGravityGeneratorRemovesGravityPenalty(t *testing.T) {
+	cases := []struct {
+		name    string
+		gravity model.PlanetGravity
+		trait   string
+	}{
+		{"low gravity, no trait", model.PlanetGravityLow, ""},
+		{"high gravity, no trait", model.PlanetGravityHigh, ""},
+		{"high gravity, low-g race", model.PlanetGravityHigh, "low_g_world"},
+		{"normal gravity, low-g race", model.PlanetGravityNormal, "low_g_world"},
+		{"low gravity, high-g race", model.PlanetGravityLow, "high_g_world"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, player, planet := gravityTestGame(tc.gravity, tc.trait)
+			assert.Less(t, gravityOutputMultiplier(planet, player), 1.0, "precondition: expected gravity penalty")
+			planet.Buildings = append(planet.Buildings, gravityGeneratorBuildingName)
+			assert.Equal(t, 1.0, gravityOutputMultiplier(planet, player))
+		})
+	}
+}
+
+func TestBuildGravityGeneratorRejectedWhenGravityMatchesRace(t *testing.T) {
+	game, _, planet := gravityTestGame(model.PlanetGravityNormal, "")
+	game.Resources.Buildings = []model.Building{{Name: gravityGeneratorBuildingName, Cost: 120}}
+
+	assert.False(t, canBuild(planet, gravityGeneratorBuildingName, []string{gravityGeneratorBuildingName}, game))
+	assert.False(t, Build(planet, gravityGeneratorBuildingName, []string{gravityGeneratorBuildingName}, game))
+	assert.False(t, planet.IsBuilding)
+}
+
+func TestBuildGravityGeneratorAllowedWhenGravityMismatches(t *testing.T) {
+	game, _, planet := gravityTestGame(model.PlanetGravityHigh, "")
+	game.Resources.Buildings = []model.Building{{Name: gravityGeneratorBuildingName, Cost: 120}}
+
+	assert.True(t, canBuild(planet, gravityGeneratorBuildingName, []string{gravityGeneratorBuildingName}, game))
+	assert.True(t, Build(planet, gravityGeneratorBuildingName, []string{gravityGeneratorBuildingName}, game))
+	assert.True(t, planet.IsBuilding)
+	assert.Equal(t, gravityGeneratorBuildingName, planet.CurrentProject)
+}
+
+func TestGravityGeneratorApplicableOnlyWhenGravityDiffers(t *testing.T) {
+	cases := []struct {
+		name     string
+		gravity  model.PlanetGravity
+		trait    string
+		expected bool
+	}{
+		{"normal/no trait", model.PlanetGravityNormal, "", false},
+		{"low/no trait", model.PlanetGravityLow, "", true},
+		{"high/no trait", model.PlanetGravityHigh, "", true},
+		{"low/low-g race", model.PlanetGravityLow, "low_g_world", false},
+		{"normal/low-g race", model.PlanetGravityNormal, "low_g_world", true},
+		{"high/low-g race", model.PlanetGravityHigh, "low_g_world", true},
+		{"high/high-g race", model.PlanetGravityHigh, "high_g_world", false},
+		{"normal/high-g race", model.PlanetGravityNormal, "high_g_world", true},
+		{"low/high-g race", model.PlanetGravityLow, "high_g_world", true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, player, planet := gravityTestGame(tc.gravity, tc.trait)
+			assert.Equal(t, tc.expected, gravityGeneratorApplicable(planet, player))
+		})
+	}
+}
+
 func TestGravityAffectsLaborOutputs(t *testing.T) {
 	cases := []struct {
 		name         string

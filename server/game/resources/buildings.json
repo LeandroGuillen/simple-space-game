@@ -366,7 +366,7 @@
     },
     {
       "name": "Gravity Generator",
-      "description": "No description provided",
+      "description": "Removes the gravity penalty on planets whose gravity does not match the race's preferred gravity.",
       "built_on": "PLANET",
       "cost": 120,
       "maintenance": 2

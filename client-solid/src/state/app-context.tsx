@@ -7,7 +7,7 @@ import type { ApiGameListItem, NewGameOptions } from '../lib/types/api';
 import type { BuildingViewModel, GameViewModel, PlayerColorOptions, ShipDesignForm } from '../lib/types/domain';
 import type { ArtificialPlanetCommand, ColonizeCommand, FleetMoveCommand, MovePopulationCommand, PendingCommands, SelectResearchCommand, TransferPopulationCommand, TurnCommands } from '../lib/types/commands';
 import { clearSessionLastSetupServerUrl } from '../lib/setup-session-storage';
-import { isAutobuildProject } from '../lib/construction';
+import { isAutobuildProject, isBuildingApplicableToPlanet } from '../lib/construction';
 import { findPlanet, getColonyRows, getPrimaryPlayer, normalizeServerUrl, toWebSocketUrl } from '../lib/utils';
 
 type ConnectionStatus = 'idle' | 'checking' | 'connected' | 'error';
@@ -708,7 +708,8 @@ export function AppProvider(props: ParentProps) {
             !builtBuildingIds.has(project.id) &&
             !hasSuperiorBuilding(project, planet.buildings) &&
             (!project.unique || !lockedUniqueNames.has(project.name)) &&
-            isAutobuildProject(project),
+            isAutobuildProject(project) &&
+            isBuildingApplicableToPlanet(project, planet, player.raceTraitIds),
         );
         const project = projects[Math.floor(Math.random() * projects.length)];
         if (project) {

@@ -409,6 +409,9 @@ func Build(p *Planet, buildingName string, availableBuildings []string, game *Ga
 	if hasSuperiorBuilding(p, buildingName, game) {
 		return false
 	}
+	if !buildingApplicableToPlanet(p, buildingName, game) {
+		return false
+	}
 
 	projectCost := effectiveBuildingCost(p, building, game)
 	investedProduction := consumeStackedBuildProduction(p, projectCost, game)
@@ -476,6 +479,9 @@ func canBuild(p *Planet, buildingName string, availableBuildings []string, game 
 		return false
 	}
 	if hasSuperiorBuilding(p, buildingName, game) {
+		return false
+	}
+	if !buildingApplicableToPlanet(p, buildingName, game) {
 		return false
 	}
 	return true
@@ -552,6 +558,20 @@ func isShipDesignProductionProject(p *Planet, projectName string, game *Game) bo
 
 func isShipProductionProject(buildingName string) bool {
 	return strings.HasSuffix(buildingName, " Ship")
+}
+
+// buildingApplicableToPlanet reports whether a building has any meaningful
+// effect on the given planet, given the planet owner's race. Some buildings
+// only matter under specific planetary conditions and are hidden otherwise.
+func buildingApplicableToPlanet(p *Planet, buildingName string, game *Game) bool {
+	if p == nil {
+		return true
+	}
+	switch buildingName {
+	case gravityGeneratorBuildingName:
+		return gravityGeneratorApplicable(p, gamePlayerForPlanet(game, p))
+	}
+	return true
 }
 
 func hasSuperiorBuilding(p *Planet, buildingName string, game *Game) bool {
