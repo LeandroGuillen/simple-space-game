@@ -174,6 +174,8 @@ export type FleetShipViewModel = {
   icon: string;
   designName: string;
   hullSize: string;
+  drive: string;
+  interstellarSpeed: number;
   fuelCell: string;
   fuelRangeParsecs: number;
   unlimitedFuelRange: boolean;

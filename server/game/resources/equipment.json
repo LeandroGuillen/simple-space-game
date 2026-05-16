@@ -69,12 +69,12 @@
   ],
   "drives": [
     { "name": "None", "interstellar_speed": 0, "combat_speed": 0 },
-    { "name": "Nuclear", "interstellar_speed": 2, "combat_speed": 0 },
-    { "name": "Fusion", "interstellar_speed": 3, "combat_speed": 2 },
-    { "name": "Ion", "interstellar_speed": 4, "combat_speed": 4 },
-    { "name": "Anti-matter", "interstellar_speed": 5, "combat_speed": 5 },
-    { "name": "Hyper", "interstellar_speed": 6, "combat_speed": 8 },
-    { "name": "Interphased", "interstellar_speed": 7, "combat_speed": 10 }
+    { "name": "Nuclear", "interstellar_speed": 1, "combat_speed": 0 },
+    { "name": "Fusion", "interstellar_speed": 2, "combat_speed": 1 },
+    { "name": "Ion", "interstellar_speed": 3, "combat_speed": 2 },
+    { "name": "Anti-matter", "interstellar_speed": 4, "combat_speed": 3 },
+    { "name": "Hyper", "interstellar_speed": 5, "combat_speed": 4 },
+    { "name": "Interphased", "interstellar_speed": 6, "combat_speed": 5 }
   ],
   "armors": [
     { "name": "None", "multiplier": 0, "ground_troop_strength": 0 },
@@ -95,10 +95,10 @@
   ],
   "fuel_cells": [
     { "name": "None", "autonomy": 0 },
-    { "name": "Standard", "autonomy": 4 },
-    { "name": "Deuterium", "autonomy": 6 },
-    { "name": "Iridium", "autonomy": 9 },
-    { "name": "Urridium", "autonomy": 12 },
+    { "name": "Standard", "autonomy": 2 },
+    { "name": "Deuterium", "autonomy": 4 },
+    { "name": "Iridium", "autonomy": 6 },
+    { "name": "Urridium", "autonomy": 8 },
     { "name": "Thorium", "autonomy": 100 }
   ],
   "shields": [

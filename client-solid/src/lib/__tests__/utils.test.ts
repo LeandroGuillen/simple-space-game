@@ -16,8 +16,16 @@ import {
   getPlanetProjectedIncome,
   getPlanetProjectedPopulationGrowth,
   isArtificialPlanetTarget,
+  fleetSelectionFuelRange,
 } from "../utils";
-import type { BuildingViewModel, GameViewModel, PlanetViewModel } from "../types/domain";
+import type {
+  BuildingViewModel,
+  FleetShipViewModel,
+  GameViewModel,
+  PlanetViewModel,
+  PlayerViewModel,
+  ResourcesViewModel,
+} from "../types/domain";
 
 function building(name: string, modifiers: BuildingViewModel["modifiers"] = []): BuildingViewModel {
   return {
@@ -126,6 +134,48 @@ describe("formatStardate", () => {
   it("keeps one fractional digit", () => {
     expect(formatStardate(3500)).toBe("3500.0");
     expect(formatStardate(3500.9)).toBe("3500.9");
+  });
+});
+
+describe("fleetSelectionFuelRange", () => {
+  it("prefers current fuel cell data over stale ship range snapshots", () => {
+    const player = {
+      id: 1,
+      available: { fuelCells: ["Standard"] },
+    } as PlayerViewModel;
+    const resources = {
+      shipParts: {
+        hullSizes: [],
+        drives: [],
+        armors: [],
+        computers: [],
+        fuelCells: [{ name: "Standard", autonomy: 2 }],
+        shields: [],
+      },
+      shipSystemCollection: { shipSystems: [] },
+      buildingCollection: { buildings: [] },
+      modifierCollection: { modifiers: [] },
+      shipDesignCollection: { shipDesigns: [] },
+      techTree: { subjects: [] },
+      techCollection: { techs: [] },
+    } satisfies ResourcesViewModel;
+    const ship = {
+      type: "ship_design",
+      name: "Scout",
+      icon: "🚀",
+      designName: "Scout",
+      hullSize: "Frigate",
+      drive: "Nuclear",
+      interstellarSpeed: 1,
+      fuelCell: "Standard",
+      fuelRangeParsecs: 4,
+      unlimitedFuelRange: false,
+    } as FleetShipViewModel;
+
+    expect(fleetSelectionFuelRange([ship], player, resources)).toEqual({
+      rangeParsecs: 2,
+      unlimited: false,
+    });
   });
 });
 

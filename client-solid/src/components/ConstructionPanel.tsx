@@ -84,6 +84,7 @@ function isSpecialConstructionProject(projectName: string) {
   return (
     projectName === "Colony Base" ||
     projectName === "Colony Ship" ||
+    projectName === "Freighters" ||
     projectName === "Artificial Planet Construction" ||
     projectName === "Android Farmers" ||
     projectName === "Android Workers" ||
@@ -191,6 +192,14 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
           availableBuildingNames().has(project.name),
       ) ?? null,
   );
+  const freightersProject = createMemo(
+    () =>
+      state.game?.resources.buildingCollection.buildings.find(
+        (project) =>
+          project.name === "Freighters" &&
+          availableBuildingNames().has(project.name),
+      ) ?? null,
+  );
   const artificialPlanetProject = createMemo(
     () =>
       state.game?.resources.buildingCollection.buildings.find(
@@ -258,6 +267,9 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     }
     if (colonyShipProject()) {
       projects.push(colonyShipProject()!);
+    }
+    if (freightersProject()) {
+      projects.push(freightersProject()!);
     }
     if (artificialPlanetProject()) {
       projects.push(artificialPlanetProject()!);

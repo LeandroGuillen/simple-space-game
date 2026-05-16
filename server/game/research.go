@@ -154,13 +154,25 @@ func (g *Game) ResearchAllTechs(playerID uint) error {
 	if err != nil {
 		return err
 	}
+	// Append all techs first, then hydrate availability once. Hydrating per-tech
+	// would be O(M^3): each researchTech rescans the growing ResearchedTechs list,
+	// and each lookup linearly scans AllTechs.
+	known := make(map[string]struct{}, len(player.ResearchedTechs)+len(g.Resources.TechTree.AllTechs))
+	for _, name := range player.ResearchedTechs {
+		known[name] = struct{}{}
+	}
 	for _, tech := range g.Resources.TechTree.AllTechs {
-		researchTech(g, player, tech.Name)
+		if _, ok := known[tech.Name]; ok {
+			continue
+		}
+		known[tech.Name] = struct{}{}
+		player.ResearchedTechs = append(player.ResearchedTechs, tech.Name)
 	}
 	player.CurrentResearch = nil
 	if player.HyperAdvanced == nil {
 		player.HyperAdvanced = map[string]uint64{}
 	}
+	g.hydratePlayerAvailability(player)
 	return nil
 }
 

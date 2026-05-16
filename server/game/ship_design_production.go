@@ -62,6 +62,8 @@ func fleetShipFromDesign(design ShipDesign) FleetShip {
 		Name:               design.Name,
 		DesignName:         design.Name,
 		HullSize:           design.HullSize.Name,
+		Drive:              design.Drive.Name,
+		InterstellarSpeed:  design.Drive.InterstellarSpeed,
 		FuelCell:           design.FuelCell.Name,
 		FuelRangeParsecs:   design.FuelCell.Autonomy,
 		UnlimitedFuelRange: fuelCellUnlimited(design.FuelCell),

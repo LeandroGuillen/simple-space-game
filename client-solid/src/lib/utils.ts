@@ -179,11 +179,17 @@ export function calculateFleetTravelTurns(from: StarSummary, to: StarSummary) {
   return calculateFleetTravelTurnsFromCoordinates(from.x, from.y, to.x, to.y);
 }
 
-export function calculateFleetTravelTurnsFromCoordinates(fromX: number, fromY: number, toX: number, toY: number) {
+export function calculateFleetTravelTurnsFromCoordinates(
+  fromX: number,
+  fromY: number,
+  toX: number,
+  toY: number,
+  speedParsecsPerTurn = 1.5,
+) {
   const dx = toX - fromX;
   const dy = toY - fromY;
   const distance = Math.sqrt(dx * dx + dy * dy);
-  return Math.max(1, Math.ceil(distance / 90));
+  return Math.max(1, Math.ceil(distance / Math.max(1, speedParsecsPerTurn * 60)));
 }
 
 const PARSEC_IN_PIXELS = 60;
@@ -237,13 +243,81 @@ function shipFuelRange(
   if (ship.unlimitedFuelRange) {
     return { rangeParsecs: 0, unlimited: true };
   }
+  if (ship.fuelCell && resources) {
+    const fuel = resources.shipParts.fuelCells.find((item) => item.name === ship.fuelCell);
+    if (fuel) {
+      return { rangeParsecs: fuel.autonomy, unlimited: isUnlimitedFuel(fuel.name, fuel.autonomy) };
+    }
+  }
   if (ship.fuelRangeParsecs > 0) {
-    return { rangeParsecs: ship.fuelRangeParsecs, unlimited: false };
+    return { rangeParsecs: ship.fuelRangeParsecs, unlimited: ship.fuelRangeParsecs >= 100 };
   }
   if (ship.designName) {
     return null;
   }
   return bestAvailableFuelRange(player, resources);
+}
+
+function bestAvailableDriveSpeed(player: PlayerViewModel | null | undefined, resources: ResourcesViewModel | null | undefined) {
+  if (!player || !resources) {
+    return null;
+  }
+  let best: number | null = null;
+  for (const driveName of player.available.drives) {
+    const drive = resources.shipParts.drives.find((item) => item.name === driveName);
+    if (!drive) {
+      continue;
+    }
+    best = best == null ? drive.interstellarSpeed : Math.max(best, drive.interstellarSpeed);
+  }
+  return best;
+}
+
+function shipInterstellarSpeed(
+  ship: FleetShipViewModel,
+  player?: PlayerViewModel | null,
+  resources?: ResourcesViewModel | null,
+) {
+  if (ship.drive && resources) {
+    const drive = resources.shipParts.drives.find((item) => item.name === ship.drive);
+    if (drive) {
+      return drive.interstellarSpeed;
+    }
+  }
+  if (ship.interstellarSpeed > 0) {
+    return ship.interstellarSpeed;
+  }
+  if (ship.designName) {
+    const design = [
+      ...(player?.shipDesigns ?? []),
+      ...(resources?.shipDesignCollection.shipDesigns ?? []),
+    ].find((item) => item.name === ship.designName);
+    if (!design) {
+      return null;
+    }
+    const currentDrive = resources?.shipParts.drives.find((item) => item.name === design.drive.name);
+    return currentDrive?.interstellarSpeed ?? design.drive.interstellarSpeed;
+  }
+  return bestAvailableDriveSpeed(player, resources);
+}
+
+export function fleetSelectionInterstellarSpeed(
+  ships: FleetShipViewModel[],
+  player?: PlayerViewModel | null,
+  resources?: ResourcesViewModel | null,
+) {
+  if (ships.length === 0) {
+    return null;
+  }
+  let slowest: number | null = null;
+  for (const ship of ships) {
+    const speed = shipInterstellarSpeed(ship, player, resources);
+    if (speed == null || speed <= 0) {
+      return null;
+    }
+    slowest = slowest == null ? speed : Math.min(slowest, speed);
+  }
+  return slowest;
 }
 
 export function fleetSelectionFuelRange(

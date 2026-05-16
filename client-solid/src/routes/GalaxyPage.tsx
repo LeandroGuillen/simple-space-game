@@ -9,6 +9,7 @@ import {
   destinationInSupplyRange,
   findPlayerFleetsAtStar,
   findStar,
+  fleetSelectionInterstellarSpeed,
   fleetSelectionFuelRange,
   labelForEnvironment,
   labelForGravity,
@@ -60,12 +61,14 @@ export function GalaxyPage() {
       if (!fleet) return null;
       const to = findStar(state.game, command.destination_star_id);
       if (!to) return null;
+      const selectedShips = fleet.ships.filter((_, index) => command.ship_indexes.includes(index));
+      const speed = fleetSelectionInterstellarSpeed(selectedShips, currentPlayer(), state.game?.resources) ?? undefined;
       return {
         fromX: fleet.x,
         fromY: fleet.y,
         toX: to.x,
         toY: to.y,
-        eta: calculateFleetTravelTurnsFromCoordinates(fleet.x, fleet.y, to.x, to.y),
+        eta: calculateFleetTravelTurnsFromCoordinates(fleet.x, fleet.y, to.x, to.y, speed),
       };
     }).filter((route): route is { fromX: number; fromY: number; toX: number; toY: number; eta: number } => Boolean(route)),
   );
@@ -101,12 +104,13 @@ export function GalaxyPage() {
     const selectedShips = fleet.ships.filter((_, index) => mode.shipIndexes.includes(index));
     const range = fleetSelectionFuelRange(selectedShips, currentPlayer(), state.game?.resources);
     const blocked = !destinationInSupplyRange(state.game, currentPlayer()?.id ?? 0, toStarId, range);
+    const speed = fleetSelectionInterstellarSpeed(selectedShips, currentPlayer(), state.game?.resources) ?? undefined;
     return {
       fromX: fleet.x,
       fromY: fleet.y,
       toX: to.x,
       toY: to.y,
-      eta: calculateFleetTravelTurnsFromCoordinates(fleet.x, fleet.y, to.x, to.y),
+      eta: calculateFleetTravelTurnsFromCoordinates(fleet.x, fleet.y, to.x, to.y, speed),
       preview: true,
       blocked,
     };

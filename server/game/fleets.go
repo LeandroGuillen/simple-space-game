@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"math"
 	"sort"
-	"strings"
 	. "ssg/model"
+	"strings"
 )
 
 func (g *Game) addShipToOrbitFleet(ownerID, starID uint, ship FleetShip) {
@@ -177,7 +177,11 @@ func (g *Game) beginFleetMovement(fleet *Fleet, destStarID uint) error {
 	fleet.OriginStarID = fleet.StarID
 	fleet.OriginX = fleet.X
 	fleet.OriginY = fleet.Y
-	fleet.TotalTurns = calculateFleetTravelTurnsFromFloat(fleet.OriginX, fleet.OriginY, float64(destination.X), float64(destination.Y))
+	turns, err := g.calculateFleetTravelTurnsForShips(fleet.Owner, fleet.Ships, fleet.OriginX, fleet.OriginY, float64(destination.X), float64(destination.Y))
+	if err != nil {
+		return err
+	}
+	fleet.TotalTurns = turns
 	fleet.TurnsRemaining = fleet.TotalTurns
 	return nil
 }
@@ -230,6 +234,25 @@ func bestAvailableFuelCell(player *Player, resources *Resources) (FuelCell, bool
 	return best, found
 }
 
+func bestAvailableDrive(player *Player, resources *Resources) (Drive, bool) {
+	if player == nil || resources == nil || resources.ShipPartsCollection == nil {
+		return Drive{}, false
+	}
+	var best Drive
+	found := false
+	for _, driveName := range player.Available.Drives {
+		drive, err := DriveFromName(driveName, resources.Drives)
+		if err != nil {
+			continue
+		}
+		if !found || drive.InterstellarSpeed > best.InterstellarSpeed {
+			best = drive
+			found = true
+		}
+	}
+	return best, found
+}
+
 func (g *Game) findShipDesignForFleetShip(player *Player, ship FleetShip) (ShipDesign, bool) {
 	if g == nil || g.Resources == nil || player == nil || ship.DesignName == "" {
 		return ShipDesign{}, false
@@ -251,13 +274,13 @@ func (g *Game) fleetShipFuelRange(player *Player, ship FleetShip) (rangeParsecs 
 	if ship.UnlimitedFuelRange {
 		return 0, true, true
 	}
-	if ship.FuelRangeParsecs > 0 {
-		return ship.FuelRangeParsecs, false, true
-	}
 	if g != nil && g.Resources != nil && g.Resources.ShipPartsCollection != nil && ship.FuelCell != "" {
 		if cell, err := FuelCellFromName(ship.FuelCell, g.Resources.FuelCells); err == nil {
 			return cell.Autonomy, fuelCellUnlimited(cell), true
 		}
+	}
+	if ship.FuelRangeParsecs > 0 {
+		return ship.FuelRangeParsecs, ship.FuelRangeParsecs >= 100, true
 	}
 	if ship.DesignName != "" {
 		if design, found := g.findShipDesignForFleetShip(player, ship); found {
@@ -269,6 +292,62 @@ func (g *Game) fleetShipFuelRange(player *Player, ship FleetShip) (rangeParsecs 
 		return cell.Autonomy, fuelCellUnlimited(cell), true
 	}
 	return 0, false, false
+}
+
+func (g *Game) fleetShipInterstellarSpeed(player *Player, ship FleetShip) (int64, bool) {
+	if g != nil && g.Resources != nil && g.Resources.ShipPartsCollection != nil && ship.Drive != "" {
+		if drive, err := DriveFromName(ship.Drive, g.Resources.Drives); err == nil {
+			return drive.InterstellarSpeed, true
+		}
+	}
+	if ship.InterstellarSpeed > 0 {
+		return ship.InterstellarSpeed, true
+	}
+	if ship.DesignName != "" {
+		if design, found := g.findShipDesignForFleetShip(player, ship); found {
+			return design.Drive.InterstellarSpeed, true
+		}
+		return 0, false
+	}
+	if drive, found := bestAvailableDrive(player, g.Resources); found {
+		return drive.InterstellarSpeed, true
+	}
+	return 0, false
+}
+
+func (g *Game) selectedShipsInterstellarSpeed(player *Player, ships []FleetShip) (int64, error) {
+	if len(ships) == 0 {
+		return 0, fmt.Errorf("no ships selected for fleet move")
+	}
+	var slowest int64
+	for _, ship := range ships {
+		speed, ok := g.fleetShipInterstellarSpeed(player, ship)
+		if !ok {
+			return 0, fmt.Errorf("cannot determine drive speed for ship %q", ship.Name)
+		}
+		if speed <= 0 {
+			return 0, fmt.Errorf("ship %q has no interstellar drive", ship.Name)
+		}
+		if slowest == 0 || speed < slowest {
+			slowest = speed
+		}
+	}
+	return slowest, nil
+}
+
+func (g *Game) calculateFleetTravelTurnsForShips(ownerID uint, ships []FleetShip, x1, y1, x2, y2 float64) (uint, error) {
+	if g == nil || g.Resources == nil || g.Resources.ShipPartsCollection == nil {
+		return calculateFleetTravelTurnsFromFloat(x1, y1, x2, y2), nil
+	}
+	player, err := g.getPlayer(ownerID)
+	if err != nil {
+		return 0, err
+	}
+	speed, err := g.selectedShipsInterstellarSpeed(player, ships)
+	if err != nil {
+		return 0, err
+	}
+	return calculateFleetTravelTurnsFromFloatWithSpeed(x1, y1, x2, y2, speed), nil
 }
 
 func (g *Game) selectedShipsFuelRange(player *Player, ships []FleetShip) (rangeParsecs int64, unlimited bool, err error) {
@@ -591,6 +670,17 @@ func calculateFleetTravelTurnsFromFloat(x1, y1, x2, y2 float64) uint {
 	dy := y2 - y1
 	distance := math.Sqrt(dx*dx + dy*dy)
 	return uint(max(1, int(math.Ceil(distance/fleetSpeedParsecsPerTurn))))
+}
+
+func calculateFleetTravelTurnsFromFloatWithSpeed(x1, y1, x2, y2 float64, speedParsecsPerTurn int64) uint {
+	if speedParsecsPerTurn <= 0 {
+		return 0
+	}
+	dx := x2 - x1
+	dy := y2 - y1
+	distance := math.Sqrt(dx*dx + dy*dy)
+	pixelsPerTurn := float64(speedParsecsPerTurn * parsecInPixels)
+	return uint(max(1, int(math.Ceil(distance/pixelsPerTurn))))
 }
 
 func lerp(from, to, t float64) float64 {

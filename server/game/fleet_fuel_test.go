@@ -17,6 +17,7 @@ func fuelTestGame(t *testing.T) *Game {
 		ID: 1,
 		Available: model.AvailableTech{
 			FuelCells: []string{"Standard"},
+			Drives:    []string{"Nuclear"},
 		},
 	}
 	return &Game{
@@ -39,10 +40,10 @@ func fuelTestGame(t *testing.T) *Game {
 			Height: 800,
 			Stars: []*model.Star{
 				{ID: 1, X: 0, Y: 0, Planets: []*model.Planet{{ID: 1, Owner: 1}}},
-				{ID: 2, X: 240, Y: 0, Planets: []*model.Planet{}},
-				{ID: 3, X: 300, Y: 0, Planets: []*model.Planet{}},
-				{ID: 4, X: 540, Y: 0, Planets: []*model.Planet{}},
-				{ID: 5, X: 720, Y: 0, Planets: []*model.Planet{}},
+				{ID: 2, X: 120, Y: 0, Planets: []*model.Planet{}},
+				{ID: 3, X: 180, Y: 0, Planets: []*model.Planet{}},
+				{ID: 4, X: 360, Y: 0, Planets: []*model.Planet{}},
+				{ID: 5, X: 480, Y: 0, Planets: []*model.Planet{}},
 				{ID: 6, X: 1000, Y: 800, Planets: []*model.Planet{}},
 			},
 		},
@@ -83,9 +84,9 @@ func TestFleetFuelHigherTechExtendsSupplyRange(t *testing.T) {
 		rangeParsec int64
 		destStarID  uint
 	}{
-		{name: "Deuterium", fuelCell: "Deuterium", rangeParsec: 6, destStarID: 3},
-		{name: "Iridium", fuelCell: "Iridium", rangeParsec: 9, destStarID: 4},
-		{name: "Urridium", fuelCell: "Urridium", rangeParsec: 12, destStarID: 5},
+		{name: "Deuterium", fuelCell: "Deuterium", rangeParsec: 4, destStarID: 3},
+		{name: "Iridium", fuelCell: "Iridium", rangeParsec: 6, destStarID: 4},
+		{name: "Urridium", fuelCell: "Urridium", rangeParsec: 8, destStarID: 5},
 	}
 
 	for _, tc := range cases {
