@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"ssg/game"
 	"ssg/model"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -28,6 +29,8 @@ type CustomRaceRequest struct {
 	Name       string   `json:"name"`
 	Government string   `json:"government"`
 	TraitIDs   []string `json:"trait_ids"`
+	RenameFrom string   `json:"rename_from,omitempty"`
+	SaveAsNew  bool     `json:"save_as_new,omitempty"`
 }
 
 type GameListResponse struct {
@@ -67,7 +70,7 @@ func NewGame(c *gin.Context) {
 	}
 	server := rawServer.(*Server)
 
-	race, err := raceFromRequest(server.ResourceManager, req)
+	race, err := raceFromRequest(server, req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -90,26 +93,47 @@ func NewGame(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"ok": true, "gameID": g.ID})
 }
 
-func raceFromRequest(resources *game.ResourceManager, req NewGameRequest) (model.Race, error) {
-	switch req.Race {
-	case "", "human":
-		return game.DefaultRace("Human"), nil
-	case "psilon":
-		return game.DefaultRace("Psilon"), nil
+func raceFromRequest(server *Server, req NewGameRequest) (model.Race, error) {
+	switch strings.TrimSpace(strings.ToLower(req.Race)) {
 	case "custom":
 		if req.CustomRace != nil {
-			return game.BuildCustomRace(resources, game.CustomRaceDesign{
+			return game.BuildCustomRace(server.ResourceManager, game.RaceDesign{
 				Name:       req.CustomRace.Name,
 				Government: req.CustomRace.Government,
 				TraitIDs:   req.CustomRace.TraitIDs,
 			})
 		}
-		if req.CustomRaceName != "" {
-			return game.BuildCustomRace(resources, game.CustomRaceDesign{Name: req.CustomRaceName})
+		name := strings.TrimSpace(req.CustomRaceName)
+		if name == "" {
+			return model.Race{}, fmt.Errorf("custom race name or payload is required")
 		}
-		return model.Race{}, fmt.Errorf("custom race payload is required")
+		saved, ok := server.CustomRaces[name]
+		if !ok {
+			return model.Race{}, fmt.Errorf("unknown custom race %q", name)
+		}
+		if !saved.Playable {
+			return model.Race{}, fmt.Errorf("custom race %q is not playable", saved.Name)
+		}
+		return game.BuildCustomRace(server.ResourceManager, saved)
+	case "psilon":
+		return game.DefaultRace("Psilon"), nil
 	default:
-		return model.Race{}, fmt.Errorf("unknown race %q", req.Race)
+		key := strings.TrimSpace(strings.ToLower(req.Race))
+		if key == "" {
+			key = "human"
+		}
+		design, ok := server.ResourceManager.BuiltInRaceByKey(key)
+		if !ok {
+			return model.Race{}, fmt.Errorf("unknown race %q", req.Race)
+		}
+		if !design.Playable {
+			return model.Race{}, fmt.Errorf("race %q is not playable", design.Name)
+		}
+		return game.BuildCustomRace(server.ResourceManager, game.RaceDesign{
+			Name:       design.Name,
+			Government: design.Government,
+			TraitIDs:   design.TraitIDs,
+		})
 	}
 }
 

@@ -14,8 +14,9 @@ import (
 
 type Server struct {
 	GameList        map[string]*game.Game
-	CustomRaces     map[string]game.CustomRaceDesign
+	CustomRaces     map[string]game.RaceDesign
 	ResourceManager *game.ResourceManager
+	RaceStore       *game.RaceStore
 	router          *gin.Engine
 	hub             *ws.Hub
 	hubOnce         sync.Once
@@ -39,6 +40,16 @@ func NewServer() (*Server, error) {
 		return nil, fmt.Errorf("cannot load resources: %v", err)
 	}
 
+	raceStore := game.NewRaceStore(game.CustomRacesPath())
+	customList, err := raceStore.Load(resourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("cannot load custom races: %w", err)
+	}
+	customMap := make(map[string]game.RaceDesign)
+	for _, cr := range customList {
+		customMap[cr.Name] = cr
+	}
+
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
@@ -52,8 +63,9 @@ func NewServer() (*Server, error) {
 
 	server := &Server{
 		GameList:        make(map[string]*game.Game),
-		CustomRaces:     make(map[string]game.CustomRaceDesign),
+		CustomRaces:     customMap,
 		ResourceManager: resourceManager,
+		RaceStore:       raceStore,
 	}
 
 	server.hub = ws.NewHub(server)
@@ -66,12 +78,24 @@ func NewServer() (*Server, error) {
 	return server, nil
 }
 
+func (s *Server) persistCustomRaces() error {
+	if s == nil || s.RaceStore == nil {
+		return fmt.Errorf("race persistence unavailable")
+	}
+	list := make([]game.RaceDesign, 0, len(s.CustomRaces))
+	for _, r := range s.CustomRaces {
+		list = append(list, r)
+	}
+	return s.RaceStore.SaveAll(s.ResourceManager, list)
+}
+
 func (s *Server) registerRoutes(r *gin.Engine) {
 	r.GET("/status", Status)
 	r.POST("/games", NewGame)
 	r.GET("/games", GetGameList)
 	r.GET("/games/player-colors", GetPlayerColors)
 	r.GET("/games/:gameID", GetGame)
+	r.GET("/races", GetRaces)
 	r.GET("/races/custom", GetCustomRaces)
 	r.POST("/races/custom", SaveCustomRace)
 	r.DELETE("/races/custom/:name", DeleteCustomRace)

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	. "ssg/model"
+	"strings"
 )
 
 type Resources struct {
@@ -55,6 +56,7 @@ type BeamCollection struct {
 
 type ResourceManager struct {
 	Resources
+	BuiltInRaces []RaceDesign
 }
 
 //go:embed resources/equipment.json
@@ -98,6 +100,9 @@ var shipSystemTechsFile []byte
 
 //go:embed resources/techs.empire-effects.json
 var empireEffectTechsFile []byte
+
+//go:embed resources/races.json
+var racesFile []byte
 
 func (r *ResourceManager) loadDataFromFiles() error {
 	var shipPartsCollection ShipPartsCollection
@@ -215,6 +220,55 @@ func (r *ResourceManager) loadDataFromFiles() error {
 		return err
 	}
 
+	var raceCollection RaceCollection
+	if err := json.Unmarshal(racesFile, &raceCollection); err != nil {
+		return fmt.Errorf("cannot read races.json: %w", err)
+	}
+	r.BuiltInRaces = raceCollection.Races
+	if err := r.validateBuiltInRaces(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *ResourceManager) validateBuiltInRaces() error {
+	if r == nil {
+		return nil
+	}
+	seen := map[string]struct{}{}
+	norm := make([]RaceDesign, 0, len(r.BuiltInRaces))
+	for _, d := range r.BuiltInRaces {
+		trimmed := strings.TrimSpace(d.Name)
+		if trimmed == "" {
+			return fmt.Errorf("built-in race name is required")
+		}
+		if len(trimmed) > 32 {
+			return fmt.Errorf("built-in race name %q exceeds 32 characters", trimmed)
+		}
+		lower := strings.ToLower(trimmed)
+		if _, dup := seen[lower]; dup {
+			return fmt.Errorf("duplicate built-in race name %q", trimmed)
+		}
+		seen[lower] = struct{}{}
+
+		mr, err := BuildCustomRace(r, RaceDesign{Name: trimmed, Government: d.Government, TraitIDs: d.TraitIDs})
+		if err != nil {
+			return fmt.Errorf("built-in race %q: %w", trimmed, err)
+		}
+		computedPlayable := racePlayable(r, mr.Government, mr.TraitIDs)
+		if d.Playable != computedPlayable {
+			return fmt.Errorf("built-in race %q: playable field is %v but computed playability is %v", trimmed, d.Playable, computedPlayable)
+		}
+		norm = append(norm, RaceDesign{
+			Name:       mr.Name,
+			Government: mr.Government,
+			TraitIDs:   append([]string{}, mr.TraitIDs...),
+			Playable:   computedPlayable,
+			BuiltIn:    true,
+		})
+	}
+	r.BuiltInRaces = norm
 	return nil
 }
 

@@ -573,7 +573,7 @@ export function AppShell(props: RouteSectionProps) {
 
   createEffect(() => {
     if (isGameCommandPath(location.pathname) && !state.session.selectedGameId) {
-      navigate("/setup", { replace: true });
+      navigate("/", { replace: true });
     }
   });
 
@@ -667,10 +667,10 @@ export function AppShell(props: RouteSectionProps) {
     <div class="frame">
       <header class="app-topbar panel" aria-label="Application">
         <A
-          href="/setup"
+          href="/"
           class="app-topbar-brand"
-          title="Open server and game setup"
-          aria-label="Open server and game setup"
+          title="Home"
+          aria-label="Home"
         >
           <span class="app-title">Simple Space Game</span>
           <span class="app-version" title="Client version">

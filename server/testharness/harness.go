@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -32,6 +33,8 @@ type TestServer struct {
 
 func NewTestServer(t *testing.T) *TestServer {
 	t.Helper()
+
+	t.Setenv("SSG_CUSTOM_RACES_PATH", filepath.Join(t.TempDir(), "custom-races.json"))
 
 	s, err := serverpkg.NewServer()
 	require.NoError(t, err)

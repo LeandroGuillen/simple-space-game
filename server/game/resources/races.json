@@ -1,0 +1,10 @@
+{
+  "races": [
+    {
+      "name": "Human",
+      "government": "Dictatorship",
+      "trait_ids": [],
+      "playable": true
+    }
+  ]
+}

@@ -67,12 +67,12 @@ func TestGravityOutputMultiplier(t *testing.T) {
 
 func TestGravityAffectsLaborOutputs(t *testing.T) {
 	cases := []struct {
-		name        string
-		gravity     model.PlanetGravity
-		trait       string
-		wantFood    int64
+		name         string
+		gravity      model.PlanetGravity
+		trait        string
+		wantFood     int64
 		wantIndustry int64
-		wantScience int64
+		wantScience  int64
 	}{
 		// Base: 4 farmers * 2 = 8; 4 workers * 3 = 12; 4 scientists * 3 = 12
 		{"normal/no trait", model.PlanetGravityNormal, "", 8, 12, 12},

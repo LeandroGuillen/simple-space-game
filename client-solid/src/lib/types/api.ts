@@ -42,12 +42,16 @@ export type RaceTraitId =
   | "poor_homeworld"
   | "artifacts_homeworld";
 
-export type CustomRaceDesign = {
+export type RaceDesign = {
   name: string;
   government: string;
   trait_ids: RaceTraitId[] | null;
   playable?: boolean;
+  built_in?: boolean;
 };
+
+/** @deprecated Prefer RaceDesign; kept for readability in older code paths. */
+export type CustomRaceDesign = RaceDesign;
 
 export type ApiGovernment = {
   name: string;
@@ -65,7 +69,8 @@ export type NewGameOptions = {
   galaxy_age: "organic_rich" | "average" | "mineral_rich";
   players: number;
   tech_level: "low" | "average" | "advanced";
-  race: "human" | "psilon" | "custom";
+  /** Built-in slug (e.g. `human`) or `custom` for saved custom races. */
+  race: string;
   custom_race_name?: string;
   custom_race?: CustomRaceDesign;
 };

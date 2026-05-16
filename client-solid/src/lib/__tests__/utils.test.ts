@@ -95,6 +95,7 @@ function planet(overrides: Partial<PlanetViewModel> = {}): PlanetViewModel {
       sources: [],
     },
     pollution: 0,
+    gravityMultiplier: 1,
     currentProject: null,
     buildQueue: [],
     buildings: [],

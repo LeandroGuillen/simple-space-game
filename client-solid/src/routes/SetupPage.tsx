@@ -12,17 +12,15 @@ import { Portal } from "solid-js/web";
 import type {
   ApiGameListItem,
   NewGameOptions,
+  RaceDesign,
   RaceTraitId,
 } from "../lib/types/api";
-import type { CustomRaceDesign } from "../lib/types/api";
 import {
-  consumeSetupFormOpen,
   getCustomRaceDraft,
-  markSetupFormOpen,
   setCustomRaceDraft,
 } from "../lib/custom-race-storage";
 import { ApiClient } from "../lib/api";
-import { isPlayableCustomRaceDesign } from "../lib/race-design";
+import { isPlayableCustomRaceDesign, raceSlugForNewGame, newGameRaceFieldsFromEncodedSelection } from "../lib/race-design";
 import {
   getInitialSetupSelectedServerUrl,
   setSessionLastSetupServerUrl,
@@ -43,7 +41,9 @@ type ToggleOption<T extends string | number> = {
   title?: string;
 };
 
-type RaceSelection = "human" | "psilon" | "custom-link" | `custom:${string}`;
+const RACE_EDITOR_VALUE = "__race_editor__" as const;
+
+type RaceSelection = `b:${string}` | `c:${string}` | typeof RACE_EDITOR_VALUE;
 
 const difficultyOptions = [
   { label: "Easy", value: "easy" },
@@ -199,13 +199,9 @@ export function SetupPage() {
   const [players, setPlayers] = createSignal(1);
   const [techLevel, setTechLevel] =
     createSignal<NewGameOptions["tech_level"]>("average");
+  const [allRaces, setAllRaces] = createSignal<RaceDesign[]>([]);
   const [race, setRace] = createSignal<RaceSelection | null>(null);
-  const [customRace, setCustomRace] = createSignal<CustomRaceDesign | null>(
-    null,
-  );
-  const [savedCustomRaces, setSavedCustomRaces] = createSignal<
-    CustomRaceDesign[]
-  >([]);
+  const [customRace, setCustomRace] = createSignal<RaceDesign | null>(null);
   const [playerColor, setPlayerColor] = createSignal("");
   const [isNewGameModalOpen, setIsNewGameModalOpen] = createSignal(false);
   const [isConnecting, setIsConnecting] = createSignal(false);
@@ -221,19 +217,31 @@ export function SetupPage() {
   const raceOptions = createMemo(
     () =>
       [
-        { label: "Human", value: "human" },
-        { label: "Psilon", value: "psilon" },
-        ...savedCustomRaces().map((saved) => ({
-          label: isPlayableCustomRaceDesign(saved)
-            ? saved.name
-            : `${saved.name} (Unplayable)`,
-          value: `custom:${saved.name}` as const,
-          disabled: !isPlayableCustomRaceDesign(saved),
-          title: !isPlayableCustomRaceDesign(saved)
-            ? "Edit this race before using it in a game."
-            : undefined,
-        })),
-        { label: "Custom...", value: "custom-link" },
+        ...allRaces()
+          .filter((r) => r.built_in)
+          .map((r) => ({
+            label: r.playable === false ? `${r.name} (Unplayable)` : r.name,
+            value: `b:${raceSlugForNewGame(r.name)}` as const,
+            disabled: r.playable === false,
+            title:
+              r.playable === false ? "This built-in race is marked unplayable." : undefined,
+          })),
+        ...allRaces()
+          .filter((r) => !r.built_in)
+          .map((r) => ({
+            label: isPlayableCustomRaceDesign(r)
+              ? r.name
+              : `${r.name} (Unplayable)`,
+            value: `c:${r.name}` as const,
+            disabled: !isPlayableCustomRaceDesign(r),
+            title: !isPlayableCustomRaceDesign(r)
+              ? "Edit this race before using it in a game."
+              : undefined,
+          })),
+        {
+          label: "Race Editor...",
+          value: RACE_EDITOR_VALUE,
+        },
       ] satisfies ToggleOption<RaceSelection>[],
   );
 
@@ -242,7 +250,7 @@ export function SetupPage() {
     () =>
       trimmedPlayerName().length > 0 &&
       race() !== null &&
-      race() !== "custom-link" &&
+      race() !== RACE_EDITOR_VALUE &&
       playerColor().length > 0,
   );
 
@@ -294,13 +302,9 @@ export function SetupPage() {
 
   onMount(() => {
     const draft = getCustomRaceDraft();
-    const shouldReopen = consumeSetupFormOpen();
     if (draft?.name.trim()) {
       setCustomRace(draft);
-      setRace(`custom:${draft.name}`);
-    }
-    if (shouldReopen) {
-      setIsNewGameModalOpen(true);
+      setRace(`c:${draft.name}`);
     }
     const sel = selectedServerUrl();
     if (!sel) {
@@ -333,7 +337,7 @@ export function SetupPage() {
     void (async () => {
       try {
         const client = new ApiClient(url, state.session.playerId);
-        setSavedCustomRaces(await client.getCustomRaces());
+        setAllRaces(await client.getRaces());
       } catch {
         // global connection flow handles server errors; custom races are optional on setup
       }
@@ -421,26 +425,17 @@ export function SetupPage() {
       return;
     }
     try {
-      const selectedRace = race();
-      if (!selectedRace || selectedRace === "custom-link") return;
-      const selectedCustomRace = selectedRace.startsWith("custom:")
-        ? (savedCustomRaces().find(
-            (saved) => `custom:${saved.name}` === selectedRace,
-          ) ?? customRace())
-        : null;
+      const selected = race();
+      if (!selected || selected === RACE_EDITOR_VALUE) return;
+      const selectedCustom =
+        selected.startsWith("c:") ? allRaces().find((r) => !r.built_in && r.name === selected.slice(2)) ?? customRace() : null;
       if (
-        selectedCustomRace &&
-        !isPlayableCustomRaceDesign(selectedCustomRace)
+        selectedCustom &&
+        !isPlayableCustomRaceDesign(selectedCustom)
       ) {
         return;
       }
-      const requestRace: NewGameOptions["race"] = selectedRace.startsWith(
-        "custom:",
-      )
-        ? "custom"
-        : selectedRace === "psilon"
-          ? "psilon"
-          : "human";
+      const raceFields = newGameRaceFieldsFromEncodedSelection(selected);
       const gameId = await createGame({
         player_name: trimmedPlayerName(),
         player_color: playerColor(),
@@ -450,8 +445,7 @@ export function SetupPage() {
         galaxy_age: galaxyAge(),
         players: players(),
         tech_level: techLevel(),
-        race: requestRace,
-        ...(selectedCustomRace ? { custom_race: selectedCustomRace } : {}),
+        ...raceFields,
       });
       await selectGame(gameId);
       navigate("/galaxy");
@@ -466,15 +460,12 @@ export function SetupPage() {
   };
 
   const handleSelectRace = (nextRace: RaceSelection) => {
-    if (nextRace === "custom-link") {
-      markSetupFormOpen();
-      navigate("/setup/custom-race");
+    if (nextRace === RACE_EDITOR_VALUE) {
+      navigate("/race-editor");
       return;
     }
-    if (nextRace.startsWith("custom:")) {
-      const saved = savedCustomRaces().find(
-        (race) => `custom:${race.name}` === nextRace,
-      );
+    if (nextRace.startsWith("c:")) {
+      const saved = allRaces().find((r) => `c:${r.name}` === nextRace);
       if (saved) {
         setCustomRace(saved);
         setCustomRaceDraft({
@@ -574,6 +565,26 @@ export function SetupPage() {
           </aside>
 
           <section class="setup-games" aria-label="Games">
+            <div class="setup-landing-tools" role="group" aria-label="Design tools">
+              <button
+                type="button"
+                class="setup-landing-tool setup-landing-tool--race"
+                disabled={!isConnected()}
+                onClick={() => navigate("/race-editor")}
+              >
+                <span class="setup-landing-tool-label">Race Editor</span>
+                <span class="setup-landing-tool-hint">Design or edit custom races</span>
+              </button>
+              <button
+                type="button"
+                class="setup-landing-tool setup-landing-tool--ship"
+                disabled
+                title="Ship Editor is planned for a future update."
+              >
+                <span class="setup-landing-tool-label">Ship Editor</span>
+                <span class="setup-landing-tool-hint">Planned for a future update</span>
+              </button>
+            </div>
             <div class="setup-games-header">
               <PanelHeader title="Games" count={isConnected() ? gameCount() : undefined} />
               <Show when={isConnected() && gameCount() > 0}>
@@ -732,7 +743,7 @@ export function SetupPage() {
                   options={raceOptions()}
                   selected={race()}
                   onSelect={handleSelectRace}
-                  linkValues={["custom-link"]}
+                  linkValues={[RACE_EDITOR_VALUE]}
                   error={
                     validationAttempted() && race() === null
                       ? "Select a race to continue."

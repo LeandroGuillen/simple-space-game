@@ -18,6 +18,15 @@ func TestResourceManagerLoadsShipSystems(t *testing.T) {
 	assert.True(t, shipSystemExists(shipSystems.ShipSystems, "Anti-Missile Rockets"))
 }
 
+func TestNewResourceManagerLoadsHumanBuiltinRace(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+	require.Len(t, resources.BuiltInRaces, 1)
+	assert.Equal(t, "Human", resources.BuiltInRaces[0].Name)
+	assert.True(t, resources.BuiltInRaces[0].BuiltIn)
+	assert.True(t, resources.BuiltInRaces[0].Playable)
+}
+
 func TestResourceManagerLoadsBuildableStarterFrigate(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)

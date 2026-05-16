@@ -2,36 +2,23 @@ import { Navigate, Route, Router } from "@solidjs/router";
 
 import { AppShell } from "./components/AppShell";
 import { ColoniesPage } from "./routes/ColoniesPage";
-import { CustomRacePage } from "./routes/CustomRacePage";
 import { FleetsPage } from "./routes/FleetsPage";
 import { GalaxyPage } from "./routes/GalaxyPage";
 import { PlanetPage } from "./routes/PlanetPage";
+import { RaceEditorPage } from "./routes/RaceEditorPage";
 import { SetupPage } from "./routes/SetupPage";
 import { TechnologyPage } from "./routes/TechnologyPage";
-import { AppProvider, useAppContext } from "./state/app-context";
-
-function HomeRoute() {
-  const { state } = useAppContext();
-  return (
-    <Navigate
-      href={
-        state.session.serverUrl
-          ? state.session.selectedGameId
-            ? "/galaxy"
-            : "/setup"
-          : "/setup"
-      }
-    />
-  );
-}
+import { AppProvider } from "./state/app-context";
 
 export default function App() {
   return (
     <AppProvider>
       <Router root={AppShell}>
-        <Route path="/" component={HomeRoute} />
-        <Route path="/setup" component={SetupPage} />
-        <Route path="/setup/custom-race" component={CustomRacePage} />
+        <Route path="/" component={SetupPage} />
+        <Route path="/race-editor" component={RaceEditorPage} />
+        <Route path="/setup" component={() => <Navigate href="/" />} />
+        <Route path="/setup/races" component={() => <Navigate href="/race-editor" />} />
+        <Route path="/setup/custom-race" component={() => <Navigate href="/race-editor" />} />
         <Route path="/galaxy" component={GalaxyPage} />
         <Route path="/stars/:starId/planets/:planetId" component={PlanetPage} />
         <Route path="/colonies" component={ColoniesPage} />

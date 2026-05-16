@@ -164,6 +164,47 @@ func newGameWithRaceTraits(t *testing.T, traitIDs []string) *Game {
 	return g
 }
 
+func TestBuildHumanFromResourceManagerBuiltIn(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+	require.NotEmpty(t, resources.BuiltInRaces)
+	var human RaceDesign
+	for _, d := range resources.BuiltInRaces {
+		if d.Name == "Human" {
+			human = d
+			break
+		}
+	}
+	require.Equal(t, "Human", human.Name)
+	race, err := BuildCustomRace(resources, RaceDesign{Name: human.Name, Government: human.Government, TraitIDs: human.TraitIDs})
+	require.NoError(t, err)
+	assert.Equal(t, "Human", race.Name)
+	assert.Equal(t, "Dictatorship", race.Government)
+}
+
+func TestValidateBuiltInRacesRejectsDuplicateNames(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+	resources.BuiltInRaces = []RaceDesign{
+		{Name: "NearDup", Government: "Dictatorship", TraitIDs: nil, Playable: true},
+		{Name: "neardup", Government: "Dictatorship", TraitIDs: nil, Playable: true},
+	}
+	err = resources.validateBuiltInRaces()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "duplicate")
+}
+
+func TestValidateBuiltInRacesRejectsInvalidTrait(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+	resources.BuiltInRaces = []RaceDesign{
+		{Name: "Broken", Government: "Dictatorship", TraitIDs: []string{"nope"}, Playable: true},
+	}
+	err = resources.validateBuiltInRaces()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "unknown race trait")
+}
+
 func testResources(t *testing.T) *ResourceManager {
 	t.Helper()
 	resources, err := NewResourceManager()

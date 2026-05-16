@@ -1,4 +1,4 @@
-import type { ApiGovernment, CustomRaceDesign, RaceTraitId } from "./types/api";
+import type { ApiGovernment, CustomRaceDesign, NewGameOptions, RaceTraitId } from "./types/api";
 
 export type RaceTraitDefinition = {
   id: string;
@@ -134,6 +134,22 @@ export function validatePlayableCustomRaceDesign(design: CustomRaceDesign, gover
 
 export function isPlayableCustomRaceDesign(design: CustomRaceDesign, governments: readonly ApiGovernment[] = fallbackGovernments) {
   return validatePlayableCustomRaceDesign(design, governments).length === 0;
+}
+
+/** API key for built-in races in new-game requests (e.g. Human -> human). */
+export function raceSlugForNewGame(name: string): string {
+  return name.trim().toLowerCase().replace(/\s+/g, "_");
+}
+
+/** Decode `b:slug` / `c:name` from the server page race toggle. */
+export function newGameRaceFieldsFromEncodedSelection(encoded: string): Pick<NewGameOptions, "race" | "custom_race_name"> {
+  if (encoded.startsWith("c:")) {
+    return { race: "custom", custom_race_name: encoded.slice(2) };
+  }
+  if (encoded.startsWith("b:")) {
+    return { race: encoded.slice(2) };
+  }
+  throw new Error(`invalid race selection: ${encoded}`);
 }
 
 export function isRaceTraitId(id: string): id is RaceTraitId {

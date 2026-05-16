@@ -8,6 +8,7 @@ import type {
   ApiStatusResponse,
   CustomRaceDesign,
   NewGameOptions,
+  RaceDesign,
 } from './types/api';
 import type { ShipDesignForm } from './types/domain';
 import type { TurnCommands } from './types/commands';
@@ -68,24 +69,40 @@ export class ApiClient {
     return readJson<ApiPlayerColorOptions>(response);
   }
 
+  async getRaces() {
+    const response = await fetch(`${this.baseUrl}/races`);
+    const body = await readJson<{ races: RaceDesign[] }>(response);
+    return body.races;
+  }
+
   async getCustomRaces() {
     const response = await fetch(`${this.baseUrl}/races/custom`);
     const body = await readJson<{ custom_races: CustomRaceDesign[] }>(response);
     return body.custom_races;
   }
 
-  async saveCustomRace(design: CustomRaceDesign) {
+  async saveCustomRace(
+    design: CustomRaceDesign,
+    opts?: { renameFrom?: string; saveAsNew?: boolean },
+  ) {
+    const body: Record<string, unknown> = {
+      name: design.name,
+      government: design.government,
+      trait_ids: design.trait_ids,
+    };
+    if (opts?.renameFrom) {
+      body.rename_from = opts.renameFrom;
+    }
+    if (opts?.saveAsNew) {
+      body.save_as_new = true;
+    }
     const response = await fetch(`${this.baseUrl}/races/custom`, {
       method: 'POST',
       headers: this.headers(),
-      body: JSON.stringify({
-        name: design.name,
-        government: design.government,
-        trait_ids: design.trait_ids,
-      }),
+      body: JSON.stringify(body),
     });
-    const body = await readJson<{ custom_race: CustomRaceDesign }>(response);
-    return body.custom_race;
+    const data = await readJson<{ custom_race: CustomRaceDesign }>(response);
+    return data.custom_race;
   }
 
   async getGovernments() {

@@ -32,11 +32,60 @@ type RaceHomeworldModifier struct {
 	SciencePerScientist int64
 }
 
-type CustomRaceDesign struct {
+// RaceDesign is the API/persistence shape for a race template (built-in or custom).
+type RaceDesign struct {
 	Name       string   `json:"name"`
 	Government string   `json:"government"`
 	TraitIDs   []string `json:"trait_ids"`
 	Playable   bool     `json:"playable"`
+	BuiltIn    bool     `json:"built_in,omitempty"`
+}
+
+// CustomRaceDesign is preserved as an alias for player-authored race payloads.
+type CustomRaceDesign = RaceDesign
+
+// RaceCollection is the races.json envelope.
+type RaceCollection struct {
+	Races []RaceDesign `json:"races"`
+}
+
+// CustomRaceCollection is the custom-races.json envelope.
+type CustomRaceCollection struct {
+	CustomRaces []RaceDesign `json:"custom_races"`
+}
+
+// RaceSlug normalizes a race display name to the new-game request key (e.g. Human -> human).
+func RaceSlug(name string) string {
+	name = strings.TrimSpace(name)
+	return strings.ToLower(strings.ReplaceAll(name, " ", "_"))
+}
+
+func (r *ResourceManager) BuiltInRaceByKey(key string) (RaceDesign, bool) {
+	key = strings.TrimSpace(strings.ToLower(key))
+	if key == "" {
+		key = "human"
+	}
+	for i := range r.BuiltInRaces {
+		d := r.BuiltInRaces[i]
+		if RaceSlug(d.Name) == key {
+			return d, true
+		}
+	}
+	return RaceDesign{}, false
+}
+
+// IsBuiltInRaceName reports whether name matches a built-in race (case-insensitive).
+func (r *ResourceManager) IsBuiltInRaceName(name string) bool {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return false
+	}
+	for _, d := range r.BuiltInRaces {
+		if strings.EqualFold(strings.TrimSpace(d.Name), name) {
+			return true
+		}
+	}
+	return false
 }
 
 var raceTraitDefinitions = []RaceTraitDefinition{

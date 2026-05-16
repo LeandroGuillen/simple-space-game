@@ -2,7 +2,6 @@ import type { CustomRaceDesign } from "./types/api";
 import { DEFAULT_GOVERNMENT, isRaceTraitId } from "./race-design";
 
 const CUSTOM_RACE_DRAFT_KEY = "client-solid.customRaceDraft";
-const SETUP_FORM_OPEN_KEY = "client-solid.setupFormOpen";
 
 export function getCustomRaceDraft(): CustomRaceDesign | null {
   try {
@@ -26,14 +25,4 @@ export function setCustomRaceDraft(design: CustomRaceDesign) {
 
 export function clearCustomRaceDraft() {
   window.sessionStorage.removeItem(CUSTOM_RACE_DRAFT_KEY);
-}
-
-export function markSetupFormOpen() {
-  window.sessionStorage.setItem(SETUP_FORM_OPEN_KEY, "1");
-}
-
-export function consumeSetupFormOpen() {
-  const shouldOpen = window.sessionStorage.getItem(SETUP_FORM_OPEN_KEY) === "1";
-  window.sessionStorage.removeItem(SETUP_FORM_OPEN_KEY);
-  return shouldOpen;
 }
