@@ -275,6 +275,20 @@ describe("getPlanetProjectedPopulationGrowth", () => {
     expect(getPlanetProjectedPopulationGrowth(colony)).toBe(200);
   });
 
+  it("includes Housing growth from projected net industry", () => {
+    const colony = planet({
+      currentProject: building("Housing"),
+      industry: {
+        workers: 5,
+        produced_per_worker: 2,
+        produced_per_building: 0,
+        produced_per_colonist: 0,
+      },
+    });
+
+    expect(getPlanetProjectedPopulationGrowth(colony)).toBe(140);
+  });
+
   it("uses morale-boosted farmer food for starvation checks", () => {
     const colony = planet({
       population: 10000,
@@ -292,6 +306,26 @@ describe("getPlanetProjectedPopulationGrowth", () => {
     });
 
     expect(getPlanetProjectedPopulationGrowth(colony)).toBe(0);
+  });
+});
+
+describe("getPlanetProjectedIncome", () => {
+  it("does not produce Trade Goods while Housing", () => {
+    const colony = planet({
+      currentProject: building("Housing"),
+      isBuilding: false,
+    });
+
+    expect(getPlanetProjectedIncome(colony).tradeGoods).toBe(0);
+  });
+
+  it("produces Trade Goods only while Trade Goods is active", () => {
+    const colony = planet({
+      currentProject: building("Trade Goods"),
+      isBuilding: false,
+    });
+
+    expect(getPlanetProjectedIncome(colony).tradeGoods).toBe(5);
   });
 });
 

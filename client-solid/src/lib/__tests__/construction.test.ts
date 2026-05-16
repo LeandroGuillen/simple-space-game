@@ -89,4 +89,15 @@ describe('toggleQueuedConstructionProject', () => {
       }),
     ).toEqual([factory]);
   });
+
+  it('replaces a lone Housing entry when adding another project', () => {
+    const housing = project(-1, 'Housing');
+    const factory = project(1, 'Automated Factory');
+
+    expect(
+      toggleQueuedConstructionProject([housing], factory, {
+        terminalProjectIds: [0, -1],
+      }),
+    ).toEqual([factory]);
+  });
 });

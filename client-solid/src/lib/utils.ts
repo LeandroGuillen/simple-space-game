@@ -295,7 +295,7 @@ export function getPlanetProjectedIncome(planet: PlanetViewModel, pendingCommand
   const industry = getPlanetIndustryForWorkers(planet, population.workers);
   const producesTradeGoods =
     pendingBuild?.building === "Trade Goods" ||
-    (!planet.isBuilding && !pendingBuild);
+    (!planet.isBuilding && !pendingBuild && planet.currentProject?.name === "Trade Goods");
   const tradeGoods = producesTradeGoods
     ? Math.floor(foodSurplus / 2) + Math.floor(industry / 2)
     : 0;
@@ -321,8 +321,12 @@ export function getPlanetProjectedPopulationGrowth(planet: PlanetViewModel, pend
   if (planet.population <= 0) {
     return 0;
   }
+  if (planet.population >= planet.maxPopulation) {
+    return 0;
+  }
 
   const allocation = getProjectedWorkerAllocation(planet, pendingCommands?.movePopulation ?? []);
+  const pendingBuild = getPendingBuild(planet.id, pendingCommands?.build ?? []);
   const planetCapacity = Math.floor(planet.maxPopulation / 1000);
   const popUnits = Math.floor(Math.min(planet.population, planet.maxPopulation) / 1000);
   const freeSpace = planetCapacity - popUnits;
@@ -342,8 +346,20 @@ export function getPlanetProjectedPopulationGrowth(planet: PlanetViewModel, pend
       ),
     0,
   );
+  const isHousing =
+    pendingBuild?.building === "Housing" ||
+    (!pendingBuild && planet.currentProject?.name === "Housing");
+  const industry = getPlanetIndustryForWorkers(planet, allocation.workers);
+  const populationUnits = Math.max(1, Math.floor(planet.population / 1000));
+  const housingBonusPercent = isHousing
+    ? Math.floor((industry * 40) / populationUnits)
+    : 0;
 
-  return Math.floor(basicIncrement + flatGrowthBonus - foodLackPenalty);
+  return Math.floor(
+    Math.floor((basicIncrement * (100 + housingBonusPercent)) / 100) +
+      flatGrowthBonus -
+      foodLackPenalty,
+  );
 }
 
 export function getColonyRows(

@@ -47,6 +47,39 @@ import type {
 const DEFAULT_GALAXY_WIDTH = 700;
 const DEFAULT_GALAXY_HEIGHT = 400;
 
+const VIRTUAL_PROJECTS = new Map<string, BuildingViewModel>([
+  [
+    "trade goods",
+    {
+      id: 0,
+      name: "Trade Goods",
+      description: "Converts surplus colony output into treasury income.",
+      icon: "💱",
+      cost: 0,
+      maintenance: 0,
+      unique: false,
+      upgrades: [],
+      grants: emptyGrants(),
+      modifiers: [],
+    },
+  ],
+  [
+    "housing",
+    {
+      id: -1,
+      name: "Housing",
+      description: "Converts colony production into population growth.",
+      icon: "🏘️",
+      cost: 0,
+      maintenance: 0,
+      unique: false,
+      upgrades: [],
+      grants: emptyGrants(),
+      modifiers: [],
+    },
+  ],
+]);
+
 export function mapGame(apiGame: ApiGame): GameViewModel {
   const players = apiGame.players.map(mapPlayer);
   const commonShipDesigns =
@@ -449,6 +482,7 @@ function mapPlanetProject(
 	}
 	if (typeof project === "string") {
 		return (
+			VIRTUAL_PROJECTS.get(project.toLowerCase()) ??
 			buildingByName.get(project.toLowerCase()) ??
 			shipDesignProjectByName.get(project.toLowerCase()) ??
 			null
@@ -458,6 +492,23 @@ function mapPlanetProject(
 		return null;
 	}
 	return mapBuilding(project);
+}
+
+function emptyGrants() {
+  return {
+    unlocks: {
+      buildings: [],
+      hullSizes: [],
+      drives: [],
+      armors: [],
+      computers: [],
+      fuelCells: [],
+      shields: [],
+      beams: [],
+      shipSystems: [],
+    },
+    modifiers: [],
+  };
 }
 
 function mapIncome(planet: ApiPlanet, buildingsOnPlanet: BuildingViewModel[]) {
@@ -487,7 +538,11 @@ function mapIncome(planet: ApiPlanet, buildingsOnPlanet: BuildingViewModel[]) {
     0,
     grossIndustry - mapPlanetPollution(planet, planet.industry.workers),
   );
-  const tradeGoods = planet.is_building
+  const currentProjectName =
+    typeof planet.current_project === "string"
+      ? planet.current_project
+      : planet.current_project?.name;
+  const tradeGoods = planet.is_building || currentProjectName !== "Trade Goods"
     ? 0
     : Math.floor(foodSurplus / 2) + Math.floor(industry / 2);
   const maintenance = buildingsOnPlanet.reduce(

@@ -291,7 +291,7 @@ func (g *Game) ColonizePlanet(ownerID, sourcePlanetID, targetPlanetID uint) erro
 		target.Industry.Workers = 1
 	}
 
-	target.CurrentProject = "Trade Goods"
+	target.CurrentProject = tradeGoodsProject
 	target.IsBuilding = false
 	target.BuildBucket = 0
 
@@ -407,7 +407,7 @@ func (g *Game) colonizePlanet(ownerID uint, target *Planet) error {
 		target.Industry.Workers = 1
 	}
 
-	target.CurrentProject = "Trade Goods"
+	target.CurrentProject = tradeGoodsProject
 	target.IsBuilding = false
 	target.BuildBucket = 0
 	return nil

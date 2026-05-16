@@ -20,6 +20,7 @@ import {
   formatInteger,
   getBuyProductionCost,
   getPlanetIndustryForWorkers,
+  getPlanetProjectedPopulationGrowth,
   findStar,
   getArtificialPlanetTargets,
   getSuitablePlanetsForColonization,
@@ -54,6 +55,19 @@ const TRADE_GOODS: BuildingViewModel = {
     },
     modifiers: [],
   },
+  modifiers: [],
+};
+
+const HOUSING: BuildingViewModel = {
+  id: -1,
+  name: "Housing",
+  description: "Converts colony production into population growth.",
+  icon: "🏘️",
+  cost: 0,
+  maintenance: 0,
+  unique: false,
+  upgrades: [],
+  grants: TRADE_GOODS.grants,
   modifiers: [],
 };
 
@@ -238,7 +252,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     buildableShipDesigns().map((design) => shipDesignProject(design)),
   );
   const availableProjects = createMemo(() => {
-    const projects = [TRADE_GOODS, ...buildableProjects(), ...shipDesignProjects()];
+    const projects = [TRADE_GOODS, HOUSING, ...buildableProjects(), ...shipDesignProjects()];
     if (colonyBaseProject()) {
       projects.push(colonyBaseProject()!);
     }
@@ -252,6 +266,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   });
   const buildingListProjects = createMemo(() => [
     TRADE_GOODS,
+    HOUSING,
     ...buildableProjects(),
   ]);
   const projectByName = createMemo(
@@ -398,6 +413,9 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   const industryPerTurn = createMemo(() =>
     getPlanetIndustryForWorkers(props.planet, projectedWorkers()),
   );
+  const housingGrowthProjection = createMemo(() =>
+    getPlanetProjectedPopulationGrowth(props.planet, state.pendingCommands),
+  );
   function effectiveProjectCost(project: BuildingViewModel) {
     const upgradeCredit = project.upgrades.reduce((credit, upgradedName) => {
       if (!builtBuildingNames().has(upgradedName)) {
@@ -459,7 +477,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   });
   const displayedBuildBucket = createMemo(() => {
     const project = activeProject();
-    if (project.id === TRADE_GOODS.id) {
+    if (project.id === TRADE_GOODS.id || project.id === HOUSING.id) {
       return 0;
     }
     if (
@@ -475,7 +493,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   });
   const completedProduction = createMemo(() => {
     const project = activeProject();
-    if (project.id === TRADE_GOODS.id) {
+    if (project.id === TRADE_GOODS.id || project.id === HOUSING.id) {
       return 0;
     }
     return Math.max(0, effectiveProjectCost(project) - displayedBuildBucket());
@@ -483,7 +501,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   const progressPercent = createMemo(() => {
     const project = activeProject();
     const projectCost = effectiveProjectCost(project);
-    if (project.id === TRADE_GOODS.id || !projectCost) {
+    if (project.id === TRADE_GOODS.id || project.id === HOUSING.id || !projectCost) {
       return 0;
     }
     return Math.min(
@@ -492,7 +510,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     );
   });
   const turnsRemaining = createMemo(() => {
-    if (activeProject().id === TRADE_GOODS.id || industryPerTurn() <= 0) {
+    if (activeProject().id === TRADE_GOODS.id || activeProject().id === HOUSING.id || industryPerTurn() <= 0) {
       return null;
     }
     return Math.max(1, Math.ceil(displayedBuildBucket() / industryPerTurn()));
@@ -511,7 +529,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   );
   const canBuyProject = createMemo(() => {
     const project = activeProject();
-    if (project.id === TRADE_GOODS.id) return false;
+    if (project.id === TRADE_GOODS.id || project.id === HOUSING.id) return false;
     return effectiveProjectCost(project) > 0 && displayedBuildBucket() > 0;
   });
   const buyCost = createMemo(() =>
@@ -531,7 +549,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   });
   const buyTooltip = createMemo(() => {
     if (!canBuyProject()) {
-      return "Trade Goods cannot be bought";
+      return `${activeProject().name} cannot be bought`;
     }
     if (isBuyPending()) {
       return `Buy queued: ${formatInteger(buyCost())} BC · click to cancel`;
@@ -599,7 +617,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     const currentProjects = queuedProjects();
     const nextProjects = toggleQueuedConstructionProject(currentProjects, project, {
       isRepeatable,
-      tradeGoodsId: TRADE_GOODS.id,
+      terminalProjectIds: [TRADE_GOODS.id, HOUSING.id],
     });
     updateQueuedProjects(nextProjects);
     return nextProjects;
@@ -932,7 +950,11 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
                       </div>
                       <div>
                         <dt>Output</dt>
-                        <dd>{industryPerTurn()} PP/turn</dd>
+                        <dd>
+                          {previewProject().id === HOUSING.id
+                            ? `${housingGrowthProjection()} population growth`
+                            : `${industryPerTurn()} PP/turn`}
+                        </dd>
                       </div>
                     </dl>
                   </article>

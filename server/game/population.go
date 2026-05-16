@@ -87,6 +87,10 @@ func PopulationGrowth(population, foodPerBuilding, foodPerFarmer, numFarmers, ma
 }
 
 func PopulationGrowthFromFood(population, totalFoodProduced, maxPop, raceGrowthPercent, flatGrowthBonus int64) int64 {
+	return PopulationGrowthFromFoodWithHousing(population, totalFoodProduced, maxPop, raceGrowthPercent, flatGrowthBonus, 0)
+}
+
+func PopulationGrowthFromFoodWithHousing(population, totalFoodProduced, maxPop, raceGrowthPercent, flatGrowthBonus, housingGrowthBonusPercent int64) int64 {
 	if population <= 0 {
 		return 0
 	}
@@ -98,8 +102,7 @@ func PopulationGrowthFromFood(population, totalFoodProduced, maxPop, raceGrowthP
 
 	race_bonus := float64(raceGrowthPercent)
 	medicine_bonus := float64(0) // TODO: sum of technology bonus and leader bonus
-	// housing_bonus = math.Floor( PP * 40 / float64(p.Population) )
-	housing_bonus := float64(0) // TODO appears if 'housing' is picked in the build menu
+	housing_bonus := float64(housingGrowthBonusPercent)
 
 	all_bonuses := race_bonus + medicine_bonus + housing_bonus
 	population_growth := math.Floor(basic_increment * (100 + all_bonuses) / 100)

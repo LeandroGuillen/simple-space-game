@@ -49,4 +49,15 @@ describe("toTurnCommands", () => {
       { source_planet_id: 1, destination_planet_id: 2, population_units: 1 },
     ]);
   });
+
+  it("serializes Housing build commands unchanged", () => {
+    const commands = toTurnCommands(
+      pendingCommands({
+        build: [{ planetId: 1, building: "Housing" }],
+      }),
+      null,
+    );
+
+    expect(commands.build).toEqual([{ planetId: 1, building: "Housing" }]);
+  });
 });

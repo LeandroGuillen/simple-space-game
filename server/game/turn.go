@@ -8,6 +8,11 @@ import (
 	"strings"
 )
 
+const (
+	tradeGoodsProject = "Trade Goods"
+	housingProject    = "Housing"
+)
+
 func planetTurn(p *Planet, commands Commands, player *Player, game *Game, foodReceivedValues ...int64) error {
 	foodReceived := int64(0)
 	if len(foodReceivedValues) > 0 {
@@ -29,14 +34,39 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game, foodRe
 		capAssignedPopulation(p)
 	}
 
+	industryProduced := GamePlanetIndustryProduced(game, p)
+	planetBuildCommand := findPlanetBuildCommand(p, commands)
+	buildingName := ""
+	if planetBuildCommand != nil {
+		buildingName = planetBuildCommand.Building
+	}
+	if buildingName == housingProject {
+		if p.Population >= maxPop {
+			p.CurrentProject = tradeGoodsProject
+		} else {
+			p.CurrentProject = housingProject
+		}
+		p.IsBuilding = false
+		p.BuildBucket = 0
+	}
+	if planetBuildCommand == nil && p.CurrentProject == housingProject && p.Population >= maxPop {
+		p.CurrentProject = tradeGoodsProject
+	}
+
 	// population growth calculations
 	oldPopulation := p.Population
-	growth := PopulationGrowthFromFood(
+	housingBonus := int64(0)
+	housingActive := isHousingProject(p, commands) && p.Population < maxPop
+	if housingActive {
+		housingBonus = housingGrowthBonus(industryProduced, p.Population)
+	}
+	growth := PopulationGrowthFromFoodWithHousing(
 		p.Population,
 		GamePlanetFoodProduced(game, p)+foodReceived,
 		maxPop,
 		player.Race.Stats.PopulationGrowthPercent,
 		PopulationGrowthBonus(game, p),
+		housingBonus,
 	)
 	p.Population += growth
 	p.LastTurnPopGrowth = growth
@@ -50,6 +80,9 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game, foodRe
 	if p.Population > maxPop {
 		p.Population = maxPop
 	}
+	if housingActive && p.Population >= maxPop {
+		p.CurrentProject = tradeGoodsProject
+	}
 
 	// should we increase/decrease pop units?
 	popIncrease := int64(math.Floor(float64(p.Population/1000)) - math.Floor(float64(oldPopulation/1000)))
@@ -58,18 +91,7 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game, foodRe
 	}
 	capAssignedPopulation(p)
 
-	// industry output
-	industryProduced := GamePlanetIndustryProduced(game, p)
-
-	var planetBuildCommand *BuildCommand
-	for _, command := range commands.Build {
-		if command.PlanetID == p.ID {
-			planetBuildCommand = command
-		}
-	}
-	buildingName := ""
 	if planetBuildCommand != nil {
-		buildingName = planetBuildCommand.Building
 		if planetBuildCommand.BuildQueue != nil {
 			p.BuildQueue = sanitizeBuildQueue(p, buildingName, planetBuildCommand.BuildQueue, player.Available.Buildings, game)
 			if buildingName != "" && len(p.BuildQueue) > 0 && p.BuildQueue[0] == buildingName {
@@ -80,11 +102,11 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game, foodRe
 			}
 		}
 	}
-	if buildingName == "" && !(p.IsBuilding && p.CurrentProject != "") {
+	if buildingName == "" && !(p.IsBuilding && p.CurrentProject != "") && !isSpecialNonBuildingProject(p.CurrentProject) {
 		if len(p.BuildQueue) > 0 {
 			buildingName = popNextQueuedBuild(p)
 			if !Build(p, buildingName, player.Available.Buildings, game) {
-				p.CurrentProject = "Trade Goods"
+				p.CurrentProject = tradeGoodsProject
 				p.IsBuilding = false
 				p.BuildBucket = 0
 			}
@@ -93,18 +115,26 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game, foodRe
 				buildingName = nextAutobuildProject(p, player.Available.Buildings, game)
 			}
 			if buildingName == "" || !Build(p, buildingName, player.Available.Buildings, game) {
-				p.CurrentProject = "Trade Goods"
+				p.CurrentProject = tradeGoodsProject
 				p.IsBuilding = false
 				p.BuildBucket = 0
 			}
 		}
-	} else if buildingName == "Trade Goods" {
-		p.CurrentProject = "Trade Goods"
+	} else if buildingName == tradeGoodsProject {
+		p.CurrentProject = tradeGoodsProject
+		p.IsBuilding = false
+		p.BuildBucket = 0
+	} else if buildingName == housingProject {
+		if p.Population >= maxPop {
+			p.CurrentProject = tradeGoodsProject
+		} else {
+			p.CurrentProject = housingProject
+		}
 		p.IsBuilding = false
 		p.BuildBucket = 0
 	} else if buildingName != "" {
 		if !Build(p, buildingName, player.Available.Buildings, game) {
-			p.CurrentProject = "Trade Goods"
+			p.CurrentProject = tradeGoodsProject
 			p.IsBuilding = false
 			p.BuildBucket = 0
 		}
@@ -172,19 +202,48 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game, foodRe
 			}
 			nextProject := popNextQueuedBuild(p)
 			if !Build(p, nextProject, player.Available.Buildings, game) {
-				p.CurrentProject = "Trade Goods"
+				p.CurrentProject = tradeGoodsProject
 				p.IsBuilding = false
 				p.BuildBucket = 0
 				p.IndustryStack += availableProduction
 				break
 			}
 		}
-	} else if p.CurrentProject != "Trade Goods" {
+	} else if p.CurrentProject != tradeGoodsProject && p.CurrentProject != housingProject {
 		// if nothing to work on, save production
 		p.IndustryStack += industryProduced
 	}
 
 	return nil
+}
+
+func findPlanetBuildCommand(p *Planet, commands Commands) *BuildCommand {
+	for _, command := range commands.Build {
+		if command.PlanetID == p.ID {
+			return command
+		}
+	}
+	return nil
+}
+
+func isHousingProject(p *Planet, commands Commands) bool {
+	command := findPlanetBuildCommand(p, commands)
+	if command != nil {
+		return command.Building == housingProject
+	}
+	return p.CurrentProject == housingProject
+}
+
+func housingGrowthBonus(industryProduced, population int64) int64 {
+	if industryProduced <= 0 || population <= 0 {
+		return 0
+	}
+	populationUnits := max(int64(1), population/1000)
+	return int64(math.Floor(float64(industryProduced*40) / float64(populationUnits)))
+}
+
+func isSpecialNonBuildingProject(project string) bool {
+	return project == tradeGoodsProject || project == housingProject
 }
 
 func assignNewPopulation(game *Game, p *Planet, popIncrease int64) {
@@ -268,7 +327,7 @@ func sanitizeBuildQueue(p *Planet, selectedProject string, buildQueue []string, 
 		if len(queue) >= 10 {
 			break
 		}
-		if buildingName == "" || buildingName == "Trade Goods" {
+		if buildingName == "" || isSpecialNonBuildingProject(buildingName) {
 			continue
 		}
 		if !isRepeatableProject(buildingName) && !isShipDesignProductionProject(p, buildingName, game) && seen[buildingName] {
@@ -547,8 +606,8 @@ func BuyProductionCost(effectiveCost, remaining int64) int64 {
 }
 
 func applyBuyProduction(p *Planet, player *Player, game *Game) error {
-	if p.CurrentProject == "Trade Goods" {
-		return fmt.Errorf("cannot buy Trade Goods")
+	if isSpecialNonBuildingProject(p.CurrentProject) {
+		return fmt.Errorf("cannot buy %s", p.CurrentProject)
 	}
 	if !p.IsBuilding || p.CurrentProject == "" {
 		return fmt.Errorf("cannot buy production: planet %d is not building", p.ID)

@@ -24,6 +24,7 @@ type ToggleQueuedProjectOptions = {
   maxQueueSize?: number;
   isRepeatable?: boolean;
   tradeGoodsId?: number;
+  terminalProjectIds?: number[];
 };
 
 export function toggleQueuedConstructionProject(
@@ -32,7 +33,7 @@ export function toggleQueuedConstructionProject(
   options: ToggleQueuedProjectOptions = {},
 ): BuildingViewModel[] {
   const maxQueueSize = options.maxQueueSize ?? 10;
-  const tradeGoodsId = options.tradeGoodsId ?? 0;
+  const terminalProjectIds = options.terminalProjectIds ?? [options.tradeGoodsId ?? 0];
   const isRepeatable = options.isRepeatable ?? false;
 
   if (!isRepeatable) {
@@ -45,9 +46,9 @@ export function toggleQueuedConstructionProject(
   }
 
   const projects =
-    project.id !== tradeGoodsId &&
+    !terminalProjectIds.includes(project.id) &&
     currentProjects.length === 1 &&
-    currentProjects[0]?.id === tradeGoodsId
+    terminalProjectIds.includes(currentProjects[0]?.id ?? Number.NaN)
       ? []
       : currentProjects;
 
