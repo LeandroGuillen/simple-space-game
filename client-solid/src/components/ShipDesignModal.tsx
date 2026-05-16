@@ -176,11 +176,12 @@ export function ShipDesignModal(props: ShipDesignModalProps) {
   );
 }
 
-function OptionToggleField(props: {
+export function OptionToggleField(props: {
   label: string;
   value: string;
   options: string[];
   onSelect: (value: string) => void;
+  disabled?: boolean;
 }) {
   return (
     <div class="option-row">
@@ -193,7 +194,8 @@ function OptionToggleField(props: {
               class="option-toggle"
               classList={{ selected: props.value === option }}
               aria-pressed={props.value === option}
-              onClick={() => props.onSelect(option)}
+              disabled={props.disabled}
+              onClick={() => !props.disabled && props.onSelect(option)}
             >
               {option}
             </button>

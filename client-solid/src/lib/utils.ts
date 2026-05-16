@@ -13,6 +13,7 @@ import type {
   ShipDesignForm,
   StarSummary,
 } from "./types/domain";
+import type { ApiShipParts } from "./types/api";
 
 export const STAR_COLORS = [
   "#f1f5f9",
@@ -794,6 +795,18 @@ export function defaultShipDesignForm(
     armor: parts?.armors[0]?.name ?? "",
     hullSize: parts?.hullSizes[0]?.name ?? "",
     fuelCell: parts?.fuelCells[0]?.name ?? "",
+  };
+}
+
+export function defaultShipDesignFormFromParts(parts: ApiShipParts | null | undefined): ShipDesignForm {
+  return {
+    name: "",
+    drive: parts?.drives[0]?.name ?? "",
+    computer: parts?.computers[0]?.name ?? "",
+    shield: parts?.shields[0]?.name ?? "",
+    armor: parts?.armors[0]?.name ?? "",
+    hullSize: parts?.hull_sizes[0]?.name ?? "",
+    fuelCell: parts?.fuel_cells[0]?.name ?? "",
   };
 }
 

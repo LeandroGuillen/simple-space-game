@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	. "ssg/model"
 	"strings"
 )
@@ -56,7 +57,8 @@ type BeamCollection struct {
 
 type ResourceManager struct {
 	Resources
-	BuiltInRaces []RaceDesign
+	BuiltInRaces       []RaceDesign
+	BuiltinShipDesigns []ShipDesign
 }
 
 //go:embed resources/equipment.json
@@ -197,6 +199,7 @@ func (r *ResourceManager) loadDataFromFiles() error {
 		// these designs are common to all players
 		r.ShipDesigns = append(r.ShipDesigns, design)
 	}
+	r.BuiltinShipDesigns = slices.Clone(r.ShipDesigns)
 
 	var techTree TechTree
 	if err := json.Unmarshal(techTreeFile, &techTree); err != nil {

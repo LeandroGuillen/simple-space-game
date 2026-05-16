@@ -7,6 +7,7 @@ import { GalaxyPage } from "./routes/GalaxyPage";
 import { PlanetPage } from "./routes/PlanetPage";
 import { RaceEditorPage } from "./routes/RaceEditorPage";
 import { SetupPage } from "./routes/SetupPage";
+import { ShipEditorPage } from "./routes/ShipEditorPage";
 import { TechnologyPage } from "./routes/TechnologyPage";
 import { AppProvider } from "./state/app-context";
 
@@ -16,9 +17,11 @@ export default function App() {
       <Router root={AppShell}>
         <Route path="/" component={SetupPage} />
         <Route path="/race-editor" component={RaceEditorPage} />
+        <Route path="/ship-editor" component={ShipEditorPage} />
         <Route path="/setup" component={() => <Navigate href="/" />} />
         <Route path="/setup/races" component={() => <Navigate href="/race-editor" />} />
         <Route path="/setup/custom-race" component={() => <Navigate href="/race-editor" />} />
+        <Route path="/setup/ship-editor" component={() => <Navigate href="/ship-editor" />} />
         <Route path="/galaxy" component={GalaxyPage} />
         <Route path="/stars/:starId/planets/:planetId" component={PlanetPage} />
         <Route path="/colonies" component={ColoniesPage} />

@@ -297,6 +297,18 @@ export type ApiShipDesignDef = {
   fuel_cell: string;
 };
 
+/** Ship design template from GET /ship-designs (built-in + custom). */
+export type ShipDesignTemplateRow = {
+  name: string;
+  drive: string;
+  computer: string;
+  shield: string;
+  armor: string;
+  hull_size: string;
+  fuel_cell: string;
+  built_in: boolean;
+};
+
 export type ApiShipParts = {
   hull_sizes: ApiHullSize[];
   drives: ApiDrive[];

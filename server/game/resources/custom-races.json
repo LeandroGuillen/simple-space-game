@@ -17,24 +17,6 @@
         "research_minus_1"
       ],
       "playable": true
-    },
-    {
-      "name": "Monos",
-      "government": "Democracy",
-      "trait_ids": [
-        "growth_plus_100",
-        "research_minus_1"
-      ],
-      "playable": true
-    },
-    {
-      "name": "Retard",
-      "government": "Democracy",
-      "trait_ids": [
-        "growth_plus_100",
-        "research_minus_1"
-      ],
-      "playable": true
     }
   ]
 }

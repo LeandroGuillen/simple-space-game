@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"ssg/game"
+	"ssg/model"
 	"ssg/ws"
 	"sync"
 	"time"
@@ -13,13 +14,15 @@ import (
 )
 
 type Server struct {
-	GameList        map[string]*game.Game
-	CustomRaces     map[string]game.RaceDesign
-	ResourceManager *game.ResourceManager
-	RaceStore       *game.RaceStore
-	router          *gin.Engine
-	hub             *ws.Hub
-	hubOnce         sync.Once
+	GameList          map[string]*game.Game
+	CustomRaces       map[string]game.RaceDesign
+	CustomShipDesigns map[string]model.ShipDesign
+	ResourceManager   *game.ResourceManager
+	RaceStore         *game.RaceStore
+	ShipStore         *game.ShipStore
+	router            *gin.Engine
+	hub               *ws.Hub
+	hubOnce           sync.Once
 }
 
 func (s *Server) GetGame(id string) *game.Game {
@@ -50,6 +53,16 @@ func NewServer() (*Server, error) {
 		customMap[cr.Name] = cr
 	}
 
+	shipStore := game.NewShipStore(game.CustomShipDesignsPath())
+	customShipList, err := shipStore.Load(resourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("cannot load custom ship designs: %w", err)
+	}
+	customShipMap := make(map[string]model.ShipDesign)
+	for _, sd := range customShipList {
+		customShipMap[sd.Name] = sd
+	}
+
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
@@ -62,11 +75,15 @@ func NewServer() (*Server, error) {
 	}))
 
 	server := &Server{
-		GameList:        make(map[string]*game.Game),
-		CustomRaces:     customMap,
-		ResourceManager: resourceManager,
-		RaceStore:       raceStore,
+		GameList:          make(map[string]*game.Game),
+		CustomRaces:       customMap,
+		CustomShipDesigns: customShipMap,
+		ResourceManager:   resourceManager,
+		RaceStore:         raceStore,
+		ShipStore:         shipStore,
 	}
+
+	server.rebuildShipDesignCatalog()
 
 	server.hub = ws.NewHub(server)
 
@@ -89,6 +106,28 @@ func (s *Server) persistCustomRaces() error {
 	return s.RaceStore.SaveAll(s.ResourceManager, list)
 }
 
+func (s *Server) persistCustomShipDesigns() error {
+	if s == nil || s.ShipStore == nil {
+		return fmt.Errorf("ship design persistence unavailable")
+	}
+	list := make([]model.ShipDesign, 0, len(s.CustomShipDesigns))
+	for _, d := range s.CustomShipDesigns {
+		list = append(list, d)
+	}
+	return s.ShipStore.SaveAll(s.ResourceManager, list)
+}
+
+func (s *Server) rebuildShipDesignCatalog() {
+	if s == nil || s.ResourceManager == nil {
+		return
+	}
+	list := make([]model.ShipDesign, 0, len(s.CustomShipDesigns))
+	for _, d := range s.CustomShipDesigns {
+		list = append(list, d)
+	}
+	s.ResourceManager.ApplyMergedShipDesignCatalog(list)
+}
+
 func (s *Server) registerRoutes(r *gin.Engine) {
 	r.GET("/status", Status)
 	r.POST("/games", NewGame)
@@ -99,6 +138,11 @@ func (s *Server) registerRoutes(r *gin.Engine) {
 	r.GET("/races/custom", GetCustomRaces)
 	r.POST("/races/custom", SaveCustomRace)
 	r.DELETE("/races/custom/:name", DeleteCustomRace)
+
+	r.GET("/ship-designs", GetShipDesignTemplates)
+	r.GET("/ship-designs/custom", GetCustomShipDesignTemplates)
+	r.POST("/ship-designs/custom", SaveCustomShipDesign)
+	r.DELETE("/ship-designs/custom/:name", DeleteCustomShipDesign)
 
 	r.POST("/colonies", GetColonyList)
 

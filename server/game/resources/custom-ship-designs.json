@@ -1,0 +1,13 @@
+{
+  "custom_ship_designs": [
+    {
+      "name": "Bomber",
+      "drive": "Fusion",
+      "computer": "None",
+      "shield": "None",
+      "armor": "Titanium",
+      "hull_size": "Frigate",
+      "fuel_cell": "Standard"
+    }
+  ]
+}

@@ -578,11 +578,11 @@ export function SetupPage() {
               <button
                 type="button"
                 class="setup-landing-tool setup-landing-tool--ship"
-                disabled
-                title="Ship Editor is planned for a future update."
+                disabled={!isConnected()}
+                onClick={() => navigate("/ship-editor")}
               >
                 <span class="setup-landing-tool-label">Ship Editor</span>
-                <span class="setup-landing-tool-hint">Planned for a future update</span>
+                <span class="setup-landing-tool-hint">Design or edit custom ship templates</span>
               </button>
             </div>
             <div class="setup-games-header">

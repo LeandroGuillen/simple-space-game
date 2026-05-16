@@ -9,6 +9,7 @@ import type {
   CustomRaceDesign,
   NewGameOptions,
   RaceDesign,
+  ShipDesignTemplateRow,
 } from './types/api';
 import type { ShipDesignForm } from './types/domain';
 import type { TurnCommands } from './types/commands';
@@ -136,11 +137,62 @@ export class ApiClient {
     return readJson<ApiGame>(response);
   }
 
-  async getShipParts(gameId: string) {
+  async getShipParts(gameId?: string) {
     const response = await fetch(`${this.baseUrl}/resources/shipparts`, {
-      headers: this.headers(gameId),
+      headers: gameId ? this.headers(gameId) : this.headers(),
     });
     return readJson<ApiShipParts>(response);
+  }
+
+  async getShipDesignTemplates() {
+    const response = await fetch(`${this.baseUrl}/ship-designs`);
+    const body = await readJson<{ ship_designs: ShipDesignTemplateRow[] }>(response);
+    return body.ship_designs;
+  }
+
+  async getCustomShipDesignTemplates() {
+    const response = await fetch(`${this.baseUrl}/ship-designs/custom`);
+    const body = await readJson<{ custom_ship_designs: ShipDesignTemplateRow[] }>(response);
+    return body.custom_ship_designs;
+  }
+
+  async saveCustomShipDesign(
+    design: ShipDesignForm,
+    opts?: { renameFrom?: string; saveAsNew?: boolean },
+  ) {
+    const body: Record<string, unknown> = {
+      name: design.name,
+      drive: design.drive,
+      computer: design.computer,
+      shield: design.shield,
+      armor: design.armor,
+      hull_size: design.hullSize,
+      fuel_cell: design.fuelCell,
+    };
+    if (opts?.renameFrom) {
+      body.rename_from = opts.renameFrom;
+    }
+    if (opts?.saveAsNew) {
+      body.save_as_new = true;
+    }
+    const response = await fetch(`${this.baseUrl}/ship-designs/custom`, {
+      method: 'POST',
+      headers: this.headers(),
+      body: JSON.stringify(body),
+    });
+    const data = await readJson<{ custom_ship_design: ShipDesignTemplateRow }>(response);
+    return data.custom_ship_design;
+  }
+
+  async deleteCustomShipDesign(name: string) {
+    const response = await fetch(
+      `${this.baseUrl}/ship-designs/custom/${encodeURIComponent(name)}`,
+      {
+        method: 'DELETE',
+        headers: this.headers(),
+      },
+    );
+    return readJson<{ ok: boolean }>(response);
   }
 
   async getShipDesigns(gameId: string) {

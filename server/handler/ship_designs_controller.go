@@ -111,6 +111,15 @@ func UpdateShipDesign(c *gin.Context) {
 }
 
 func GetShipPartsList(c *gin.Context) {
+	if c.GetHeader(GameIDHeader) == "" {
+		s, ok := serverFromContext(c)
+		if !ok {
+			return
+		}
+		c.JSON(http.StatusOK, s.ResourceManager.ShipPartsCollection)
+		return
+	}
+
 	gameID, _, err := readHeaders(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
