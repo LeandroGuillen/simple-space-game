@@ -1,0 +1,252 @@
+package ai
+
+import (
+	"fmt"
+	"math"
+
+	"ssg/model"
+)
+
+// SimplePolicy is the minimal-but-functional v1 policy described in
+// AI_PLAN.md: pick research when idle, prevent starvation, autobuild basic
+// infra, resolve pending colony actions, and send idle scouts to nearest
+// unexplored stars.
+type SimplePolicy struct{}
+
+func (SimplePolicy) Name() string { return "simple" }
+
+func (SimplePolicy) Decide(snapshot *VisibleGame, playerID uint) Decision {
+	d := Decision{}
+	if snapshot == nil {
+		d.Notes = append(d.Notes, "no snapshot available; submitting empty turn")
+		return d
+	}
+	me := findPlayer(snapshot, playerID)
+	if me == nil {
+		d.Notes = append(d.Notes, fmt.Sprintf("player %d not present in visible state; submitting empty turn", playerID))
+		return d
+	}
+
+	planets := myPlanets(snapshot, playerID)
+	d.Notes = append(d.Notes, fmt.Sprintf("turn %.0f: %d owned planet(s), %d fleet(s)", snapshot.CurrentTurn, len(planets), len(myFleets(snapshot, playerID))))
+
+	pickResearch(snapshot, me, &d)
+	balanceLabor(planets, &d)
+	keepBuildQueueWarm(planets, me, &d)
+	resolvePendingColonies(snapshot, playerID, &d)
+	sendIdleScouts(snapshot, playerID, &d)
+
+	return d
+}
+
+func pickResearch(snapshot *VisibleGame, me *model.Player, d *Decision) {
+	if me.CurrentResearch != nil && (me.CurrentResearch.Subject != "" || me.CurrentResearch.TechName != "") {
+		return
+	}
+	if snapshot.Resources == nil || snapshot.Resources.TechTree == nil {
+		d.Notes = append(d.Notes, "no current research; tech tree missing from visible state")
+		return
+	}
+	choice, subject, cost := firstAvailableTech(snapshot.Resources.TechTree, me)
+	if choice == "" {
+		d.Notes = append(d.Notes, "no current research; no incomplete subjects found")
+		return
+	}
+	d.Commands.SelectResearch = &model.SelectResearchCommand{TechName: choice}
+	d.Notes = append(d.Notes, fmt.Sprintf("research: selecting %q from %s (cost %d)", choice, subject, cost))
+}
+
+// firstAvailableTech walks the tech subjects in order and returns the first
+// research choice the player hasn't already completed.
+//
+// Matches the server's level-completion rule in game/research.go: a
+// non-ForceAll level is considered complete as soon as ANY tech in it is
+// researched (the player can only pick one sibling per level). A ForceAll
+// level is complete when every tech in it is researched.
+func firstAvailableTech(tree *model.TechTree, me *model.Player) (techName, subjectName string, cost uint64) {
+	known := map[string]struct{}{}
+	for _, t := range me.ResearchedTechs {
+		known[t] = struct{}{}
+	}
+	for _, subject := range tree.Subjects {
+		for _, level := range subject.Levels {
+			if levelComplete(level, known) {
+				continue
+			}
+			if level.ForceAll {
+				return level.Name, subject.Name, level.Cost
+			}
+			for _, tech := range level.AvailableTechs {
+				if _, ok := known[tech]; ok {
+					continue
+				}
+				return tech, subject.Name, level.Cost
+			}
+		}
+	}
+	return "", "", 0
+}
+
+func levelComplete(level model.TechLevel, known map[string]struct{}) bool {
+	if len(level.AvailableTechs) == 0 {
+		return false
+	}
+	if level.ForceAll {
+		for _, t := range level.AvailableTechs {
+			if _, ok := known[t]; !ok {
+				return false
+			}
+		}
+		return true
+	}
+	for _, t := range level.AvailableTechs {
+		if _, ok := known[t]; ok {
+			return true
+		}
+	}
+	return false
+}
+
+func balanceLabor(planets []*model.Planet, d *Decision) {
+	for _, p := range planets {
+		if p.Population <= 0 {
+			continue
+		}
+		foodPerFarmer := p.Food.ProducedPerFarmer
+		if foodPerFarmer <= 0 {
+			continue
+		}
+		// Game rule: food demand is measured in population units (pop / 1000),
+		// not raw population. Matches game.PopulationGrowthFromFood.
+		popUnits := p.Population / 1000
+		if popUnits <= 0 {
+			continue
+		}
+		buildingFood := p.Food.ProducedPerBuilding
+		totalFood := p.Food.Farmers*foodPerFarmer + buildingFood
+		if totalFood >= popUnits {
+			continue
+		}
+		needed := popUnits - totalFood
+		extraFarmers := (needed + foodPerFarmer - 1) / foodPerFarmer
+		maxShift := p.Industry.Workers
+		if extraFarmers > maxShift {
+			extraFarmers = maxShift
+		}
+		if extraFarmers <= 0 {
+			continue
+		}
+		cmd := &model.MovePopulationCommand{
+			PlanetID:   p.ID,
+			Farmers:    p.Food.Farmers + extraFarmers,
+			Workers:    p.Industry.Workers - extraFarmers,
+			Scientists: p.Science.Scientists,
+		}
+		d.Commands.MovePopulation = append(d.Commands.MovePopulation, cmd)
+		d.Notes = append(d.Notes, fmt.Sprintf("planet %d (%s): shifting %d worker(s) to farming to avert starvation", p.ID, p.Name, extraFarmers))
+	}
+}
+
+func keepBuildQueueWarm(planets []*model.Planet, me *model.Player, d *Decision) {
+	wanted := []string{"Automated Factory", "Research Lab", "Marine Barracks"}
+	for _, p := range planets {
+		if p.CurrentProject != "" || len(p.BuildQueue) > 0 {
+			continue
+		}
+		choice := ""
+		for _, b := range wanted {
+			if alreadyBuilt(p, b) {
+				continue
+			}
+			if !techUnlocked(me, b) {
+				continue
+			}
+			choice = b
+			break
+		}
+		if choice == "" {
+			d.Notes = append(d.Notes, fmt.Sprintf("planet %d (%s): no preferred building available; leaving idle", p.ID, p.Name))
+			continue
+		}
+		d.Commands.Build = append(d.Commands.Build, &model.BuildCommand{
+			PlanetID: p.ID,
+			Building: choice,
+		})
+		d.Notes = append(d.Notes, fmt.Sprintf("planet %d (%s): queueing %s", p.ID, p.Name, choice))
+	}
+}
+
+func alreadyBuilt(p *model.Planet, name string) bool {
+	for _, b := range p.Buildings {
+		if b == name {
+			return true
+		}
+	}
+	return false
+}
+
+func techUnlocked(me *model.Player, name string) bool {
+	for _, b := range me.Available.Buildings {
+		if b == name {
+			return true
+		}
+	}
+	return false
+}
+
+func resolvePendingColonies(snapshot *VisibleGame, playerID uint, d *Decision) {
+	for _, planetID := range snapshot.PendingColonyBases[playerID] {
+		d.Commands.ColonizeMany = append(d.Commands.ColonizeMany, &model.ColonizeCommand{
+			PlanetID: planetID,
+		})
+		d.Notes = append(d.Notes, fmt.Sprintf("colonizing pending base on planet %d", planetID))
+	}
+	for _, fleetID := range snapshot.PendingColonyShips[playerID] {
+		d.Commands.ColonyShip = &model.PrepareColonyShipCommand{FleetID: fleetID}
+		d.Notes = append(d.Notes, fmt.Sprintf("preparing colony ship on fleet %d", fleetID))
+	}
+}
+
+// sendIdleScouts moves any stationary fleet (no destination) to the nearest
+// unexplored star. We treat "unexplored" as a star with no Name field in the
+// visible payload (the visibility filter strips the name for unexplored stars).
+func sendIdleScouts(snapshot *VisibleGame, playerID uint, d *Decision) {
+	for _, f := range snapshot.Fleets {
+		if f == nil || f.Owner != playerID {
+			continue
+		}
+		if f.DestinationStarID != 0 {
+			continue
+		}
+		target := nearestUnexploredStar(snapshot, f.X, f.Y)
+		if target == 0 {
+			continue
+		}
+		d.Commands.FleetMove = append(d.Commands.FleetMove, &model.FleetMoveCommand{
+			FleetID:           f.ID,
+			DestinationStarID: target,
+		})
+		d.Notes = append(d.Notes, fmt.Sprintf("fleet %d: moving to nearest unexplored star %d", f.ID, target))
+	}
+}
+
+func nearestUnexploredStar(snapshot *VisibleGame, fromX, fromY float64) uint {
+	var bestID uint
+	bestDist := math.MaxFloat64
+	for _, s := range snapshot.Galaxy.Stars {
+		if s == nil {
+			continue
+		}
+		if s.Name != "" {
+			continue
+		}
+		dx := float64(s.X) - fromX
+		dy := float64(s.Y) - fromY
+		d := dx*dx + dy*dy
+		if d < bestDist {
+			bestDist = d
+			bestID = s.ID
+		}
+	}
+	return bestID
+}
