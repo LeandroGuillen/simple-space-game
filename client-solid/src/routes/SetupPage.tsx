@@ -124,20 +124,6 @@ function PlusIcon() {
   );
 }
 
-function ArrowIcon() {
-  return (
-    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-      <path
-        d="M2 5h6M6 2l4 3-4 3"
-        stroke="currentColor"
-        stroke-width="1.3"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      />
-    </svg>
-  );
-}
-
 function OptionRow<T extends string | number>(props: {
   label: string;
   options: ToggleOption<T>[];
@@ -180,7 +166,7 @@ function OptionRow<T extends string | number>(props: {
 
 export function SetupPage() {
   const navigate = useNavigate();
-  const { state, connect, createGame, refreshGames, selectGame } =
+  const { state, connect, createGame, refreshGames, selectGame, setPlayerId } =
     useAppContext();
 
   const [servers, setServers] = createSignal<ServerInfo[]>([]);
@@ -447,16 +433,18 @@ export function SetupPage() {
         tech_level: techLevel(),
         ...raceFields,
       });
+      setPlayerId(1);
       await selectGame(gameId);
-      navigate("/galaxy");
+      navigate(`/galaxy?game=${encodeURIComponent(gameId)}&player=1`);
     } catch {
       // error shown globally
     }
   };
 
-  const handleSelect = async (gameId: string) => {
+  const handleSelect = async (gameId: string, playerId: number) => {
+    setPlayerId(playerId);
     await selectGame(gameId);
-    navigate("/galaxy");
+    navigate(`/galaxy?game=${encodeURIComponent(gameId)}&player=${playerId}`);
   };
 
   const handleSelectRace = (nextRace: RaceSelection) => {
@@ -607,12 +595,7 @@ export function SetupPage() {
                   <For each={activeServer()?.games}>
                     {(game) => (
                       <li>
-                        <button
-                          type="button"
-                          class="game-item"
-                          onClick={() => void handleSelect(game.game_id)}
-                          disabled={state.isBusy}
-                        >
+                        <div class="game-item">
                           <div class="game-item-body">
                             <div class="game-item-line-meta">
                               <span class="game-id">
@@ -636,25 +619,28 @@ export function SetupPage() {
                             </div>
                             <div class="game-item-players">
                               <For each={game.players}>
-                                {(player) => (
-                                  <span
-                                    class="game-player"
-                                    style={{ "background-color": player.color }}
-                                    title={`${player.name}: ${player.num_stars} stars`}
-                                  >
-                                    {player.name}
-                                    <span class="player-stars">
-                                      {player.num_stars}
-                                    </span>
-                                  </span>
-                                )}
+                                {(player, index) => {
+                                  const slotId = player.id ?? index() + 1;
+                                  return (
+                                    <button
+                                      type="button"
+                                      class="game-player game-player--join"
+                                      style={{ "background-color": player.color }}
+                                      title={`Join as ${player.name} — ${player.num_stars} stars`}
+                                      disabled={state.isBusy}
+                                      onClick={() => void handleSelect(game.game_id, slotId)}
+                                    >
+                                      {player.name}
+                                      <span class="player-stars">
+                                        {player.num_stars}
+                                      </span>
+                                    </button>
+                                  );
+                                }}
                               </For>
                             </div>
                           </div>
-                          <span class="game-item-action">
-                            <ArrowIcon />
-                          </span>
-                        </button>
+                        </div>
                       </li>
                     )}
                   </For>

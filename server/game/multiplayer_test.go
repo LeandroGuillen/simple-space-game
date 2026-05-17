@@ -46,6 +46,35 @@ func TestNewGameCreatesMultiplePlayerSlotsWithUniqueHomeworlds(t *testing.T) {
 	assert.NotEqual(t, homeworldStars[2], homeworldStars[3])
 }
 
+func TestNewGameAssignsDistinctPlayerColors(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	// Player 1 picks a color that, under the old slot-based mapping, would
+	// have collided with slot 2's default — verify slot 2 (and the rest)
+	// still get a distinct color.
+	chosen := model.PlayerColors[1]
+	g, err := NewGame(resources, NewGameOptions{
+		PlayerName:  "Ada",
+		PlayerColor: chosen,
+		NumStars:    model.MaxPlayers,
+		Race:        DefaultRace("Human"),
+		NumPlayers:  uint(model.MaxPlayers),
+	})
+	require.NoError(t, err)
+	require.Len(t, g.Players, model.MaxPlayers)
+
+	seen := map[string]uint{}
+	for _, p := range g.Players {
+		if other, dup := seen[p.Color]; dup {
+			t.Fatalf("player %d (%s) shares color %q with player %d", p.ID, p.Name, p.Color, other)
+		}
+		seen[p.Color] = p.ID
+		assert.True(t, model.IsValidPlayerColor(p.Color), "color %q is not in the valid palette", p.Color)
+	}
+	assert.Equal(t, chosen, g.Players[0].Color)
+}
+
 func TestMultiplayerPlayersOnlySeeTheirStartingSystems(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)

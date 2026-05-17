@@ -1,9 +1,6 @@
 package model
 
-import (
-	"fmt"
-	"slices"
-)
+import "slices"
 
 const MaxPlayers = 8
 
@@ -24,11 +21,4 @@ func IsValidPlayerColor(color string) bool {
 
 func DefaultPlayerColor() string {
 	return PlayerColors[0]
-}
-
-func PlayerColorBySlot(slot uint) (string, error) {
-	if slot == 0 || slot > uint(len(PlayerColors)) {
-		return "", fmt.Errorf("player slot %d does not have an assigned color", slot)
-	}
-	return PlayerColors[slot-1], nil
 }

@@ -82,11 +82,22 @@ func NewGame(resources *ResourceManager, options NewGameOptions) (*Game, error) 
 	players := make([]*Player, 0, numPlayers)
 	player1 := NewPlayer(firstPlayerID, playerName, playerColor, race)
 	players = append(players, player1)
-	for slot := uint(2); slot <= numPlayers; slot++ {
-		color, err := PlayerColorBySlot(slot)
-		if err != nil {
-			return nil, err
+
+	// Build the pool of colors still available for non-interactive slots by
+	// removing player 1's choice from the full list, then shuffling so each
+	// new game looks visually distinct.
+	remaining := make([]string, 0, len(PlayerColors))
+	for _, c := range PlayerColors {
+		if c != playerColor {
+			remaining = append(remaining, c)
 		}
+	}
+	randomShuffle(len(remaining), func(i, j int) { remaining[i], remaining[j] = remaining[j], remaining[i] })
+	if uint(len(remaining)) < numPlayers-1 {
+		return nil, fmt.Errorf("not enough player colors for %d players", numPlayers)
+	}
+	for slot := uint(2); slot <= numPlayers; slot++ {
+		color := remaining[slot-2]
 		players = append(players, NewPlayer(slot, fmt.Sprintf("Player %d", slot), color, DefaultRace("Human")))
 	}
 

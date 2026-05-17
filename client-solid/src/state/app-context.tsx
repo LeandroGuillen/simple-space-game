@@ -76,6 +76,7 @@ type AppContextValue = {
   refreshGames: () => Promise<void>;
   createGame: (options: NewGameOptions) => Promise<string>;
   selectGame: (gameId: string) => Promise<void>;
+  setPlayerId: (playerId: number) => void;
   refreshGame: () => Promise<void>;
   changeBuilding: (planetId: number, buildingId: number) => void;
   changeBuildQueue: (planetId: number, buildingNames: string[]) => void;
@@ -105,7 +106,31 @@ type AppContextValue = {
 const STORAGE_KEYS = {
   serverUrl: 'client-solid.serverUrl',
   selectedGameId: 'client-solid.selectedGameId',
+  playerId: 'client-solid.playerId',
 };
+
+// readBootstrapSession resolves the initial server/game/player triple from
+// (in priority order) URL query params and localStorage. Query params win so
+// a shared link like /galaxy?game=...&player=2 always lands on that slot.
+function readBootstrapSession() {
+  const fromStorage = {
+    serverUrl: window.localStorage.getItem(STORAGE_KEYS.serverUrl) ?? '',
+    gameId: window.localStorage.getItem(STORAGE_KEYS.selectedGameId) ?? '',
+    playerId: parseInt(window.localStorage.getItem(STORAGE_KEYS.playerId) ?? '', 10) || 1,
+  };
+  if (typeof window === 'undefined' || !window.location) {
+    return fromStorage;
+  }
+  const params = new URLSearchParams(window.location.search);
+  const queryGame = params.get('game') ?? '';
+  const rawQueryPlayer = params.get('player');
+  const queryPlayer = rawQueryPlayer ? parseInt(rawQueryPlayer, 10) : NaN;
+  return {
+    serverUrl: fromStorage.serverUrl,
+    gameId: queryGame || fromStorage.gameId,
+    playerId: Number.isFinite(queryPlayer) && queryPlayer > 0 ? queryPlayer : fromStorage.playerId,
+  };
+}
 const AppContext = createContext<AppContextValue>();
 
 export function AppProvider(props: ParentProps) {
@@ -120,11 +145,12 @@ export function AppProvider(props: ParentProps) {
     buyProduction: [],
   });
 
+  const bootstrap = readBootstrapSession();
   const [state, setState] = createStore<AppState>({
     session: {
       serverUrl: '',
-      playerId: 1,
-      selectedGameId: '',
+      playerId: bootstrap.playerId,
+      selectedGameId: bootstrap.gameId,
       connectionStatus: 'idle',
     },
     games: [],
@@ -203,6 +229,7 @@ export function AppProvider(props: ParentProps) {
     clearError();
     window.localStorage.removeItem(STORAGE_KEYS.serverUrl);
     window.localStorage.removeItem(STORAGE_KEYS.selectedGameId);
+    window.localStorage.removeItem(STORAGE_KEYS.playerId);
     clearSessionLastSetupServerUrl();
   }
 
@@ -285,6 +312,19 @@ export function AppProvider(props: ParentProps) {
       resetPerGameUiState();
     }
     setState('session', 'selectedGameId', gameId);
+  }
+
+  function setPlayerId(playerId: number) {
+    if (!Number.isFinite(playerId) || playerId <= 0) {
+      return;
+    }
+    if (playerId === state.session.playerId) {
+      return;
+    }
+    // Switching slots invalidates per-game UI state (pending commands, modals).
+    setState('game', null);
+    resetPerGameUiState();
+    setState('session', 'playerId', playerId);
   }
 
   async function refreshGame() {
@@ -705,6 +745,31 @@ export function AppProvider(props: ParentProps) {
   });
 
   createEffect(() => {
+    window.localStorage.setItem(STORAGE_KEYS.playerId, String(state.session.playerId));
+  });
+
+  // Mirror the active game/player into the URL so a tab's address bar is
+  // shareable and a hard reload restores the right slot.
+  createEffect(() => {
+    if (typeof window === 'undefined' || !window.history) {
+      return;
+    }
+    const url = new URL(window.location.href);
+    const gameId = state.session.selectedGameId;
+    if (gameId) {
+      url.searchParams.set('game', gameId);
+      url.searchParams.set('player', String(state.session.playerId));
+    } else {
+      url.searchParams.delete('game');
+      url.searchParams.delete('player');
+    }
+    const next = url.pathname + (url.search ? url.search : '');
+    if (next !== window.location.pathname + window.location.search) {
+      window.history.replaceState(window.history.state, '', next);
+    }
+  });
+
+  createEffect(() => {
     if (!state.game || state.isBusy) {
       return;
     }
@@ -810,6 +875,7 @@ export function AppProvider(props: ParentProps) {
     refreshGames,
     createGame,
     selectGame,
+    setPlayerId,
     refreshGame,
     changeBuilding,
     changeBuildQueue,
