@@ -843,23 +843,30 @@ export function toTurnCommands(commands: PendingCommands, game: GameViewModel | 
   const turnCommands: TurnCommands = {
     build: commands.build,
   };
+  const existingFleetIds = game ? new Set(game.fleets.map((fleet) => fleet.id)) : null;
 
   if (commands.selectResearch) {
     turnCommands.selectResearch = commands.selectResearch;
   }
 
-  if (commands.colonize.length === 1) {
-    turnCommands.colonize = commands.colonize[0];
-  } else if (commands.colonize.length > 1) {
-    turnCommands.colonize_many = commands.colonize;
+  const colonizeCommands = commands.colonize.filter(
+    (command) => command.fleet_id == null || existingFleetIds == null || existingFleetIds.has(command.fleet_id),
+  );
+  if (colonizeCommands.length === 1) {
+    turnCommands.colonize = colonizeCommands[0];
+  } else if (colonizeCommands.length > 1) {
+    turnCommands.colonize_many = colonizeCommands;
   }
   if (commands.artificialPlanet.length === 1) {
     turnCommands.artificial_planet = commands.artificialPlanet[0];
   } else if (commands.artificialPlanet.length > 1) {
     turnCommands.artificial_planet_many = commands.artificialPlanet;
   }
-  if (commands.fleetMove.length > 0) {
-    turnCommands.fleet_move = commands.fleetMove.map((cmd) => ({
+  const fleetMoveCommands = commands.fleetMove.filter(
+    (command) => existingFleetIds == null || existingFleetIds.has(command.fleet_id),
+  );
+  if (fleetMoveCommands.length > 0) {
+    turnCommands.fleet_move = fleetMoveCommands.map((cmd) => ({
       fleet_id: cmd.fleet_id,
       destination_star_id: cmd.destination_star_id,
       ship_indexes: [...cmd.ship_indexes],

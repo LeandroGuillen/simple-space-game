@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { toTurnCommands } from "../app-context";
 import type { PendingCommands } from "../../lib/types/commands";
+import type { GameViewModel } from "../../lib/types/domain";
 
 function pendingCommands(overrides: Partial<PendingCommands> = {}): PendingCommands {
   return {
@@ -14,6 +15,39 @@ function pendingCommands(overrides: Partial<PendingCommands> = {}): PendingComma
     buyProduction: [],
     transferPopulation: [],
     ...overrides,
+  };
+}
+
+function gameWithFleets(fleetIds: number[]): GameViewModel {
+  return {
+    id: "g",
+    currentTurn: 3500,
+    galaxy: { stars: [], width: 600, height: 400 },
+    players: [],
+    fleets: fleetIds.map((id) => ({
+      id,
+      ownerId: 1,
+      starId: 1,
+      x: 0,
+      y: 0,
+      originStarId: null,
+      destinationStarId: null,
+      totalTurns: 0,
+      turnsRemaining: 0,
+      ships: [],
+    })),
+    resources: {
+      shipParts: { hullSizes: [], drives: [], armors: [], computers: [], fuelCells: [], shields: [] },
+      shipSystemCollection: { shipSystems: [] },
+      buildingCollection: { buildings: [] },
+      modifierCollection: { modifiers: [] },
+      shipDesignCollection: { shipDesigns: [] },
+      techTree: { subjects: [] },
+      techCollection: { techs: [] },
+    },
+    pendingColonyBases: {},
+    pendingColonyShips: {},
+    pendingArtificialPlanets: {},
   };
 }
 
@@ -59,5 +93,26 @@ describe("toTurnCommands", () => {
     );
 
     expect(commands.build).toEqual([{ planetId: 1, building: "Housing" }]);
+  });
+
+  it("drops fleet commands for fleets that no longer exist", () => {
+    const commands = toTurnCommands(
+      pendingCommands({
+        colonize: [
+          { planet_id: 2, fleet_id: 1 },
+          { planet_id: 3, fleet_id: 9 },
+        ],
+        fleetMove: [
+          { fleet_id: 1, destination_star_id: 4, ship_indexes: [0] },
+          { fleet_id: 9, destination_star_id: 5, ship_indexes: [0] },
+        ],
+      }),
+      gameWithFleets([9]),
+    );
+
+    expect(commands.colonize).toEqual({ planet_id: 3, fleet_id: 9 });
+    expect(commands.fleet_move).toEqual([
+      { fleet_id: 9, destination_star_id: 5, ship_indexes: [0] },
+    ]);
   });
 });
