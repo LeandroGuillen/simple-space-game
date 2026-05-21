@@ -6,6 +6,7 @@ import type {
   TechSubjectViewModel,
   TechViewModel,
 } from "../lib/types/domain";
+import { researchLevelUnlocksAllTechs } from "../lib/research";
 import { useAppContext } from "../state/app-context";
 
 type KnownTechEntry = {
@@ -69,7 +70,7 @@ export function TechnologyPage() {
                 knownTechEntry(
                   techName,
                   knownNames.has(techName.toLowerCase()),
-                  !level.forceAll &&
+                  !researchLevelUnlocksAllTechs(level, player.raceTraitIds) &&
                     level.availableTechs.some((levelTech) =>
                       knownNames.has(levelTech.toLowerCase()),
                     ) &&

@@ -2,8 +2,80 @@
   "races": [
     {
       "name": "Human",
+      "government": "Democracy",
+      "trait_ids": [],
+      "playable": true
+    },
+    {
+      "name": "Alkari",
+      "government": "Dictatorship",
+      "trait_ids": ["artifacts_homeworld"],
+      "playable": true
+    },
+    {
+      "name": "Bulrathi",
+      "government": "Dictatorship",
+      "trait_ids": ["high_g_world"],
+      "playable": true
+    },
+    {
+      "name": "Darloks",
       "government": "Dictatorship",
       "trait_ids": [],
+      "playable": true
+    },
+    {
+      "name": "Elerians",
+      "government": "Feudal",
+      "trait_ids": [],
+      "playable": true
+    },
+    {
+      "name": "Gnolams",
+      "government": "Dictatorship",
+      "trait_ids": ["money_plus_1", "low_g_world"],
+      "playable": true
+    },
+    {
+      "name": "Klackons",
+      "government": "Unification",
+      "trait_ids": ["food_plus_1", "production_plus_1", "research_minus_1"],
+      "playable": true
+    },
+    {
+      "name": "Meklars",
+      "government": "Dictatorship",
+      "trait_ids": ["production_plus_2"],
+      "playable": true
+    },
+    {
+      "name": "Mrrshan",
+      "government": "Dictatorship",
+      "trait_ids": ["rich_homeworld", "production_plus_1"],
+      "playable": true
+    },
+    {
+      "name": "Psilons",
+      "government": "Dictatorship",
+      "trait_ids": ["research_plus_2", "large_homeworld", "low_g_world", "creative"],
+      "playable": true
+    },
+    {
+      "name": "Sakkra",
+      "government": "Feudal",
+      "trait_ids": ["growth_plus_100", "food_plus_1", "subterranean", "large_homeworld", "research_minus_1"],
+      "playable": true
+    },
+    {
+      "name": "Silicoids",
+      "government": "Dictatorship",
+      "trait_ids": ["growth_minus_50", "production_plus_2"],
+      "playable": true
+    },
+    {
+      "name": "Trilarians",
+      "government": "Dictatorship",
+      "trait_ids": ["food_plus_2", "production_plus_1"],
       "playable": true
     }
   ]

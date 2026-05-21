@@ -70,10 +70,10 @@ func firstAvailableTech(tree *model.TechTree, me *model.Player) (techName, subje
 	}
 	for _, subject := range tree.Subjects {
 		for _, level := range subject.Levels {
-			if levelComplete(level, known) {
+			if levelComplete(level, known, me) {
 				continue
 			}
-			if level.ForceAll {
+			if levelUnlocksAllTechs(level, me) {
 				return level.Name, subject.Name, level.Cost
 			}
 			for _, tech := range level.AvailableTechs {
@@ -87,11 +87,11 @@ func firstAvailableTech(tree *model.TechTree, me *model.Player) (techName, subje
 	return "", "", 0
 }
 
-func levelComplete(level model.TechLevel, known map[string]struct{}) bool {
+func levelComplete(level model.TechLevel, known map[string]struct{}, player *model.Player) bool {
 	if len(level.AvailableTechs) == 0 {
 		return false
 	}
-	if level.ForceAll {
+	if levelUnlocksAllTechs(level, player) {
 		for _, t := range level.AvailableTechs {
 			if _, ok := known[t]; !ok {
 				return false
@@ -101,6 +101,21 @@ func levelComplete(level model.TechLevel, known map[string]struct{}) bool {
 	}
 	for _, t := range level.AvailableTechs {
 		if _, ok := known[t]; ok {
+			return true
+		}
+	}
+	return false
+}
+
+func levelUnlocksAllTechs(level model.TechLevel, player *model.Player) bool {
+	if level.ForceAll {
+		return true
+	}
+	if player == nil {
+		return false
+	}
+	for _, traitID := range player.Race.TraitIDs {
+		if traitID == "creative" {
 			return true
 		}
 	}

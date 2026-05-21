@@ -1,3 +1,10 @@
 {
-  "custom_races": []
+  "custom_races": [
+    {
+      "name": "Tapos",
+      "government": "Democracy",
+      "trait_ids": [],
+      "playable": true
+    }
+  ]
 }

@@ -38,15 +38,29 @@ describe("race design", () => {
 
   it("treats disabled future traits as blocked", () => {
     const trait = {
-      id: "creative",
-      name: "Creative",
-      category: "Future Traits",
-      pickCost: 8,
+      id: "lithovore",
+      name: "Lithovore",
+      category: "Special Abilities",
+      pickCost: 10,
       enabled: false,
       description: "",
     };
 
     expect(isRaceTraitBlocked(trait)).toBe(true);
+  });
+
+  it("treats creative as selectable", () => {
+    const trait = {
+      id: "creative",
+      name: "Creative",
+      category: "Special Abilities",
+      pickCost: 8,
+      exclusiveGroup: "creativity",
+      enabled: true,
+      description: "",
+    };
+
+    expect(isRaceTraitBlocked(trait)).toBe(false);
   });
 
   it("validates overspending and negative pick limits", () => {

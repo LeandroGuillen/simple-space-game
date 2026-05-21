@@ -18,9 +18,16 @@ func TestBuildCustomRaceRejectsUnknownTrait(t *testing.T) {
 
 func TestBuildCustomRaceRejectsDisabledTrait(t *testing.T) {
 	resources := testResources(t)
-	_, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Ada", TraitIDs: []string{"creative"}})
+	_, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Ada", TraitIDs: []string{"lithovore"}})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "not implemented")
+}
+
+func TestBuildCustomRaceAcceptsCreativeTrait(t *testing.T) {
+	resources := testResources(t)
+	race, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Ada", TraitIDs: []string{"creative"}})
+	require.NoError(t, err)
+	assert.Contains(t, race.TraitIDs, "creative")
 }
 
 func TestBuildCustomRaceRejectsDuplicateTrait(t *testing.T) {
@@ -179,7 +186,7 @@ func TestBuildHumanFromResourceManagerBuiltIn(t *testing.T) {
 	race, err := BuildCustomRace(resources, RaceDesign{Name: human.Name, Government: human.Government, TraitIDs: human.TraitIDs})
 	require.NoError(t, err)
 	assert.Equal(t, "Human", race.Name)
-	assert.Equal(t, "Dictatorship", race.Government)
+	assert.Equal(t, "Democracy", race.Government)
 }
 
 func TestValidateBuiltInRacesRejectsDuplicateNames(t *testing.T) {

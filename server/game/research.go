@@ -29,12 +29,13 @@ func (g *Game) selectResearch(player *Player, cmd SelectResearchCommand) error {
 	if isResearchLevelComplete(player, level) {
 		return fmt.Errorf("research level %q is already complete", level.Name)
 	}
+	unlockAll := researchLevelUnlocksAllTechs(level, player)
 	if tech, ok := g.findTechDefinition(cmd.TechName); ok {
 		if err := g.validateResearchTechForGovernment(player, tech); err != nil {
 			return err
 		}
 	}
-	if level.ForceAll {
+	if unlockAll {
 		if player.CurrentResearch != nil && player.CurrentResearch.LevelName == level.Name {
 			return nil
 		}
@@ -209,11 +210,15 @@ func (g *Game) findResearchLevelForTech(techName string) (TechLevel, bool) {
 	return TechLevel{}, false
 }
 
+func researchLevelUnlocksAllTechs(level TechLevel, player *Player) bool {
+	return level.ForceAll || playerHasRaceTrait(player, "creative")
+}
+
 func isResearchLevelComplete(player *Player, level TechLevel) bool {
 	if len(level.AvailableTechs) == 0 {
 		return false
 	}
-	if !level.ForceAll {
+	if !researchLevelUnlocksAllTechs(level, player) {
 		return slices.ContainsFunc(level.AvailableTechs, func(techName string) bool {
 			return isTechResearched(player, techName)
 		})

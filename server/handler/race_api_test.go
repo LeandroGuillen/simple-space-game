@@ -36,7 +36,7 @@ func TestGetRacesIncludesHumanBuiltIn(t *testing.T) {
 	require.GreaterOrEqual(t, len(body.Races), 1)
 	human := body.Races[0]
 	assert.Equal(t, "Human", human.Name)
-	assert.Equal(t, "Dictatorship", human.Government)
+	assert.Equal(t, "Democracy", human.Government)
 	assert.True(t, human.BuiltIn)
 	assert.True(t, human.Playable)
 }

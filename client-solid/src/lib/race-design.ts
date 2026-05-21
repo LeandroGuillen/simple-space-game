@@ -15,6 +15,26 @@ export const RACE_NEGATIVE_PICK_LIMIT = 10;
 
 export const DEFAULT_GOVERNMENT = "Dictatorship";
 
+/** MoO2 race design screen: left column economic picks. */
+export const RACE_EDITOR_LEFT_COLUMN = [
+  "Population",
+  "Farming",
+  "Industry",
+  "Science",
+  "Money",
+] as const;
+
+/** MoO2 race design screen: middle column combat and government. */
+export const RACE_EDITOR_MIDDLE_COLUMN = [
+  "Ship Defense",
+  "Ship Attack",
+  "Ground Combat",
+  "Spying",
+] as const;
+
+/** MoO2 race design screen: right column special abilities. */
+export const RACE_EDITOR_RIGHT_COLUMN = ["Special Abilities"] as const;
+
 export const fallbackGovernments: ApiGovernment[] = [
   { name: "Feudal", description: "A decentralized noble hierarchy with cheap ship construction and weak research.", pick_cost: -4 },
   { name: "Dictatorship", description: "A centralized authoritarian government with stable internal security.", pick_cost: 0, default: true },
@@ -29,42 +49,51 @@ export const raceTraitDefinitions: RaceTraitDefinition[] = [
   { id: "food_minus_1", name: "-1/2 Food", category: "Farming", pickCost: -3, exclusiveGroup: "food", enabled: true, description: "Farmers produce less food." },
   { id: "food_plus_1", name: "+1 Food", category: "Farming", pickCost: 4, exclusiveGroup: "food", enabled: true, description: "Farmers produce one extra food." },
   { id: "food_plus_2", name: "+2 Food", category: "Farming", pickCost: 7, exclusiveGroup: "food", enabled: true, description: "Farmers produce two extra food." },
-  { id: "production_minus_1", name: "-1 Production", category: "Production", pickCost: -3, exclusiveGroup: "production", enabled: true, description: "Workers produce less industry." },
-  { id: "production_plus_1", name: "+1 Production", category: "Production", pickCost: 3, exclusiveGroup: "production", enabled: true, description: "Workers produce one extra industry." },
-  { id: "production_plus_2", name: "+2 Production", category: "Production", pickCost: 6, exclusiveGroup: "production", enabled: true, description: "Workers produce two extra industry." },
-  { id: "research_minus_1", name: "-1 Research", category: "Research", pickCost: -3, exclusiveGroup: "research", enabled: true, description: "Scientists produce less research." },
-  { id: "research_plus_1", name: "+1 Research", category: "Research", pickCost: 3, exclusiveGroup: "research", enabled: true, description: "Scientists produce one extra research." },
-  { id: "research_plus_2", name: "+2 Research", category: "Research", pickCost: 6, exclusiveGroup: "research", enabled: true, description: "Scientists produce two extra research." },
+  { id: "production_minus_1", name: "-1 Production", category: "Industry", pickCost: -3, exclusiveGroup: "production", enabled: true, description: "Workers produce less industry." },
+  { id: "production_plus_1", name: "+1 Production", category: "Industry", pickCost: 3, exclusiveGroup: "production", enabled: true, description: "Workers produce one extra industry." },
+  { id: "production_plus_2", name: "+2 Production", category: "Industry", pickCost: 6, exclusiveGroup: "production", enabled: true, description: "Workers produce two extra industry." },
+  { id: "research_minus_1", name: "-1 Research", category: "Science", pickCost: -3, exclusiveGroup: "research", enabled: true, description: "Scientists produce less research." },
+  { id: "research_plus_1", name: "+1 Research", category: "Science", pickCost: 3, exclusiveGroup: "research", enabled: true, description: "Scientists produce one extra research." },
+  { id: "research_plus_2", name: "+2 Research", category: "Science", pickCost: 6, exclusiveGroup: "research", enabled: true, description: "Scientists produce two extra research." },
   { id: "money_minus_half", name: "-0.5 BC", category: "Money", pickCost: -4, exclusiveGroup: "money", enabled: true, description: "Taxable income is reduced." },
   { id: "money_plus_half", name: "+0.5 BC", category: "Money", pickCost: 5, exclusiveGroup: "money", enabled: true, description: "Taxable income is increased." },
   { id: "money_plus_1", name: "+1 BC", category: "Money", pickCost: 8, exclusiveGroup: "money", enabled: true, description: "Taxable income is strongly increased." },
-  { id: "subterranean", name: "Subterranean", category: "Homeworld", pickCost: 6, exclusiveGroup: "capacity", enabled: true, description: "Planet population capacity is doubled." },
-  { id: "large_homeworld", name: "Large Home World", category: "Homeworld", pickCost: 1, exclusiveGroup: "homeworld_size", enabled: true, description: "The capital starts as a large world." },
-  { id: "rich_homeworld", name: "Rich Home World", category: "Homeworld", pickCost: 2, exclusiveGroup: "homeworld_minerals", enabled: true, description: "The capital starts rich." },
-  { id: "poor_homeworld", name: "Poor Home World", category: "Homeworld", pickCost: -1, exclusiveGroup: "homeworld_minerals", enabled: true, description: "The capital starts poor." },
-  { id: "artifacts_homeworld", name: "Artifacts World", category: "Homeworld", pickCost: 3, exclusiveGroup: "homeworld_artifacts", enabled: true, description: "The capital produces extra research." },
-  { id: "ship_defense", name: "Ship Defense", category: "Future Traits", pickCost: 0, enabled: false, description: "Requires combat." },
-  { id: "ship_attack", name: "Ship Attack", category: "Future Traits", pickCost: 0, enabled: false, description: "Requires combat." },
-  { id: "ground_combat", name: "Ground Combat", category: "Future Traits", pickCost: 0, enabled: false, description: "Requires ground combat." },
-  { id: "spying", name: "Spying", category: "Future Traits", pickCost: 0, enabled: false, description: "Requires espionage." },
-  { id: "low_g_world", name: "Low-G World", category: "Homeworld", pickCost: -5, exclusiveGroup: "gravity", enabled: true, description: "Adapted to Low-G worlds (no penalty there); suffers -25% farming/production/research on Normal-G worlds and -50% on High-G. Troops take a 10% penalty in ground combat (when implemented)." },
-  { id: "high_g_world", name: "High-G World", category: "Homeworld", pickCost: 6, exclusiveGroup: "gravity", enabled: true, description: "Adapted to High-G worlds (no penalty there); still -25% farming/production/research on Low-G worlds. Troops take 1 extra hit before dying in ground combat (when implemented)." },
-  { id: "aquatic", name: "Aquatic", category: "Future Traits", pickCost: 5, enabled: false, description: "Requires aquatic planet capacity rules." },
-  { id: "cybernetic", name: "Cybernetic", category: "Future Traits", pickCost: 4, enabled: false, description: "Requires food consumption rules." },
-  { id: "lithovore", name: "Lithovore", category: "Future Traits", pickCost: 10, enabled: false, description: "Requires food consumption rules." },
-  { id: "repulsive", name: "Repulsive", category: "Future Traits", pickCost: -6, enabled: false, description: "Requires diplomacy." },
-  { id: "charismatic", name: "Charismatic", category: "Future Traits", pickCost: 3, enabled: false, description: "Requires diplomacy." },
-  { id: "uncreative", name: "Uncreative", category: "Future Traits", pickCost: -4, enabled: false, description: "Requires research choice rules." },
-  { id: "creative", name: "Creative", category: "Future Traits", pickCost: 8, enabled: false, description: "Requires research choice rules." },
-  { id: "tolerant", name: "Tolerant", category: "Future Traits", pickCost: 10, enabled: false, description: "Requires pollution and hostile environment rules." },
-  { id: "fantastic_traders", name: "Fantastic Traders", category: "Future Traits", pickCost: 4, enabled: false, description: "Requires trade rules." },
-  { id: "telepathic", name: "Telepathic", category: "Future Traits", pickCost: 6, enabled: false, description: "Requires diplomacy and conquest rules." },
-  { id: "lucky", name: "Lucky", category: "Future Traits", pickCost: 3, enabled: false, description: "Requires random events." },
-  { id: "omniscient", name: "Omniscient", category: "Future Traits", pickCost: 3, enabled: false, description: "Requires map intelligence rules." },
-  { id: "stealthy_ships", name: "Stealthy Ships", category: "Future Traits", pickCost: 4, enabled: false, description: "Requires detection rules." },
-  { id: "trans_dimensional", name: "Trans-Dimensional", category: "Future Traits", pickCost: 5, enabled: false, description: "Requires movement rules." },
-  { id: "warlord", name: "Warlord", category: "Future Traits", pickCost: 4, enabled: false, description: "Requires crew experience rules." },
+  { id: "ship_defense", name: "Ship Defense", category: "Ship Defense", pickCost: 0, enabled: false, description: "Requires combat." },
+  { id: "ship_attack", name: "Ship Attack", category: "Ship Attack", pickCost: 0, enabled: false, description: "Requires combat." },
+  { id: "ground_combat", name: "Ground Combat", category: "Ground Combat", pickCost: 0, enabled: false, description: "Requires ground combat." },
+  { id: "spying", name: "Spying", category: "Spying", pickCost: 0, enabled: false, description: "Requires espionage." },
+  { id: "low_g_world", name: "Low-G World", category: "Special Abilities", pickCost: -5, exclusiveGroup: "gravity", enabled: true, description: "Adapted to Low-G worlds (no penalty there); suffers -25% farming/production/research on Normal-G worlds and -50% on High-G. Troops take a 10% penalty in ground combat (when implemented)." },
+  { id: "high_g_world", name: "High-G World", category: "Special Abilities", pickCost: 6, exclusiveGroup: "gravity", enabled: true, description: "Adapted to High-G worlds (no penalty there); still -25% farming/production/research on Low-G worlds. Troops take 1 extra hit before dying in ground combat (when implemented)." },
+  { id: "aquatic", name: "Aquatic", category: "Special Abilities", pickCost: 5, enabled: false, description: "Requires aquatic planet capacity rules." },
+  { id: "subterranean", name: "Subterranean", category: "Special Abilities", pickCost: 6, exclusiveGroup: "capacity", enabled: true, description: "Planet population capacity is doubled." },
+  { id: "large_homeworld", name: "Large Home World", category: "Special Abilities", pickCost: 1, exclusiveGroup: "homeworld_size", enabled: true, description: "The capital starts as a large world." },
+  { id: "rich_homeworld", name: "Rich Home World", category: "Special Abilities", pickCost: 2, exclusiveGroup: "homeworld_minerals", enabled: true, description: "The capital starts rich." },
+  { id: "poor_homeworld", name: "Poor Home World", category: "Special Abilities", pickCost: -1, exclusiveGroup: "homeworld_minerals", enabled: true, description: "The capital starts poor." },
+  { id: "artifacts_homeworld", name: "Artifacts World", category: "Special Abilities", pickCost: 3, exclusiveGroup: "homeworld_artifacts", enabled: true, description: "The capital produces extra research." },
+  { id: "cybernetic", name: "Cybernetic", category: "Special Abilities", pickCost: 4, enabled: false, description: "Requires food consumption rules." },
+  { id: "lithovore", name: "Lithovore", category: "Special Abilities", pickCost: 10, enabled: false, description: "Requires food consumption rules." },
+  { id: "repulsive", name: "Repulsive", category: "Special Abilities", pickCost: -6, enabled: false, description: "Requires diplomacy." },
+  { id: "charismatic", name: "Charismatic", category: "Special Abilities", pickCost: 3, enabled: false, description: "Requires diplomacy." },
+  { id: "uncreative", name: "Uncreative", category: "Special Abilities", pickCost: -4, exclusiveGroup: "creativity", enabled: false, description: "Requires research choice rules." },
+  { id: "creative", name: "Creative", category: "Special Abilities", pickCost: 8, exclusiveGroup: "creativity", enabled: true, description: "Completing a research level discovers every technology at that breakthrough." },
+  { id: "tolerant", name: "Tolerant", category: "Special Abilities", pickCost: 10, enabled: false, description: "Requires pollution and hostile environment rules." },
+  { id: "fantastic_traders", name: "Fantastic Traders", category: "Special Abilities", pickCost: 4, enabled: false, description: "Requires trade rules." },
+  { id: "telepathic", name: "Telepathic", category: "Special Abilities", pickCost: 6, enabled: false, description: "Requires diplomacy and conquest rules." },
+  { id: "lucky", name: "Lucky", category: "Special Abilities", pickCost: 3, enabled: false, description: "Requires random events." },
+  { id: "omniscient", name: "Omniscient", category: "Special Abilities", pickCost: 3, enabled: false, description: "Requires map intelligence rules." },
+  { id: "stealthy_ships", name: "Stealthy Ships", category: "Special Abilities", pickCost: 4, enabled: false, description: "Requires detection rules." },
+  { id: "trans_dimensional", name: "Trans-Dimensional", category: "Special Abilities", pickCost: 5, enabled: false, description: "Requires movement rules." },
+  { id: "warlord", name: "Warlord", category: "Special Abilities", pickCost: 4, enabled: false, description: "Requires crew experience rules." },
 ];
+
+export function raceTraitGroupsForCategories(categories: readonly string[]) {
+  return categories
+    .map((category) => ({
+      category,
+      traits: raceTraitDefinitions.filter((trait) => trait.category === category),
+    }))
+    .filter((group) => group.traits.length > 0);
+}
 
 export const raceTraitById = new Map(raceTraitDefinitions.map((trait) => [trait.id, trait]));
 

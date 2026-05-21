@@ -1,5 +1,5 @@
 import { useNavigate } from "@solidjs/router";
-import { createMemo, createSignal, For, onMount, Show } from "solid-js";
+import { createMemo, createSignal, For, onCleanup, onMount, Show } from "solid-js";
 import type { Accessor } from "solid-js";
 
 import { ApiClient } from "../lib/api";
@@ -9,8 +9,12 @@ import {
   fallbackGovernments,
   isRaceTraitBlocked,
   raceNegativePicks,
+  RACE_EDITOR_LEFT_COLUMN,
+  RACE_EDITOR_MIDDLE_COLUMN,
+  RACE_EDITOR_RIGHT_COLUMN,
   raceRemainingPicks,
   raceTraitDefinitions,
+  raceTraitGroupsForCategories,
   swapExclusiveRaceTrait,
   validateCustomRaceDesign,
   validatePlayableCustomRaceDesign,
@@ -19,7 +23,35 @@ import type { RaceTraitDefinition } from "../lib/race-design";
 import type { ApiGovernment, RaceDesign, RaceTraitId } from "../lib/types/api";
 import { useAppContext } from "../state/app-context";
 
-const categoryOrder = ["Population", "Farming", "Production", "Research", "Homeworld", "Money", "Future Traits"];
+function RaceEditorFoldChevron() {
+  return (
+    <svg
+      class="race-editor-sidebar-fold-chevron"
+      width="10"
+      height="10"
+      viewBox="0 0 10 10"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        class="race-editor-sidebar-fold-chevron-right"
+        d="M3.25 2.25 6.75 5 3.25 7.75"
+        stroke="currentColor"
+        stroke-width="1.35"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <path
+        class="race-editor-sidebar-fold-chevron-down"
+        d="M2.25 3.25 5 6.75 7.75 3.25"
+        stroke="currentColor"
+        stroke-width="1.35"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  );
+}
 
 function BackArrowIcon() {
   return (
@@ -35,10 +67,94 @@ function BackArrowIcon() {
   );
 }
 
+function DuplicateIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+      <rect x="4.5" y="4.5" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.2" />
+      <path
+        d="M2.5 9.5V3.5C2.5 2.95 2.95 2.5 3.5 2.5H9.5"
+        stroke="currentColor"
+        stroke-width="1.2"
+        stroke-linecap="round"
+      />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+      <path
+        d="M3 4h8M5.5 4V3h3v1M5.25 6v3.5M8.75 6v3.5M4.25 4l.5 7h4.5l.5-7"
+        stroke="currentColor"
+        stroke-width="1.2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  );
+}
+
+const SAVE_NOTICE_MS = 3000;
+const NAME_AUTOSAVE_MS = 1000;
+
 type RaceTraitGroup = { category: string; traits: RaceTraitDefinition[] };
 
-function traitCountForCategory(category: string) {
-  return raceTraitDefinitions.filter((t) => t.category === category).length;
+function RaceEditorListItem(props: {
+  race: RaceDesign;
+  selected: boolean;
+  confirmDelete: boolean;
+  actionsDisabled: boolean;
+  onSelect: () => void;
+  onCopy: () => void;
+  onDelete?: () => void;
+}) {
+  return (
+    <div
+      class="race-editor-row"
+      classList={{ "is-selected": props.selected, "is-confirm-delete": props.confirmDelete }}
+    >
+      <button
+        type="button"
+        class="race-editor-option construction-project-option"
+        classList={{ "is-selected": props.selected }}
+        onClick={props.onSelect}
+      >
+        <span class="race-editor-option-marker" />
+        <span class="race-editor-option-name">{props.race.name}</span>
+      </button>
+      <div class="race-editor-row-actions">
+        <button
+          type="button"
+          class="race-editor-row-action"
+          title="Duplicate race"
+          aria-label={`Duplicate ${props.race.name}`}
+          disabled={props.actionsDisabled}
+          onClick={(event) => {
+            event.stopPropagation();
+            props.onCopy();
+          }}
+        >
+          <DuplicateIcon />
+        </button>
+        <Show when={props.onDelete}>
+          <button
+            type="button"
+            class="race-editor-row-action race-editor-row-action--danger"
+            title={props.confirmDelete ? "Confirm delete" : "Delete race"}
+            aria-label={props.confirmDelete ? `Confirm delete ${props.race.name}` : `Delete ${props.race.name}`}
+            disabled={props.actionsDisabled}
+            onClick={(event) => {
+              event.stopPropagation();
+              props.onDelete?.();
+            }}
+          >
+            <TrashIcon />
+          </button>
+        </Show>
+      </div>
+    </div>
+  );
 }
 
 function RaceEditorTraitSection(props: {
@@ -91,8 +207,8 @@ function RaceEditorGovernmentSection(props: {
   onSelectGovernment: (name: string) => void;
 }) {
   return (
-    <section class="race-editor-section" aria-label="Government">
-      <h2>Government</h2>
+    <section class="race-editor-section" aria-label="Governments">
+      <h2>Governments</h2>
       <div class="race-trait-list">
         <For each={props.governments()}>
           {(item) => {
@@ -133,9 +249,18 @@ export function RaceEditorPage() {
   const [governments, setGovernments] = createSignal<ApiGovernment[]>(fallbackGovernments);
   const [traitIds, setTraitIds] = createSignal<RaceTraitId[]>([]);
   const [saveError, setSaveError] = createSignal("");
-  const [saveMessage, setSaveMessage] = createSignal("");
-  const [confirmDelete, setConfirmDelete] = createSignal("");
+  const [saveNotice, setSaveNotice] = createSignal("");
+  const [confirmDeleteName, setConfirmDeleteName] = createSignal<string | null>(null);
   const [isSaving, setIsSaving] = createSignal(false);
+
+  let suppressAutoSave = 0;
+  let nameAutosaveTimer: ReturnType<typeof setTimeout> | undefined;
+  let saveNoticeTimer: ReturnType<typeof setTimeout> | undefined;
+
+  onCleanup(() => {
+    clearTimeout(nameAutosaveTimer);
+    clearTimeout(saveNoticeTimer);
+  });
 
   const client = createMemo(() =>
     state.session.serverUrl ? new ApiClient(state.session.serverUrl, state.session.playerId) : null,
@@ -149,37 +274,41 @@ export function RaceEditorPage() {
     return Boolean(race?.built_in);
   });
 
-  const showSaveAsNew = createMemo(() => {
-    if (readOnly() || !client() || isDraft()) return false;
-    const focus = listFocus();
-    if (!focus) return false;
-    const race = allRaces().find((r) => r.name === focus);
-    if (!race || race.built_in) return false;
-    return name().trim() !== focus && name().trim().length > 0;
-  });
-
   const design = createMemo(() => ({ name: name().trim(), government: government(), trait_ids: traitIds() }));
   const errors = createMemo(() => validateCustomRaceDesign(design()));
   const playableErrors = createMemo(() => validatePlayableCustomRaceDesign(design(), governments()));
-  const groupedTraits = createMemo(() =>
-    categoryOrder.map((category) => ({
-      category,
-      traits: raceTraitDefinitions.filter((trait) => trait.category === category),
-    })),
-  );
+  const leftColumnGroups = createMemo(() => raceTraitGroupsForCategories(RACE_EDITOR_LEFT_COLUMN));
+  const middleColumnGroups = createMemo(() => raceTraitGroupsForCategories(RACE_EDITOR_MIDDLE_COLUMN));
+  const rightColumnGroups = createMemo(() => raceTraitGroupsForCategories(RACE_EDITOR_RIGHT_COLUMN));
 
-  const tripleTraitGroups = createMemo(() =>
-    groupedTraits().filter((g) => traitCountForCategory(g.category) === 3),
-  );
-
-  const homeworldGroup = createMemo(() => groupedTraits().find((g) => g.category === "Homeworld"));
-
-  const futureTraitGroup = createMemo(() => groupedTraits().find((g) => g.category === "Future Traits"));
+  const showSavedNotice = () => {
+    setSaveNotice("Race saved");
+    clearTimeout(saveNoticeTimer);
+    saveNoticeTimer = setTimeout(() => setSaveNotice(""), SAVE_NOTICE_MS);
+  };
 
   const loadFormFromRace = (race: RaceDesign) => {
+    suppressAutoSave += 1;
     setName(race.name);
     setGovernment(race.government || defaultGovernment(governments()));
     setTraitIds([...(race.trait_ids ?? [])] as RaceTraitId[]);
+    queueMicrotask(() => {
+      suppressAutoSave = Math.max(0, suppressAutoSave - 1);
+    });
+  };
+
+  const scheduleAutoSave = (immediate: boolean) => {
+    if (suppressAutoSave > 0 || readOnly() || errors().length > 0 || isSaving()) {
+      return;
+    }
+    clearTimeout(nameAutosaveTimer);
+    if (immediate) {
+      void persistCurrentRace();
+      return;
+    }
+    nameAutosaveTimer = setTimeout(() => {
+      void persistCurrentRace();
+    }, NAME_AUTOSAVE_MS);
   };
 
   const refreshAll = async (): Promise<RaceDesign[]> => {
@@ -232,8 +361,7 @@ export function RaceEditorPage() {
     setIsDraft(false);
     loadFormFromRace(race);
     setSaveError("");
-    setSaveMessage("");
-    setConfirmDelete("");
+    setConfirmDeleteName(null);
   };
 
   const handleNew = () => {
@@ -254,18 +382,22 @@ export function RaceEditorPage() {
     setGovernment(defaultGovernment(governments()));
     setTraitIds([]);
     setSaveError("");
-    setSaveMessage("");
-    setConfirmDelete("");
+    setConfirmDeleteName(null);
   };
 
-  const handleCopy = () => {
-    const next = nextCopyName(name(), allRaces());
+  const copyRace = (race: RaceDesign) => {
+    suppressAutoSave += 1;
     setIsDraft(true);
     setListFocus(null);
-    setName(next);
+    setName(nextCopyName(race.name, allRaces()));
+    setGovernment(race.government || defaultGovernment(governments()));
+    setTraitIds([...(race.trait_ids ?? [])] as RaceTraitId[]);
     setSaveError("");
-    setSaveMessage("");
-    setConfirmDelete("");
+    setConfirmDeleteName(null);
+    queueMicrotask(() => {
+      suppressAutoSave = Math.max(0, suppressAutoSave - 1);
+      scheduleAutoSave(true);
+    });
   };
 
   const toggleTrait = (id: string) => {
@@ -274,24 +406,39 @@ export function RaceEditorPage() {
     if (!trait || !trait.enabled) return;
     if (traitIds().includes(id as RaceTraitId)) {
       setTraitIds((prev) => prev.filter((traitId) => traitId !== id));
+      scheduleAutoSave(true);
       return;
     }
     if (isRaceTraitBlocked(trait)) return;
     setTraitIds((prev) => swapExclusiveRaceTrait(trait, prev));
+    scheduleAutoSave(true);
   };
 
-  const saveCurrentRace = async (opts?: { renameFrom?: string; saveAsNew?: boolean }) => {
-    if (readOnly()) return null;
+  const updateGovernment = (nextGovernment: string) => {
+    if (readOnly()) return;
+    setGovernment(nextGovernment);
+    scheduleAutoSave(true);
+  };
+
+  const persistCurrentRace = async () => {
+    if (readOnly() || errors().length > 0 || isSaving()) {
+      return null;
+    }
     setIsSaving(true);
     setSaveError("");
-    setSaveMessage("");
     try {
-      const saved = client() ? await client()!.saveCustomRace(design(), opts) : design();
+      const focus = listFocus();
+      const trimmed = name().trim();
+      const row = focus ? allRaces().find((r) => r.name === focus) : undefined;
+      const renaming = Boolean(!isDraft() && focus && row && !row.built_in && trimmed !== focus);
+      const saved = client()
+        ? await client()!.saveCustomRace(design(), renaming ? { renameFrom: focus! } : undefined)
+        : design();
       setCustomRaceDraft(saved);
-      setSaveMessage(`Saved ${saved.name}.`);
       setIsDraft(false);
       setListFocus(saved.name);
       await refreshAll();
+      showSavedNotice();
       return saved;
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : "Unable to save race.");
@@ -301,43 +448,27 @@ export function RaceEditorPage() {
     }
   };
 
-  const handleSave = async () => {
-    if (errors().length > 0 || readOnly()) return;
-    const focus = listFocus();
-    const trimmed = name().trim();
-    const row = focus ? allRaces().find((r) => r.name === focus) : undefined;
-    const renaming = Boolean(!isDraft() && focus && row && !row.built_in && trimmed !== focus);
-    await saveCurrentRace(renaming ? { renameFrom: focus! } : undefined);
-  };
-
-  const handleSaveAsNew = async () => {
-    if (errors().length > 0 || readOnly() || !showSaveAsNew()) return;
-    await saveCurrentRace({ saveAsNew: true });
-  };
-
-  const handleDelete = async () => {
-    if (readOnly() || isDraft()) return;
-    const nm = listFocus();
-    if (!nm) return;
-    const race = allRaces().find((r) => r.name === nm);
-    if (!race || race.built_in) return;
-    if (confirmDelete() !== nm) {
-      setConfirmDelete(nm);
+  const deleteRace = async (race: RaceDesign) => {
+    if (race.built_in) return;
+    if (confirmDeleteName() !== race.name) {
+      setConfirmDeleteName(race.name);
       return;
     }
     if (!client()) return;
     setIsSaving(true);
     setSaveError("");
-    setSaveMessage("");
     try {
-      await client()!.deleteCustomRace(nm);
-      setConfirmDelete("");
+      await client()!.deleteCustomRace(race.name);
+      setConfirmDeleteName(null);
       const updated = await refreshAll();
-      const builtin = updated.find((r) => r.built_in);
-      if (builtin) {
-        selectRow(builtin);
-      } else {
-        handleNew();
+      const deletingFocused = listFocus() === race.name || (isDraft() && name().trim() === race.name);
+      if (deletingFocused) {
+        const builtin = updated.find((r) => r.built_in);
+        if (builtin) {
+          selectRow(builtin);
+        } else {
+          handleNew();
+        }
       }
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : "Unable to delete race.");
@@ -347,6 +478,8 @@ export function RaceEditorPage() {
   };
 
   const rowSelected = (race: RaceDesign) => !isDraft() && listFocus() === race.name;
+  const builtInRaces = createMemo(() => allRaces().filter((race) => race.built_in));
+  const customRaces = createMemo(() => allRaces().filter((race) => !race.built_in));
 
   return (
     <section class="race-editor-page">
@@ -363,67 +496,86 @@ export function RaceEditorPage() {
             </button>
             <h1>Race Editor</h1>
           </div>
-          <div class="race-editor-header-actions">
-            <button class="link-button" type="button" onClick={handleNew} disabled={!client() || isSaving()}>
-              New
-            </button>
-            <button class="link-button" type="button" onClick={handleCopy} disabled={!client() || isSaving()}>
-              Copy
-            </button>
-            <button class="secondary-button" type="button" onClick={() => void handleSave()} disabled={errors().length > 0 || readOnly() || isSaving()}>
-              Save
-            </button>
-            <Show when={showSaveAsNew()}>
-              <button
-                class="secondary-button"
-                type="button"
-                onClick={() => void handleSaveAsNew()}
-                disabled={errors().length > 0 || readOnly() || isSaving()}
-              >
-                Save as new
-              </button>
-            </Show>
-            <button
-              class="link-button"
-              type="button"
-              classList={{ "race-editor-delete": true }}
-              onClick={() => void handleDelete()}
-              disabled={readOnly() || isDraft() || isSaving() || !listFocus()}
-            >
-              {confirmDelete() === listFocus() ? "Confirm delete" : "Delete"}
-            </button>
-          </div>
         </header>
+
+        <Show when={saveNotice()}>
+          <p class="race-editor-save-notice" role="status">
+            {saveNotice()}
+          </p>
+        </Show>
 
         <div class="race-editor-body">
           <aside class="race-editor-sidebar" aria-label="Race list">
-            <h2 class="race-editor-sidebar-title">Races</h2>
-            <div class="race-editor-list">
-              <Show when={isDraft()}>
-                <div class="race-editor-draft-pill">Unsaved draft</div>
-              </Show>
-              <For each={allRaces()}>
-                {(race) => (
-                  <button
-                    type="button"
-                    class="race-editor-option construction-project-option"
-                    classList={{ "is-selected": rowSelected(race) }}
-                    onClick={() => selectRow(race)}
-                  >
-                    <span class="race-editor-option-marker" />
-                    <span class="race-editor-option-main">
-                      <span class="race-editor-option-name">
-                        {race.name}
-                        {race.built_in ? <span class="race-editor-badge">Built-in</span> : null}
-                      </span>
-                      <span class="race-editor-option-meta">
-                        {race.playable === false ? "Unplayable" : "Playable"} · {race.government || "—"}
-                      </span>
-                    </span>
-                  </button>
-                )}
-              </For>
-            </div>
+            <details class="race-editor-sidebar-fold" open>
+              <summary class="race-editor-sidebar-fold-summary">
+                <span class="race-editor-sidebar-fold-heading">
+                  <RaceEditorFoldChevron />
+                  <span class="race-editor-sidebar-fold-title">Built-in races</span>
+                </span>
+              </summary>
+              <div class="race-editor-list">
+                <For each={builtInRaces()}>
+                  {(race) => (
+                    <RaceEditorListItem
+                      race={race}
+                      selected={rowSelected(race)}
+                      confirmDelete={false}
+                      actionsDisabled={!client() || isSaving()}
+                      onSelect={() => selectRow(race)}
+                      onCopy={() => copyRace(race)}
+                    />
+                  )}
+                </For>
+              </div>
+            </details>
+
+            <details class="race-editor-sidebar-fold" open>
+              <summary class="race-editor-sidebar-fold-summary">
+                <span class="race-editor-sidebar-fold-heading">
+                  <RaceEditorFoldChevron />
+                  <span class="race-editor-sidebar-fold-title">Custom races</span>
+                </span>
+                <button
+                  type="button"
+                  class="race-editor-sidebar-new-race"
+                  disabled={!client() || isSaving()}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    handleNew();
+                  }}
+                >
+                  New race
+                </button>
+              </summary>
+              <div class="race-editor-list">
+                <Show when={isDraft()}>
+                  <div class="race-editor-draft-pill">Unsaved draft</div>
+                </Show>
+                <Show
+                  when={customRaces().length > 0}
+                  fallback={
+                    <Show when={!isDraft()}>
+                      <p class="race-editor-sidebar-empty">No custom races yet.</p>
+                    </Show>
+                  }
+                >
+                  <For each={customRaces()}>
+                    {(race) => (
+                      <RaceEditorListItem
+                        race={race}
+                        selected={rowSelected(race)}
+                        confirmDelete={confirmDeleteName() === race.name}
+                        actionsDisabled={!client() || isSaving()}
+                        onSelect={() => selectRow(race)}
+                        onCopy={() => copyRace(race)}
+                        onDelete={() => void deleteRace(race)}
+                      />
+                    )}
+                  </For>
+                </Show>
+              </div>
+            </details>
           </aside>
 
           <main class="race-editor-main" classList={{ "race-editor-main--readonly": readOnly() }}>
@@ -434,7 +586,10 @@ export function RaceEditorPage() {
                   value={name()}
                   maxlength={32}
                   disabled={readOnly()}
-                  onInput={(event) => setName(event.currentTarget.value)}
+                  onInput={(event) => {
+                    setName(event.currentTarget.value);
+                    scheduleAutoSave(false);
+                  }}
                 />
               </label>
               <div class="race-editor-picks" aria-label="Race design picks">
@@ -455,9 +610,9 @@ export function RaceEditorPage() {
               </div>
             </div>
 
-            <div class="race-editor-traits-stack">
-              <div class="race-editor-traits-grid">
-                <For each={tripleTraitGroups()}>
+            <div class="race-editor-columns">
+              <div class="race-editor-column">
+                <For each={leftColumnGroups()}>
                   {(group) => (
                     <RaceEditorTraitSection
                       group={group}
@@ -468,30 +623,36 @@ export function RaceEditorPage() {
                   )}
                 </For>
               </div>
-              <div class="race-editor-traits-grid race-editor-traits-grid--homeworld-pair">
-                {homeworldGroup() != null && (
-                  <RaceEditorTraitSection
-                    group={homeworldGroup()!}
-                    readOnly={readOnly}
-                    traitIds={traitIds}
-                    onToggleTrait={toggleTrait}
-                  />
-                )}
+              <div class="race-editor-column">
+                <For each={middleColumnGroups()}>
+                  {(group) => (
+                    <RaceEditorTraitSection
+                      group={group}
+                      readOnly={readOnly}
+                      traitIds={traitIds}
+                      onToggleTrait={toggleTrait}
+                    />
+                  )}
+                </For>
                 <RaceEditorGovernmentSection
                   readOnly={readOnly}
                   governments={governments}
                   government={government}
-                  onSelectGovernment={setGovernment}
+                  onSelectGovernment={updateGovernment}
                 />
               </div>
-              {futureTraitGroup() != null && (
-                <RaceEditorTraitSection
-                  group={futureTraitGroup()!}
-                  readOnly={readOnly}
-                  traitIds={traitIds}
-                  onToggleTrait={toggleTrait}
-                />
-              )}
+              <div class="race-editor-column">
+                <For each={rightColumnGroups()}>
+                  {(group) => (
+                    <RaceEditorTraitSection
+                      group={group}
+                      readOnly={readOnly}
+                      traitIds={traitIds}
+                      onToggleTrait={toggleTrait}
+                    />
+                  )}
+                </For>
+              </div>
             </div>
 
             <div class="race-editor-messages" aria-live="polite">
@@ -507,14 +668,11 @@ export function RaceEditorPage() {
               </Show>
               <Show when={readOnly()}>
                 <p class="race-editor-readonly-note">
-                  Built-in races are read-only. Use Copy to edit a derived custom race.
+                  Built-in races are read-only. Duplicate one from the list to create a custom race.
                 </p>
               </Show>
               <Show when={saveError()}>
                 <p class="race-editor-save-error">{saveError()}</p>
-              </Show>
-              <Show when={saveMessage()}>
-                <p class="race-editor-save-message">{saveMessage()}</p>
               </Show>
             </div>
           </main>

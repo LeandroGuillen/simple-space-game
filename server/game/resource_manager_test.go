@@ -21,7 +21,7 @@ func TestResourceManagerLoadsShipSystems(t *testing.T) {
 func TestNewResourceManagerLoadsHumanBuiltinRace(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)
-	require.Len(t, resources.BuiltInRaces, 1)
+	require.Len(t, resources.BuiltInRaces, 13)
 	assert.Equal(t, "Human", resources.BuiltInRaces[0].Name)
 	assert.True(t, resources.BuiltInRaces[0].BuiltIn)
 	assert.True(t, resources.BuiltInRaces[0].Playable)

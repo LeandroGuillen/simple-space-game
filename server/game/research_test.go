@@ -74,6 +74,27 @@ func TestTurnCompletesSelectedTechAndSpendsAccumulatedResearch(t *testing.T) {
 	assert.Equal(t, uint64(0), player.ResearchPoints)
 }
 
+func TestCreativeRaceUnlocksEveryTechInLevel(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	race, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Psilons", TraitIDs: []string{"creative"}})
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: race})
+	require.NoError(t, err)
+
+	player := g.Players[0]
+	player.ResearchPoints = 79
+	require.NoError(t, g.selectResearch(player, model.SelectResearchCommand{TechName: "Hydroponic Farm"}))
+	require.NoError(t, g.applyResearch(player, 1))
+
+	assert.Nil(t, player.CurrentResearch)
+	assert.Contains(t, player.ResearchedTechs, "Hydroponic Farm")
+	assert.Contains(t, player.ResearchedTechs, "Biospheres")
+	assert.Equal(t, uint64(0), player.ResearchPoints)
+}
+
 func TestTurnCompletesForceAllResearchAndUnlocksEveryTechInLevel(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)

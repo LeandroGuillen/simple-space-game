@@ -17,6 +17,7 @@ import { Portal } from "solid-js/web";
 
 import { APP_VERSION } from "../lib/app-meta";
 import { recordPlanetReturnCandidate } from "../lib/navigation-history";
+import { researchLevelUnlocksAllTechs } from "../lib/research";
 import { createShortcut, withShortcutHint } from "../lib/shortcuts";
 import type { MovePopulationCommand } from "../lib/types/commands";
 import type {
@@ -155,14 +156,17 @@ function researchPerTurn(
     );
 }
 
-function isLevelComplete(player: PlayerViewModel, level: TechLevelViewModel) {
+function isLevelComplete(
+  player: PlayerViewModel,
+  level: TechLevelViewModel,
+) {
   if (level.availableTechs.length === 0) {
     return false;
   }
   const knownTechs = new Set(
     player.researchedTechs.map((tech) => tech.toLowerCase()),
   );
-  if (!level.forceAll) {
+  if (!researchLevelUnlocksAllTechs(level, player.raceTraitIds)) {
     return level.availableTechs.some((tech) =>
       knownTechs.has(tech.toLowerCase()),
     );
@@ -210,14 +214,16 @@ function researchChoices(
           },
         ];
       }
-      if (level.forceAll) {
+      if (researchLevelUnlocksAllTechs(level, player.raceTraitIds)) {
         return [
           {
             subject,
             level,
             commandTechName: level.name,
             label: level.name,
-            techNames: level.availableTechs,
+            techNames: level.availableTechs.filter((techName) =>
+              isResearchChoiceAllowedForGovernment(game, player, techName),
+            ),
             forceAll: true,
             isHyperAdvanced: false,
           },
