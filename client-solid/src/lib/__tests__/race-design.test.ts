@@ -3,10 +3,13 @@ import {
   governmentPickCost,
   isPlayableCustomRaceDesign,
   isRaceTraitBlocked,
+  isRaceTraitId,
   newGameRaceFieldsFromEncodedSelection,
   raceNegativePicks,
+  racePopulationGrowthPercent,
   raceRemainingPicks,
   raceSlugForNewGame,
+  raceTraitById,
   swapExclusiveRaceTrait,
   validateCustomRaceDesign,
   validatePlayableCustomRaceDesign,
@@ -38,15 +41,43 @@ describe("race design", () => {
 
   it("treats disabled future traits as blocked", () => {
     const trait = {
-      id: "lithovore",
-      name: "Lithovore",
+      id: "repulsive",
+      name: "Repulsive",
       category: "Special Abilities",
-      pickCost: 10,
+      pickCost: -6,
       enabled: false,
       description: "",
     };
 
     expect(isRaceTraitBlocked(trait)).toBe(true);
+  });
+
+  it("sums population growth percent from growth traits", () => {
+    expect(racePopulationGrowthPercent(["growth_plus_50"])).toBe(50);
+    expect(racePopulationGrowthPercent(["growth_plus_100"])).toBe(100);
+    expect(racePopulationGrowthPercent(["growth_minus_50"])).toBe(-50);
+    expect(racePopulationGrowthPercent(["food_plus_1"])).toBe(0);
+  });
+
+  it("prefers API population growth percent when provided", () => {
+    expect(racePopulationGrowthPercent(["growth_plus_50"], 100)).toBe(100);
+    expect(racePopulationGrowthPercent(["growth_minus_50"], 0)).toBe(0);
+  });
+
+  it("recognizes newly enabled special trait ids", () => {
+    expect(isRaceTraitId("low_g_world")).toBe(true);
+    expect(isRaceTraitId("high_g_world")).toBe(true);
+    expect(isRaceTraitId("poor_homeworld")).toBe(true);
+    expect(isRaceTraitId("creative")).toBe(true);
+    expect(isRaceTraitId("tolerant")).toBe(true);
+    expect(isRaceTraitId("repulsive")).toBe(false);
+  });
+
+  it("treats ground combat and spying as selectable", () => {
+    expect(isRaceTraitBlocked(raceTraitById.get("ground_combat")!)).toBe(false);
+    expect(isRaceTraitBlocked(raceTraitById.get("spying")!)).toBe(false);
+    expect(raceTraitById.get("ground_combat")?.pickCost).toBe(5);
+    expect(raceTraitById.get("spying")?.pickCost).toBe(3);
   });
 
   it("treats creative as selectable", () => {
@@ -55,6 +86,20 @@ describe("race design", () => {
       name: "Creative",
       category: "Special Abilities",
       pickCost: 8,
+      exclusiveGroup: "creativity",
+      enabled: true,
+      description: "",
+    };
+
+    expect(isRaceTraitBlocked(trait)).toBe(false);
+  });
+
+  it("treats uncreative as selectable", () => {
+    const trait = {
+      id: "uncreative",
+      name: "Uncreative",
+      category: "Special Abilities",
+      pickCost: -4,
       exclusiveGroup: "creativity",
       enabled: true,
       description: "",

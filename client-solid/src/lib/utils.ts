@@ -16,6 +16,9 @@ import type {
   StarSummary,
 } from "./types/domain";
 import type { ApiShipParts } from "./types/api";
+import { racePopulationGrowthPercent } from "./race-design";
+import { playerHasRaceTrait } from "./research";
+import { tradeGoodsMultiplier } from "./research";
 
 export const STAR_COLORS = [
   "#f1f5f9",
@@ -57,6 +60,32 @@ export function normalizeServerUrl(value: string) {
     return "";
   }
   return /^https?:\/\//.test(trimmed) ? trimmed : `http://${trimmed}`;
+}
+
+export function isGameCommandPath(pathname: string) {
+  return (
+    pathname.startsWith("/galaxy") ||
+    pathname.startsWith("/stars") ||
+    pathname.startsWith("/colonies") ||
+    pathname.startsWith("/fleets") ||
+    pathname.startsWith("/technology")
+  );
+}
+
+export function isLobbyPath(pathname: string) {
+  return (
+    pathname === "/" ||
+    pathname.startsWith("/race-editor") ||
+    pathname.startsWith("/ship-editor")
+  );
+}
+
+export function gameSessionPath(
+  gameId: string,
+  playerId: number,
+  route = "/galaxy",
+) {
+  return `${route}?game=${encodeURIComponent(gameId)}&player=${playerId}`;
 }
 
 export function toWebSocketUrl(serverUrl: string, gameId: string, playerId: number) {
@@ -474,30 +503,61 @@ export function getPlanetPollutionSize(planet: PlanetViewModel) {
   return planet.size * 2 * (hasNanoDisassemblers ? 2 : 1);
 }
 
-export function getPlanetPollutionForWorkers(planet: PlanetViewModel, workers: number) {
+export function getPlanetPollutionForWorkers(
+  planet: PlanetViewModel,
+  workers: number,
+  traitIds?: readonly string[],
+) {
+  if ((traitIds ?? []).includes("tolerant")) {
+    return 0;
+  }
   const dirtyProduction = Math.max(0, workers) * planet.industry.produced_per_worker;
   const raw = (dirtyProduction / getPlanetPollutionDivisor(planet) - getPlanetPollutionSize(planet)) / 2;
   return Math.max(0, Math.ceil(raw));
 }
 
-export function getPlanetIndustryForWorkers(planet: PlanetViewModel, workers: number) {
+/** Food units required per turn for population (MoO2 cybernetic / lithovore rules). */
+export function populationFoodDemand(traitIds: string[] | undefined, population: number): number {
+  const popUnits = Math.floor(population / 1000);
+  if (playerHasRaceTrait(traitIds, "lithovore")) {
+    return 0;
+  }
+  if (playerHasRaceTrait(traitIds, "cybernetic")) {
+    return popUnits * 0.5;
+  }
+  return popUnits;
+}
+
+export function getPlanetIndustryForWorkers(
+  planet: PlanetViewModel,
+  workers: number,
+  traitIds?: readonly string[],
+) {
   const grossIndustry = getPlanetGrossIndustryForWorkers(planet, workers);
-  const pollution = getPlanetPollutionForWorkers(planet, workers);
+  const pollution = getPlanetPollutionForWorkers(planet, workers, traitIds);
   return Math.max(0, grossIndustry - pollution);
 }
 
-export function getPlanetProjectedIncome(planet: PlanetViewModel, pendingCommands?: PendingCommands) {
+export function getPlanetProjectedIncome(
+  planet: PlanetViewModel,
+  pendingCommands?: PendingCommands,
+  traitIds?: string[],
+) {
   const population = getProjectedWorkerAllocation(planet, pendingCommands?.movePopulation ?? []);
   const pendingBuild = getPendingBuild(planet.id, pendingCommands?.build ?? []);
   const food = getPlanetFoodForFarmers(planet, population.farmers);
-  const foodSurplus = Math.max(0, food - Math.floor(planet.population / 1000));
-  const industry = getPlanetIndustryForWorkers(planet, population.workers);
+  const foodSurplus = Math.max(
+    0,
+    food - Math.ceil(populationFoodDemand(traitIds, planet.population)),
+  );
+  const industry = getPlanetIndustryForWorkers(planet, population.workers, traitIds);
   const producesTradeGoods =
     pendingBuild?.building === "Trade Goods" ||
     (!planet.isBuilding && !pendingBuild && planet.currentProject?.name === "Trade Goods");
-  const tradeGoods = producesTradeGoods
+  const baseTradeGoods = producesTradeGoods
     ? Math.floor(foodSurplus / 2) + Math.floor(industry / 2)
     : 0;
+  const tradeGoods = Math.trunc(baseTradeGoods * tradeGoodsMultiplier(traitIds));
   const taxes = Math.floor(
     Math.floor(planet.population / 1000) *
       getMoraleMultiplier(planet) *
@@ -516,7 +576,12 @@ export function getPlanetProjectedIncome(planet: PlanetViewModel, pendingCommand
   };
 }
 
-export function getPlanetProjectedPopulationGrowth(planet: PlanetViewModel, pendingCommands?: PendingCommands) {
+export function getPlanetProjectedPopulationGrowth(
+  planet: PlanetViewModel,
+  pendingCommands?: PendingCommands,
+  traitIds?: string[],
+  raceGrowthPercent?: number | null,
+) {
   if (planet.population <= 0) {
     return 0;
   }
@@ -533,7 +598,8 @@ export function getPlanetProjectedPopulationGrowth(planet: PlanetViewModel, pend
     ? Math.floor(Math.sqrt((2000 * popUnits * freeSpace) / planetCapacity))
     : 0;
   const foodProduced = getPlanetFoodForFarmers(planet, allocation.farmers);
-  const foodLack = popUnits - foodProduced;
+  const foodDemand = populationFoodDemand(traitIds, planet.population);
+  const foodLack = foodDemand - foodProduced;
   const foodLackPenalty = foodLack > 0 ? 50 * foodLack : 0;
   const flatGrowthBonus = planet.buildings.reduce(
     (sum, building) =>
@@ -548,14 +614,15 @@ export function getPlanetProjectedPopulationGrowth(planet: PlanetViewModel, pend
   const isHousing =
     pendingBuild?.building === "Housing" ||
     (!pendingBuild && planet.currentProject?.name === "Housing");
-  const industry = getPlanetIndustryForWorkers(planet, allocation.workers);
+  const industry = getPlanetIndustryForWorkers(planet, allocation.workers, traitIds);
   const populationUnits = Math.max(1, Math.floor(planet.population / 1000));
   const housingBonusPercent = isHousing
     ? Math.floor((industry * 40) / populationUnits)
     : 0;
+  const raceBonusPercent = racePopulationGrowthPercent(traitIds, raceGrowthPercent);
 
   return Math.floor(
-    Math.floor((basicIncrement * (100 + housingBonusPercent)) / 100) +
+    Math.floor((basicIncrement * (100 + housingBonusPercent + raceBonusPercent)) / 100) +
       flatGrowthBonus -
       foodLackPenalty,
   );
@@ -587,8 +654,16 @@ export function getColonyRows(
           farmers: allocation.farmers,
           workers: allocation.workers,
           scientists: allocation.scientists,
-          industry: getPlanetIndustryForWorkers(planet, allocation.workers),
-          income: getPlanetProjectedIncome(planet, pendingCommands).total,
+          industry: getPlanetIndustryForWorkers(
+            planet,
+            allocation.workers,
+            game.players.find((p) => p.id === playerId)?.raceTraitIds,
+          ),
+          income: getPlanetProjectedIncome(
+            planet,
+            pendingCommands,
+            game.players.find((p) => p.id === playerId)?.raceTraitIds,
+          ).total,
           morale: planet.morale.bonus,
           currentProject: planet.currentProject?.name || "Idle",
         };
@@ -608,7 +683,10 @@ export function getEmpireIncome(
   const colonyTotal = game.galaxy.stars
     .flatMap((star) => star.planets)
     .filter((planet) => planet.owner === playerId)
-    .reduce((total, planet) => total + getPlanetProjectedIncome(planet, pendingCommands).total, 0);
+    .reduce((total, planet) => {
+      const me = player ?? game.players.find((p) => p.id === playerId);
+      return total + getPlanetProjectedIncome(planet, pendingCommands, me?.raceTraitIds).total;
+    }, 0);
   const me = player ?? game.players.find((p) => p.id === playerId);
   const commandPenalty = me?.commandOverdrawBc ?? 0;
   return colonyTotal - commandPenalty;
@@ -618,6 +696,7 @@ export function getEmpireFoodBalance(
   game?: GameViewModel | null,
   playerId = 1,
   pendingCommands?: PendingCommands,
+  traitIds?: string[],
 ) {
   if (!game) {
     return 0;
@@ -631,7 +710,7 @@ export function getEmpireFoodBalance(
         pendingCommands?.movePopulation ?? [],
       );
       const produced = getPlanetFoodForFarmers(planet, allocation.farmers);
-      const consumed = Math.floor(planet.population / 1000);
+      const consumed = Math.ceil(populationFoodDemand(traitIds, planet.population));
       return total + produced - consumed;
     }, 0);
 }
@@ -665,7 +744,7 @@ export function getProjectedFoodFreightersUsed(
         pendingCommands?.movePopulation ?? [],
       );
       const produced = getPlanetFoodForFarmers(planet, allocation.farmers);
-      const consumed = Math.floor(planet.population / 1000);
+      const consumed = Math.ceil(populationFoodDemand(me.raceTraitIds, planet.population));
       surplus += Math.max(0, produced - consumed);
       deficit += Math.max(0, consumed - produced);
     }
@@ -734,7 +813,7 @@ export function formatEmpireFoodTooltip(
         pendingCommands?.movePopulation ?? [],
       );
       const produced = getPlanetFoodForFarmers(planet, allocation.farmers);
-      const consumed = Math.floor(planet.population / 1000);
+      const consumed = Math.ceil(populationFoodDemand(player.raceTraitIds, planet.population));
       producedTotal += produced;
       consumedTotal += consumed;
       lines.push(`${planet.name} (${star.name}): ${produced} produced, ${consumed} consumed`);
@@ -765,7 +844,7 @@ export function formatEmpireIncomeTooltip(
       if (planet.owner !== player.id) {
         continue;
       }
-      const inc = getPlanetProjectedIncome(planet, pendingCommands).total;
+      const inc = getPlanetProjectedIncome(planet, pendingCommands, player.raceTraitIds).total;
       coloniesTotal += inc;
       lines.push(`${planet.name} (${star.name}): ${formatSignedBc(inc)}`);
     }

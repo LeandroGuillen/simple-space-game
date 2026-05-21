@@ -76,7 +76,7 @@ func hydratePlanetOutputs(game *Game, p *Planet) {
 		ProducedPerBuilding:  scienceFromBuildings,
 	}
 
-	hydratePlanetPollution(p)
+	hydratePlanetPollution(game, p)
 }
 
 func PlanetGrossIndustry(p *Planet) int64 {
@@ -96,12 +96,12 @@ func GamePlanetGrossIndustry(game *Game, p *Planet) int64 {
 	) + p.Industry.ProducedPerBuilding + colonistUnits(p)*p.Industry.ProducedPerColonist
 }
 
-func PlanetIndustryProduced(p *Planet) int64 {
-	return PlanetGrossIndustry(p) - Pollution(p)
+func PlanetIndustryProduced(game *Game, p *Planet) int64 {
+	return PlanetGrossIndustry(p) - Pollution(game, p)
 }
 
 func GamePlanetIndustryProduced(game *Game, p *Planet) int64 {
-	return GamePlanetGrossIndustry(game, p) - Pollution(p)
+	return GamePlanetGrossIndustry(game, p) - Pollution(game, p)
 }
 
 func PlanetFoodProduced(p *Planet) int64 {

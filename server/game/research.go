@@ -211,6 +211,9 @@ func (g *Game) findResearchLevelForTech(techName string) (TechLevel, bool) {
 }
 
 func researchLevelUnlocksAllTechs(level TechLevel, player *Player) bool {
+	if playerHasRaceTrait(player, "uncreative") {
+		return false
+	}
 	return level.ForceAll || playerHasRaceTrait(player, "creative")
 }
 

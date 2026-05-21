@@ -16,9 +16,10 @@ func EquipBeams(s *Ship, beams []Beam) bool {
 	return true
 }
 
-func FireOn(attacker *Ship, defender *Ship, distance int64) (totalDamage int64) {
-	// TODO attackBonus could be >0
-	chanceToHit := GetChanceToHit(attacker.Computer, defender.BeamDefense, 0, distance)
+func FireOn(attacker *Ship, defender *Ship, distance int64, attackerPlayer, defenderPlayer *Player) (totalDamage int64) {
+	attackBonus := shipRaceAttackBonus(attackerPlayer, attacker.Computer.BeamAttackBonus)
+	defenderDefense := defender.BeamDefense + shipRaceDefenseBonus(defenderPlayer, defender.BeamDefense)
+	chanceToHit := GetChanceToHit(attacker.Computer, defenderDefense, attackBonus, distance)
 
 	for _, beam := range attacker.Beams {
 		roll := randomFloat64()

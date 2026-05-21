@@ -118,6 +118,31 @@ func TestPlanetIncomeMoraleBoostsTaxesOnly(t *testing.T) {
 	assert.Equal(t, int64(12), income.Total)
 }
 
+func TestFantasticTradersBoostsTradeGoods(t *testing.T) {
+	planet := &model.Planet{
+		Population: 3000,
+		Food: model.PlanetFoodOutput{
+			Farmers:             1,
+			ProducedPerFarmer:   5,
+			ProducedPerBuilding: 0,
+		},
+		CurrentProject: tradeGoodsProject,
+	}
+	player := &model.Player{ID: 1, Race: model.Race{TraitIDs: []string{"fantastic_traders"}}}
+	g := &Game{Players: []*model.Player{player}}
+
+	base := PlanetIncome(&Game{}, planet, 5)
+	boosted := PlanetIncome(g, &model.Planet{
+		Population:     planet.Population,
+		Food:           planet.Food,
+		CurrentProject: planet.CurrentProject,
+		Owner:          1,
+	}, 5)
+
+	assert.Equal(t, int64(3), base.TradeGoods)
+	assert.Equal(t, int64(4), boosted.TradeGoods)
+}
+
 func TestPlanetIncomeTradeGoodsRounding(t *testing.T) {
 	tests := []struct {
 		name             string

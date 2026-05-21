@@ -128,6 +128,7 @@ func TestTurnAddsCloningCenterPopulationGrowth(t *testing.T) {
 		Buildings: []string{"Cloning Center"},
 	}
 	growthWithoutCloningCenter := PopulationGrowth(
+		player,
 		planet.Population,
 		planet.Food.ProducedPerBuilding,
 		planet.Food.ProducedPerFarmer,

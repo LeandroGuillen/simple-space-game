@@ -35,10 +35,11 @@ func TestHydratePlanetOutputsIncludesIndustryPerColonist(t *testing.T) {
 
 	assert.Equal(t, int64(1), planet.Industry.ProducedPerColonist)
 	assert.Equal(t, int64(14), PlanetGrossIndustry(planet))
-	assert.Equal(t, int64(14), PlanetIndustryProduced(planet))
+	assert.Equal(t, int64(14), PlanetIndustryProduced(g, planet))
 }
 
 func TestIndustryPerColonistDoesNotGeneratePollution(t *testing.T) {
+	g := &Game{}
 	planet := &model.Planet{
 		Population: 20000,
 		Size:       model.PlanetSizeTiny,
@@ -48,8 +49,8 @@ func TestIndustryPerColonistDoesNotGeneratePollution(t *testing.T) {
 	}
 
 	assert.Equal(t, int64(20), PlanetGrossIndustry(planet))
-	assert.Equal(t, int64(0), Pollution(planet))
-	assert.Equal(t, int64(20), PlanetIndustryProduced(planet))
+	assert.Equal(t, int64(0), Pollution(g, planet))
+	assert.Equal(t, int64(20), PlanetIndustryProduced(g, planet))
 }
 
 func TestMoraleBoostsLaborOutputsOnly(t *testing.T) {

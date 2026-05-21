@@ -431,10 +431,15 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     return Math.max(0, workers);
   });
   const industryPerTurn = createMemo(() =>
-    getPlanetIndustryForWorkers(props.planet, projectedWorkers()),
+    getPlanetIndustryForWorkers(props.planet, projectedWorkers(), currentPlayer()?.raceTraitIds),
   );
   const housingGrowthProjection = createMemo(() =>
-    getPlanetProjectedPopulationGrowth(props.planet, state.pendingCommands),
+    getPlanetProjectedPopulationGrowth(
+      props.planet,
+      state.pendingCommands,
+      currentPlayer()?.raceTraitIds,
+      currentPlayer()?.racePopulationGrowthPercent,
+    ),
   );
   function effectiveProjectCost(project: BuildingViewModel) {
     const upgradeCredit = project.upgrades.reduce((credit, upgradedName) => {

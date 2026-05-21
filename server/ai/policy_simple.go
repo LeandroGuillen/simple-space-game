@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 
+	"ssg/game"
 	"ssg/model"
 )
 
@@ -31,7 +32,7 @@ func (SimplePolicy) Decide(snapshot *VisibleGame, playerID uint) Decision {
 	d.Notes = append(d.Notes, fmt.Sprintf("turn %.0f: %d owned planet(s), %d fleet(s)", snapshot.CurrentTurn, len(planets), len(myFleets(snapshot, playerID))))
 
 	pickResearch(snapshot, me, &d)
-	balanceLabor(planets, &d)
+	balanceLabor(me, planets, &d)
 	keepBuildQueueWarm(planets, me, &d)
 	resolvePendingColonies(snapshot, playerID, &d)
 	sendIdleScouts(snapshot, playerID, &d)
@@ -108,6 +109,13 @@ func levelComplete(level model.TechLevel, known map[string]struct{}, player *mod
 }
 
 func levelUnlocksAllTechs(level model.TechLevel, player *model.Player) bool {
+	if player != nil {
+		for _, traitID := range player.Race.TraitIDs {
+			if traitID == "uncreative" {
+				return false
+			}
+		}
+	}
 	if level.ForceAll {
 		return true
 	}
@@ -122,7 +130,7 @@ func levelUnlocksAllTechs(level model.TechLevel, player *model.Player) bool {
 	return false
 }
 
-func balanceLabor(planets []*model.Planet, d *Decision) {
+func balanceLabor(me *model.Player, planets []*model.Planet, d *Decision) {
 	for _, p := range planets {
 		if p.Population <= 0 {
 			continue
@@ -131,18 +139,16 @@ func balanceLabor(planets []*model.Planet, d *Decision) {
 		if foodPerFarmer <= 0 {
 			continue
 		}
-		// Game rule: food demand is measured in population units (pop / 1000),
-		// not raw population. Matches game.PopulationGrowthFromFood.
-		popUnits := p.Population / 1000
-		if popUnits <= 0 {
+		foodDemand := int64(math.Ceil(game.PopulationFoodDemand(me, p.Population)))
+		if foodDemand <= 0 {
 			continue
 		}
 		buildingFood := p.Food.ProducedPerBuilding
 		totalFood := p.Food.Farmers*foodPerFarmer + buildingFood
-		if totalFood >= popUnits {
+		if totalFood >= foodDemand {
 			continue
 		}
-		needed := popUnits - totalFood
+		needed := foodDemand - totalFood
 		extraFarmers := (needed + foodPerFarmer - 1) / foodPerFarmer
 		maxShift := p.Industry.Workers
 		if extraFarmers > maxShift {
@@ -226,6 +232,13 @@ func resolvePendingColonies(snapshot *VisibleGame, playerID uint, d *Decision) {
 // unexplored star. We treat "unexplored" as a star with no Name field in the
 // visible payload (the visibility filter strips the name for unexplored stars).
 func sendIdleScouts(snapshot *VisibleGame, playerID uint, d *Decision) {
+	if me := findPlayer(snapshot, playerID); me != nil {
+		for _, traitID := range me.Race.TraitIDs {
+			if traitID == "omniscient" {
+				return
+			}
+		}
+	}
 	for _, f := range snapshot.Fleets {
 		if f == nil || f.Owner != playerID {
 			continue

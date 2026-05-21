@@ -6,11 +6,16 @@ import (
 	"ssg/model"
 )
 
-func hydratePlanetPollution(p *model.Planet) {
-	p.Pollution = Pollution(p)
+func hydratePlanetPollution(game *Game, p *model.Planet) {
+	p.Pollution = Pollution(game, p)
 }
 
-func Pollution(p *model.Planet) int64 {
+func Pollution(game *Game, p *model.Planet) int64 {
+	player := gamePlayerForPlanet(game, p)
+	if playerHasRaceTrait(player, "tolerant") {
+		return 0
+	}
+
 	dirtyProduction := p.Industry.Workers * p.Industry.ProducedPerWorker
 	if dirtyProduction <= 0 {
 		return 0
@@ -19,8 +24,6 @@ func Pollution(p *model.Planet) int64 {
 	divisor := pollutionDivisor(p)
 	size := pollutionPlanetSize(p)
 
-	// Race tolerance and Environmentalist leaders are not represented in the
-	// current model yet, so both coefficients are neutral.
 	raw := (float64(dirtyProduction)/float64(divisor) - float64(size)) / 2
 	if raw <= 0 {
 		return 0

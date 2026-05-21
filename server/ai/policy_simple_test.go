@@ -27,12 +27,50 @@ func TestSimplePolicyNoOpWhenNotWaiting(t *testing.T) {
 	}
 }
 
+func TestSimplePolicyLithovoreDoesNotShiftWorkersToFarmers(t *testing.T) {
+	planet := &model.Planet{
+		ID:         10,
+		Owner:      1,
+		Population: 8000,
+		Food:       model.PlanetFoodOutput{Farmers: 2, ProducedPerFarmer: 2, ProducedPerBuilding: 0},
+		Industry:   model.PlanetIndustryOutput{Workers: 4},
+		Science:    model.PlanetScienceOutput{Scientists: 2},
+	}
+	star := &model.Star{ID: 1, Name: "Sol", Planets: []*model.Planet{planet}}
+	me := &model.Player{ID: 1, Race: model.Race{TraitIDs: []string{"lithovore"}}}
+	vg := snapshotWith([]*model.Player{me}, []*model.Star{star}, nil, TurnStatus{WaitingPlayerIDs: []uint{1}})
+	d := SimplePolicy{}.Decide(vg, 1)
+	for _, cmd := range d.Commands.MovePopulation {
+		if cmd.PlanetID == 10 && cmd.Farmers > planet.Food.Farmers {
+			t.Fatalf("lithovore should not add farmers for food, got %+v", cmd)
+		}
+	}
+}
+
+func TestSimplePolicyCyberneticUsesHalvedFoodDemand(t *testing.T) {
+	planet := &model.Planet{
+		ID:         10,
+		Owner:      1,
+		Population: 8000,
+		Food:       model.PlanetFoodOutput{Farmers: 2, ProducedPerFarmer: 2, ProducedPerBuilding: 0},
+		Industry:   model.PlanetIndustryOutput{Workers: 4},
+		Science:    model.PlanetScienceOutput{Scientists: 2},
+	}
+	star := &model.Star{ID: 1, Name: "Sol", Planets: []*model.Planet{planet}}
+	me := &model.Player{ID: 1, Race: model.Race{TraitIDs: []string{"cybernetic"}}}
+	vg := snapshotWith([]*model.Player{me}, []*model.Star{star}, nil, TurnStatus{WaitingPlayerIDs: []uint{1}})
+	d := SimplePolicy{}.Decide(vg, 1)
+	if len(d.Commands.MovePopulation) != 0 {
+		t.Fatalf("cybernetic with 4 food vs demand 4 should not shift workers, got %+v", d.Commands.MovePopulation)
+	}
+}
+
 func TestSimplePolicyStarvationShiftsWorkersToFarmers(t *testing.T) {
 	planet := &model.Planet{
 		ID:         10,
 		Owner:      1,
 		Name:       "Earth",
-		Population: 8000, // 8 pop units; food demand is 8
+		Population: 8000,                                                                             // 8 pop units; food demand is 8
 		Food:       model.PlanetFoodOutput{Farmers: 2, ProducedPerFarmer: 2, ProducedPerBuilding: 0}, // 4 food vs 8 needed
 		Industry:   model.PlanetIndustryOutput{Workers: 4},
 		Science:    model.PlanetScienceOutput{Scientists: 2},
@@ -161,6 +199,17 @@ func TestSimplePolicyKeepsExistingResearch(t *testing.T) {
 	d := SimplePolicy{}.Decide(vg, 1)
 	if d.Commands.SelectResearch != nil {
 		t.Fatalf("expected no SelectResearch when one is in progress, got %+v", d.Commands.SelectResearch)
+	}
+}
+
+func TestSimplePolicyOmniscientSkipsScoutExploration(t *testing.T) {
+	me := &model.Player{ID: 1, Race: model.Race{TraitIDs: []string{"omniscient"}}}
+	fleet := &model.Fleet{ID: 7, Owner: 1, X: 0, Y: 0}
+	vg := snapshotWith([]*model.Player{me}, []*model.Star{{ID: 2}}, []*model.Fleet{fleet}, TurnStatus{WaitingPlayerIDs: []uint{1}})
+
+	d := SimplePolicy{}.Decide(vg, 1)
+	if len(d.Commands.FleetMove) != 0 {
+		t.Fatalf("expected no scout moves for omniscient player, got %+v", d.Commands.FleetMove)
 	}
 }
 

@@ -26,15 +26,15 @@ const (
 // Fields we don't act on are left out; the original JSON is preserved as Raw
 // so the UI can display it verbatim.
 type VisibleGame struct {
-	ID                 string             `json:"id"`
-	CurrentTurn        float64            `json:"current_turn"`
-	Galaxy             Galaxy             `json:"galaxy"`
-	Players            []*model.Player    `json:"players"`
-	Fleets             []*model.Fleet     `json:"fleets"`
-	PendingColonyBases map[uint][]uint    `json:"pending_colony_bases"`
-	PendingColonyShips map[uint][]uint    `json:"pending_colony_ships"`
-	TurnStatus         TurnStatus         `json:"turn_status"`
-	Resources          *VisibleResources  `json:"resources,omitempty"`
+	ID                 string            `json:"id"`
+	CurrentTurn        float64           `json:"current_turn"`
+	Galaxy             Galaxy            `json:"galaxy"`
+	Players            []*model.Player   `json:"players"`
+	Fleets             []*model.Fleet    `json:"fleets"`
+	PendingColonyBases map[uint][]uint   `json:"pending_colony_bases"`
+	PendingColonyShips map[uint][]uint   `json:"pending_colony_ships"`
+	TurnStatus         TurnStatus        `json:"turn_status"`
+	Resources          *VisibleResources `json:"resources,omitempty"`
 
 	Raw json.RawMessage `json:"-"`
 }

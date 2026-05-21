@@ -38,7 +38,9 @@ import {
   formatSignedBc,
   formatStardate,
   formatTreasury,
+  gameSessionPath,
   getEmpireFoodBalance,
+  isGameCommandPath,
   getEmpireIncome,
   getProjectedFoodFreightersUsed,
   getPlanetScienceForScientists,
@@ -67,16 +69,6 @@ const REPO_PLACEHOLDER_HREF =
   "https://github.com/leandroguillen/simple-space-game";
 const HYPER_ADVANCED_RESEARCH_PREFIX = "Hyper Advanced";
 const HYPER_ADVANCED_RESEARCH_COMMAND_PREFIX = `${HYPER_ADVANCED_RESEARCH_PREFIX} `;
-
-function isGameCommandPath(pathname: string) {
-  return (
-    pathname.startsWith("/galaxy") ||
-    pathname.startsWith("/stars") ||
-    pathname.startsWith("/colonies") ||
-    pathname.startsWith("/fleets") ||
-    pathname.startsWith("/technology")
-  );
-}
 
 /** Which campaign navigation href should show as active (star/planet views belong to Galaxy). */
 function campaignNavActiveHref(
@@ -382,6 +374,7 @@ export function AppShell(props: RouteSectionProps) {
     enableDebugMode,
     endTurn,
     selectGame,
+    joinGame,
     selectResearch,
     selectColonizeTarget,
     closeColonizeModal,
@@ -439,6 +432,7 @@ export function AppShell(props: RouteSectionProps) {
       state.game,
       currentPlayer()?.id ?? state.session.playerId,
       state.pendingCommands,
+      currentPlayer()?.raceTraitIds,
     ),
   );
   const empireFoodTitle = createMemo(() =>
@@ -587,6 +581,32 @@ export function AppShell(props: RouteSectionProps) {
     }
   });
 
+  // Reload when opening a campaign URL directly (bookmark / refresh).
+  createEffect(() => {
+    if (!isGameCommandPath(location.pathname)) {
+      return;
+    }
+    const params = new URLSearchParams(location.search);
+    const gameId = params.get("game") ?? "";
+    if (!gameId || state.session.connectionStatus !== "connected" || state.isBusy) {
+      return;
+    }
+    const rawPlayer = params.get("player");
+    const urlPlayer = rawPlayer ? parseInt(rawPlayer, 10) : NaN;
+    const playerId =
+      Number.isFinite(urlPlayer) && urlPlayer > 0 ? urlPlayer : state.session.playerId;
+    const needsLoad =
+      !state.game ||
+      state.game.id !== gameId ||
+      currentPlayer()?.id !== playerId;
+    if (!needsLoad) {
+      return;
+    }
+    void joinGame(gameId, playerId).catch(() => {
+      // error shown in global banner
+    });
+  });
+
   createEffect(() => {
     recordPlanetReturnCandidate(location.pathname);
   });
@@ -673,7 +693,7 @@ export function AppShell(props: RouteSectionProps) {
       return;
     }
     await selectGame(gameId);
-    navigate("/galaxy");
+    navigate(gameSessionPath(gameId, state.session.playerId));
   }
 
   return (
@@ -894,6 +914,12 @@ export function AppShell(props: RouteSectionProps) {
                   </div>
                 </div>
               </header>
+            </Show>
+
+            <Show when={!state.game && state.session.selectedGameId}>
+              <div class="status-banner info" role="status">
+                {state.isBusy ? "Loading game…" : "Connecting to game…"}
+              </div>
             </Show>
 
             <main class="content content--route">{props.children}</main>

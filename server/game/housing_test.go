@@ -34,6 +34,7 @@ func housingTestGame() (*Game, *model.Player, *model.Planet) {
 func TestHousingIncreasesGrowthFromNetIndustryAndPopulationUnits(t *testing.T) {
 	game, player, planet := housingTestGame()
 	baselineGrowth := PopulationGrowthFromFood(
+		player,
 		planet.Population,
 		20,
 		MaxPop(game, planet, player),

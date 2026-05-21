@@ -37,11 +37,25 @@ export type RaceTraitId =
   | "money_minus_half"
   | "money_plus_half"
   | "money_plus_1"
+  | "ship_defense"
+  | "ship_attack"
+  | "ground_combat"
+  | "spying"
+  | "low_g_world"
+  | "high_g_world"
+  | "aquatic"
   | "subterranean"
   | "large_homeworld"
   | "rich_homeworld"
   | "poor_homeworld"
-  | "artifacts_homeworld";
+  | "artifacts_homeworld"
+  | "cybernetic"
+  | "lithovore"
+  | "uncreative"
+  | "creative"
+  | "tolerant"
+  | "fantastic_traders"
+  | "omniscient";
 
 export type RaceDesign = {
   name: string;

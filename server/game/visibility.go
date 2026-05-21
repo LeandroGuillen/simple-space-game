@@ -36,7 +36,7 @@ func (g *Game) GetVisibleGameForPlayer(playerID uint) (*Game, error) {
 			X:     star.X,
 			Y:     star.Y,
 		}
-		if hasExploredStar(player.ExploredStars, star.ID) {
+		if isStarVisibleToPlayer(player, star.ID) {
 			starCopy.Name = star.Name
 			starCopy.Planets = make([]*model.Planet, 0, len(star.Planets))
 			for _, planet := range star.Planets {
@@ -55,6 +55,13 @@ func (g *Game) GetVisibleGameForPlayer(playerID uint) (*Game, error) {
 	}
 
 	return &visible, nil
+}
+
+func isStarVisibleToPlayer(player *model.Player, starID uint) bool {
+	if playerHasRaceTrait(player, "omniscient") {
+		return true
+	}
+	return hasExploredStar(player.ExploredStars, starID)
 }
 
 func hasExploredStar(explored []uint, starID uint) bool {

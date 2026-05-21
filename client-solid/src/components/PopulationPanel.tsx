@@ -12,6 +12,7 @@ import {
   getPlanetPollutionSize,
   getPlanetScienceForScientists,
   labelForGravity,
+  populationFoodDemand,
 } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
 
@@ -63,6 +64,8 @@ type PopulationPanelProps = {
 
 export function PopulationPanel(props: PopulationPanelProps) {
   const { state, addMovePopulationCommand } = useAppContext();
+  const raceTraitIds = () =>
+    state.game?.players.find((player) => player.id === props.planet.owner)?.raceTraitIds;
   const [draggedCount, setDraggedCount] = createSignal(0);
   const [dragSource, setDragSource] = createSignal<PopCategory | null>(null);
   const pendingMoves = createMemo(() =>
@@ -147,7 +150,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
             total: modifier.value * workerCount,
           });
         }
-        if (cat === "workers" && modifier.name === "industry_per_worker" && trait.category === "Production") {
+        if (cat === "workers" && modifier.name === "industry_per_worker" && trait.category === "Industry") {
           contributions.push({
             raceName: player.raceName,
             traitName: trait.name,
@@ -155,7 +158,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
             total: modifier.value * workerCount,
           });
         }
-        if (cat === "scientists" && modifier.name === "science_per_scientist" && trait.category === "Research") {
+        if (cat === "scientists" && modifier.name === "science_per_scientist" && trait.category === "Science") {
           contributions.push({
             raceName: player.raceName,
             traitName: trait.name,
@@ -378,18 +381,16 @@ export function PopulationPanel(props: PopulationPanelProps) {
 
   const getIndustryOutput = () =>
     getOutputIcons(
-      getPlanetIndustryForWorkers(props.planet, getPopCount("workers")),
+      getPlanetIndustryForWorkers(props.planet, getPopCount("workers"), raceTraitIds()),
       "⚡",
       "🔧",
     );
   const getScienceOutput = () =>
     getOutputIcons(getOutputBreakdown("scientists").total, "🔬", "🧫");
-  const getTotalPopUnits = () =>
-    getPopCount("farmers") + getPopCount("workers") + getPopCount("scientists");
   const getPollutionDivisor = () => getPlanetPollutionDivisor(props.planet);
   const getPollutionPlanetSize = () => getPlanetPollutionSize(props.planet);
   const getPollution = () =>
-    getPlanetPollutionForWorkers(props.planet, getPopCount("workers"));
+    getPlanetPollutionForWorkers(props.planet, getPopCount("workers"), raceTraitIds());
   const renderPollutionIcons = () => {
     const pollution = getPollution();
     if (pollution === 0) {
@@ -411,7 +412,9 @@ export function PopulationPanel(props: PopulationPanelProps) {
 
   const renderFoodOutput = () => {
     const produced = getOutputBreakdown("farmers").total;
-    const required = getTotalPopUnits();
+    const required = Math.ceil(
+      populationFoodDemand(owner()?.raceTraitIds, props.planet.population),
+    );
     const consumed = Math.min(produced, required);
     const surplus = Math.max(0, produced - required);
     const deficit = Math.max(0, required - produced);
@@ -576,6 +579,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
                   {getPlanetIndustryForWorkers(
                     props.planet,
                     getPopCount("workers"),
+                    raceTraitIds(),
                   )}
                 </strong>
               </div>

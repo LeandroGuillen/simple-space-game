@@ -47,8 +47,8 @@ func PlanetIncome(game *Game, planet *model.Planet, industryProduced int64) mode
 	var tradeGoods int64 = 0
 	if !planet.IsBuilding && (planet.CurrentProject == "" || planet.CurrentProject == tradeGoodsProject) {
 		food := GamePlanetFoodProduced(game, planet)
-		foodSurplus := food - planet.Population/1000
-		tradeGoods = maxInt64(0, industryProduced)/2 + maxInt64(0, foodSurplus)/2
+		foodSurplus := food - int64(math.Ceil(PopulationFoodDemand(player, planet.Population)))
+		tradeGoods = int64(float64(maxInt64(0, industryProduced)/2+maxInt64(0, foodSurplus)/2) * tradeGoodsMultiplier(player))
 	}
 
 	var maintenance int64
@@ -73,6 +73,13 @@ func PlanetIncome(game *Game, planet *model.Planet, industryProduced int64) mode
 		Total:       totalIncome,
 		Bonus:       incomeBonus,
 	}
+}
+
+func tradeGoodsMultiplier(player *model.Player) float64 {
+	if playerHasRaceTrait(player, "fantastic_traders") {
+		return 1.5
+	}
+	return 1
 }
 
 func maxInt64(left, right int64) int64 {

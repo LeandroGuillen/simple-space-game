@@ -11,6 +11,7 @@ import { Portal } from "solid-js/web";
 
 import type {
   ApiGameListItem,
+  ApiGameListPlayer,
   NewGameOptions,
   RaceDesign,
   RaceTraitId,
@@ -25,8 +26,26 @@ import {
   getInitialSetupSelectedServerUrl,
   setSessionLastSetupServerUrl,
 } from "../lib/setup-session-storage";
-import { formatGameLastTurnAt, formatStardate, normalizeServerUrl } from "../lib/utils";
+import {
+  formatGameLastTurnAt,
+  formatStardate,
+  gameSessionPath,
+  normalizeServerUrl,
+} from "../lib/utils";
 import { useAppContext } from "../state/app-context";
+
+function playerSlotId(player: ApiGameListPlayer, index: number) {
+  return player.id ?? index + 1;
+}
+
+function defaultPlayerSlot(game: ApiGameListItem) {
+  const first = game.players[0];
+  return first ? playerSlotId(first, 0) : 1;
+}
+
+function defaultPlayerLabel(game: ApiGameListItem) {
+  return game.players[0]?.name ?? "Player 1";
+}
 
 type ServerInfo = {
   url: string;
@@ -166,8 +185,14 @@ function OptionRow<T extends string | number>(props: {
 
 export function SetupPage() {
   const navigate = useNavigate();
-  const { state, connect, createGame, refreshGames, selectGame, setPlayerId } =
-    useAppContext();
+  const {
+    state,
+    connect,
+    ensureConnected,
+    createGame,
+    refreshGames,
+    joinGame,
+  } = useAppContext();
 
   const [servers, setServers] = createSignal<ServerInfo[]>([]);
   const [selectedServerUrl, setSelectedServerUrl] = createSignal(
@@ -384,9 +409,13 @@ export function SetupPage() {
 
   const handleSelectServer = async (url: string) => {
     setSelectedServerUrl(url);
-    const server = servers().find((s) => s.url === url);
-    if (server && server.status === "connected") {
-      await refreshGames();
+    setIsConnecting(true);
+    try {
+      await ensureConnected(url);
+    } catch {
+      // error shown in global state
+    } finally {
+      setIsConnecting(false);
     }
   };
 
@@ -422,6 +451,11 @@ export function SetupPage() {
         return;
       }
       const raceFields = newGameRaceFieldsFromEncodedSelection(selected);
+      const serverUrl = selectedServerUrl();
+      if (!serverUrl) {
+        return;
+      }
+      await ensureConnected(serverUrl);
       const gameId = await createGame({
         player_name: trimmedPlayerName(),
         player_color: playerColor(),
@@ -433,18 +467,28 @@ export function SetupPage() {
         tech_level: techLevel(),
         ...raceFields,
       });
-      setPlayerId(1);
-      await selectGame(gameId);
-      navigate(`/galaxy?game=${encodeURIComponent(gameId)}&player=1`);
+      await joinGame(gameId, 1);
+      navigate(gameSessionPath(gameId, 1));
     } catch {
       // error shown globally
     }
   };
 
   const handleSelect = async (gameId: string, playerId: number) => {
-    setPlayerId(playerId);
-    await selectGame(gameId);
-    navigate(`/galaxy?game=${encodeURIComponent(gameId)}&player=${playerId}`);
+    const serverUrl = selectedServerUrl();
+    if (!serverUrl) {
+      return;
+    }
+    setIsConnecting(true);
+    try {
+      await ensureConnected(serverUrl);
+      await joinGame(gameId, playerId);
+      navigate(gameSessionPath(gameId, playerId));
+    } catch {
+      // error shown in global state
+    } finally {
+      setIsConnecting(false);
+    }
   };
 
   const handleSelectRace = (nextRace: RaceSelection) => {
@@ -595,7 +639,32 @@ export function SetupPage() {
                   <For each={activeServer()?.games}>
                     {(game) => (
                       <li>
-                        <div class="game-item">
+                        <div
+                          class="game-item"
+                          classList={{
+                            "game-item--disabled": state.isBusy || isConnecting(),
+                          }}
+                          role="button"
+                          tabIndex={state.isBusy || isConnecting() ? -1 : 0}
+                          title={`Open game as ${defaultPlayerLabel(game)}`}
+                          aria-busy={state.isBusy || isConnecting()}
+                          onClick={() =>
+                            void handleSelect(
+                              game.game_id,
+                              defaultPlayerSlot(game),
+                            )
+                          }
+                          onKeyDown={(event) => {
+                            if (event.key !== "Enter" && event.key !== " ") {
+                              return;
+                            }
+                            event.preventDefault();
+                            void handleSelect(
+                              game.game_id,
+                              defaultPlayerSlot(game),
+                            );
+                          }}
+                        >
                           <div class="game-item-body">
                             <div class="game-item-line-meta">
                               <span class="game-id">
@@ -620,15 +689,19 @@ export function SetupPage() {
                             <div class="game-item-players">
                               <For each={game.players}>
                                 {(player, index) => {
-                                  const slotId = player.id ?? index() + 1;
+                                  const slotId = playerSlotId(player, index());
                                   return (
                                     <button
                                       type="button"
                                       class="game-player game-player--join"
                                       style={{ "background-color": player.color }}
                                       title={`Join as ${player.name} — ${player.num_stars} stars`}
-                                      disabled={state.isBusy}
-                                      onClick={() => void handleSelect(game.game_id, slotId)}
+                                      disabled={state.isBusy || isConnecting()}
+                                      aria-busy={state.isBusy || isConnecting()}
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        void handleSelect(game.game_id, slotId);
+                                      }}
                                     >
                                       {player.name}
                                       <span class="player-stars">

@@ -33,11 +33,11 @@ type LogEntry struct {
 // Log is a fixed-capacity ring buffer. Older entries get overwritten silently
 // once the buffer fills. Reads return a chronological snapshot.
 type Log struct {
-	mu      sync.Mutex
-	entries []LogEntry
-	head    int
-	size    int
-	seq     uint64
+	mu       sync.Mutex
+	entries  []LogEntry
+	head     int
+	size     int
+	seq      uint64
 	onAppend func(LogEntry)
 }
 

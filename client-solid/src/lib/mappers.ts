@@ -81,6 +81,12 @@ const VIRTUAL_PROJECTS = new Map<string, BuildingViewModel>([
 ]);
 
 export function mapGame(apiGame: ApiGame): GameViewModel {
+  if (!apiGame.players) {
+    throw new Error("Game payload is missing players.");
+  }
+  if (!apiGame.resources?.ship_parts) {
+    throw new Error("Game payload is missing resources.");
+  }
   const players = apiGame.players.map(mapPlayer);
   const commonShipDesigns =
     apiGame.resources.ship_design_collection?.ship_designs?.map((design) =>
@@ -240,6 +246,10 @@ function mapPlayer(player: ApiPlayer): PlayerViewModel {
     raceName: player.race?.name || "Unassigned",
     raceGovernment: player.race?.government || "Dictatorship",
     raceTraitIds: player.race?.trait_ids ?? [],
+    racePopulationGrowthPercent:
+      player.race?.stats?.population_growth_percent ??
+      player.race?.Stats?.PopulationGrowth ??
+      0,
     raceGrants: mapGrants(player.race?.grants),
     treasury: player.treasury,
     taxRate: player.tax_rate,
@@ -548,7 +558,7 @@ function mapIncome(planet: ApiPlanet, buildingsOnPlanet: BuildingViewModel[]) {
       (planet.industry.produced_per_colonist ?? 0);
   const industry = Math.max(
     0,
-    grossIndustry - mapPlanetPollution(planet, planet.industry.workers),
+    grossIndustry - (planet.pollution ?? mapPlanetPollution(planet, planet.industry.workers)),
   );
   const currentProjectName =
     typeof planet.current_project === "string"

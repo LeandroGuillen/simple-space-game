@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"math"
 	"sort"
 
 	. "ssg/model"
@@ -41,7 +42,7 @@ func (g *Game) calculateAutomaticFoodTransfers(player *Player, colonies []*Plane
 			continue
 		}
 		produced := GamePlanetFoodProduced(g, colony)
-		consumed := colony.Population / 1000
+		consumed := int64(math.Ceil(PopulationFoodDemand(player, colony.Population)))
 		if produced > consumed {
 			surpluses = append(surpluses, foodBalance{planet: colony, amount: produced - consumed, planetID: colony.ID})
 		} else if consumed > produced {
@@ -240,7 +241,7 @@ func (g *Game) completePopulationTransfer(transfer PopulationTransfer) {
 	destination.Population = min(destination.Population+arrivingPopulation, destination.MaxPopulation)
 	afterUnits := destination.Population / 1000
 	if afterUnits > beforeUnits {
-		assignNewPopulation(g, destination, afterUnits-beforeUnits)
+		assignNewPopulation(g, player, destination, afterUnits-beforeUnits)
 	}
 	capAssignedPopulation(destination)
 }

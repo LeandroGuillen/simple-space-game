@@ -66,7 +66,7 @@ func TestFireOn_Damage(t *testing.T) {
 			s2.CurrentArmorHP = tc.armor
 			s2.CurrentStructureHP = tc.structure
 			EquipBeam(&s1, NewBasicBeam(tc.beamDamage))
-			_ = FireOn(&s1, &s2, 0)
+			_ = FireOn(&s1, &s2, 0, nil, nil)
 			assert.Equal(t, tc.expectedArmor, s2.CurrentArmorHP)
 			assert.Equal(t, tc.expectedStructure, s2.CurrentStructureHP)
 		})
@@ -121,7 +121,7 @@ func TestFireOn_MultipleWeapons(t *testing.T) {
 			s1.Computer.BeamAttackBonus = tc.attack
 			s2.BeamDefense = tc.defense
 			EquipBeams(&s1, NewMultipleBasicBeams(tc.numBeamWeapons, tc.beamDamage))
-			damageDone := FireOn(&s1, &s2, 0)
+			damageDone := FireOn(&s1, &s2, 0, nil, nil)
 			assert.Equal(t, tc.expectedDamage, damageDone)
 		})
 	}
@@ -154,7 +154,7 @@ func TestFireOn_Distance(t *testing.T) {
 			s1.Computer.BeamAttackBonus = 1000
 			s2.BeamDefense = 0
 			EquipBeam(&s1, NewBasicBeam(tc.damage))
-			damageDone := FireOn(&s1, &s2, tc.distance)
+			damageDone := FireOn(&s1, &s2, tc.distance, nil, nil)
 			assert.Equal(t, tc.expectedDamage, damageDone)
 		})
 	}

@@ -16,4 +16,16 @@ describe("research", () => {
   it("honors force_all levels without creative", () => {
     expect(researchLevelUnlocksAllTechs({ forceAll: true }, [])).toBe(true);
   });
+
+  it("treats uncreative races as single-tech even on force_all levels", () => {
+    expect(
+      researchLevelUnlocksAllTechs({ forceAll: true }, ["uncreative"]),
+    ).toBe(false);
+  });
+
+  it("keeps uncreative races on single-tech normal levels", () => {
+    expect(
+      researchLevelUnlocksAllTechs({ forceAll: false }, ["uncreative"]),
+    ).toBe(false);
+  });
 });

@@ -148,6 +148,7 @@ export type PlayerViewModel = {
   raceName: string;
   raceGovernment: string;
   raceTraitIds: string[];
+  racePopulationGrowthPercent: number;
   raceGrants: GrantsViewModel;
   treasury: number;
   taxRate: number;

@@ -61,6 +61,7 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game, foodRe
 		housingBonus = housingGrowthBonus(industryProduced, p.Population)
 	}
 	growth := PopulationGrowthFromFoodWithHousing(
+		player,
 		p.Population,
 		GamePlanetFoodProduced(game, p)+foodReceived,
 		maxPop,
@@ -87,7 +88,7 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game, foodRe
 	// should we increase/decrease pop units?
 	popIncrease := int64(math.Floor(float64(p.Population/1000)) - math.Floor(float64(oldPopulation/1000)))
 	if popIncrease > 0 {
-		assignNewPopulation(game, p, popIncrease)
+		assignNewPopulation(game, player, p, popIncrease)
 	}
 	capAssignedPopulation(p)
 
@@ -246,9 +247,10 @@ func isSpecialNonBuildingProject(project string) bool {
 	return project == tradeGoodsProject || project == housingProject
 }
 
-func assignNewPopulation(game *Game, p *Planet, popIncrease int64) {
+func assignNewPopulation(game *Game, player *Player, p *Planet, popIncrease int64) {
+	foodDemand := int64(math.Ceil(PopulationFoodDemand(player, p.Population)))
 	for range popIncrease {
-		if GamePlanetFoodProduced(game, p) < p.Population/1000 {
+		if GamePlanetFoodProduced(game, p) < foodDemand {
 			p.Food.Farmers++
 		} else if p.Industry.Workers >= p.Science.Scientists {
 			p.Industry.Workers++

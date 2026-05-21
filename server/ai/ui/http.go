@@ -178,4 +178,3 @@ func handleWS(c *gin.Context, m *ai.Manager) {
 		}
 	}
 }
-

@@ -358,6 +358,20 @@ describe("getPlanetProjectedPopulationGrowth", () => {
 
     expect(getPlanetProjectedPopulationGrowth(colony)).toBe(0);
   });
+
+  it("applies race population growth percent from trait ids", () => {
+    const colony = planet();
+
+    expect(getPlanetProjectedPopulationGrowth(colony)).toBe(100);
+    expect(getPlanetProjectedPopulationGrowth(colony, undefined, ["growth_plus_100"])).toBe(200);
+    expect(getPlanetProjectedPopulationGrowth(colony, undefined, ["growth_minus_50"])).toBe(50);
+  });
+
+  it("prefers API race growth percent when provided", () => {
+    const colony = planet();
+
+    expect(getPlanetProjectedPopulationGrowth(colony, undefined, ["growth_plus_50"], 100)).toBe(200);
+  });
 });
 
 describe("getPlanetProjectedIncome", () => {
@@ -377,6 +391,7 @@ describe("getPlanetProjectedIncome", () => {
     });
 
     expect(getPlanetProjectedIncome(colony).tradeGoods).toBe(5);
+    expect(getPlanetProjectedIncome(colony, undefined, ["fantastic_traders"]).tradeGoods).toBe(7);
   });
 });
 

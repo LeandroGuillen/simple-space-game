@@ -43,6 +43,20 @@
       "operation": "ADD_PERCENT"
     },
     {
+      "name": "offensive_spy_bonus",
+      "description": "Adds an offensive espionage effectiveness bonus.",
+      "scope": "EMPIRE",
+      "stat": "offensive_spying",
+      "operation": "ADD_PERCENT"
+    },
+    {
+      "name": "ground_combat_bonus",
+      "description": "Multiplies ground combat strength (marines, invasions).",
+      "scope": "EMPIRE",
+      "stat": "ground_combat",
+      "operation": "ADD_PERCENT"
+    },
+    {
       "name": "missing_barracks_morale",
       "description": "Applies morale when a colony lacks barracks.",
       "scope": "EMPIRE",

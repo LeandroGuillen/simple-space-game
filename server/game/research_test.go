@@ -74,6 +74,50 @@ func TestTurnCompletesSelectedTechAndSpendsAccumulatedResearch(t *testing.T) {
 	assert.Equal(t, uint64(0), player.ResearchPoints)
 }
 
+func TestUncreativeRaceOnlyUnlocksSelectedTech(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	race, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Klackons", TraitIDs: []string{"uncreative"}})
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: race})
+	require.NoError(t, err)
+
+	player := g.Players[0]
+	player.ResearchPoints = 79
+	require.NoError(t, g.selectResearch(player, model.SelectResearchCommand{TechName: "Hydroponic Farm"}))
+	require.NoError(t, g.applyResearch(player, 1))
+
+	assert.Nil(t, player.CurrentResearch)
+	assert.Contains(t, player.ResearchedTechs, "Hydroponic Farm")
+	assert.NotContains(t, player.ResearchedTechs, "Biospheres")
+	assert.Equal(t, uint64(0), player.ResearchPoints)
+}
+
+func TestUncreativeRaceOnlyUnlocksOneTechOnForceAllLevel(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	race, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Klackons", TraitIDs: []string{"uncreative"}})
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: race})
+	require.NoError(t, err)
+
+	player := g.Players[0]
+	player.ResearchPoints = 47
+	require.NoError(t, g.Turn(player.ID, model.Commands{
+		SelectResearch: &model.SelectResearchCommand{TechName: "Freighters"},
+	}))
+
+	assert.Nil(t, player.CurrentResearch)
+	assert.Contains(t, player.ResearchedTechs, "Freighters")
+	assert.NotContains(t, player.ResearchedTechs, "Nuclear Drive")
+	assert.NotContains(t, player.ResearchedTechs, "Nuclear Bomb")
+	assert.Equal(t, uint64(0), player.ResearchPoints)
+}
+
 func TestCreativeRaceUnlocksEveryTechInLevel(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)

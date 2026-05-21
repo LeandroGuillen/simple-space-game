@@ -18,7 +18,7 @@ func TestBuildCustomRaceRejectsUnknownTrait(t *testing.T) {
 
 func TestBuildCustomRaceRejectsDisabledTrait(t *testing.T) {
 	resources := testResources(t)
-	_, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Ada", TraitIDs: []string{"lithovore"}})
+	_, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Ada", TraitIDs: []string{"repulsive"}})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "not implemented")
 }
@@ -28,6 +28,13 @@ func TestBuildCustomRaceAcceptsCreativeTrait(t *testing.T) {
 	race, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Ada", TraitIDs: []string{"creative"}})
 	require.NoError(t, err)
 	assert.Contains(t, race.TraitIDs, "creative")
+}
+
+func TestBuildCustomRaceAcceptsShipCombatTraits(t *testing.T) {
+	resources := testResources(t)
+	race, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Ada", TraitIDs: []string{"ship_attack"}})
+	require.NoError(t, err)
+	assert.Equal(t, int64(20), race.Stats.ShipAttackBonusPercent)
 }
 
 func TestBuildCustomRaceRejectsDuplicateTrait(t *testing.T) {
@@ -104,7 +111,7 @@ func TestRaceIncomeBonusAffectsPlanetIncome(t *testing.T) {
 
 func TestRacePopulationGrowthPercentAffectsTurnGrowth(t *testing.T) {
 	g, planet := gameWithCustomRacePlanet(t, []string{"growth_plus_100"})
-	baseGrowth := PopulationGrowthFromFood(planet.Population, PlanetFoodProduced(planet), MaxPop(g, planet, g.Players[0]), 0, 0)
+	baseGrowth := PopulationGrowthFromFood(g.Players[0], planet.Population, PlanetFoodProduced(planet), MaxPop(g, planet, g.Players[0]), 0, 0)
 
 	require.NoError(t, planetTurn(planet, model.Commands{}, g.Players[0], g))
 
@@ -114,7 +121,7 @@ func TestRacePopulationGrowthPercentAffectsTurnGrowth(t *testing.T) {
 func TestSubterraneanIncreasesMaxPopulation(t *testing.T) {
 	g, planet := gameWithCustomRacePlanet(t, []string{"subterranean"})
 
-	assert.Equal(t, baseMaxPop(planet)*2, MaxPop(g, planet, g.Players[0]))
+	assert.Equal(t, baseMaxPop(planet, g.Players[0])*2, MaxPop(g, planet, g.Players[0]))
 }
 
 func TestLargeHomeworldChangesCapitalSize(t *testing.T) {

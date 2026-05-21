@@ -6,9 +6,20 @@ import { mapGame, mapPlayerColorOptions } from '../lib/mappers';
 import type { ApiGameListItem, NewGameOptions } from '../lib/types/api';
 import type { BuildingViewModel, GameViewModel, PlayerColorOptions, ShipDesignForm } from '../lib/types/domain';
 import type { ArtificialPlanetCommand, ColonizeCommand, FleetMoveCommand, MovePopulationCommand, PendingCommands, SelectResearchCommand, TransferPopulationCommand, TurnCommands } from '../lib/types/commands';
-import { clearSessionLastSetupServerUrl } from '../lib/setup-session-storage';
+import {
+  clearSessionLastSetupServerUrl,
+  getInitialSetupSelectedServerUrl,
+} from '../lib/setup-session-storage';
 import { isAutobuildProject, isBuildingApplicableToPlanet } from '../lib/construction';
-import { findPlanet, getColonyRows, getPlayerById, normalizeServerUrl, toWebSocketUrl } from '../lib/utils';
+import {
+  findPlanet,
+  getColonyRows,
+  getPlayerById,
+  isGameCommandPath,
+  isLobbyPath,
+  normalizeServerUrl,
+  toWebSocketUrl,
+} from '../lib/utils';
 
 type ConnectionStatus = 'idle' | 'checking' | 'connected' | 'error';
 
@@ -72,12 +83,15 @@ type AppContextValue = {
   currentPlayer: () => ReturnType<typeof getPlayerById>;
   colonies: () => ReturnType<typeof getColonyRows>;
   connect: (serverUrl: string) => Promise<void>;
+  ensureConnected: (serverUrl: string) => Promise<void>;
   disconnect: () => void;
   refreshGames: () => Promise<void>;
   createGame: (options: NewGameOptions) => Promise<string>;
   selectGame: (gameId: string) => Promise<void>;
+  joinGame: (gameId: string, playerId: number) => Promise<GameViewModel>;
+  clearSelectedGame: () => void;
   setPlayerId: (playerId: number) => void;
-  refreshGame: () => Promise<void>;
+  refreshGame: (playerId?: number) => Promise<GameViewModel>;
   changeBuilding: (planetId: number, buildingId: number) => void;
   changeBuildQueue: (planetId: number, buildingNames: string[]) => void;
   setPlanetAutobuild: (planetId: number, enabled: boolean) => Promise<void>;
@@ -110,8 +124,8 @@ const STORAGE_KEYS = {
 };
 
 // readBootstrapSession resolves the initial server/game/player triple from
-// (in priority order) URL query params and localStorage. Query params win so
-// a shared link like /galaxy?game=...&player=2 always lands on that slot.
+// URL query params and localStorage. Saved game ids are only restored on
+// campaign routes so the lobby does not auto-attach to a stale game.
 function readBootstrapSession() {
   const fromStorage = {
     serverUrl: window.localStorage.getItem(STORAGE_KEYS.serverUrl) ?? '',
@@ -125,9 +139,10 @@ function readBootstrapSession() {
   const queryGame = params.get('game') ?? '';
   const rawQueryPlayer = params.get('player');
   const queryPlayer = rawQueryPlayer ? parseInt(rawQueryPlayer, 10) : NaN;
+  const onCampaignRoute = isGameCommandPath(window.location.pathname);
   return {
     serverUrl: fromStorage.serverUrl,
-    gameId: queryGame || fromStorage.gameId,
+    gameId: queryGame || (onCampaignRoute ? fromStorage.gameId : ''),
     playerId: Number.isFinite(queryPlayer) && queryPlayer > 0 ? queryPlayer : fromStorage.playerId,
   };
 }
@@ -306,12 +321,57 @@ export function AppProvider(props: ParentProps) {
     }
   }
 
-  async function selectGame(gameId: string) {
-    if (gameId !== state.session.selectedGameId) {
-      setState('game', null);
-      resetPerGameUiState();
+  function clearSelectedGame() {
+    setState('game', null);
+    resetPerGameUiState('Left game');
+    setState('session', 'selectedGameId', '');
+  }
+
+  function gameClient(playerId: number) {
+    const serverUrl = state.session.serverUrl;
+    if (!serverUrl) {
+      return null;
     }
+    return new ApiClient(serverUrl, playerId);
+  }
+
+  async function joinGame(gameId: string, playerId: number): Promise<GameViewModel> {
+    if (!Number.isFinite(playerId) || playerId <= 0) {
+      throw new Error(`Invalid player slot ${playerId}.`);
+    }
+    if (!state.session.serverUrl) {
+      throw new Error('Connect to a server first.');
+    }
+    setState('session', 'playerId', playerId);
+    setState('game', null);
+    resetPerGameUiState();
     setState('session', 'selectedGameId', gameId);
+    const mapped = await refreshGame(playerId);
+    if (mapped.id !== gameId) {
+      throw new Error('Game did not load. Check the error message below and try again.');
+    }
+    return mapped;
+  }
+
+  async function selectGame(gameId: string) {
+    await joinGame(gameId, state.session.playerId);
+  }
+
+  async function ensureConnected(serverUrl: string) {
+    const normalized = normalizeServerUrl(serverUrl);
+    if (!normalized) {
+      throw new Error('Enter a server URL.');
+    }
+    if (
+      state.session.connectionStatus === 'connected' &&
+      normalizeServerUrl(state.session.serverUrl) === normalized
+    ) {
+      return;
+    }
+    await connect(normalized);
+    if (state.session.connectionStatus !== 'connected') {
+      throw new Error('Could not connect to the server.');
+    }
   }
 
   function setPlayerId(playerId: number) {
@@ -327,20 +387,32 @@ export function AppProvider(props: ParentProps) {
     setState('session', 'playerId', playerId);
   }
 
-  async function refreshGame() {
-    if (!api() || !state.session.selectedGameId) {
-      return;
+  async function refreshGame(playerId = state.session.playerId): Promise<GameViewModel> {
+    const gameId = state.session.selectedGameId;
+    if (!gameId) {
+      throw new Error('Connect to a server and select a game first.');
+    }
+    const client = gameClient(playerId);
+    if (!client) {
+      throw new Error('Connect to a server first.');
     }
     setBusy(true, 'Loading galaxy state');
     clearError();
     try {
-      const rawGame = await api()!.getGame(state.session.selectedGameId);
+      const rawGame = await client.getGame(gameId);
       const mapped = mapGame(rawGame);
       setState('game', mapped);
       setBusy(false, 'Game state refreshed');
+      return mapped;
     } catch (error) {
       setBusy(false, '');
-      setState('error', error instanceof Error ? error.message : 'Unable to load game state.');
+      const message = error instanceof Error ? error.message : 'Unable to load game state.';
+      if (/not found|404/i.test(message)) {
+        clearSelectedGame();
+        setState('error', 'That game no longer exists on this server. Start a new game or pick another from the list.');
+      } else {
+        setState('error', message);
+      }
       throw error;
     }
   }
@@ -737,7 +809,11 @@ export function AppProvider(props: ParentProps) {
   });
 
   createEffect(() => {
-    if (state.session.selectedGameId) {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const onCampaignRoute = isGameCommandPath(window.location.pathname);
+    if (state.session.selectedGameId && onCampaignRoute) {
       window.localStorage.setItem(STORAGE_KEYS.selectedGameId, state.session.selectedGameId);
     } else {
       window.localStorage.removeItem(STORAGE_KEYS.selectedGameId);
@@ -748,18 +824,17 @@ export function AppProvider(props: ParentProps) {
     window.localStorage.setItem(STORAGE_KEYS.playerId, String(state.session.playerId));
   });
 
-  // Mirror the active game/player into the URL so a tab's address bar is
-  // shareable and a hard reload restores the right slot.
+  // Mirror game/player into the URL only on campaign routes (not on the lobby).
   createEffect(() => {
     if (typeof window === 'undefined' || !window.history) {
       return;
     }
     const url = new URL(window.location.href);
     const gameId = state.session.selectedGameId;
-    if (gameId) {
+    if (gameId && isGameCommandPath(url.pathname)) {
       url.searchParams.set('game', gameId);
       url.searchParams.set('player', String(state.session.playerId));
-    } else {
+    } else if (isLobbyPath(url.pathname)) {
       url.searchParams.delete('game');
       url.searchParams.delete('player');
     }
@@ -839,8 +914,11 @@ export function AppProvider(props: ParentProps) {
           setState('game', mappedGame);
           setState({ isBusy: false, info });
         }
-      } catch {
-        setState('info', 'Ignored malformed websocket update');
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Failed to apply live game update';
+        setState('error', message);
+        setState('info', '');
       }
     };
     socket.onerror = () => {
@@ -851,14 +929,14 @@ export function AppProvider(props: ParentProps) {
   });
 
   onMount(async () => {
-    const savedServer = window.localStorage.getItem(STORAGE_KEYS.serverUrl) ?? '';
-    const savedGame = window.localStorage.getItem(STORAGE_KEYS.selectedGameId) ?? '';
+    const savedServer =
+      getInitialSetupSelectedServerUrl() ||
+      window.localStorage.getItem(STORAGE_KEYS.serverUrl) ||
+      '';
     if (!savedServer) {
       return;
     }
 
-    setState('session', 'serverUrl', savedServer);
-    setState('session', 'selectedGameId', savedGame);
     try {
       await connect(savedServer);
     } catch {
@@ -871,10 +949,13 @@ export function AppProvider(props: ParentProps) {
     currentPlayer,
     colonies,
     connect,
+    ensureConnected,
     disconnect,
     refreshGames,
     createGame,
     selectGame,
+    joinGame,
+    clearSelectedGame,
     setPlayerId,
     refreshGame,
     changeBuilding,

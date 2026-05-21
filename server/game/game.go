@@ -304,6 +304,7 @@ func (g *Game) applyPlayerTurn(playerID uint, commands Commands) error {
 	player.Treasury -= foodTransfers.OperatingCostBC
 	g.HydrateCommandPoints()
 	player.Treasury -= float64(player.CommandOverdrawBC)
+	totalResearch += int64(luckyTurnResearchBonus(player))
 	if err := g.applyResearch(player, uint64(max(totalResearch, 0))); err != nil {
 		return err
 	}

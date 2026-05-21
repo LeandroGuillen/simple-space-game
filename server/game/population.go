@@ -6,9 +6,9 @@ import (
 )
 
 func MaxPop(game *Game, p *Planet, player *Player) int64 {
-	maxPop := baseMaxPop(p)
+	maxPop := baseMaxPop(p, player)
 	if playerHasRaceTrait(player, "subterranean") {
-		maxPop += baseMaxPop(p)
+		maxPop += baseMaxPop(p, player)
 	}
 
 	if game != nil && game.Resources != nil && game.Resources.BuildingCollection != nil {
@@ -27,22 +27,13 @@ func MaxPop(game *Game, p *Planet, player *Player) int64 {
 		}
 	}
 
+	maxPop = applyMaxPopPercentBonus(maxPop, maxPopEnvironmentBonusPercent(game, p, player))
+
 	return maxPop
 }
 
 func hydratePlanetPopulationCapacity(game *Game, p *Planet, player *Player) {
 	p.MaxPopulation = MaxPop(game, p, player)
-}
-
-func baseMaxPop(p *Planet) int64 {
-	// TODO should take into account other factors
-	// Planetary Env.:  Gaia Terran Arid Swamp Other
-	// Tiny              5     4     3    2     1     <-- The table shows how
-	// Small            10     8     6    4     3         the base max. pop. of
-	// Medium           15    12     9    6     4         a planet is determined
-	// Large            20    16    12    8     5     <-- by size and climate.
-	// Huge             25    20    15   10     6
-	return int64(p.Size*4) * 1000
 }
 
 func maxPopulationModifiers(modifiers []Modifier) int64 {
@@ -124,17 +115,30 @@ func researchedTechUpgradeTargets(game *Game, player *Player) map[string]bool {
 	return upgraded
 }
 
+// PopulationFoodDemand returns food units required per turn for the given population.
+// Lithovore races need no food; cybernetic races need half the normal amount.
+func PopulationFoodDemand(player *Player, population int64) float64 {
+	popUnits := float64(population / 1000)
+	if playerHasRaceTrait(player, "lithovore") {
+		return 0
+	}
+	if playerHasRaceTrait(player, "cybernetic") {
+		return popUnits * 0.5
+	}
+	return popUnits
+}
+
 // PopulationGrowth returns the per-turn population delta for a planet.
-func PopulationGrowth(population, foodPerBuilding, foodPerFarmer, numFarmers, maxPop, raceGrowthPercent, flatGrowthBonus int64) int64 {
+func PopulationGrowth(player *Player, population, foodPerBuilding, foodPerFarmer, numFarmers, maxPop, raceGrowthPercent, flatGrowthBonus int64) int64 {
 	totalFoodProduced := foodPerBuilding + foodPerFarmer*numFarmers
-	return PopulationGrowthFromFood(population, totalFoodProduced, maxPop, raceGrowthPercent, flatGrowthBonus)
+	return PopulationGrowthFromFood(player, population, totalFoodProduced, maxPop, raceGrowthPercent, flatGrowthBonus)
 }
 
-func PopulationGrowthFromFood(population, totalFoodProduced, maxPop, raceGrowthPercent, flatGrowthBonus int64) int64 {
-	return PopulationGrowthFromFoodWithHousing(population, totalFoodProduced, maxPop, raceGrowthPercent, flatGrowthBonus, 0)
+func PopulationGrowthFromFood(player *Player, population, totalFoodProduced, maxPop, raceGrowthPercent, flatGrowthBonus int64) int64 {
+	return PopulationGrowthFromFoodWithHousing(player, population, totalFoodProduced, maxPop, raceGrowthPercent, flatGrowthBonus, 0)
 }
 
-func PopulationGrowthFromFoodWithHousing(population, totalFoodProduced, maxPop, raceGrowthPercent, flatGrowthBonus, housingGrowthBonusPercent int64) int64 {
+func PopulationGrowthFromFoodWithHousing(player *Player, population, totalFoodProduced, maxPop, raceGrowthPercent, flatGrowthBonus, housingGrowthBonusPercent int64) int64 {
 	if population <= 0 {
 		return 0
 	}
@@ -152,7 +156,7 @@ func PopulationGrowthFromFoodWithHousing(population, totalFoodProduced, maxPop, 
 	population_growth := math.Floor(basic_increment * (100 + all_bonuses) / 100)
 
 	// enough food? check for starvation
-	food_lack := pop_units - float64(totalFoodProduced)
+	food_lack := PopulationFoodDemand(player, population) - float64(totalFoodProduced)
 	var food_lack_penalty float64
 	if food_lack > 0 {
 		food_lack_penalty = 50 * food_lack

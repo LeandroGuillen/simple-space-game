@@ -294,6 +294,29 @@ func (g *Game) fleetShipFuelRange(player *Player, ship FleetShip) (rangeParsecs 
 	return 0, false, false
 }
 
+// FleetShipCombatSpeed returns combat squares per turn for a fleet ship (drive + race bonus).
+func (g *Game) FleetShipCombatSpeed(player *Player, ship FleetShip) (int64, bool) {
+	bonus := RaceCombatSpeedBonus(player)
+	if g != nil && g.Resources != nil && g.Resources.ShipPartsCollection != nil && ship.Drive != "" {
+		if drive, err := DriveFromName(ship.Drive, g.Resources.Drives); err == nil {
+			return drive.CombatSpeed + bonus, true
+		}
+	}
+	if ship.DesignName != "" {
+		if design, found := g.findShipDesignForFleetShip(player, ship); found {
+			return design.Drive.CombatSpeed + bonus, true
+		}
+		return bonus, bonus > 0
+	}
+	if drive, found := bestAvailableDrive(player, g.Resources); found {
+		return drive.CombatSpeed + bonus, true
+	}
+	if bonus > 0 {
+		return bonus, true
+	}
+	return 0, false
+}
+
 func (g *Game) fleetShipInterstellarSpeed(player *Player, ship FleetShip) (int64, bool) {
 	if g != nil && g.Resources != nil && g.Resources.ShipPartsCollection != nil && ship.Drive != "" {
 		if drive, err := DriveFromName(ship.Drive, g.Resources.Drives); err == nil {

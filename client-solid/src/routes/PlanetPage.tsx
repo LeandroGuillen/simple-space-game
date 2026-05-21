@@ -54,7 +54,12 @@ export function PlanetPage() {
   const projectedPopGrowth = createMemo(() => {
     const current = planet();
     return current
-      ? getPlanetProjectedPopulationGrowth(current, state.pendingCommands)
+      ? getPlanetProjectedPopulationGrowth(
+          current,
+          state.pendingCommands,
+          currentPlayer()?.raceTraitIds,
+          currentPlayer()?.racePopulationGrowthPercent,
+        )
       : 0;
   });
   const incomeBreakdown = createMemo(() => {
@@ -70,7 +75,7 @@ export function PlanetPage() {
       };
     }
 
-    return getPlanetProjectedIncome(current, state.pendingCommands);
+    return getPlanetProjectedIncome(current, state.pendingCommands, currentPlayer()?.raceTraitIds);
   });
   const incomeIcons = createMemo(() => {
     const total = Math.max(0, incomeBreakdown().total);

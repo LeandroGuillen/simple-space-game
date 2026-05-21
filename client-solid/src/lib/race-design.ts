@@ -8,6 +8,7 @@ export type RaceTraitDefinition = {
   exclusiveGroup?: string;
   enabled: boolean;
   description: string;
+  populationGrowthPercent?: number;
 };
 
 export const RACE_PICK_BUDGET = 10;
@@ -43,9 +44,9 @@ export const fallbackGovernments: ApiGovernment[] = [
 ];
 
 export const raceTraitDefinitions: RaceTraitDefinition[] = [
-  { id: "growth_minus_50", name: "-50% Growth", category: "Population", pickCost: -4, exclusiveGroup: "growth", enabled: true, description: "Colonies grow at half speed." },
-  { id: "growth_plus_50", name: "+50% Growth", category: "Population", pickCost: 3, exclusiveGroup: "growth", enabled: true, description: "Colonies grow 50% faster." },
-  { id: "growth_plus_100", name: "+100% Growth", category: "Population", pickCost: 6, exclusiveGroup: "growth", enabled: true, description: "Colonies grow twice as fast." },
+  { id: "growth_minus_50", name: "-50% Growth", category: "Population", pickCost: -4, exclusiveGroup: "growth", enabled: true, populationGrowthPercent: -50, description: "Colonies grow at half speed." },
+  { id: "growth_plus_50", name: "+50% Growth", category: "Population", pickCost: 3, exclusiveGroup: "growth", enabled: true, populationGrowthPercent: 50, description: "Colonies grow 50% faster." },
+  { id: "growth_plus_100", name: "+100% Growth", category: "Population", pickCost: 6, exclusiveGroup: "growth", enabled: true, populationGrowthPercent: 100, description: "Colonies grow twice as fast." },
   { id: "food_minus_1", name: "-1/2 Food", category: "Farming", pickCost: -3, exclusiveGroup: "food", enabled: true, description: "Farmers produce less food." },
   { id: "food_plus_1", name: "+1 Food", category: "Farming", pickCost: 4, exclusiveGroup: "food", enabled: true, description: "Farmers produce one extra food." },
   { id: "food_plus_2", name: "+2 Food", category: "Farming", pickCost: 7, exclusiveGroup: "food", enabled: true, description: "Farmers produce two extra food." },
@@ -58,32 +59,32 @@ export const raceTraitDefinitions: RaceTraitDefinition[] = [
   { id: "money_minus_half", name: "-0.5 BC", category: "Money", pickCost: -4, exclusiveGroup: "money", enabled: true, description: "Taxable income is reduced." },
   { id: "money_plus_half", name: "+0.5 BC", category: "Money", pickCost: 5, exclusiveGroup: "money", enabled: true, description: "Taxable income is increased." },
   { id: "money_plus_1", name: "+1 BC", category: "Money", pickCost: 8, exclusiveGroup: "money", enabled: true, description: "Taxable income is strongly increased." },
-  { id: "ship_defense", name: "Ship Defense", category: "Ship Defense", pickCost: 0, enabled: false, description: "Requires combat." },
-  { id: "ship_attack", name: "Ship Attack", category: "Ship Attack", pickCost: 0, enabled: false, description: "Requires combat." },
-  { id: "ground_combat", name: "Ground Combat", category: "Ground Combat", pickCost: 0, enabled: false, description: "Requires ground combat." },
-  { id: "spying", name: "Spying", category: "Spying", pickCost: 0, enabled: false, description: "Requires espionage." },
+  { id: "ship_defense", name: "+20% Ship Defense", category: "Ship Defense", pickCost: 3, enabled: true, description: "Ships gain +20% beam defense in combat (MoO2 first level, 3 picks)." },
+  { id: "ship_attack", name: "+20% Ship Attack", category: "Ship Attack", pickCost: 3, enabled: true, description: "Ships gain +20% beam attack in combat (MoO2 first level, 3 picks)." },
+  { id: "ground_combat", name: "Ground Combat", category: "Ground Combat", pickCost: 5, enabled: true, description: "+50% ground combat strength (marines and invasions when implemented)." },
+  { id: "spying", name: "Spying", category: "Spying", pickCost: 3, enabled: true, description: "+10 spy points per turn and +25% offensive spy effectiveness (espionage when implemented)." },
   { id: "low_g_world", name: "Low-G World", category: "Special Abilities", pickCost: -5, exclusiveGroup: "gravity", enabled: true, description: "Adapted to Low-G worlds (no penalty there); suffers -25% farming/production/research on Normal-G worlds and -50% on High-G. Troops take a 10% penalty in ground combat (when implemented)." },
   { id: "high_g_world", name: "High-G World", category: "Special Abilities", pickCost: 6, exclusiveGroup: "gravity", enabled: true, description: "Adapted to High-G worlds (no penalty there); still -25% farming/production/research on Low-G worlds. Troops take 1 extra hit before dying in ground combat (when implemented)." },
-  { id: "aquatic", name: "Aquatic", category: "Special Abilities", pickCost: 5, enabled: false, description: "Requires aquatic planet capacity rules." },
+  { id: "aquatic", name: "Aquatic", category: "Special Abilities", pickCost: 5, enabled: true, description: "Double population capacity on Ocean and Swamp worlds; half capacity on other habitable planets." },
   { id: "subterranean", name: "Subterranean", category: "Special Abilities", pickCost: 6, exclusiveGroup: "capacity", enabled: true, description: "Planet population capacity is doubled." },
   { id: "large_homeworld", name: "Large Home World", category: "Special Abilities", pickCost: 1, exclusiveGroup: "homeworld_size", enabled: true, description: "The capital starts as a large world." },
   { id: "rich_homeworld", name: "Rich Home World", category: "Special Abilities", pickCost: 2, exclusiveGroup: "homeworld_minerals", enabled: true, description: "The capital starts rich." },
   { id: "poor_homeworld", name: "Poor Home World", category: "Special Abilities", pickCost: -1, exclusiveGroup: "homeworld_minerals", enabled: true, description: "The capital starts poor." },
   { id: "artifacts_homeworld", name: "Artifacts World", category: "Special Abilities", pickCost: 3, exclusiveGroup: "homeworld_artifacts", enabled: true, description: "The capital produces extra research." },
-  { id: "cybernetic", name: "Cybernetic", category: "Special Abilities", pickCost: 4, enabled: false, description: "Requires food consumption rules." },
-  { id: "lithovore", name: "Lithovore", category: "Special Abilities", pickCost: 10, enabled: false, description: "Requires food consumption rules." },
+  { id: "cybernetic", name: "Cybernetic", category: "Special Abilities", pickCost: 4, enabled: true, description: "Population consumes half as much food (0.5 per 1000 pop)." },
+  { id: "lithovore", name: "Lithovore", category: "Special Abilities", pickCost: 10, enabled: true, description: "Population does not consume food; no starvation from food shortage." },
   { id: "repulsive", name: "Repulsive", category: "Special Abilities", pickCost: -6, enabled: false, description: "Requires diplomacy." },
   { id: "charismatic", name: "Charismatic", category: "Special Abilities", pickCost: 3, enabled: false, description: "Requires diplomacy." },
-  { id: "uncreative", name: "Uncreative", category: "Special Abilities", pickCost: -4, exclusiveGroup: "creativity", enabled: false, description: "Requires research choice rules." },
+  { id: "uncreative", name: "Uncreative", category: "Special Abilities", pickCost: -4, exclusiveGroup: "creativity", enabled: true, description: "Completing a research level discovers only the selected technology at that breakthrough." },
   { id: "creative", name: "Creative", category: "Special Abilities", pickCost: 8, exclusiveGroup: "creativity", enabled: true, description: "Completing a research level discovers every technology at that breakthrough." },
-  { id: "tolerant", name: "Tolerant", category: "Special Abilities", pickCost: 10, enabled: false, description: "Requires pollution and hostile environment rules." },
-  { id: "fantastic_traders", name: "Fantastic Traders", category: "Special Abilities", pickCost: 4, enabled: false, description: "Requires trade rules." },
+  { id: "tolerant", name: "Tolerant", category: "Special Abilities", pickCost: 10, enabled: true, description: "Ignores industrial pollution and hostile-environment population penalties (Barren, Toxic, Radiated use Terran capacity)." },
+  { id: "fantastic_traders", name: "Fantastic Traders", category: "Special Abilities", pickCost: 4, enabled: true, description: "+50% income from trade goods." },
   { id: "telepathic", name: "Telepathic", category: "Special Abilities", pickCost: 6, enabled: false, description: "Requires diplomacy and conquest rules." },
-  { id: "lucky", name: "Lucky", category: "Special Abilities", pickCost: 3, enabled: false, description: "Requires random events." },
-  { id: "omniscient", name: "Omniscient", category: "Special Abilities", pickCost: 3, enabled: false, description: "Requires map intelligence rules." },
-  { id: "stealthy_ships", name: "Stealthy Ships", category: "Special Abilities", pickCost: 4, enabled: false, description: "Requires detection rules." },
-  { id: "trans_dimensional", name: "Trans-Dimensional", category: "Special Abilities", pickCost: 5, enabled: false, description: "Requires movement rules." },
-  { id: "warlord", name: "Warlord", category: "Special Abilities", pickCost: 4, enabled: false, description: "Requires crew experience rules." },
+  { id: "lucky", name: "Lucky", category: "Special Abilities", pickCost: 3, enabled: true, description: "v1: Each turn, 35% chance for +1 bonus research point (10% base + 25% lucky bonus). Full random events planned later." },
+  { id: "omniscient", name: "Omniscient", category: "Special Abilities", pickCost: 3, enabled: true, description: "See the entire galaxy map." },
+  { id: "stealthy_ships", name: "Stealthy Ships", category: "Special Abilities", pickCost: 4, enabled: true, description: "Ships are harder to detect (−2 detection range when detection exists)." },
+  { id: "trans_dimensional", name: "Trans-Dimensional", category: "Special Abilities", pickCost: 5, enabled: true, description: "Ships gain +2 combat speed in battle." },
+  { id: "warlord", name: "Warlord", category: "Special Abilities", pickCost: 4, enabled: true, description: "Ships start with veteran crews (+25% attack and defense in combat)." },
 ];
 
 export function raceTraitGroupsForCategories(categories: readonly string[]) {
@@ -109,6 +110,20 @@ export function selectedRaceTraits(traitIds: TraitIdInput) {
 
 export function racePickCost(traitIds: TraitIdInput) {
   return selectedRaceTraits(traitIds).reduce((total, trait) => total + trait.pickCost, 0);
+}
+
+/** Race growth bonus percent; prefers API stats when provided. */
+export function racePopulationGrowthPercent(
+  traitIds: TraitIdInput,
+  apiPercent?: number | null,
+): number {
+  if (apiPercent != null && Number.isFinite(apiPercent)) {
+    return apiPercent;
+  }
+  return selectedRaceTraits(traitIds).reduce(
+    (sum, trait) => sum + (trait.populationGrowthPercent ?? 0),
+    0,
+  );
 }
 
 export function governmentPickCost(government: string, governments: readonly ApiGovernment[] = fallbackGovernments) {

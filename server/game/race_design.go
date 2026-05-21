@@ -104,32 +104,32 @@ var raceTraitDefinitions = []RaceTraitDefinition{
 	{ID: "money_minus_half", Name: "-0.5 BC", Category: "Money", PickCost: -4, ExclusiveGroup: "money", Enabled: true, Grants: model.Grants{Modifiers: []model.Modifier{{Name: "income_bonus", Value: -0.5}}}, Stats: model.RaceStats{MoneyBonus: -0.5}, Description: "Taxable income is reduced."},
 	{ID: "money_plus_half", Name: "+0.5 BC", Category: "Money", PickCost: 5, ExclusiveGroup: "money", Enabled: true, Grants: model.Grants{Modifiers: []model.Modifier{{Name: "income_bonus", Value: 0.5}}}, Stats: model.RaceStats{MoneyBonus: 0.5}, Description: "Taxable income is increased."},
 	{ID: "money_plus_1", Name: "+1 BC", Category: "Money", PickCost: 8, ExclusiveGroup: "money", Enabled: true, Grants: model.Grants{Modifiers: []model.Modifier{{Name: "income_bonus", Value: 1}}}, Stats: model.RaceStats{MoneyBonus: 1}, Description: "Taxable income is strongly increased."},
-	{ID: "ship_defense", Name: "Ship Defense", Category: "Ship Defense", PickCost: 0, Enabled: false, Description: "Requires combat."},
-	{ID: "ship_attack", Name: "Ship Attack", Category: "Ship Attack", PickCost: 0, Enabled: false, Description: "Requires combat."},
-	{ID: "ground_combat", Name: "Ground Combat", Category: "Ground Combat", PickCost: 0, Enabled: false, Description: "Requires ground combat."},
-	{ID: "spying", Name: "Spying", Category: "Spying", PickCost: 0, Enabled: false, Description: "Requires espionage."},
+	{ID: "ship_defense", Name: "+20% Ship Defense", Category: "Ship Defense", PickCost: 3, Enabled: true, Stats: model.RaceStats{ShipDefenseBonusPercent: 20}, Description: "Ships gain +20% beam defense in combat (MoO2 first level, 3 picks)."},
+	{ID: "ship_attack", Name: "+20% Ship Attack", Category: "Ship Attack", PickCost: 3, Enabled: true, Stats: model.RaceStats{ShipAttackBonusPercent: 20}, Description: "Ships gain +20% beam attack in combat (MoO2 first level, 3 picks)."},
+	{ID: "ground_combat", Name: "Ground Combat", Category: "Ground Combat", PickCost: 5, Enabled: true, Grants: model.Grants{Modifiers: []model.Modifier{{Name: "ground_combat_bonus", Value: 0.5}}}, Description: "+50% ground combat strength (marines and invasions when implemented)."},
+	{ID: "spying", Name: "Spying", Category: "Spying", PickCost: 3, Enabled: true, Grants: model.Grants{Modifiers: []model.Modifier{{Name: "offensive_spy_bonus", Value: 0.25}}}, Stats: model.RaceStats{SpyBonus: 10}, Description: "+10 spy points per turn and +25% offensive spy effectiveness (espionage when implemented)."},
 	{ID: "low_g_world", Name: "Low-G World", Category: "Special Abilities", PickCost: -5, ExclusiveGroup: "gravity", Enabled: true, Description: "Adapted to Low-G worlds (no penalty there); suffers -25% farming/production/research on Normal-G worlds and -50% on High-G. Troops take a 10% penalty in ground combat (when implemented)."},
 	{ID: "high_g_world", Name: "High-G World", Category: "Special Abilities", PickCost: 6, ExclusiveGroup: "gravity", Enabled: true, Description: "Adapted to High-G worlds (no penalty there); still -25% farming/production/research on Low-G worlds. Troops take 1 extra hit before dying in ground combat (when implemented)."},
-	{ID: "aquatic", Name: "Aquatic", Category: "Special Abilities", PickCost: 5, Enabled: false, Description: "Requires aquatic planet capacity rules."},
+	{ID: "aquatic", Name: "Aquatic", Category: "Special Abilities", PickCost: 5, Enabled: true, Description: "Double population capacity on Ocean and Swamp worlds; half capacity on other habitable planets."},
 	{ID: "subterranean", Name: "Subterranean", Category: "Special Abilities", PickCost: 6, ExclusiveGroup: "capacity", Enabled: true, Description: "Planet population capacity is doubled."},
 	{ID: "large_homeworld", Name: "Large Home World", Category: "Special Abilities", PickCost: 1, ExclusiveGroup: "homeworld_size", Enabled: true, Homeworld: &RaceHomeworldModifier{Size: model.PlanetSizeLarge}, Description: "The capital starts as a large world."},
 	{ID: "rich_homeworld", Name: "Rich Home World", Category: "Special Abilities", PickCost: 2, ExclusiveGroup: "homeworld_minerals", Enabled: true, Homeworld: &RaceHomeworldModifier{MineralClass: model.PlanetMineralRich}, Description: "The capital starts rich."},
 	{ID: "poor_homeworld", Name: "Poor Home World", Category: "Special Abilities", PickCost: -1, ExclusiveGroup: "homeworld_minerals", Enabled: true, Homeworld: &RaceHomeworldModifier{MineralClass: model.PlanetMineralPoor}, Description: "The capital starts poor."},
 	{ID: "artifacts_homeworld", Name: "Artifacts World", Category: "Special Abilities", PickCost: 3, ExclusiveGroup: "homeworld_artifacts", Enabled: true, Homeworld: &RaceHomeworldModifier{SciencePerScientist: 2}, Description: "The capital produces extra research."},
-	{ID: "cybernetic", Name: "Cybernetic", Category: "Special Abilities", PickCost: 4, Enabled: false, Description: "Requires food consumption rules."},
-	{ID: "lithovore", Name: "Lithovore", Category: "Special Abilities", PickCost: 10, Enabled: false, Description: "Requires food consumption rules."},
+	{ID: "cybernetic", Name: "Cybernetic", Category: "Special Abilities", PickCost: 4, Enabled: true, Description: "Population consumes half as much food (0.5 per 1000 pop)."},
+	{ID: "lithovore", Name: "Lithovore", Category: "Special Abilities", PickCost: 10, Enabled: true, Description: "Population does not consume food; no starvation from food shortage."},
 	{ID: "repulsive", Name: "Repulsive", Category: "Special Abilities", PickCost: -6, Enabled: false, Description: "Requires diplomacy."},
 	{ID: "charismatic", Name: "Charismatic", Category: "Special Abilities", PickCost: 3, Enabled: false, Description: "Requires diplomacy."},
-	{ID: "uncreative", Name: "Uncreative", Category: "Special Abilities", PickCost: -4, ExclusiveGroup: "creativity", Incompatible: []string{"creative"}, Enabled: false, Description: "Requires research choice rules."},
+	{ID: "uncreative", Name: "Uncreative", Category: "Special Abilities", PickCost: -4, ExclusiveGroup: "creativity", Incompatible: []string{"creative"}, Enabled: true, Description: "Completing a research level discovers only the selected technology at that breakthrough."},
 	{ID: "creative", Name: "Creative", Category: "Special Abilities", PickCost: 8, ExclusiveGroup: "creativity", Incompatible: []string{"uncreative"}, Enabled: true, Description: "Completing a research level discovers every technology at that breakthrough."},
-	{ID: "tolerant", Name: "Tolerant", Category: "Special Abilities", PickCost: 10, Enabled: false, Description: "Requires pollution and hostile environment rules."},
-	{ID: "fantastic_traders", Name: "Fantastic Traders", Category: "Special Abilities", PickCost: 4, Enabled: false, Description: "Requires trade rules."},
+	{ID: "tolerant", Name: "Tolerant", Category: "Special Abilities", PickCost: 10, Enabled: true, Description: "Ignores industrial pollution and hostile-environment population penalties (Barren, Toxic, Radiated use Terran capacity)."},
+	{ID: "fantastic_traders", Name: "Fantastic Traders", Category: "Special Abilities", PickCost: 4, Enabled: true, Description: "+50% income from trade goods."},
 	{ID: "telepathic", Name: "Telepathic", Category: "Special Abilities", PickCost: 6, Enabled: false, Description: "Requires diplomacy and conquest rules."},
-	{ID: "lucky", Name: "Lucky", Category: "Special Abilities", PickCost: 3, Enabled: false, Description: "Requires random events."},
-	{ID: "omniscient", Name: "Omniscient", Category: "Special Abilities", PickCost: 3, Enabled: false, Description: "Requires map intelligence rules."},
-	{ID: "stealthy_ships", Name: "Stealthy Ships", Category: "Special Abilities", PickCost: 4, Enabled: false, Description: "Requires detection rules."},
-	{ID: "trans_dimensional", Name: "Trans-Dimensional", Category: "Special Abilities", PickCost: 5, Enabled: false, Description: "Requires movement rules."},
-	{ID: "warlord", Name: "Warlord", Category: "Special Abilities", PickCost: 4, Enabled: false, Description: "Requires crew experience rules."},
+	{ID: "lucky", Name: "Lucky", Category: "Special Abilities", PickCost: 3, Enabled: true, Description: "v1: Each turn, 35% chance for +1 bonus research point (10% base + 25% lucky bonus). Full random events planned later."},
+	{ID: "omniscient", Name: "Omniscient", Category: "Special Abilities", PickCost: 3, Enabled: true, Description: "See the entire galaxy map."},
+	{ID: "stealthy_ships", Name: "Stealthy Ships", Category: "Special Abilities", PickCost: 4, Enabled: true, Stats: model.RaceStats{DetectionModifier: -2}, Description: "Ships are harder to detect (−2 detection range when detection exists)."},
+	{ID: "trans_dimensional", Name: "Trans-Dimensional", Category: "Special Abilities", PickCost: 5, Enabled: true, Stats: model.RaceStats{CombatSpeedBonus: 2}, Description: "Ships gain +2 combat speed in battle."},
+	{ID: "warlord", Name: "Warlord", Category: "Special Abilities", PickCost: 4, Enabled: true, Stats: model.RaceStats{ShipAttackBonusPercent: 25, ShipDefenseBonusPercent: 25}, Description: "Ships start with veteran crews (+25% attack and defense in combat)."},
 }
 
 func DefaultRace(name string) model.Race {
@@ -223,6 +223,11 @@ func buildCustomRace(resources *ResourceManager, design CustomRaceDesign, allowU
 		race.Stats.Production += def.Stats.Production
 		race.Stats.Research += def.Stats.Research
 		race.Stats.MoneyBonus += def.Stats.MoneyBonus
+		race.Stats.ShipAttackBonusPercent += def.Stats.ShipAttackBonusPercent
+		race.Stats.ShipDefenseBonusPercent += def.Stats.ShipDefenseBonusPercent
+		race.Stats.SpyBonus += def.Stats.SpyBonus
+		race.Stats.DetectionModifier += def.Stats.DetectionModifier
+		race.Stats.CombatSpeedBonus += def.Stats.CombatSpeedBonus
 	}
 
 	if !allowUnplayable && totalCost > racePickBudget {
