@@ -215,6 +215,7 @@ export type ApiPlanet = {
   build_bucket: number;
   is_building: boolean;
   autobuild?: boolean;
+  terraforming_count?: number;
 };
 
 export type ApiMoraleSource = {

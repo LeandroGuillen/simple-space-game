@@ -4,6 +4,7 @@ const AUTOBUILD_EXCLUDED_PROJECTS = new Set([
   'Colony Base',
   'Colony Ship',
   'Artificial Planet Construction',
+  'Terraforming',
   'Outpost Ship',
   'Transport',
   'Freighters',
@@ -35,12 +36,41 @@ export function preferredGravityForRace(traitIds: string[] | undefined): number 
 
 export function isBuildingApplicableToPlanet(
   project: Pick<BuildingViewModel, 'name'>,
-  planet: Pick<PlanetViewModel, 'gravity'>,
+  planet: Pick<PlanetViewModel, 'gravity' | 'environment' | 'buildings'>,
   raceTraitIds: string[] | undefined,
 ): boolean {
   if (project.name === GRAVITY_GENERATOR_BUILDING_NAME) {
     return planet.gravity !== preferredGravityForRace(raceTraitIds);
   }
+  if (project.name === 'Terraforming') {
+    return canTerraformPlanet(planet);
+  }
+  return true;
+}
+
+const TERRAFORM_TRANSITIONS: Record<number, number[]> = {
+  3: [5],
+  4: [5],
+  5: [6, 8],
+  6: [7],
+  8: [9],
+  7: [11],
+  9: [11],
+  10: [11],
+};
+
+const TERRAFORM_PREREQUISITES: Record<number, string> = {
+  3: 'Weather Controller',
+  4: 'Planetary Radiation Shield',
+};
+
+export function canTerraformPlanet(
+  planet: Pick<PlanetViewModel, 'environment' | 'buildings'>,
+): boolean {
+  const targets = TERRAFORM_TRANSITIONS[planet.environment];
+  if (!targets || targets.length === 0) return false;
+  const prereq = TERRAFORM_PREREQUISITES[planet.environment];
+  if (prereq && !planet.buildings.some((b) => b.name === prereq)) return false;
   return true;
 }
 

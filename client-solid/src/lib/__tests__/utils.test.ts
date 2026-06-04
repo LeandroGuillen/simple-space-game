@@ -111,6 +111,7 @@ function planet(overrides: Partial<PlanetViewModel> = {}): PlanetViewModel {
     buildBucket: 0,
     isBuilding: false,
     autobuild: false,
+    terraformingCount: 0,
     ...overrides,
   };
 }

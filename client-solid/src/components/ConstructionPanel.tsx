@@ -18,6 +18,7 @@ import type {
 import {
   isBuildingApplicableToPlanet,
   toggleQueuedConstructionProject,
+  canTerraformPlanet,
 } from "../lib/construction";
 import {
   formatInteger,
@@ -89,6 +90,7 @@ function isSpecialConstructionProject(projectName: string) {
     projectName === "Colony Ship" ||
     projectName === "Freighters" ||
     projectName === "Artificial Planet Construction" ||
+    projectName === "Terraforming" ||
     projectName === "Android Farmers" ||
     projectName === "Android Workers" ||
     projectName === "Android Scientists"
@@ -216,6 +218,14 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
           availableBuildingNames().has(project.name),
       ) ?? null,
   );
+  const terraformingProject = createMemo(
+    () =>
+      state.game?.resources.buildingCollection.buildings.find(
+        (project) =>
+          project.name === "Terraforming" &&
+          availableBuildingNames().has(project.name),
+      ) ?? null,
+  );
   const availableHullSizes = createMemo(
     () => new Set(currentPlayer()?.available.hullSizes ?? []),
   );
@@ -281,6 +291,9 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     }
     if (artificialPlanetProject()) {
       projects.push(artificialPlanetProject()!);
+    }
+    if (terraformingProject()) {
+      projects.push(terraformingProject()!);
     }
     return projects;
   });
@@ -371,6 +384,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     const commands = [
       specialCommand("Colony Base", "Colony Base"),
       specialCommand("Artificial Planet", "Artificial Planet Construction"),
+      specialCommand("Terraforming", "Terraforming"),
       specialCommand("Freighter Fleet", "Freighters"),
       specialCommand("Colony Ship", "Colony Ship"),
       specialCommand("Outpost", "Outpost Ship"),
@@ -393,6 +407,12 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
           return {
             ...command,
             isAvailable: command.isAvailable && hasArtificialPlanetTargets(),
+          };
+        }
+        if (command.unlockName === "Terraforming") {
+          return {
+            ...command,
+            isAvailable: command.isAvailable && canTerraformPlanet(props.planet),
           };
         }
         return command;
@@ -442,6 +462,9 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     ),
   );
   function effectiveProjectCost(project: BuildingViewModel) {
+    if (project.name === 'Terraforming') {
+      return project.cost + (props.planet.terraformingCount ?? 0) * 250;
+    }
     const upgradeCredit = project.upgrades.reduce((credit, upgradedName) => {
       if (!builtBuildingNames().has(upgradedName)) {
         return credit;
@@ -545,6 +568,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     projectName === "Colony Ship" ||
     projectName === "Freighters" ||
     projectName === "Artificial Planet Construction" ||
+    projectName === "Terraforming" ||
     isShipDesignProject(projectByName().get(projectName.toLowerCase()) ?? null);
 
   const isBuyPending = createMemo(() =>

@@ -183,6 +183,8 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game, foodRe
 					}
 					game.PendingArtificialPlanets[player.ID] = append(game.PendingArtificialPlanets[player.ID], p.ID)
 				}
+			} else if completedProject == terraformingProject {
+				terraformPlanet(p)
 			} else if completedProject == "Colony Ship" {
 				game.addShipToOrbitFleet(player.ID, p.ParentStar, FleetShip{
 					Type: "colony_ship",
@@ -294,6 +296,7 @@ func isAutobuildProject(buildingName string) bool {
 	case "Colony Base",
 		"Colony Ship",
 		artificialPlanetProject,
+		terraformingProject,
 		"Outpost Ship",
 		"Transport",
 		"Freighters",
@@ -366,6 +369,12 @@ func Build(p *Planet, buildingName string, availableBuildings []string, game *Ga
 		return true
 	}
 	if buildingName == artificialPlanetProject && !canBuildArtificialPlanetProject(p, availableBuildings, game) {
+		return false
+	}
+	if isTerraformingProject(buildingName) && p.IsBuilding && p.CurrentProject == buildingName {
+		return true
+	}
+	if isTerraformingProject(buildingName) && !canTerraformPlanet(p, game) {
 		return false
 	}
 	if buildShipDesignProject(p, buildingName, game) {
@@ -452,6 +461,9 @@ func canBuild(p *Planet, buildingName string, availableBuildings []string, game 
 	if buildingName == artificialPlanetProject {
 		return canBuildArtificialPlanetProject(p, availableBuildings, game)
 	}
+	if isTerraformingProject(buildingName) {
+		return canTerraformPlanet(p, game)
+	}
 	if p.IsBuilding && p.CurrentProject == buildingName {
 		return false
 	}
@@ -490,6 +502,9 @@ func canBuild(p *Planet, buildingName string, availableBuildings []string, game 
 }
 
 func effectiveBuildingCost(p *Planet, building Building, game *Game) int64 {
+	if isTerraformingProject(building.Name) {
+		return effectiveTerraformingCost(p)
+	}
 	upgradeCredit := int64(0)
 	for _, upgradedBuildingName := range building.Upgrades {
 		if !slices.Contains(p.Buildings, upgradedBuildingName) {
@@ -572,6 +587,8 @@ func buildingApplicableToPlanet(p *Planet, buildingName string, game *Game) bool
 	switch buildingName {
 	case gravityGeneratorBuildingName:
 		return gravityGeneratorApplicable(p, gamePlayerForPlanet(game, p))
+	case terraformingProject:
+		return canTerraformPlanet(p, game)
 	}
 	return true
 }
@@ -606,7 +623,7 @@ func isEmpireUniqueBuildingLocked(game *Game, ownerID uint, buildingName string,
 }
 
 func isRepeatableProject(buildingName string) bool {
-	return buildingName == "Colony Base" || buildingName == "Colony Ship" || buildingName == "Freighters" || buildingName == artificialPlanetProject
+	return buildingName == "Colony Base" || buildingName == "Colony Ship" || buildingName == "Freighters" || buildingName == artificialPlanetProject || isTerraformingProject(buildingName)
 }
 
 // BuyProductionCost returns the treasury cost (in BC) to immediately finish a build project

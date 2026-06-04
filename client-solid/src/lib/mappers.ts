@@ -416,6 +416,7 @@ function mapPlanet(
     isBuilding: planet.is_building,
     autobuild: planet.autobuild ?? false,
     maxPopulation: planet.max_population ?? planet.size * 4 * 1000,
+    terraformingCount: planet.terraforming_count ?? 0,
   };
 }
 

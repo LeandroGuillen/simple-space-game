@@ -115,6 +115,7 @@ export type PlanetViewModel = {
   isBuilding: boolean;
   autobuild: boolean;
   maxPopulation: number;
+  terraformingCount: number;
 };
 
 export type MoraleSourceViewModel = {

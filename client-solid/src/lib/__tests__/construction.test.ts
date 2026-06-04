@@ -76,8 +76,8 @@ describe('preferredGravityForRace', () => {
 });
 
 describe('isBuildingApplicableToPlanet', () => {
-  function planet(gravity: number): Pick<PlanetViewModel, 'gravity'> {
-    return { gravity };
+  function planet(gravity: number): Pick<PlanetViewModel, 'gravity' | 'environment' | 'buildings'> {
+    return { gravity, environment: 11, buildings: [] };
   }
 
   it('hides Gravity Generator when planet gravity matches the race', () => {

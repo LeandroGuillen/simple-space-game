@@ -44,6 +44,8 @@ type Planet struct {
 	BuildBucket int64 `json:"build_bucket"`
 	IsBuilding  bool  `json:"is_building"`
 	Autobuild   bool  `json:"autobuild"`
+
+	TerraformingCount int64 `json:"terraforming_count,omitempty"`
 }
 
 type PlanetFoodOutput struct {
