@@ -38,6 +38,44 @@ func TestHydratePlanetOutputsIncludesIndustryPerColonist(t *testing.T) {
 	assert.Equal(t, int64(14), PlanetIndustryProduced(g, planet))
 }
 
+func TestHydratePlanetOutputsIncludesEmpireTechLaborModifiers(t *testing.T) {
+	g := &Game{
+		Players: []*model.Player{
+			{
+				ID:              1,
+				ResearchedTechs: []string{"Microlite Construction", "Heightened Intelligence"},
+			},
+		},
+		Resources: &Resources{
+			TechTree: &model.TechTree{AllTechs: []model.Tech{
+				{
+					Name: "Microlite Construction",
+					Grants: model.Grants{Modifiers: []model.Modifier{
+						{Name: "industry_per_worker", Value: 1},
+					}},
+				},
+				{
+					Name: "Heightened Intelligence",
+					Grants: model.Grants{Modifiers: []model.Modifier{
+						{Name: "science_per_scientist", Value: 1},
+					}},
+				},
+			}},
+		},
+	}
+	planet := &model.Planet{
+		Owner:        1,
+		MineralClass: model.PlanetMineralAbundant,
+		Industry:     model.PlanetIndustryOutput{Workers: 2},
+		Science:      model.PlanetScienceOutput{Scientists: 2},
+	}
+
+	hydratePlanetOutputs(g, planet)
+
+	assert.Equal(t, int64(4), planet.Industry.ProducedPerWorker)
+	assert.Equal(t, int64(4), planet.Science.ProducedPerScientist)
+}
+
 func TestIndustryPerColonistDoesNotGeneratePollution(t *testing.T) {
 	g := &Game{}
 	planet := &model.Planet{

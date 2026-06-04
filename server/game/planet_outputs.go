@@ -49,6 +49,22 @@ func hydratePlanetOutputs(game *Game, p *Planet) {
 					sciencePerScientist += int64(modifier.Value)
 				}
 			}
+			for _, techName := range player.ResearchedTechs {
+				tech, ok := game.findTechDefinition(techName)
+				if !ok {
+					continue
+				}
+				for _, modifier := range tech.Grants.Modifiers {
+					switch modifier.Name {
+					case "food_per_farmer":
+						foodPerFarmer += int64(modifier.Value)
+					case "industry_per_worker":
+						industryPerWorker += int64(modifier.Value)
+					case "science_per_scientist":
+						sciencePerScientist += int64(modifier.Value)
+					}
+				}
+			}
 		}
 	}
 	sciencePerScientist += p.HomeworldScienceBonus

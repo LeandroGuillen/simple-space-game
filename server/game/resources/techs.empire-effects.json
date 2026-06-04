@@ -149,7 +149,8 @@
 
   {
     "name": "Microlite Construction",
-    "description": "No description provided"
+    "description": "Empire-wide microlite materials increase worker production.",
+    "grants": { "modifiers": [{ "name": "industry_per_worker", "value": 1 }] }
   },
   { "name": "Nano Disassemblers", "description": "No description provided" },
   { "name": "Neural Scanner", "description": "No description provided" },

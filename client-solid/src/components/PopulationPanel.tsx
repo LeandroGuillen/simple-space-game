@@ -37,6 +37,12 @@ type RaceContribution = {
   total: number;
 };
 
+type TechContribution = {
+  techName: string;
+  label: string;
+  total: number;
+};
+
 const POP_LABELS: Record<PopCategory, string> = {
   farmers: "Farmer",
   workers: "Worker",
@@ -171,15 +177,65 @@ export function PopulationPanel(props: PopulationPanelProps) {
     return contributions;
   };
 
+  const getTechContributions = (cat: PopCategory): TechContribution[] => {
+    const game = state.game;
+    const player = owner();
+    if (!game || !player) {
+      return [];
+    }
+
+    const techByName = new Map(
+      game.resources.techCollection.techs.map((tech) => [tech.name, tech]),
+    );
+    const workerCount = getPopCount(cat);
+    const contributions: TechContribution[] = [];
+
+    for (const techName of player.researchedTechs) {
+      const tech = techByName.get(techName);
+      if (!tech) {
+        continue;
+      }
+      for (const modifier of tech.grants.modifiers) {
+        if (cat === "farmers" && modifier.name === "food_per_farmer") {
+          contributions.push({
+            techName: tech.name,
+            label: `${formatSigned(modifier.value)} food per farmer × ${workerCount}`,
+            total: modifier.value * workerCount,
+          });
+        }
+        if (cat === "workers" && modifier.name === "industry_per_worker") {
+          contributions.push({
+            techName: tech.name,
+            label: `${formatSigned(modifier.value)} production per worker × ${workerCount}`,
+            total: modifier.value * workerCount,
+          });
+        }
+        if (cat === "scientists" && modifier.name === "science_per_scientist") {
+          contributions.push({
+            techName: tech.name,
+            label: `${formatSigned(modifier.value)} research per scientist × ${workerCount}`,
+            total: modifier.value * workerCount,
+          });
+        }
+      }
+    }
+
+    return contributions;
+  };
+
   const getOutputBreakdown = (cat: PopCategory): OutputBreakdown => {
     if (cat === "farmers") {
       const raceBonus = getRaceContributions("farmers").reduce(
         (sum, contribution) => sum + contribution.total / Math.max(1, getPopCount("farmers")),
         0,
       );
+      const techBonus = getTechContributions("farmers").reduce(
+        (sum, contribution) => sum + contribution.total / Math.max(1, getPopCount("farmers")),
+        0,
+      );
       const fromPopulation = getGovernmentAdjustedLaborOutput(
         getPopCount("farmers"),
-        Math.max(0, props.planet.food.produced_per_farmer - raceBonus),
+        Math.max(0, props.planet.food.produced_per_farmer - raceBonus - techBonus),
         props.planet,
         props.planet.government?.foodLaborMultiplier ?? 1,
       );
@@ -197,9 +253,16 @@ export function PopulationPanel(props: PopulationPanelProps) {
         (sum, contribution) => sum + contribution.total / Math.max(1, getPopCount("workers")),
         0,
       );
+      const perWorkerTechBonus = getTechContributions("workers").reduce(
+        (sum, contribution) => sum + contribution.total / Math.max(1, getPopCount("workers")),
+        0,
+      );
       const basePerWorker = Math.max(
         0,
-        props.planet.industry.produced_per_worker - perWorkerBuildingBonus - perWorkerRaceBonus,
+        props.planet.industry.produced_per_worker -
+          perWorkerBuildingBonus -
+          perWorkerRaceBonus -
+          perWorkerTechBonus,
       );
       const fromPopulation = getGovernmentAdjustedLaborOutput(
         getPopCount("workers"),
@@ -220,9 +283,16 @@ export function PopulationPanel(props: PopulationPanelProps) {
       (sum, contribution) => sum + contribution.total / Math.max(1, getPopCount("scientists")),
       0,
     );
+    const perScientistTechBonus = getTechContributions("scientists").reduce(
+      (sum, contribution) => sum + contribution.total / Math.max(1, getPopCount("scientists")),
+      0,
+    );
     const basePerScientist = Math.max(
       0,
-      props.planet.science.produced_per_scientist - perScientistBuildingBonus - perScientistRaceBonus,
+      props.planet.science.produced_per_scientist -
+        perScientistBuildingBonus -
+        perScientistRaceBonus -
+        perScientistTechBonus,
     );
     const fromPopulation = getGovernmentAdjustedLaborOutput(
       getPopCount("scientists"),
@@ -257,6 +327,28 @@ export function PopulationPanel(props: PopulationPanelProps) {
             <div class="pop-output-tooltip-row pop-output-tooltip-row--detail">
               <span>
                 {contribution.raceName} trait: {contribution.traitName} ({contribution.label})
+              </span>
+              <strong>{formatSigned(contribution.total)}</strong>
+            </div>
+          )}
+        </For>
+      </>
+    );
+  };
+
+  const renderTechContributionRows = (cat: PopCategory) => {
+    const contributions = getTechContributions(cat);
+    if (contributions.length === 0) {
+      return null;
+    }
+
+    return (
+      <>
+        <For each={contributions}>
+          {(contribution) => (
+            <div class="pop-output-tooltip-row pop-output-tooltip-row--detail">
+              <span>
+                {contribution.techName}: {contribution.label}
               </span>
               <strong>{formatSigned(contribution.total)}</strong>
             </div>
@@ -534,6 +626,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
                 <strong>{getOutputBreakdown("farmers").fromBuildings}</strong>
               </div>
               {renderRaceContributionRows("farmers")}
+              {renderTechContributionRows("farmers")}
               {renderGovernmentContributionRow("farmers")}
               {renderGravityContributionRow()}
               {renderBuildingContributionRows("farmers")}
@@ -600,6 +693,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
                 <strong>{getOutputBreakdown("workers").fromBuildings}</strong>
               </div>
               {renderRaceContributionRows("workers")}
+              {renderTechContributionRows("workers")}
               {renderGovernmentContributionRow("workers")}
               {renderGravityContributionRow()}
               <div class="pop-output-tooltip-row pop-output-tooltip-row--detail">
@@ -656,6 +750,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
                 </strong>
               </div>
               {renderRaceContributionRows("scientists")}
+              {renderTechContributionRows("scientists")}
               {renderGovernmentContributionRow("scientists")}
               {renderGravityContributionRow()}
               {renderBuildingContributionRows("scientists")}
