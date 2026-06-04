@@ -136,6 +136,19 @@
       "maintenance": 2
     },
     {
+      "name": "Deep Core Mine",
+      "description": "Super advanced mining facility.",
+      "built_on": "PLANET",
+      "grants": {
+        "modifiers": [
+          { "name": "industry_flat", "value": 15 },
+          { "name": "industry_per_worker", "value": 3 }
+        ]
+      },
+      "cost": 250,
+      "maintenance": 3
+    },
+    {
       "name": "Recyclotron",
       "description": "Converts population into production with no pollution.",
       "built_on": "PLANET",

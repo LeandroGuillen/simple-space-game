@@ -29,6 +29,22 @@ func TestResearchMakesBuildingAvailable(t *testing.T) {
 	assert.Contains(t, player.ResearchedTechs, "Automated Factory")
 }
 
+func TestResearchMakesDeepCoreMineBuildable(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: DefaultRace("Human")})
+	require.NoError(t, err)
+
+	player := g.Players[0]
+	planet := g.Galaxy.Stars[0].Planets[0]
+
+	g.research(player, "Deep Core Mine")
+
+	assert.Contains(t, player.Available.Buildings, "Deep Core Mine")
+	assert.True(t, canBuild(planet, "Deep Core Mine", player.Available.Buildings, g))
+}
+
 func TestTurnAccumulatesResearchPointsForSelectedBreakthrough(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)
