@@ -53,6 +53,30 @@ func TestResourceManagerLoadsBuildableStarterFrigate(t *testing.T) {
 	assert.Contains(t, player.Available.FuelCells, design.FuelCell.Name)
 }
 
+func TestResourceManagerLoadsPlanetEnvironmentBaseFood(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	cases := map[PlanetEnvironment]int64{
+		PlanetEnvironmentBarren: 0,
+		PlanetEnvironmentToxic:  0,
+		PlanetEnvironmentDesert: 1,
+		PlanetEnvironmentArid:   1,
+		PlanetEnvironmentTerran: 2,
+		PlanetEnvironmentOcean:  2,
+		PlanetEnvironmentGaia:   3,
+	}
+	for env, want := range cases {
+		value, ok := resources.EnvironmentCollection.baseFoodPerFarmer(env)
+		require.Truef(t, ok, "environment %s should be data-driven", env)
+		assert.Equalf(t, want, value, "base food per farmer for %s", env)
+	}
+
+	// Uncolonizable environments are absent from the data.
+	_, ok := resources.EnvironmentCollection.baseFoodPerFarmer(PlanetEnvironmentGasGiant)
+	assert.False(t, ok)
+}
+
 func TestValidateTechDefinitionsRequiresShipSystemUnlocksToExist(t *testing.T) {
 	resources := &ResourceManager{
 		Resources: Resources{

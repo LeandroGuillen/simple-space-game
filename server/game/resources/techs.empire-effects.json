@@ -209,7 +209,11 @@
     "description": "No description provided",
     "grants": { "modifiers": [{ "name": "science_per_scientist", "value": 1 }] }
   },
-  { "name": "Biomorphic Fungi", "description": "No description provided" },
+  {
+    "name": "Biomorphic Fungi",
+    "description": "Empire-wide engineered fungi let every farmer produce one extra food on any world, even Toxic, Barren, and Radiated planets, and allow farmer-bonus farming buildings to be built there.",
+    "grants": { "modifiers": [{ "name": "food_per_farmer", "value": 1 }] }
+  },
   {
     "name": "Tachyon Communications",
     "description": "No description provided"

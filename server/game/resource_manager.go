@@ -11,14 +11,15 @@ import (
 )
 
 type Resources struct {
-	*ShipPartsCollection  `json:"ship_parts"`
-	*ShipSystemCollection `json:"ship_system_collection"`
-	*BuildingCollection   `json:"building_collection"`
-	*ModifierCollection   `json:"modifier_collection"`
-	*NameCollection       `json:"name_collection"`
-	*ShipDesignCollection `json:"ship_design_collection"`
-	*BeamCollection       `json:"beam_collection"`
-	*TechTree             `json:"tech_tree"`
+	*ShipPartsCollection   `json:"ship_parts"`
+	*ShipSystemCollection  `json:"ship_system_collection"`
+	*BuildingCollection    `json:"building_collection"`
+	*ModifierCollection    `json:"modifier_collection"`
+	*NameCollection        `json:"name_collection"`
+	*ShipDesignCollection  `json:"ship_design_collection"`
+	*BeamCollection        `json:"beam_collection"`
+	*EnvironmentCollection `json:"environment_collection"`
+	*TechTree              `json:"tech_tree"`
 }
 
 type ShipPartsCollection struct {
@@ -53,6 +54,33 @@ type ShipDesignCollection struct {
 
 type BeamCollection struct {
 	Beams []Beam `json:"beams"`
+}
+
+// PlanetEnvironmentDef holds the data-driven gameplay attributes of a planet
+// environment, keyed by the short enum name (e.g. "Terran", "Barren").
+type PlanetEnvironmentDef struct {
+	Name              string `json:"name"`
+	BaseFoodPerFarmer int64  `json:"base_food_per_farmer"`
+	Description       string `json:"description"`
+}
+
+type EnvironmentCollection struct {
+	Environments []PlanetEnvironmentDef `json:"environments"`
+}
+
+// baseFoodPerFarmer returns the configured base food per farmer for the given
+// environment, or (0, false) when the environment is not described in the data.
+func (c *EnvironmentCollection) baseFoodPerFarmer(env PlanetEnvironment) (int64, bool) {
+	if c == nil {
+		return 0, false
+	}
+	name := strings.TrimPrefix(env.String(), "PlanetEnvironment")
+	for _, def := range c.Environments {
+		if def.Name == name {
+			return def.BaseFoodPerFarmer, true
+		}
+	}
+	return 0, false
 }
 
 type ResourceManager struct {
@@ -106,6 +134,9 @@ var empireEffectTechsFile []byte
 //go:embed resources/races.json
 var racesFile []byte
 
+//go:embed resources/planet-environments.json
+var planetEnvironmentsFile []byte
+
 func (r *ResourceManager) loadDataFromFiles() error {
 	var shipPartsCollection ShipPartsCollection
 	if err := json.Unmarshal(equipmentFile, &shipPartsCollection); err != nil {
@@ -131,6 +162,12 @@ func (r *ResourceManager) loadDataFromFiles() error {
 		return err
 	}
 	r.BuildingCollection = &buildingCollection
+
+	var environmentCollection EnvironmentCollection
+	if err := json.Unmarshal(planetEnvironmentsFile, &environmentCollection); err != nil {
+		return err
+	}
+	r.EnvironmentCollection = &environmentCollection
 
 	var modifierCollection ModifierCollection
 	if err := json.Unmarshal(modifiersFile, &modifierCollection); err != nil {

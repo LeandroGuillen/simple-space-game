@@ -11,6 +11,7 @@ import {
   getPlanetPollutionForWorkers,
   getPlanetPollutionSize,
   getPlanetScienceForScientists,
+  labelForEnvironment,
   labelForGravity,
   populationFoodDemand,
 } from "../lib/utils";
@@ -81,6 +82,17 @@ export function PopulationPanel(props: PopulationPanelProps) {
   );
 
   const isDragging = () => draggedCount() > 0;
+
+  // Farming is impossible when each farmer would produce no food (hostile worlds
+  // such as Toxic, Barren, and Radiated until Biomorphic Fungi is researched).
+  const farmingPossible = createMemo(
+    () => (props.planet.food.produced_per_farmer ?? 0) > 0,
+  );
+  const farmingBlockedReason = createMemo(() => {
+    if (farmingPossible()) return null;
+    const env = labelForEnvironment(props.planet.environment);
+    return `${env} worlds grow no food. Research Biomorphic Fungi to let farmers work here.`;
+  });
 
   const getPopCount = (cat: PopCategory) => {
     let base = 0;
@@ -592,6 +604,11 @@ export function PopulationPanel(props: PopulationPanelProps) {
     const source = dragSource();
     const count = draggedCount();
     if (!source || count === 0 || source === to) return;
+    if (to === "farmers" && !farmingPossible()) {
+      setDragSource(null);
+      setDraggedCount(0);
+      return;
+    }
     const cmd: MovePopulationCommand = {
       planetId: props.planet.id,
       from: source,
@@ -633,10 +650,12 @@ export function PopulationPanel(props: PopulationPanelProps) {
             </div>
           </div>
           <div
-            class="pop-units-row"
+            class={`pop-units-row ${!farmingPossible() ? "pop-units-row--disabled" : ""}`}
             onDragOver={(e) => {
               e.preventDefault();
-              e.currentTarget.classList.add("drag-over");
+              if (farmingPossible()) {
+                e.currentTarget.classList.add("drag-over");
+              }
             }}
             onDragLeave={(e) => e.currentTarget.classList.remove("drag-over")}
             onDrop={(e) => handleDrop(e, "farmers")}
@@ -650,6 +669,11 @@ export function PopulationPanel(props: PopulationPanelProps) {
                 onDragEnd={handleDragEnd}
               />
             ))}
+            {farmingBlockedReason() && (
+              <span class="pop-units-note" title={farmingBlockedReason()!}>
+                🚫 {farmingBlockedReason()}
+              </span>
+            )}
           </div>
         </div>
 

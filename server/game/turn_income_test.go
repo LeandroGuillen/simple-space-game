@@ -200,6 +200,7 @@ func TestMovePopulationOnlyAppliesToCommandPlanet(t *testing.T) {
 							Population:   2000,
 							Size:         model.PlanetSizeMedium,
 							MineralClass: model.PlanetMineralAbundant,
+							Environment:  model.PlanetEnvironmentTerran,
 							Food: model.PlanetFoodOutput{
 								Farmers: 2,
 							},
@@ -210,6 +211,7 @@ func TestMovePopulationOnlyAppliesToCommandPlanet(t *testing.T) {
 							Population:   2000,
 							Size:         model.PlanetSizeMedium,
 							MineralClass: model.PlanetMineralAbundant,
+							Environment:  model.PlanetEnvironmentTerran,
 							Industry: model.PlanetIndustryOutput{
 								Workers: 2,
 							},
@@ -256,6 +258,7 @@ func TestMovePopulationCanApplyToMultipleColonies(t *testing.T) {
 							Population:   3000,
 							Size:         model.PlanetSizeMedium,
 							MineralClass: model.PlanetMineralAbundant,
+							Environment:  model.PlanetEnvironmentTerran,
 							Food: model.PlanetFoodOutput{
 								Farmers: 3,
 							},
@@ -266,6 +269,7 @@ func TestMovePopulationCanApplyToMultipleColonies(t *testing.T) {
 							Population:   3000,
 							Size:         model.PlanetSizeMedium,
 							MineralClass: model.PlanetMineralAbundant,
+							Environment:  model.PlanetEnvironmentTerran,
 							Industry: model.PlanetIndustryOutput{
 								Workers: 3,
 							},

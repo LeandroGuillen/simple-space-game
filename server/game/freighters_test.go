@@ -213,6 +213,7 @@ func newFoodTransferHarness(freighters uint) *Game {
 				MaxPopulation: 2000,
 				Size:          model.PlanetSizeTiny,
 				MineralClass:  model.PlanetMineralAbundant,
+				Environment:   model.PlanetEnvironmentTerran,
 				Food:          model.PlanetFoodOutput{Farmers: 2},
 			},
 			{
@@ -223,6 +224,7 @@ func newFoodTransferHarness(freighters uint) *Game {
 				MaxPopulation: 2000,
 				Size:          model.PlanetSizeTiny,
 				MineralClass:  model.PlanetMineralAbundant,
+				Environment:   model.PlanetEnvironmentTerran,
 			},
 		}}}},
 	}
@@ -241,6 +243,7 @@ func newPopulationTransferHarness() *Game {
 				MaxPopulation: 8000,
 				Size:          model.PlanetSizeMedium,
 				MineralClass:  model.PlanetMineralAbundant,
+				Environment:   model.PlanetEnvironmentTerran,
 				Food:          model.PlanetFoodOutput{Farmers: 5},
 			},
 			{
@@ -251,6 +254,7 @@ func newPopulationTransferHarness() *Game {
 				MaxPopulation: 8000,
 				Size:          model.PlanetSizeMedium,
 				MineralClass:  model.PlanetMineralAbundant,
+				Environment:   model.PlanetEnvironmentTerran,
 				Food:          model.PlanetFoodOutput{Farmers: 1},
 			},
 		}}}},

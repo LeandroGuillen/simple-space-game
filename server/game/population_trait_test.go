@@ -71,7 +71,8 @@ func TestCyberneticFreighterDeficitHalved(t *testing.T) {
 	hungry.Food.ProducedPerFarmer = 2
 	fed := &model.Planet{
 		ID: 99, Owner: 1, ParentStar: hungry.ParentStar,
-		Population: 1000, Food: model.PlanetFoodOutput{Farmers: 10, ProducedPerFarmer: 2},
+		Environment: model.PlanetEnvironmentTerran,
+		Population:  1000, Food: model.PlanetFoodOutput{Farmers: 10, ProducedPerFarmer: 2},
 	}
 	star.Planets = append(star.Planets, fed)
 	hydratePlanetOutputs(g, hungry)

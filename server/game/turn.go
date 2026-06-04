@@ -249,10 +249,18 @@ func isSpecialNonBuildingProject(project string) bool {
 	return project == tradeGoodsProject || project == housingProject
 }
 
+// farmingPossible reports whether a farmer can produce any food on the planet.
+// Hostile worlds (Toxic, Barren, Radiated) yield zero food per farmer until a
+// breakthrough such as Biomorphic Fungi makes farming viable, so assigning
+// colonists to farming there is pointless.
+func farmingPossible(p *Planet) bool {
+	return p.Food.ProducedPerFarmer > 0
+}
+
 func assignNewPopulation(game *Game, player *Player, p *Planet, popIncrease int64) {
 	foodDemand := int64(math.Ceil(PopulationFoodDemand(player, p.Population)))
 	for range popIncrease {
-		if GamePlanetFoodProduced(game, p) < foodDemand {
+		if farmingPossible(p) && GamePlanetFoodProduced(game, p) < foodDemand {
 			p.Food.Farmers++
 		} else if p.Industry.Workers >= p.Science.Scientists {
 			p.Industry.Workers++
@@ -270,6 +278,9 @@ func applyMovePopulationCommands(p *Planet, commands []*MovePopulationCommand) e
 		newTotal := movePopulation.Farmers + movePopulation.Workers + movePopulation.Scientists
 		if newTotal > p.Population/1000 {
 			return fmt.Errorf("bad pop movement: too many units")
+		}
+		if movePopulation.Farmers > 0 && !farmingPossible(p) {
+			return fmt.Errorf("bad pop movement: farming is not possible on this planet")
 		}
 		p.Food.Farmers = movePopulation.Farmers
 		p.Industry.Workers = movePopulation.Workers
@@ -590,7 +601,42 @@ func buildingApplicableToPlanet(p *Planet, buildingName string, game *Game) bool
 	case terraformingProject:
 		return canTerraformPlanet(p, game)
 	}
+	if !farmerBonusBuildingAllowedOnPlanet(p, buildingName, game) {
+		return false
+	}
 	return true
+}
+
+// farmerBonusBuildingAllowedOnPlanet reports whether a building whose only
+// benefit is boosting food per farmer may be built on the planet. Such buildings
+// are useless on hostile worlds (Toxic, Barren, Radiated) until Biomorphic Fungi
+// lets farmers produce food there, so they are hidden until that tech is researched.
+// Buildings that grant flat food (or any non-farmer modifier) are unaffected.
+func farmerBonusBuildingAllowedOnPlanet(p *Planet, buildingName string, game *Game) bool {
+	if !isHostileEnvironment(p.Environment) {
+		return true
+	}
+	building, err := getBuildingFromName(game, buildingName)
+	if err != nil || !buildingIsFarmerBonusOnly(building) {
+		return true
+	}
+	if player := gamePlayerForPlanet(game, p); player != nil && isTechResearched(player, "Biomorphic Fungi") {
+		return true
+	}
+	return false
+}
+
+// buildingIsFarmerBonusOnly reports whether a building's sole effect is increasing
+// food per farmer (e.g. Soil Enrichment, Weather Controller, Android Farmers).
+func buildingIsFarmerBonusOnly(building Building) bool {
+	hasFarmerBonus := false
+	for _, modifier := range building.Grants.Modifiers {
+		if modifier.Name != "food_per_farmer" {
+			return false
+		}
+		hasFarmerBonus = true
+	}
+	return hasFarmerBonus
 }
 
 func hasSuperiorBuilding(p *Planet, buildingName string, game *Game) bool {

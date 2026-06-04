@@ -6,8 +6,40 @@ import (
 	. "ssg/model"
 )
 
+// baseFoodPerFarmer returns the food a single farmer produces before any race,
+// tech, or building modifiers, based on how fertile the planet's environment is.
+// Hostile worlds (Toxic, Barren, Radiated) cannot grow food on their own, so
+// farmers there start at zero until empire-wide breakthroughs such as Biomorphic
+// Fungi make farming viable.
+//
+// The values are data-driven from resources/planet-environments.json; the
+// hardcoded defaults are a fallback for games constructed without loaded
+// resources (e.g. unit tests).
+func baseFoodPerFarmer(game *Game, env PlanetEnvironment) int64 {
+	if game != nil && game.Resources != nil {
+		if value, ok := game.Resources.EnvironmentCollection.baseFoodPerFarmer(env); ok {
+			return value
+		}
+	}
+	return defaultBaseFoodPerFarmer(env)
+}
+
+func defaultBaseFoodPerFarmer(env PlanetEnvironment) int64 {
+	switch env {
+	case PlanetEnvironmentDesert, PlanetEnvironmentTundra, PlanetEnvironmentArid:
+		return 1
+	case PlanetEnvironmentOcean, PlanetEnvironmentSwamp, PlanetEnvironmentTerran:
+		return 2
+	case PlanetEnvironmentGaia:
+		return 3
+	default:
+		// Toxic, Barren, Radiated, and uncolonizable environments: no farming.
+		return 0
+	}
+}
+
 func hydratePlanetOutputs(game *Game, p *Planet) {
-	foodPerFarmer := int64(2)
+	foodPerFarmer := baseFoodPerFarmer(game, p.Environment)
 	foodFromBuildings := int64(0)
 	industryPerWorker := IndustryPerMineralClass(p.MineralClass)
 	industryFromBuildings := int64(0)

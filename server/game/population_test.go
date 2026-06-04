@@ -64,9 +64,10 @@ func TestTurnKillsPopulationOverCapacityWhenBiospheresIsGone(t *testing.T) {
 		},
 	}
 	planet := &model.Planet{
-		Owner:      1,
-		Size:       model.PlanetSizeMedium,
-		Population: 14000,
+		Owner:       1,
+		Size:        model.PlanetSizeMedium,
+		Environment: model.PlanetEnvironmentTerran,
+		Population:  14000,
 		Food: model.PlanetFoodOutput{
 			Farmers:           14,
 			ProducedPerFarmer: 2,
@@ -118,9 +119,10 @@ func TestTurnAddsCloningCenterPopulationGrowth(t *testing.T) {
 		},
 	}
 	planet := &model.Planet{
-		Owner:      1,
-		Size:       model.PlanetSizeHuge,
-		Population: 10000,
+		Owner:       1,
+		Size:        model.PlanetSizeHuge,
+		Environment: model.PlanetEnvironmentTerran,
+		Population:  10000,
 		Food: model.PlanetFoodOutput{
 			Farmers:           10,
 			ProducedPerFarmer: 2,
@@ -235,9 +237,10 @@ func TestTurnAssignsNewPopulationToFarmingWhenPlanetWouldStarve(t *testing.T) {
 		},
 	}
 	planet := &model.Planet{
-		Owner:      1,
-		Size:       model.PlanetSizeHuge,
-		Population: 1900,
+		Owner:       1,
+		Size:        model.PlanetSizeHuge,
+		Environment: model.PlanetEnvironmentTerran,
+		Population:  1900,
 		Industry: model.PlanetIndustryOutput{
 			Workers: 1,
 		},
@@ -249,6 +252,68 @@ func TestTurnAssignsNewPopulationToFarmingWhenPlanetWouldStarve(t *testing.T) {
 	assert.Equal(t, int64(1), planet.Food.Farmers)
 	assert.Equal(t, int64(1), planet.Industry.Workers)
 	assert.Equal(t, int64(0), planet.Science.Scientists)
+}
+
+func TestNewPopulationSkipsFarmingWhenFarmingImpossible(t *testing.T) {
+	player := &model.Player{ID: 1}
+	g := &Game{
+		Players: []*model.Player{player},
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{
+				Buildings: []model.Building{
+					{
+						Name: "Growth Pod",
+						Grants: model.Grants{Modifiers: []model.Modifier{
+							{Name: "population_growth", Value: 200},
+						}},
+					},
+				},
+			},
+		},
+	}
+	planet := &model.Planet{
+		Owner:       1,
+		Size:        model.PlanetSizeHuge,
+		Environment: model.PlanetEnvironmentBarren, // base food per farmer = 0
+		Population:  1900,
+		Industry: model.PlanetIndustryOutput{
+			Workers: 1,
+		},
+		Buildings: []string{"Growth Pod"},
+	}
+
+	require.NoError(t, planetTurn(planet, model.Commands{}, player, g))
+
+	// New population goes to industry, not farming, since farmers produce nothing here.
+	assert.Equal(t, int64(0), planet.Food.Farmers)
+	assert.Equal(t, int64(2), planet.Industry.Workers)
+	assert.Equal(t, int64(0), planet.Science.Scientists)
+}
+
+func TestMovePopulationRejectsFarmersWhenFarmingImpossible(t *testing.T) {
+	player := &model.Player{ID: 1}
+	g := &Game{
+		Players:   []*model.Player{player},
+		Resources: &Resources{BuildingCollection: &BuildingCollection{}},
+	}
+	planet := &model.Planet{
+		ID:          1,
+		Owner:       1,
+		Size:        model.PlanetSizeHuge,
+		Environment: model.PlanetEnvironmentBarren, // base food per farmer = 0
+		Population:  3000,
+		Industry: model.PlanetIndustryOutput{
+			Workers: 3,
+		},
+	}
+
+	err := planetTurn(planet, model.Commands{
+		MovePopulation: []*model.MovePopulationCommand{
+			{PlanetID: 1, Farmers: 1, Workers: 2, Scientists: 0},
+		},
+	}, player, g)
+
+	require.Error(t, err)
 }
 
 func TestTurnAssignsNewPopulationToLargerIndustryOrScienceWorkforceWhenFed(t *testing.T) {

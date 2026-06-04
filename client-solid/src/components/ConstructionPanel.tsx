@@ -169,6 +169,9 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     }
     return locked;
   });
+  const researchedTechs = createMemo(
+    () => new Set(currentPlayer()?.researchedTechs ?? []),
+  );
   const buildableProjects = createMemo(
     () =>
       state.game?.resources.buildingCollection.buildings.filter(
@@ -183,6 +186,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
             project,
             props.planet,
             currentPlayer()?.raceTraitIds,
+            researchedTechs(),
           ),
       ) ?? [],
   );
@@ -361,9 +365,6 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   });
   const queuedProjectIds = createMemo(
     () => new Set(queuedProjects().map((project) => project.id)),
-  );
-  const researchedTechs = createMemo(
-    () => new Set(currentPlayer()?.researchedTechs ?? []),
   );
   const currentStar = createMemo(() =>
     findStar(state.game, props.planet.parentStar),

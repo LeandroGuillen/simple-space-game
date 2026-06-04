@@ -16,6 +16,7 @@ func housingTestGame() (*Game, *model.Player, *model.Planet) {
 		Owner:        1,
 		Size:         model.PlanetSizeHuge,
 		MineralClass: model.PlanetMineralPoor,
+		Environment:  model.PlanetEnvironmentTerran,
 		Population:   10000,
 		Food: model.PlanetFoodOutput{
 			Farmers: 10,

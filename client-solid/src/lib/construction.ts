@@ -34,16 +34,42 @@ export function preferredGravityForRace(traitIds: string[] | undefined): number 
   return PLANET_GRAVITY_NORMAL;
 }
 
+// Toxic, Radiated, and Barren planet environments (see PlanetEnvironment enum).
+const HOSTILE_ENVIRONMENTS = new Set([3, 4, 5]);
+const BIOMORPHIC_FUNGI_TECH = 'Biomorphic Fungi';
+
+// buildingIsFarmerBonusOnly reports whether a building's sole effect is increasing
+// food per farmer (e.g. Soil Enrichment, Weather Controller, Android Farmers).
+function buildingIsFarmerBonusOnly(
+  project: Partial<Pick<BuildingViewModel, 'grants'>>,
+): boolean {
+  const modifiers = project.grants?.modifiers ?? [];
+  return (
+    modifiers.length > 0 &&
+    modifiers.every((modifier) => modifier.name === 'food_per_farmer')
+  );
+}
+
 export function isBuildingApplicableToPlanet(
-  project: Pick<BuildingViewModel, 'name'>,
+  project: Pick<BuildingViewModel, 'name'> & Partial<Pick<BuildingViewModel, 'grants'>>,
   planet: Pick<PlanetViewModel, 'gravity' | 'environment' | 'buildings'>,
   raceTraitIds: string[] | undefined,
+  researchedTechs?: ReadonlySet<string>,
 ): boolean {
   if (project.name === GRAVITY_GENERATOR_BUILDING_NAME) {
     return planet.gravity !== preferredGravityForRace(raceTraitIds);
   }
   if (project.name === 'Terraforming') {
     return canTerraformPlanet(planet);
+  }
+  // Farmer-bonus-only buildings are useless on hostile worlds until Biomorphic
+  // Fungi lets farmers produce food there. Flat-food buildings are unaffected.
+  if (
+    HOSTILE_ENVIRONMENTS.has(planet.environment) &&
+    !researchedTechs?.has(BIOMORPHIC_FUNGI_TECH) &&
+    buildingIsFarmerBonusOnly(project)
+  ) {
+    return false;
   }
   return true;
 }

@@ -45,6 +45,60 @@ func TestResearchMakesDeepCoreMineBuildable(t *testing.T) {
 	assert.True(t, canBuild(planet, "Deep Core Mine", player.Available.Buildings, g))
 }
 
+func TestBiomorphicFungiUnlocksFarmerBuildingsOnHostileWorlds(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: DefaultRace("Human")})
+	require.NoError(t, err)
+
+	player := g.Players[0]
+	planet := g.Galaxy.Stars[0].Planets[0]
+	planet.Owner = player.ID
+	planet.Environment = model.PlanetEnvironmentBarren
+	planet.Population = 10000
+	g.research(player, "Soil Enrichment")
+	g.research(player, "Weather Controller")
+	g.research(player, "Hydroponic Farm")
+
+	// Flat-food buildings can already be built on hostile worlds.
+	assert.True(t, canBuild(planet, "Hydroponic Farm", player.Available.Buildings, g))
+
+	// Farmer-bonus-only buildings are hidden until Biomorphic Fungi is researched.
+	assert.False(t, canBuild(planet, "Soil Enrichment", player.Available.Buildings, g))
+	assert.False(t, canBuild(planet, "Weather Controller", player.Available.Buildings, g))
+
+	// Hostile worlds grow no food on their own: farmers start at zero there.
+	hydratePlanetOutputs(g, planet)
+	assert.Equal(t, int64(0), planet.Food.ProducedPerFarmer)
+
+	g.research(player, "Biomorphic Fungi")
+
+	assert.True(t, canBuild(planet, "Soil Enrichment", player.Available.Buildings, g))
+	assert.True(t, canBuild(planet, "Weather Controller", player.Available.Buildings, g))
+
+	// The tech grants +1 food per farmer, making Barren farmers produce 1.
+	hydratePlanetOutputs(g, planet)
+	assert.Equal(t, int64(1), planet.Food.ProducedPerFarmer)
+}
+
+func TestFarmerBuildingsBuildableOnHospitableWorldsWithoutBiomorphicFungi(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: DefaultRace("Human")})
+	require.NoError(t, err)
+
+	player := g.Players[0]
+	planet := g.Galaxy.Stars[0].Planets[0]
+	planet.Owner = player.ID
+	planet.Environment = model.PlanetEnvironmentTerran
+	planet.Population = 10000
+	g.research(player, "Soil Enrichment")
+
+	assert.True(t, canBuild(planet, "Soil Enrichment", player.Available.Buildings, g))
+}
+
 func TestTurnAccumulatesResearchPointsForSelectedBreakthrough(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)

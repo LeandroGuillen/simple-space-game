@@ -133,6 +133,51 @@ describe('isBuildingApplicableToPlanet', () => {
       isBuildingApplicableToPlanet({ name: 'Automated Factory' }, planet(1), []),
     ).toBe(true);
   });
+
+  function hostilePlanet(): Pick<
+    PlanetViewModel,
+    'gravity' | 'environment' | 'buildings'
+  > {
+    return { gravity: 2, environment: 3, buildings: [] };
+  }
+
+  const farmerBonusBuilding = {
+    name: 'Soil Enrichment',
+    grants: { modifiers: [{ name: 'food_per_farmer', value: 1 }] },
+  };
+  const flatFoodBuilding = {
+    name: 'Hydroponic Farm',
+    grants: { modifiers: [{ name: 'food_flat', value: 2 }] },
+  };
+
+  it('hides farmer-bonus-only buildings on hostile worlds without Biomorphic Fungi', () => {
+    expect(
+      isBuildingApplicableToPlanet(farmerBonusBuilding, hostilePlanet(), []),
+    ).toBe(false);
+  });
+
+  it('shows farmer-bonus-only buildings on hostile worlds once Biomorphic Fungi is researched', () => {
+    expect(
+      isBuildingApplicableToPlanet(
+        farmerBonusBuilding,
+        hostilePlanet(),
+        [],
+        new Set(['Biomorphic Fungi']),
+      ),
+    ).toBe(true);
+  });
+
+  it('keeps farmer-bonus-only buildings applicable on non-hostile worlds', () => {
+    expect(
+      isBuildingApplicableToPlanet(farmerBonusBuilding, planet(2), []),
+    ).toBe(true);
+  });
+
+  it('keeps flat-food buildings applicable on hostile worlds', () => {
+    expect(
+      isBuildingApplicableToPlanet(flatFoodBuilding, hostilePlanet(), []),
+    ).toBe(true);
+  });
 });
 
 describe('toggleQueuedConstructionProject', () => {
