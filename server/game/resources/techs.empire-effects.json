@@ -152,7 +152,10 @@
     "description": "Empire-wide microlite materials increase worker production.",
     "grants": { "modifiers": [{ "name": "industry_per_worker", "value": 1 }] }
   },
-  { "name": "Nano Disassemblers", "description": "No description provided" },
+  {
+    "name": "Nano Disassemblers",
+    "description": "Doubles every colony's tolerance to pollution."
+  },
   { "name": "Neural Scanner", "description": "No description provided" },
   { "name": "Outpost Ship", "description": "No description provided" },
   {

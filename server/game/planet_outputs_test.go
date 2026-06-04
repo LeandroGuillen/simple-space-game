@@ -91,6 +91,24 @@ func TestIndustryPerColonistDoesNotGeneratePollution(t *testing.T) {
 	assert.Equal(t, int64(20), PlanetIndustryProduced(g, planet))
 }
 
+func TestNanoDisassemblersDoubleEmpirePollutionTolerance(t *testing.T) {
+	g := &Game{Players: []*model.Player{{ID: 1}}}
+	planet := &model.Planet{
+		Owner: 1,
+		Size:  model.PlanetSizeMedium,
+		Industry: model.PlanetIndustryOutput{
+			Workers:           8,
+			ProducedPerWorker: 1,
+		},
+	}
+
+	assert.Equal(t, int64(1), Pollution(g, planet))
+
+	g.Players[0].ResearchedTechs = []string{"Nano Disassemblers"}
+
+	assert.Equal(t, int64(0), Pollution(g, planet))
+}
+
 func TestMoraleBoostsLaborOutputsOnly(t *testing.T) {
 	planet := &model.Planet{
 		Population: 10000,

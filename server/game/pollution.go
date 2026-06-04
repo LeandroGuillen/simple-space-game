@@ -22,7 +22,7 @@ func Pollution(game *Game, p *model.Planet) int64 {
 	}
 
 	divisor := pollutionDivisor(p)
-	size := pollutionPlanetSize(p)
+	size := pollutionPlanetSize(p, player)
 
 	raw := (float64(dirtyProduction)/float64(divisor) - float64(size)) / 2
 	if raw <= 0 {
@@ -46,9 +46,9 @@ func pollutionDivisor(p *model.Planet) int64 {
 	return 1
 }
 
-func pollutionPlanetSize(p *model.Planet) int64 {
+func pollutionPlanetSize(p *model.Planet, player *model.Player) int64 {
 	size := int64(p.Size) * 2
-	if hasBuilding(p, "Nano Disassemblers") {
+	if player != nil && isTechResearched(player, "Nano Disassemblers") {
 		size *= 2
 	}
 	return size
