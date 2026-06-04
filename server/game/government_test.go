@@ -137,6 +137,63 @@ func TestGovernmentShipCostCommandPointsAndSpyBonus(t *testing.T) {
 	assert.Equal(t, int64(10), g.Players[0].CommandPointsCapacity)
 }
 
+func TestPsionicsPolicyAppliesToCompatibleGovernments(t *testing.T) {
+	resources := testResources(t)
+	tests := []struct {
+		name             string
+		startGovernment  string
+		advancedResearch string
+	}{
+		{name: "feudal", startGovernment: "Feudal"},
+		{name: "dictatorship", startGovernment: "Dictatorship"},
+		{name: "confederation", startGovernment: "Feudal", advancedResearch: "Confederation"},
+		{name: "imperium", startGovernment: "Dictatorship", advancedResearch: "Imperium"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			race, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Ada", Government: tt.startGovernment})
+			require.NoError(t, err)
+			g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: race})
+			require.NoError(t, err)
+			player := g.Players[0]
+			if tt.advancedResearch != "" {
+				g.research(player, tt.advancedResearch)
+			}
+			g.research(player, "Psionics")
+			planet, err := g.getPlanet(1)
+			require.NoError(t, err)
+
+			assert.InDelta(t, 0.1, OffensiveSpyBonus(g, player), 0.0001)
+			assert.InDelta(t, governmentModifierValue(g, player, "defensive_spy_bonus", 0)+0.1, DefensiveSpyBonus(g, player), 0.0001)
+			assert.Contains(t, sourceNames(PlanetMoraleSources(g, planet, player)), "Psionics")
+			assert.InDelta(t, 0.1, psionicsSourceBonus(PlanetMoraleSources(g, planet, player)), 0.0001)
+		})
+	}
+}
+
+func TestPsionicsPolicyDoesNotApplyToIncompatibleGovernments(t *testing.T) {
+	resources := testResources(t)
+	democracy, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Ada", Government: "Democracy"})
+	require.NoError(t, err)
+	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: democracy})
+	require.NoError(t, err)
+	player := g.Players[0]
+	g.research(player, "Psionics")
+	planet, err := g.getPlanet(1)
+	require.NoError(t, err)
+
+	assert.Zero(t, OffensiveSpyBonus(g, player))
+	assert.Equal(t, -0.1, DefensiveSpyBonus(g, player))
+	assert.NotContains(t, sourceNames(PlanetMoraleSources(g, planet, player)), "Psionics")
+
+	g.research(player, "Federation")
+
+	assert.Zero(t, OffensiveSpyBonus(g, player))
+	assert.Equal(t, -0.1, DefensiveSpyBonus(g, player))
+	assert.NotContains(t, sourceNames(PlanetMoraleSources(g, planet, player)), "Psionics")
+}
+
 func TestFederationAppliesAdvancedTaxMultiplierInVisibleGame(t *testing.T) {
 	resources := testResources(t)
 	democracy, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Ada", Government: "Democracy"})
@@ -164,4 +221,13 @@ func sourceNames(sources []model.PlanetMoraleSource) []string {
 		names = append(names, source.Name)
 	}
 	return names
+}
+
+func psionicsSourceBonus(sources []model.PlanetMoraleSource) float64 {
+	for _, source := range sources {
+		if source.Name == "Psionics" {
+			return source.Bonus
+		}
+	}
+	return 0
 }

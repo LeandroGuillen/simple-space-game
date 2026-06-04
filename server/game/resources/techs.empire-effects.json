@@ -193,7 +193,17 @@
       "modifiers": [{ "name": "population_growth_percent", "value": 25 }]
     }
   },
-  { "name": "Psionics", "description": "No description provided" },
+  {
+    "name": "Psionics",
+    "description": "Empire-wide psionic coordination improves spies and morale for Feudal, Dictatorship, Confederation, and Imperium governments.",
+    "grants": {
+      "modifiers": [
+        { "name": "offensive_spy_bonus", "value": 0.1 },
+        { "name": "defensive_spy_bonus", "value": 0.1 },
+        { "name": "psionics_morale_bonus", "value": 0.1 }
+      ]
+    }
+  },
   {
     "name": "Heightened Intelligence",
     "description": "No description provided",

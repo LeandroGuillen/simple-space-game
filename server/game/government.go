@@ -128,8 +128,49 @@ func governmentHasModifier(g *Game, player *model.Player, modifierName string) b
 	return false
 }
 
+func researchedTechModifierValue(g *Game, player *model.Player, techName string, modifierName string, fallback float64) float64 {
+	if g == nil || player == nil || !isTechResearched(player, techName) {
+		return fallback
+	}
+	tech, ok := g.findTechDefinition(techName)
+	if !ok {
+		return fallback
+	}
+	for _, modifier := range tech.Grants.Modifiers {
+		if modifier.Name == modifierName {
+			return modifier.Value
+		}
+	}
+	return fallback
+}
+
+func psionicsPolicyActive(g *Game, player *model.Player) bool {
+	if g == nil || player == nil || !isTechResearched(player, "Psionics") {
+		return false
+	}
+	tech, ok := activeGovernmentTech(g, player)
+	if !ok {
+		return false
+	}
+	switch tech.Name {
+	case "Feudal", "Dictatorship", "Confederation", "Imperium":
+		return true
+	default:
+		return false
+	}
+}
+
+func psionicsPolicyModifierValue(g *Game, player *model.Player, modifierName string, fallback float64) float64 {
+	if !psionicsPolicyActive(g, player) {
+		return fallback
+	}
+	return researchedTechModifierValue(g, player, "Psionics", modifierName, fallback)
+}
+
 func DefensiveSpyBonus(g *Game, player *model.Player) float64 {
-	return governmentModifierValue(g, player, "defensive_spy_bonus", 0)
+	bonus := governmentModifierValue(g, player, "defensive_spy_bonus", 0)
+	bonus += psionicsPolicyModifierValue(g, player, "defensive_spy_bonus", 0)
+	return bonus
 }
 
 func governmentMoraleNeutral(g *Game, player *model.Player) bool {

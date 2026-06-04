@@ -52,6 +52,13 @@ func PlanetMoraleSources(game *Game, p *model.Planet, player *model.Player) []mo
 		}
 	}
 	if player != nil {
+		if bonus = psionicsPolicyModifierValue(game, player, "psionics_morale_bonus", 0); bonus != 0 {
+			sources = append(sources, model.PlanetMoraleSource{
+				Name:  "Psionics",
+				Type:  "policy",
+				Bonus: bonus,
+			})
+		}
 		if bonus = governmentModifierValue(game, player, "missing_barracks_morale", 0); bonus != 0 && !planetHasBarracks(p) {
 			sources = append(sources, model.PlanetMoraleSource{
 				Name:  activeGovernmentName(game, player) + ": no Barracks",

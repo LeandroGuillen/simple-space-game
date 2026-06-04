@@ -50,6 +50,13 @@
       "operation": "ADD_PERCENT"
     },
     {
+      "name": "psionics_morale_bonus",
+      "description": "Improves colony morale while Psionics is active for compatible governments.",
+      "scope": "EMPIRE",
+      "stat": "morale",
+      "operation": "ADD_PERCENT"
+    },
+    {
       "name": "ground_combat_bonus",
       "description": "Multiplies ground combat strength (marines, invasions).",
       "scope": "EMPIRE",

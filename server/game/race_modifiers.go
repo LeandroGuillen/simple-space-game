@@ -28,6 +28,7 @@ func OffensiveSpyBonus(g *Game, player *model.Player) float64 {
 	bonus := raceModifierValue(player, "offensive_spy_bonus", 0)
 	if g != nil {
 		bonus += governmentModifierValue(g, player, "offensive_spy_bonus", 0)
+		bonus += psionicsPolicyModifierValue(g, player, "offensive_spy_bonus", 0)
 	}
 	return bonus
 }
