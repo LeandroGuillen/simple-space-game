@@ -405,6 +405,58 @@ export function destinationInSupplyRange(
   });
 }
 
+// Check if a star has at least one planet owned by the player
+export function starHasPlayerColony(
+  game: GameViewModel | null | undefined,
+  starId: number,
+  playerId: number,
+): boolean {
+  if (!game) return false;
+  const star = findStar(game, starId);
+  if (!star) return false;
+  return star.planets.some((planet) => planet.owner === playerId);
+}
+
+// Check if player has researched Star Gate technology
+export function hasStarGate(player: PlayerViewModel | null | undefined): boolean {
+  if (!player) return false;
+  return player.researchedTechs.includes("Star Gate");
+}
+
+// Check if Star Gate travel applies (both stars are player-owned colonies with Star Gate tech)
+export function isStarGateTravel(
+  game: GameViewModel | null | undefined,
+  player: PlayerViewModel | null | undefined,
+  originStarId: number,
+  destStarId: number,
+): boolean {
+  if (!game || !player) return false;
+  if (!hasStarGate(player)) return false;
+  const originOwned = starHasPlayerColony(game, originStarId, player.id);
+  const destOwned = starHasPlayerColony(game, destStarId, player.id);
+  return originOwned && destOwned;
+}
+
+// Calculate fleet travel turns, accounting for Star Gate (1 turn between owned colonies)
+export function calculateFleetTravelTurnsWithStarGate(
+  game: GameViewModel | null | undefined,
+  player: PlayerViewModel | null | undefined,
+  fromX: number,
+  fromY: number,
+  toX: number,
+  toY: number,
+  originStarId: number,
+  destStarId: number,
+  speedParsecsPerTurn = 1.5,
+): number {
+  // Star Gate travel: 1 turn between player-owned colonies
+  if (isStarGateTravel(game, player, originStarId, destStarId)) {
+    return 1;
+  }
+  // Normal travel calculation
+  return calculateFleetTravelTurnsFromCoordinates(fromX, fromY, toX, toY, speedParsecsPerTurn);
+}
+
 export function getPlanetIndustry(planet: PlanetViewModel) {
   return getPlanetIndustryForWorkers(planet, planet.industry.workers);
 }

@@ -6,11 +6,13 @@ import { GalaxyMap } from "../components/GalaxyMap";
 import { PlanetVisual } from "../components/PlanetVisual";
 import {
   calculateFleetTravelTurnsFromCoordinates,
+  calculateFleetTravelTurnsWithStarGate,
   destinationInSupplyRange,
   findPlayerFleetsAtStar,
   findStar,
   fleetSelectionInterstellarSpeed,
   fleetSelectionFuelRange,
+  isStarGateTravel,
   labelForEnvironment,
   labelForGravity,
   labelForMinerals,
@@ -63,14 +65,19 @@ export function GalaxyPage() {
       if (!to) return null;
       const selectedShips = fleet.ships.filter((_, index) => command.ship_indexes.includes(index));
       const speed = fleetSelectionInterstellarSpeed(selectedShips, currentPlayer(), state.game?.resources) ?? undefined;
+      const isStarGate = isStarGateTravel(state.game, currentPlayer(), fleet.starId, command.destination_star_id);
+      const eta = isStarGate
+        ? 1
+        : calculateFleetTravelTurnsFromCoordinates(fleet.x, fleet.y, to.x, to.y, speed);
       return {
         fromX: fleet.x,
         fromY: fleet.y,
         toX: to.x,
         toY: to.y,
-        eta: calculateFleetTravelTurnsFromCoordinates(fleet.x, fleet.y, to.x, to.y, speed),
+        eta,
+        starGate: isStarGate,
       };
-    }).filter((route): route is { fromX: number; fromY: number; toX: number; toY: number; eta: number } => Boolean(route)),
+    }).filter((route): route is { fromX: number; fromY: number; toX: number; toY: number; eta: number; starGate?: boolean } => Boolean(route)),
   );
   const activeFleetRoutes = createMemo(() =>
     (state.game?.fleets ?? [])
@@ -105,14 +112,19 @@ export function GalaxyPage() {
     const range = fleetSelectionFuelRange(selectedShips, currentPlayer(), state.game?.resources);
     const blocked = !destinationInSupplyRange(state.game, currentPlayer()?.id ?? 0, toStarId, range);
     const speed = fleetSelectionInterstellarSpeed(selectedShips, currentPlayer(), state.game?.resources) ?? undefined;
+    const isStarGate = isStarGateTravel(state.game, currentPlayer(), mode.originStarId, toStarId);
+    const eta = isStarGate
+      ? 1
+      : calculateFleetTravelTurnsFromCoordinates(fleet.x, fleet.y, to.x, to.y, speed);
     return {
       fromX: fleet.x,
       fromY: fleet.y,
       toX: to.x,
       toY: to.y,
-      eta: calculateFleetTravelTurnsFromCoordinates(fleet.x, fleet.y, to.x, to.y, speed),
+      eta,
       preview: true,
       blocked,
+      starGate: isStarGate,
     };
   });
   const fleetRouteLines = createMemo(() => {

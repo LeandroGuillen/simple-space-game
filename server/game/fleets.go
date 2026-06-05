@@ -177,6 +177,14 @@ func (g *Game) beginFleetMovement(fleet *Fleet, destStarID uint) error {
 	fleet.OriginStarID = fleet.StarID
 	fleet.OriginX = fleet.X
 	fleet.OriginY = fleet.Y
+
+	// Check for Star Gate travel - instant travel between owned colonies
+	if g.isStarGateTravel(fleet.Owner, fleet.StarID, destStarID) {
+		fleet.TotalTurns = 1
+		fleet.TurnsRemaining = 1
+		return nil
+	}
+
 	turns, err := g.calculateFleetTravelTurnsForShips(fleet.Owner, fleet.Ships, fleet.OriginX, fleet.OriginY, float64(destination.X), float64(destination.Y))
 	if err != nil {
 		return err
@@ -184,6 +192,36 @@ func (g *Game) beginFleetMovement(fleet *Fleet, destStarID uint) error {
 	fleet.TotalTurns = turns
 	fleet.TurnsRemaining = fleet.TotalTurns
 	return nil
+}
+
+// isStarGateTravel returns true if both origin and destination are player-owned
+// colonies and the player has researched Star Gate technology
+func (g *Game) isStarGateTravel(playerID uint, originStarID, destStarID uint) bool {
+	player, err := g.getPlayer(playerID)
+	if err != nil {
+		return false
+	}
+	if !playerHasTech(player, "Star Gate") {
+		return false
+	}
+	// Both stars must have player-owned planets (colonies)
+	originOwned := g.starHasPlayerColony(originStarID, playerID)
+	destOwned := g.starHasPlayerColony(destStarID, playerID)
+	return originOwned && destOwned
+}
+
+// starHasPlayerColony checks if a star has at least one planet owned by the player
+func (g *Game) starHasPlayerColony(starID uint, playerID uint) bool {
+	star, err := g.getStar(starID)
+	if err != nil {
+		return false
+	}
+	for _, planet := range star.Planets {
+		if planet != nil && planet.Owner == playerID {
+			return true
+		}
+	}
+	return false
 }
 
 func distanceParsecs(x1, y1, x2, y2 float64) float64 {
@@ -487,8 +525,11 @@ func (g *Game) issueFleetMove(playerID uint, command *FleetMoveCommand) error {
 	if _, err := g.getStar(command.DestinationStarID); err != nil {
 		return err
 	}
-	if err := g.validateFleetMoveFuelRange(player, shipsByIndexes(fleet.Ships, shipIdxs), command.DestinationStarID); err != nil {
-		return err
+	// Skip fuel validation for Star Gate travel between owned colonies
+	if !g.isStarGateTravel(playerID, fleet.StarID, command.DestinationStarID) {
+		if err := g.validateFleetMoveFuelRange(player, shipsByIndexes(fleet.Ships, shipIdxs), command.DestinationStarID); err != nil {
+			return err
+		}
 	}
 
 	if inTransit {
@@ -619,8 +660,11 @@ func (g *Game) issueFleetMoveGroup(playerID uint, commands []*FleetMoveCommand) 
 		return err
 	}
 	for _, batch := range batches {
-		if err := g.validateFleetMoveFuelRange(player, shipsByIndexes(originalShips, batch.indexes), batch.destinationStarID); err != nil {
-			return err
+		// Skip fuel validation for Star Gate travel between owned colonies
+		if !g.isStarGateTravel(playerID, originStarID, batch.destinationStarID) {
+			if err := g.validateFleetMoveFuelRange(player, shipsByIndexes(originalShips, batch.indexes), batch.destinationStarID); err != nil {
+				return err
+			}
 		}
 	}
 	remaining := make([]FleetShip, 0, len(originalShips)-len(selected))

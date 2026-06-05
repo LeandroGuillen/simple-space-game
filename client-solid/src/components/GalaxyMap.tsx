@@ -53,6 +53,7 @@ type GalaxyMapProps = {
     eta: number;
     preview?: boolean;
     blocked?: boolean;
+    starGate?: boolean;
   }[];
   onHoverSnappedStar?: (starId: number | null) => void;
   gameId?: string;
@@ -447,30 +448,6 @@ export function GalaxyMap(props: GalaxyMapProps) {
           onKeyDown={handleKeyDown}
           onMouseLeave={() => props.onHoverSnappedStar?.(null)}
         >
-          <g class="fleet-route-layer">
-            <For each={props.routeLines ?? []}>
-              {(route) => {
-                return (
-                  <g classList={{ "is-preview": Boolean(route.preview), "is-blocked": Boolean(route.blocked) }}>
-                    <line
-                      x1={route.fromX}
-                      y1={route.fromY}
-                      x2={route.toX}
-                      y2={route.toY}
-                      class="fleet-route-line"
-                    />
-                    <text
-                      x={route.fromX + 10}
-                      y={route.fromY - 10}
-                      class="fleet-route-eta"
-                    >
-                      ETA {route.eta}
-                    </text>
-                  </g>
-                );
-              }}
-            </For>
-          </g>
           <g id="galaxy-stars">
             <For each={props.stars}>
               {(star) => (
@@ -526,6 +503,34 @@ export function GalaxyMap(props: GalaxyMapProps) {
                   </text>
                 </g>
               )}
+            </For>
+          </g>
+          <g class="fleet-route-layer">
+            <For each={props.routeLines ?? []}>
+              {(route) => {
+                const midX = (route.fromX + route.toX) / 2;
+                const midY = (route.fromY + route.toY) / 2;
+                return (
+                  <g classList={{ "is-preview": Boolean(route.preview), "is-blocked": Boolean(route.blocked), "is-star-gate": Boolean(route.starGate) }}>
+                    <line
+                      x1={route.fromX}
+                      y1={route.fromY}
+                      x2={route.toX}
+                      y2={route.toY}
+                      class="fleet-route-line"
+                      classList={{ "star-gate-line": Boolean(route.starGate) }}
+                    />
+                    <text
+                      x={midX}
+                      y={midY - 8}
+                      text-anchor="middle"
+                      class="fleet-route-eta"
+                    >
+                      {route.starGate ? "STAR GATE" : `ETA ${route.eta}`}
+                    </text>
+                  </g>
+                );
+              }}
             </For>
           </g>
         </svg>

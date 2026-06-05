@@ -144,6 +144,11 @@
   fill: #7af0ab;
   font-size: 10px;
   font-family: var(--font-mono);
+  paint-order: stroke;
+  stroke: #06101a;
+  stroke-width: 3px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .fleet-route-layer .is-blocked .fleet-route-line {
@@ -153,6 +158,33 @@
 
 .fleet-route-layer .is-blocked .fleet-route-eta {
   fill: #fca5a5;
+}
+
+/* Star Gate styling */
+.fleet-route-line.star-gate-line {
+  stroke: #60a5fa;
+  stroke-width: 3;
+  stroke-dasharray: 2 4;
+  animation: starGateDash 0.6s linear infinite;
+  filter: drop-shadow(0 0 4px #3b82f6);
+}
+
+.fleet-route-layer .is-star-gate .fleet-route-eta {
+  fill: #93c5fd;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  paint-order: stroke;
+  stroke: #06101a;
+  stroke-width: 3px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@keyframes starGateDash {
+  to {
+    stroke-dashoffset: -12;
+  }
 }
 
 @keyframes fleetRouteDash {
