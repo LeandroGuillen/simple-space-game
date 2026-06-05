@@ -136,3 +136,164 @@ func TestMoraleBoostsLaborOutputsOnly(t *testing.T) {
 	assert.Equal(t, int64(26), PlanetGrossIndustry(planet))
 	assert.Equal(t, int64(16), PlanetScienceProduced(planet))
 }
+
+func TestFoodReplicatorsConvertProductionToFoodWhenNeeded(t *testing.T) {
+	g := &Game{
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{
+				Buildings: []model.Building{
+					{Name: "Food Replicators"},
+				},
+			},
+		},
+	}
+	planet := &model.Planet{
+		Buildings: []string{"Food Replicators"},
+		Food: model.PlanetFoodOutput{
+			Farmers:           0,
+			ProducedPerFarmer: 2,
+		},
+		Industry: model.PlanetIndustryOutput{
+			Workers:             10,
+			ProducedPerWorker:   2,
+			ProducedPerBuilding: 0,
+		},
+	}
+
+	// 10 pop units need 10 food, but we produce 0 food (no farmers)
+	// Food Replicators should convert up to 20 production into 10 food
+	result := CalculateFoodWithReplicators(g, planet, 10, 20)
+
+	assert.Equal(t, int64(10), result.FoodProduced)
+	assert.Equal(t, int64(20), result.IndustryConsumed)
+	assert.Equal(t, int64(10), result.FoodFromReplicators)
+}
+
+func TestFoodReplicatorsPartialConversionWhenNotEnoughIndustry(t *testing.T) {
+	g := &Game{
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{
+				Buildings: []model.Building{
+					{Name: "Food Replicators"},
+				},
+			},
+		},
+	}
+	planet := &model.Planet{
+		Buildings: []string{"Food Replicators"},
+		Food: model.PlanetFoodOutput{
+			Farmers:           0,
+			ProducedPerFarmer: 2,
+		},
+		Industry: model.PlanetIndustryOutput{
+			Workers:             2,
+			ProducedPerWorker:   2,
+			ProducedPerBuilding: 0,
+		},
+	}
+
+	// Need 10 food, have 4 industry -> can only convert 4 production into 2 food
+	result := CalculateFoodWithReplicators(g, planet, 10, 4)
+
+	assert.Equal(t, int64(2), result.FoodProduced)
+	assert.Equal(t, int64(4), result.IndustryConsumed)
+	assert.Equal(t, int64(2), result.FoodFromReplicators)
+}
+
+func TestFoodReplicatorsDoNothingWhenFoodSurplus(t *testing.T) {
+	g := &Game{
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{
+				Buildings: []model.Building{
+					{Name: "Food Replicators"},
+				},
+			},
+		},
+	}
+	planet := &model.Planet{
+		Buildings: []string{"Food Replicators"},
+		Food: model.PlanetFoodOutput{
+			Farmers:           5,
+			ProducedPerFarmer: 2,
+		},
+		Industry: model.PlanetIndustryOutput{
+			Workers:             10,
+			ProducedPerWorker:   2,
+			ProducedPerBuilding: 0,
+		},
+	}
+
+	// 10 food produced > 5 food needed, no conversion needed
+	result := CalculateFoodWithReplicators(g, planet, 5, 20)
+
+	assert.Equal(t, int64(10), result.FoodProduced)
+	assert.Equal(t, int64(0), result.IndustryConsumed)
+	assert.Equal(t, int64(0), result.FoodFromReplicators)
+}
+
+func TestFoodReplicatorsDoNothingWhenNotBuilt(t *testing.T) {
+	g := &Game{
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{
+				Buildings: []model.Building{
+					{Name: "Food Replicators"},
+				},
+			},
+		},
+	}
+	planet := &model.Planet{
+		Buildings: []string{}, // No Food Replicators
+		Food: model.PlanetFoodOutput{
+			Farmers:           0,
+			ProducedPerFarmer: 2,
+		},
+		Industry: model.PlanetIndustryOutput{
+			Workers:             10,
+			ProducedPerWorker:   2,
+			ProducedPerBuilding: 0,
+		},
+	}
+
+	result := CalculateFoodWithReplicators(g, planet, 10, 20)
+
+	assert.Equal(t, int64(0), result.FoodProduced)
+	assert.Equal(t, int64(0), result.IndustryConsumed)
+	assert.Equal(t, int64(0), result.FoodFromReplicators)
+}
+
+func TestFoodReplicatorsWorkInHostileEnvironment(t *testing.T) {
+	g := &Game{
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{
+				Buildings: []model.Building{
+					{Name: "Food Replicators"},
+				},
+			},
+			EnvironmentCollection: &EnvironmentCollection{
+				Environments: []PlanetEnvironmentDef{
+					{Name: "Toxic", BaseFoodPerFarmer: 0},
+				},
+			},
+		},
+	}
+	planet := &model.Planet{
+		Buildings:   []string{"Food Replicators"},
+		Environment: model.PlanetEnvironmentToxic, // Hostile - no farming possible
+		Food: model.PlanetFoodOutput{
+			Farmers:           0, // Can't farm on toxic
+			ProducedPerFarmer: 0,
+		},
+		Industry: model.PlanetIndustryOutput{
+			Workers:             10,
+			ProducedPerWorker:   3,
+			ProducedPerBuilding: 0,
+		},
+	}
+
+	// Food Replicators should still work even when no farming is possible
+	result := CalculateFoodWithReplicators(g, planet, 10, 30)
+
+	assert.Equal(t, int64(10), result.FoodProduced)
+	assert.Equal(t, int64(20), result.IndustryConsumed)
+	assert.Equal(t, int64(10), result.FoodFromReplicators)
+}

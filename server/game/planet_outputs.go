@@ -2,6 +2,7 @@ package game
 
 import (
 	"math"
+	"slices"
 
 	. "ssg/model"
 )
@@ -166,6 +167,51 @@ func GamePlanetFoodProduced(game *Game, p *Planet) int64 {
 		governmentMoraleMultiplier(game, player, p.Morale),
 		gravityOutputMultiplier(p, player),
 	) + p.Food.ProducedPerBuilding
+}
+
+// FoodReplicatorResult holds the outcome of Food Replicator conversion.
+type FoodReplicatorResult struct {
+	FoodProduced        int64 // Total food including replicator conversion
+	IndustryConsumed    int64 // Industry used by replicators (2 per 1 food)
+	FoodFromReplicators int64
+}
+
+// CalculateFoodWithReplicators returns the total food available after
+// accounting for Food Replicator conversion. If the colony has Food Replicators
+// and there's a food deficit, up to the needed amount is produced by converting
+// 2 production into 1 food (up to the available industry after pollution).
+// Also returns the industry consumed by the replicators so it can be deducted
+// from available production.
+func CalculateFoodWithReplicators(game *Game, p *Planet, foodDemand int64, baseIndustry int64) FoodReplicatorResult {
+	baseFood := GamePlanetFoodProduced(game, p)
+	foodDeficit := foodDemand - baseFood
+
+	result := FoodReplicatorResult{
+		FoodProduced: baseFood,
+	}
+
+	if foodDeficit <= 0 {
+		return result
+	}
+
+	// Check if planet has Food Replicators
+	if !slices.Contains(p.Buildings, "Food Replicators") {
+		return result
+	}
+
+	if baseIndustry <= 0 {
+		return result
+	}
+
+	// Convert 2 production to 1 food, up to what's needed and available
+	maxFoodFromReplicators := baseIndustry / 2
+	foodFromReplicators := min(foodDeficit, maxFoodFromReplicators)
+
+	result.FoodFromReplicators = foodFromReplicators
+	result.IndustryConsumed = foodFromReplicators * 2
+	result.FoodProduced = baseFood + foodFromReplicators
+
+	return result
 }
 
 func PlanetScienceProduced(p *Planet) int64 {

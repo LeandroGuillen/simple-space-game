@@ -34,7 +34,17 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game, foodRe
 		capAssignedPopulation(p)
 	}
 
-	industryProduced := GamePlanetIndustryProduced(game, p)
+	baseIndustryProduced := GamePlanetIndustryProduced(game, p)
+
+	// Calculate food demand first to enable Food Replicators conversion
+	foodDemand := int64(math.Ceil(PopulationFoodDemand(player, p.Population)))
+	// Calculate food with Food Replicators converting production to food if needed
+	replicatorResult := CalculateFoodWithReplicators(game, p, foodDemand, baseIndustryProduced)
+	totalFood := replicatorResult.FoodProduced + foodReceived
+
+	// Industry is reduced by what Food Replicators consumed (2 production = 1 food)
+	industryProduced := baseIndustryProduced - replicatorResult.IndustryConsumed
+
 	planetBuildCommand := findPlanetBuildCommand(p, commands)
 	buildingName := ""
 	if planetBuildCommand != nil {
@@ -60,10 +70,11 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game, foodRe
 	if housingActive {
 		housingBonus = housingGrowthBonus(industryProduced, p.Population)
 	}
+
 	growth := PopulationGrowthFromFoodWithHousing(
 		player,
 		p.Population,
-		GamePlanetFoodProduced(game, p)+foodReceived,
+		totalFood,
 		maxPop,
 		player.Race.Stats.PopulationGrowthPercent+MedicineGrowthPercent(game, player),
 		PopulationGrowthBonus(game, p),
