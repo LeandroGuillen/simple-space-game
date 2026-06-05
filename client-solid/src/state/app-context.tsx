@@ -115,6 +115,7 @@ type AppContextValue = {
   saveShipDesign: (form: ShipDesignForm, mode: 'create' | 'update') => Promise<void>;
   setInfo: (info: string) => void;
   clearError: () => void;
+  mutateRace: (traitIds: string[]) => void;
 };
 
 const STORAGE_KEYS = {
@@ -158,6 +159,7 @@ export function AppProvider(props: ParentProps) {
     colonize: [],
     artificialPlanet: [],
     buyProduction: [],
+    mutateRace: undefined,
   });
 
   const bootstrap = readBootstrapSession();
@@ -981,6 +983,10 @@ export function AppProvider(props: ParentProps) {
     saveShipDesign,
     setInfo,
     clearError,
+    mutateRace: (traitIds: string[]) => {
+      setState('pendingCommands', 'mutateRace', { trait_ids: traitIds });
+      setState('info', 'Race mutation queued for next turn');
+    },
   };
 
   return <AppContext.Provider value={value}>{props.children}</AppContext.Provider>;
@@ -1024,6 +1030,12 @@ export function toTurnCommands(commands: PendingCommands, game: GameViewModel | 
     turnCommands.buy_production = commands.buyProduction.map((cmd) => ({
       planetId: cmd.planetId,
     }));
+  }
+
+  if (commands.mutateRace) {
+    turnCommands.mutate_race = {
+      trait_ids: commands.mutateRace.trait_ids,
+    };
   }
 
   if ((commands.transferPopulation ?? []).length > 0) {

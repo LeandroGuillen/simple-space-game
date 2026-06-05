@@ -76,11 +76,73 @@
   color: var(--danger);
 }
 
+/* Mutation-specific styles */
+.mutation-points-badge strong {
+  background: linear-gradient(135deg, var(--accent-soft), rgba(100, 210, 255, 0.15));
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent);
+}
+
+.mutation-picks-display {
+  display: flex;
+  gap: 12px;
+}
+
+.mutation-pick-budget .pick-budget-breakdown {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.pick-budget-base {
+  color: var(--text-mute);
+}
+
+.pick-budget-plus {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+}
+
+.pick-budget-bonus {
+  color: var(--accent-strong);
+  background: rgba(100, 210, 255, 0.12);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.pick-budget-equals {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+}
+
+.pick-budget-total {
+  color: var(--text);
+}
+
+.race-editor-picks .warning {
+  color: var(--warning, #f0a030);
+}
+
+.mutation-warning {
+  background: rgba(240, 160, 48, 0.1);
+  border-left: 2px solid var(--warning, #f0a030);
+  padding: 8px 12px;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
 .race-editor-body {
   display: grid;
   grid-template-columns: minmax(200px, 230px) minmax(0, 1fr);
   gap: 14px;
   align-items: start;
+}
+
+/* Single-column variant for pages without a sidebar (e.g., MutationPage) */
+.race-editor-body--single {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .race-editor-sidebar {

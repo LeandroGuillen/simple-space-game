@@ -42,6 +42,10 @@ export type TransferPopulationCommand = {
   population_units: number;
 };
 
+export type MutateRaceCommand = {
+  trait_ids: string[];
+};
+
 export type PendingCommands = {
   build: BuildCommand[];
   movePopulation: MovePopulationCommand[];
@@ -51,6 +55,7 @@ export type PendingCommands = {
   artificialPlanet: ArtificialPlanetCommand[];
   fleetMove: FleetMoveCommand[];
   buyProduction: BuyProductionCommand[];
+  mutateRace?: MutateRaceCommand;
 };
 
 export type TurnMovePopulationCommand = {
@@ -71,4 +76,5 @@ export type TurnCommands = {
   fleet_move?: FleetMoveCommand[];
   buy_production?: BuyProductionCommand[];
   transfer_population?: TransferPopulationCommand[];
+  mutate_race?: MutateRaceCommand;
 };

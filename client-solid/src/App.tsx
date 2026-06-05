@@ -4,6 +4,7 @@ import { AppShell } from "./components/AppShell";
 import { ColoniesPage } from "./routes/ColoniesPage";
 import { FleetsPage } from "./routes/FleetsPage";
 import { GalaxyPage } from "./routes/GalaxyPage";
+import { MutationPage } from "./routes/MutationPage";
 import { PlanetPage } from "./routes/PlanetPage";
 import { RaceEditorPage } from "./routes/RaceEditorPage";
 import { SetupPage } from "./routes/SetupPage";
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="/colonies" component={ColoniesPage} />
         <Route path="/fleets" component={FleetsPage} />
         <Route path="/technology" component={TechnologyPage} />
+        <Route path="/mutation" component={MutationPage} />
         <Route path="*404" component={() => <Navigate href="/" />} />
       </Router>
     </AppProvider>

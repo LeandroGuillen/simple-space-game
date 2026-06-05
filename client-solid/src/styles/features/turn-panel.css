@@ -3,12 +3,25 @@
     flex-wrap: wrap;
     gap: 0;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: space-between;
+    width: 100%;
 }
 
 .turn-meta {
     display: flex;
     align-items: stretch;
+    margin-left: auto;
+}
+
+.turn-meta-left {
+    display: flex;
+    align-items: stretch;
+    margin-right: auto;
+
+    & .turn-stat {
+        border-left: 0;
+        padding-left: 0;
+    }
 }
 
 .turn-stat {

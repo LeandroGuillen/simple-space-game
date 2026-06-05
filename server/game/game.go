@@ -245,6 +245,12 @@ func (g *Game) applyPlayerTurn(playerID uint, commands Commands) error {
 			return err
 		}
 	}
+
+	if commands.MutateRace != nil {
+		if err := g.ApplyRaceMutation(playerID, *commands.MutateRace); err != nil {
+			return err
+		}
+	}
 	if err := g.issueFleetMoveCommands(playerID, commands.FleetMove); err != nil {
 		return err
 	}

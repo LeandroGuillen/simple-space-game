@@ -168,6 +168,8 @@ export type PlayerViewModel = {
   commandPointsRemaining: number;
   commandOverdrawBc: number;
   commandPointsStartingBonus: number;
+  evolutionaryMutationPoints: number;
+  hasUsedEvolutionaryMutation: boolean;
 };
 
 export type FleetShipViewModel = {

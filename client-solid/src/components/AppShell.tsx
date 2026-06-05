@@ -52,6 +52,7 @@ import {
   labelForGravity,
   labelForMinerals,
   labelForSize,
+  hasEvolutionaryMutation,
 } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
 import { PlanetVisual } from "./PlanetVisual";
@@ -813,6 +814,21 @@ export function AppShell(props: RouteSectionProps) {
             <Show when={state.game}>
               <header class="game-topbar panel" aria-label="Current game">
                 <div class="turn-panel">
+                  <div class="turn-meta-left">
+                    <Show when={hasEvolutionaryMutation(currentPlayer())}>
+                      <button
+                        type="button"
+                        class="turn-stat mutation-topbar-button"
+                        onClick={() => navigate("/mutation")}
+                        title="Evolutionary Mutation available - Click to mutate your race"
+                      >
+                        <span>Mutation</span>
+                        <strong>
+                          {currentPlayer()?.evolutionaryMutationPoints} pts
+                        </strong>
+                      </button>
+                    </Show>
+                  </div>
                   <div class="turn-meta">
                     <div
                       class="turn-stat"

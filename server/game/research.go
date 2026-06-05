@@ -162,12 +162,17 @@ func (g *Game) ResearchAllTechs(playerID uint) error {
 	for _, name := range player.ResearchedTechs {
 		known[name] = struct{}{}
 	}
+	hadEvolutionaryMutation := slices.Contains(player.ResearchedTechs, "Evolutionary Mutation")
 	for _, tech := range g.Resources.TechTree.AllTechs {
 		if _, ok := known[tech.Name]; ok {
 			continue
 		}
 		known[tech.Name] = struct{}{}
 		player.ResearchedTechs = append(player.ResearchedTechs, tech.Name)
+	}
+	// Award mutation points if Evolutionary Mutation was newly researched
+	if !hadEvolutionaryMutation && slices.Contains(player.ResearchedTechs, "Evolutionary Mutation") {
+		player.EvolutionaryMutationPoints += 4
 	}
 	player.CurrentResearch = nil
 	if player.HyperAdvanced == nil {
@@ -180,6 +185,9 @@ func (g *Game) ResearchAllTechs(playerID uint) error {
 func researchTech(g *Game, player *Player, techName string) {
 	if !slices.Contains(player.ResearchedTechs, techName) {
 		player.ResearchedTechs = append(player.ResearchedTechs, techName)
+	}
+	if techName == "Evolutionary Mutation" {
+		player.EvolutionaryMutationPoints += 4
 	}
 	g.hydratePlayerAvailability(player)
 }

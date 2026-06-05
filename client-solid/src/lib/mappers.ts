@@ -277,6 +277,8 @@ function mapPlayer(player: ApiPlayer): PlayerViewModel {
     commandPointsRemaining: player.command_points_remaining ?? 0,
     commandOverdrawBc: player.command_overdraw_bc ?? 0,
     commandPointsStartingBonus: player.command_points_starting_bonus ?? 0,
+    evolutionaryMutationPoints: player.evolutionary_mutation_points ?? 0,
+    hasUsedEvolutionaryMutation: player.has_used_evolutionary_mutation ?? false,
   };
 }
 

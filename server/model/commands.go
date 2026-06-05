@@ -58,4 +58,9 @@ type Commands struct {
 	ColonyShip           *PrepareColonyShipCommand    `json:"colony_ship,omitempty"`
 	FleetMove            []*FleetMoveCommand          `json:"fleet_move,omitempty"`
 	BuyProduction        []*BuyProductionCommand      `json:"buy_production,omitempty"`
+	MutateRace           *MutateRaceCommand           `json:"mutate_race,omitempty"`
+}
+
+type MutateRaceCommand struct {
+	TraitIDs []string `json:"trait_ids"`
 }

@@ -1106,3 +1106,8 @@ export function isArtificialPlanetTarget(planet: PlanetViewModel): boolean {
 export function getArtificialPlanetTargets(star: StarSummary): PlanetViewModel[] {
   return star.planets.filter(isArtificialPlanetTarget);
 }
+
+export function hasEvolutionaryMutation(player: PlayerViewModel | null | undefined): boolean {
+  if (!player) return false;
+  return (player.evolutionaryMutationPoints ?? 0) > 0 && !player.hasUsedEvolutionaryMutation;
+}

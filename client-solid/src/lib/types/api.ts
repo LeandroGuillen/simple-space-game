@@ -418,6 +418,8 @@ export type ApiPlayer = {
   command_points_remaining?: number;
   command_overdraw_bc?: number;
   command_points_starting_bonus?: number;
+  evolutionary_mutation_points?: number;
+  has_used_evolutionary_mutation?: boolean;
 };
 
 export type ApiFleetShip = {

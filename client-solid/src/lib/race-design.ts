@@ -14,6 +14,9 @@ export type RaceTraitDefinition = {
 export const RACE_PICK_BUDGET = 10;
 export const RACE_NEGATIVE_PICK_LIMIT = 10;
 
+// Evolutionary Mutation grants 4 extra pick points
+export const MUTATION_PICK_BUDGET = 14; // 10 base + 4 bonus
+
 export const DEFAULT_GOVERNMENT = "Dictatorship";
 
 /** MoO2 race design screen: left column economic picks. */
@@ -140,6 +143,19 @@ export function raceTotalPickCost(traitIds: TraitIdInput, government: string, go
 
 export function raceRemainingPicks(traitIds: TraitIdInput, government = DEFAULT_GOVERNMENT, governments: readonly ApiGovernment[] = fallbackGovernments) {
   return RACE_PICK_BUDGET - raceTotalPickCost(traitIds, government, governments);
+}
+
+// Mutation budget functions (14 points instead of 10)
+export function mutationTotalPickCost(traitIds: TraitIdInput, government: string, governments: readonly ApiGovernment[] = fallbackGovernments) {
+  return racePickCost(traitIds) + governmentPickCost(government || defaultGovernment(governments), governments);
+}
+
+export function mutationRemainingPicks(traitIds: TraitIdInput, government = DEFAULT_GOVERNMENT, governments: readonly ApiGovernment[] = fallbackGovernments) {
+  return MUTATION_PICK_BUDGET - mutationTotalPickCost(traitIds, government, governments);
+}
+
+export function mutationNegativePicks(traitIds: TraitIdInput, government = DEFAULT_GOVERNMENT, governments: readonly ApiGovernment[] = fallbackGovernments) {
+  return selectedRaceTraits(traitIds).reduce((total, trait) => total + Math.max(0, -trait.pickCost), Math.max(0, -governmentPickCost(government || defaultGovernment(governments), governments)));
 }
 
 export function raceNegativePicks(traitIds: TraitIdInput, government = DEFAULT_GOVERNMENT, governments: readonly ApiGovernment[] = fallbackGovernments) {
