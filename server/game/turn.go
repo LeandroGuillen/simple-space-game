@@ -185,6 +185,8 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game, foodRe
 				}
 			} else if completedProject == terraformingProject {
 				terraformPlanet(p)
+			} else if completedProject == gaiaTransformationProject {
+				gaiaTransformPlanet(p)
 			} else if completedProject == "Colony Ship" {
 				game.addShipToOrbitFleet(player.ID, p.ParentStar, FleetShip{
 					Type: "colony_ship",
@@ -308,6 +310,7 @@ func isAutobuildProject(buildingName string) bool {
 		"Colony Ship",
 		artificialPlanetProject,
 		terraformingProject,
+		gaiaTransformationProject,
 		"Outpost Ship",
 		"Transport",
 		"Freighters",
@@ -385,7 +388,13 @@ func Build(p *Planet, buildingName string, availableBuildings []string, game *Ga
 	if isTerraformingProject(buildingName) && p.IsBuilding && p.CurrentProject == buildingName {
 		return true
 	}
-	if isTerraformingProject(buildingName) && !canTerraformPlanet(p, game) {
+	if isTerraformingProject(buildingName) && !canTerraformPlanet(p) {
+		return false
+	}
+	if isGaiaTransformationProject(buildingName) && p.IsBuilding && p.CurrentProject == buildingName {
+		return true
+	}
+	if isGaiaTransformationProject(buildingName) && !canGaiaTransformPlanet(p) {
 		return false
 	}
 	if buildShipDesignProject(p, buildingName, game) {
@@ -473,7 +482,10 @@ func canBuild(p *Planet, buildingName string, availableBuildings []string, game 
 		return canBuildArtificialPlanetProject(p, availableBuildings, game)
 	}
 	if isTerraformingProject(buildingName) {
-		return canTerraformPlanet(p, game)
+		return canTerraformPlanet(p)
+	}
+	if isGaiaTransformationProject(buildingName) {
+		return canGaiaTransformPlanet(p)
 	}
 	if p.IsBuilding && p.CurrentProject == buildingName {
 		return false
@@ -599,7 +611,9 @@ func buildingApplicableToPlanet(p *Planet, buildingName string, game *Game) bool
 	case gravityGeneratorBuildingName:
 		return gravityGeneratorApplicable(p, gamePlayerForPlanet(game, p))
 	case terraformingProject:
-		return canTerraformPlanet(p, game)
+		return canTerraformPlanet(p)
+	case gaiaTransformationProject:
+		return canGaiaTransformPlanet(p)
 	}
 	if !farmerBonusBuildingAllowedOnPlanet(p, buildingName, game) {
 		return false

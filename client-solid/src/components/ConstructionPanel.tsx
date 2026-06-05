@@ -19,6 +19,7 @@ import {
   isBuildingApplicableToPlanet,
   toggleQueuedConstructionProject,
   canTerraformPlanet,
+  canGaiaTransformPlanet,
 } from "../lib/construction";
 import {
   formatInteger,
@@ -91,6 +92,7 @@ function isSpecialConstructionProject(projectName: string) {
     projectName === "Freighters" ||
     projectName === "Artificial Planet Construction" ||
     projectName === "Terraforming" ||
+    projectName === "Gaia Transformation" ||
     projectName === "Android Farmers" ||
     projectName === "Android Workers" ||
     projectName === "Android Scientists"
@@ -230,6 +232,14 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
           availableBuildingNames().has(project.name),
       ) ?? null,
   );
+  const gaiaTransformationProject = createMemo(
+    () =>
+      state.game?.resources.buildingCollection.buildings.find(
+        (project) =>
+          project.name === "Gaia Transformation" &&
+          availableBuildingNames().has(project.name),
+      ) ?? null,
+  );
   const availableHullSizes = createMemo(
     () => new Set(currentPlayer()?.available.hullSizes ?? []),
   );
@@ -298,6 +308,9 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     }
     if (terraformingProject()) {
       projects.push(terraformingProject()!);
+    }
+    if (gaiaTransformationProject()) {
+      projects.push(gaiaTransformationProject()!);
     }
     return projects;
   });
@@ -386,6 +399,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
       specialCommand("Colony Base", "Colony Base"),
       specialCommand("Artificial Planet", "Artificial Planet Construction"),
       specialCommand("Terraforming", "Terraforming"),
+      specialCommand("Gaia Transformation", "Gaia Transformation"),
       specialCommand("Freighter Fleet", "Freighters"),
       specialCommand("Colony Ship", "Colony Ship"),
       specialCommand("Outpost", "Outpost Ship"),
@@ -414,6 +428,13 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
           return {
             ...command,
             isAvailable: command.isAvailable && canTerraformPlanet(props.planet),
+          };
+        }
+        if (command.unlockName === "Gaia Transformation") {
+          return {
+            ...command,
+            isAvailable:
+              command.isAvailable && canGaiaTransformPlanet(props.planet),
           };
         }
         return command;

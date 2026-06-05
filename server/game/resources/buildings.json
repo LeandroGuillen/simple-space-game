@@ -372,7 +372,7 @@
 
     {
       "name": "Gaia Transformation",
-      "description": "No description provided",
+      "description": "Transforms a Terran world into a lush Gaia world, the most habitable environment of all.",
       "built_on": "PLANET",
       "cost": 500,
       "maintenance": 0

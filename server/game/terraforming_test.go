@@ -28,12 +28,12 @@ func TestTerraformingTransitions(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			g, planet := newTerraformingGame(t, tt.from)
+			_, planet := newTerraformingGame(t, tt.from)
 			if tt.prereq != "" {
 				planet.Buildings = append(planet.Buildings, tt.prereq)
 			}
 
-			require.True(t, canTerraformPlanet(planet, g))
+			require.True(t, canTerraformPlanet(planet))
 			terraformPlanet(planet)
 			assert.Contains(t, tt.expected, planet.Environment)
 			assert.Equal(t, int64(1), planet.TerraformingCount)
@@ -43,25 +43,25 @@ func TestTerraformingTransitions(t *testing.T) {
 
 func TestTerraformingPrerequisites(t *testing.T) {
 	t.Run("Toxic without Weather Controller", func(t *testing.T) {
-		g, planet := newTerraformingGame(t, model.PlanetEnvironmentToxic)
-		assert.False(t, canTerraformPlanet(planet, g))
+		_, planet := newTerraformingGame(t, model.PlanetEnvironmentToxic)
+		assert.False(t, canTerraformPlanet(planet))
 	})
 
 	t.Run("Toxic with Weather Controller", func(t *testing.T) {
-		g, planet := newTerraformingGame(t, model.PlanetEnvironmentToxic)
+		_, planet := newTerraformingGame(t, model.PlanetEnvironmentToxic)
 		planet.Buildings = append(planet.Buildings, "Weather Controller")
-		assert.True(t, canTerraformPlanet(planet, g))
+		assert.True(t, canTerraformPlanet(planet))
 	})
 
 	t.Run("Radiated without Radiation Shield", func(t *testing.T) {
-		g, planet := newTerraformingGame(t, model.PlanetEnvironmentRadiated)
-		assert.False(t, canTerraformPlanet(planet, g))
+		_, planet := newTerraformingGame(t, model.PlanetEnvironmentRadiated)
+		assert.False(t, canTerraformPlanet(planet))
 	})
 
 	t.Run("Radiated with Radiation Shield", func(t *testing.T) {
-		g, planet := newTerraformingGame(t, model.PlanetEnvironmentRadiated)
+		_, planet := newTerraformingGame(t, model.PlanetEnvironmentRadiated)
 		planet.Buildings = append(planet.Buildings, "Planetary Radiation Shield")
-		assert.True(t, canTerraformPlanet(planet, g))
+		assert.True(t, canTerraformPlanet(planet))
 	})
 }
 
@@ -78,7 +78,7 @@ func TestTerraformingCostScaling(t *testing.T) {
 }
 
 func TestTerraformingCountIncrements(t *testing.T) {
-	g, planet := newTerraformingGame(t, model.PlanetEnvironmentDesert)
+	_, planet := newTerraformingGame(t, model.PlanetEnvironmentDesert)
 
 	assert.Equal(t, int64(0), planet.TerraformingCount)
 
@@ -90,7 +90,7 @@ func TestTerraformingCountIncrements(t *testing.T) {
 	assert.Equal(t, int64(2), planet.TerraformingCount)
 	assert.Equal(t, model.PlanetEnvironmentTerran, planet.Environment)
 
-	assert.False(t, canTerraformPlanet(planet, g))
+	assert.False(t, canTerraformPlanet(planet))
 }
 
 func TestTerraformingPreservesBuildings(t *testing.T) {
@@ -114,8 +114,8 @@ func TestTerraformingInvalidEnvironments(t *testing.T) {
 
 	for _, env := range invalidEnvs {
 		t.Run(env.String(), func(t *testing.T) {
-			g, planet := newTerraformingGame(t, env)
-			assert.False(t, canTerraformPlanet(planet, g))
+			_, planet := newTerraformingGame(t, env)
+			assert.False(t, canTerraformPlanet(planet))
 		})
 	}
 }
@@ -138,9 +138,9 @@ func TestTerraformingBuildIntegration(t *testing.T) {
 }
 
 func TestTerraformingUnownedPlanet(t *testing.T) {
-	g, planet := newTerraformingGame(t, model.PlanetEnvironmentDesert)
+	_, planet := newTerraformingGame(t, model.PlanetEnvironmentDesert)
 	planet.Owner = 0
-	assert.False(t, canTerraformPlanet(planet, g))
+	assert.False(t, canTerraformPlanet(planet))
 }
 
 func newTerraformingGame(t *testing.T, environment model.PlanetEnvironment) (*Game, *model.Planet) {

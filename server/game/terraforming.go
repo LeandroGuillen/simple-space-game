@@ -8,6 +8,11 @@ import (
 const terraformingProject = "Terraforming"
 const terraformingCostStep = int64(250)
 
+// gaiaTransformationProject turns a Terran world into a Gaia world. Unlike
+// Terraforming it has a single, fixed transition and is only buildable on
+// Terran planets.
+const gaiaTransformationProject = "Gaia Transformation"
+
 var terraformTransitions = map[PlanetEnvironment][]PlanetEnvironment{
 	PlanetEnvironmentToxic:    {PlanetEnvironmentBarren},
 	PlanetEnvironmentRadiated: {PlanetEnvironmentBarren},
@@ -28,7 +33,7 @@ func isTerraformingProject(name string) bool {
 	return name == terraformingProject
 }
 
-func canTerraformPlanet(p *Planet, game *Game) bool {
+func canTerraformPlanet(p *Planet) bool {
 	if p == nil || p.Owner == 0 {
 		return false
 	}
@@ -55,4 +60,22 @@ func terraformPlanet(p *Planet) {
 
 func effectiveTerraformingCost(p *Planet) int64 {
 	return terraformingCostStep + p.TerraformingCount*terraformingCostStep
+}
+
+func isGaiaTransformationProject(name string) bool {
+	return name == gaiaTransformationProject
+}
+
+func canGaiaTransformPlanet(p *Planet) bool {
+	if p == nil || p.Owner == 0 {
+		return false
+	}
+	return p.Environment == PlanetEnvironmentTerran
+}
+
+func gaiaTransformPlanet(p *Planet) {
+	if p.Environment != PlanetEnvironmentTerran {
+		return
+	}
+	p.Environment = PlanetEnvironmentGaia
 }

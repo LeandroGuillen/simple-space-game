@@ -57,6 +57,10 @@
   background: linear-gradient(135deg, #4a7c59 0%, #2d4a35 50%, #1a2e20 100%);
 }
 
+.planet-mini--gaia {
+  background: linear-gradient(135deg, #5ed98c 0%, #2f9e6a 50%, #145a3a 100%);
+}
+
 .planet-mini--ocean,
 .planet-mini--oceanic {
   background: linear-gradient(135deg, #4a7c9e 0%, #2d4a6a 50%, #1a2e40 100%);
@@ -138,6 +142,14 @@
 
 .planet-orbit--terrestrial::before {
   background: linear-gradient(135deg, #5a8c69 0%, #3d5a45 100%);
+}
+
+.planet-orbit--gaia {
+  background: linear-gradient(135deg, #5ed98c 0%, #2f9e6a 50%, #145a3a 100%);
+}
+
+.planet-orbit--gaia::before {
+  background: linear-gradient(135deg, #6fe89c 0%, #3da876 100%);
 }
 
 .planet-orbit--ocean,

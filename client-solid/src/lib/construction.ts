@@ -5,6 +5,7 @@ const AUTOBUILD_EXCLUDED_PROJECTS = new Set([
   'Colony Ship',
   'Artificial Planet Construction',
   'Terraforming',
+  'Gaia Transformation',
   'Outpost Ship',
   'Transport',
   'Freighters',
@@ -62,6 +63,9 @@ export function isBuildingApplicableToPlanet(
   if (project.name === 'Terraforming') {
     return canTerraformPlanet(planet);
   }
+  if (project.name === 'Gaia Transformation') {
+    return canGaiaTransformPlanet(planet);
+  }
   // Farmer-bonus-only buildings are useless on hostile worlds until Biomorphic
   // Fungi lets farmers produce food there. Flat-food buildings are unaffected.
   if (
@@ -98,6 +102,17 @@ export function canTerraformPlanet(
   const prereq = TERRAFORM_PREREQUISITES[planet.environment];
   if (prereq && !planet.buildings.some((b) => b.name === prereq)) return false;
   return true;
+}
+
+// Terran planet environment (see PlanetEnvironment enum).
+const TERRAN_ENVIRONMENT = 11;
+
+// Gaia Transformation turns a Terran world into a Gaia world, so it is only
+// buildable on Terran planets.
+export function canGaiaTransformPlanet(
+  planet: Pick<PlanetViewModel, 'environment'>,
+): boolean {
+  return planet.environment === TERRAN_ENVIRONMENT;
 }
 
 type ToggleQueuedProjectOptions = {

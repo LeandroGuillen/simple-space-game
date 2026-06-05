@@ -150,6 +150,7 @@ const environmentCssClassMap: Record<number, string> = {
   9: "swamp",
   10: "oceanic",
   11: "terrestrial",
+  12: "gaia",
 };
 
 export function cssClassForEnvironment(value: number) {

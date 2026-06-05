@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   GRAVITY_GENERATOR_BUILDING_NAME,
+  canGaiaTransformPlanet,
   isAutobuildProject,
   isBuildingApplicableToPlanet,
   preferredGravityForRace,
@@ -177,6 +178,42 @@ describe('isBuildingApplicableToPlanet', () => {
     expect(
       isBuildingApplicableToPlanet(flatFoodBuilding, hostilePlanet(), []),
     ).toBe(true);
+  });
+
+  it('shows Gaia Transformation only on Terran worlds', () => {
+    expect(
+      isBuildingApplicableToPlanet(
+        { name: 'Gaia Transformation' },
+        { gravity: 2, environment: 11, buildings: [] },
+        [],
+      ),
+    ).toBe(true);
+    expect(
+      isBuildingApplicableToPlanet(
+        { name: 'Gaia Transformation' },
+        { gravity: 2, environment: 7, buildings: [] },
+        [],
+      ),
+    ).toBe(false);
+    expect(
+      isBuildingApplicableToPlanet(
+        { name: 'Gaia Transformation' },
+        { gravity: 2, environment: 12, buildings: [] },
+        [],
+      ),
+    ).toBe(false);
+  });
+});
+
+describe('canGaiaTransformPlanet', () => {
+  it('returns true only for Terran planets', () => {
+    expect(canGaiaTransformPlanet({ environment: 11 })).toBe(true);
+  });
+
+  it('returns false for non-Terran planets', () => {
+    for (const environment of [3, 4, 5, 6, 7, 8, 9, 10, 12]) {
+      expect(canGaiaTransformPlanet({ environment })).toBe(false);
+    }
   });
 });
 
