@@ -36,6 +36,7 @@ type Game struct {
 	PendingColonyBases       map[uint][]uint      `json:"pending_colony_bases"`
 	PendingColonyShips       map[uint][]uint      `json:"pending_colony_ships"`
 	PendingArtificialPlanets map[uint][]uint      `json:"pending_artificial_planets"`
+	BattleReports            []*BattleReport      `json:"battle_reports,omitempty"`
 	TurnSubmissions          map[uint]Commands    `json:"-"`
 	TurnStatus               TurnStatus           `json:"turn_status"`
 	mu                       *sync.Mutex          `json:"-"`
@@ -224,6 +225,7 @@ func (g *Game) AdvanceTurn(submissions map[uint]Commands) error {
 	}
 
 	g.advanceFleetMovements()
+	g.resolveStarBattles()
 	g.advancePopulationTransfers(existingPopulationTransfers)
 	g.HydrateCommandPoints()
 	g.CurrentTurn = advanceStardate(g.CurrentTurn)

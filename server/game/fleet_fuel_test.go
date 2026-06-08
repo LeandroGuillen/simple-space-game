@@ -291,8 +291,8 @@ func TestFleetFuelStarGateAllowsTravelBetweenOwnedColonies(t *testing.T) {
 			Height: 2000,
 			Stars: []*model.Star{
 				{ID: 1, X: 0, Y: 0, Planets: []*model.Planet{{ID: 1, Owner: 1}}},       // Player colony
-				{ID: 2, X: 2000, Y: 2000, Planets: []*model.Planet{{ID: 2, Owner: 1}}},  // Player colony (far away)
-				{ID: 6, X: 1000, Y: 1000, Planets: []*model.Planet{}},                   // Far away, no colony
+				{ID: 2, X: 2000, Y: 2000, Planets: []*model.Planet{{ID: 2, Owner: 1}}}, // Player colony (far away)
+				{ID: 6, X: 1000, Y: 1000, Planets: []*model.Planet{}},                  // Far away, no colony
 				{ID: 7, X: 1500, Y: 1500, Planets: []*model.Planet{{ID: 7, Owner: 2}}}, // Enemy colony
 			},
 		},
@@ -353,8 +353,8 @@ func TestFleetFuelStarGateBlocksTravelToNonColony(t *testing.T) {
 			Width:  2000,
 			Height: 2000,
 			Stars: []*model.Star{
-				{ID: 1, X: 0, Y: 0, Planets: []*model.Planet{{ID: 1, Owner: 1}}},      // Player colony
-				{ID: 6, X: 500, Y: 500, Planets: []*model.Planet{}},                  // Far away, no colony
+				{ID: 1, X: 0, Y: 0, Planets: []*model.Planet{{ID: 1, Owner: 1}}}, // Player colony
+				{ID: 6, X: 500, Y: 500, Planets: []*model.Planet{}},              // Far away, no colony
 			},
 		},
 	}
@@ -400,8 +400,8 @@ func TestFleetFuelStarGateBlocksTravelToEnemyColony(t *testing.T) {
 			Width:  2000,
 			Height: 2000,
 			Stars: []*model.Star{
-				{ID: 1, X: 0, Y: 0, Planets: []*model.Planet{{ID: 1, Owner: 1}}},       // Player colony
-				{ID: 7, X: 500, Y: 500, Planets: []*model.Planet{{ID: 7, Owner: 2}}},   // Enemy colony
+				{ID: 1, X: 0, Y: 0, Planets: []*model.Planet{{ID: 1, Owner: 1}}},     // Player colony
+				{ID: 7, X: 500, Y: 500, Planets: []*model.Planet{{ID: 7, Owner: 2}}}, // Enemy colony
 			},
 		},
 	}
