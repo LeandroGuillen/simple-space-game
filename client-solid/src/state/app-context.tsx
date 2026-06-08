@@ -115,6 +115,7 @@ type AppContextValue = {
   saveShipDesign: (form: ShipDesignForm, mode: 'create' | 'update') => Promise<void>;
   setInfo: (info: string) => void;
   clearError: () => void;
+  clearInfo: () => void;
   mutateRace: (traitIds: string[]) => void;
 };
 
@@ -199,6 +200,10 @@ export function AppProvider(props: ParentProps) {
 
   function clearError() {
     setState('error', '');
+  }
+
+  function clearInfo() {
+    setState('info', '');
   }
 
   function setBusy(isBusy: boolean, info = state.info) {
@@ -983,6 +988,7 @@ export function AppProvider(props: ParentProps) {
     saveShipDesign,
     setInfo,
     clearError,
+    clearInfo,
     mutateRace: (traitIds: string[]) => {
       setState('pendingCommands', 'mutateRace', { trait_ids: traitIds });
       setState('info', 'Race mutation queued for next turn');

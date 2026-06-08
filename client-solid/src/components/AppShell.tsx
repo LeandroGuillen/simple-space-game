@@ -381,6 +381,8 @@ export function AppShell(props: RouteSectionProps) {
     closeColonizeModal,
     selectArtificialPlanetTarget,
     closeArtificialPlanetModal,
+    clearError,
+    clearInfo,
   } = useAppContext();
   const [isResearchOpen, setIsResearchOpen] = createSignal(false);
   const [recentBreakthroughs, setRecentBreakthroughs] = createSignal<string[]>(
@@ -944,11 +946,61 @@ export function AppShell(props: RouteSectionProps) {
       </Show>
 
       <Show when={state.error}>
-        <div class="status-banner error">{state.error}</div>
+        <div
+          class="status-banner status-banner--dismissable error"
+          role="button"
+          tabindex="0"
+          title="Click to dismiss"
+          onClick={clearError}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              clearError();
+            }
+          }}
+        >
+          <span class="status-banner-message">{state.error}</span>
+          <button
+            type="button"
+            class="status-banner-close"
+            aria-label="Dismiss notification"
+            onClick={(event) => {
+              event.stopPropagation();
+              clearError();
+            }}
+          >
+            ×
+          </button>
+        </div>
       </Show>
 
       <Show when={!state.error && state.info}>
-        <div class="status-banner info">{state.info}</div>
+        <div
+          class="status-banner status-banner--dismissable info"
+          role="button"
+          tabindex="0"
+          title="Click to dismiss"
+          onClick={clearInfo}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              clearInfo();
+            }
+          }}
+        >
+          <span class="status-banner-message">{state.info}</span>
+          <button
+            type="button"
+            class="status-banner-close"
+            aria-label="Dismiss notification"
+            onClick={(event) => {
+              event.stopPropagation();
+              clearInfo();
+            }}
+          >
+            ×
+          </button>
+        </div>
       </Show>
 
       <Show when={isResearchOpen()}>
