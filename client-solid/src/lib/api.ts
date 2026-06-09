@@ -10,6 +10,7 @@ import type {
   CustomRaceDesign,
   NewGameOptions,
   RaceDesign,
+  ScenarioInfo,
   ShipDesignTemplateRow,
 } from './types/api';
 import type { ShipDesignForm } from './types/domain';
@@ -126,6 +127,32 @@ export class ApiClient {
       method: 'POST',
       headers: this.headers(),
       body: JSON.stringify(options),
+    });
+    const body = await readJson<{ ok: boolean; gameID: string }>(response);
+    return body.gameID;
+  }
+
+  async listScenarios() {
+    const response = await fetch(`${this.baseUrl}/scenarios`);
+    const body = await readJson<{ scenarios: ScenarioInfo[] }>(response);
+    return body.scenarios;
+  }
+
+  async loadScenario(name: string) {
+    const response = await fetch(
+      `${this.baseUrl}/scenarios/${encodeURIComponent(name)}/load`,
+      { method: 'POST', headers: this.headers() },
+    );
+    const body = await readJson<{ ok: boolean; gameID: string }>(response);
+    return body.gameID;
+  }
+
+  async loadUploadedSave(file: File) {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    const response = await fetch(`${this.baseUrl}/saves/upload`, {
+      method: 'POST',
+      body: formData,
     });
     const body = await readJson<{ ok: boolean; gameID: string }>(response);
     return body.gameID;

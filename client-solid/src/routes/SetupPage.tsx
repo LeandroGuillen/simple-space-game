@@ -15,6 +15,7 @@ import type {
   NewGameOptions,
   RaceDesign,
   RaceTraitId,
+  ScenarioInfo,
 } from "../lib/types/api";
 import {
   getCustomRaceDraft,
@@ -215,6 +216,15 @@ export function SetupPage() {
   const [customRace, setCustomRace] = createSignal<RaceDesign | null>(null);
   const [playerColor, setPlayerColor] = createSignal("");
   const [isNewGameModalOpen, setIsNewGameModalOpen] = createSignal(false);
+  const [isLoadModalOpen, setIsLoadModalOpen] = createSignal(false);
+  const [scenarios, setScenarios] = createSignal<ScenarioInfo[]>([]);
+  const [scenariosLoading, setScenariosLoading] = createSignal(false);
+  const [scenariosError, setScenariosError] = createSignal<string | null>(null);
+  const [scenarioUploadError, setScenarioUploadError] = createSignal<string | null>(null);
+  const [scenarioUploading, setScenarioUploading] = createSignal(false);
+  const [loadingScenarioName, setLoadingScenarioName] = createSignal<string | null>(null);
+  const [downloadingGameId, setDownloadingGameId] = createSignal<string | null>(null);
+  const [saveFeedback, setSaveFeedback] = createSignal<string | null>(null);
   const [isConnecting, setIsConnecting] = createSignal(false);
   const [confirmRemove, setConfirmRemove] = createSignal<string | null>(null);
   const [validationAttempted, setValidationAttempted] = createSignal(false);
@@ -385,6 +395,138 @@ export function SetupPage() {
   const openModal = () => {
     setValidationAttempted(false);
     setIsNewGameModalOpen(true);
+  };
+
+  const setupApiClient = () => {
+    const url = selectedServerUrl();
+    if (!url) {
+      return null;
+    }
+    return new ApiClient(url, state.session.playerId);
+  };
+
+  const refreshScenarios = async () => {
+    const client = setupApiClient();
+    if (!client) {
+      return;
+    }
+    setScenariosLoading(true);
+    setScenariosError(null);
+    try {
+      setScenarios(await client.listScenarios());
+    } catch (err) {
+      setScenariosError(
+        err instanceof Error ? err.message : "Unable to list scenarios.",
+      );
+    } finally {
+      setScenariosLoading(false);
+    }
+  };
+
+  const openLoadModal = async () => {
+    setScenarioUploadError(null);
+    setIsLoadModalOpen(true);
+    await refreshScenarios();
+  };
+
+  const closeLoadModal = () => {
+    setIsLoadModalOpen(false);
+    setScenarioUploadError(null);
+  };
+
+  const safeFilenameToken = (value: string | undefined, fallback: string) => {
+    const cleaned = (value ?? '')
+      .replace(/[^A-Za-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    return cleaned ? cleaned.toUpperCase() : fallback.toUpperCase();
+  };
+
+  const handleDownloadGame = async (gameId: string) => {
+    const client = setupApiClient();
+    if (!client) {
+      return;
+    }
+    setDownloadingGameId(gameId);
+    setSaveFeedback(null);
+    try {
+      const gameState = await client.getGame(gameId);
+      const body = JSON.stringify(gameState, null, 2);
+      const blob = new Blob([body], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const commanderName = safeFilenameToken(
+        gameState.players?.[0]?.name,
+        "player",
+      );
+      const raceName = safeFilenameToken(
+        gameState.players?.[0]?.race?.name,
+        "race",
+      );
+      const turn = Number.isFinite(gameState.current_turn)
+        ? Math.floor(gameState.current_turn)
+        : 0;
+      const filename = `ssg-${commanderName}-${raceName}-${turn}.json`;
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = filename;
+      anchor.style.display = "none";
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      URL.revokeObjectURL(url);
+      setSaveFeedback(`Downloaded ${filename}`);
+      setTimeout(() => setSaveFeedback(null), 4000);
+    } catch (err) {
+      setSaveFeedback(err instanceof Error ? err.message : "Download failed");
+      setTimeout(() => setSaveFeedback(null), 4000);
+    } finally {
+      setDownloadingGameId(null);
+    }
+  };
+
+  const handleLoadScenario = async (name: string) => {
+    const client = setupApiClient();
+    if (!client) {
+      return;
+    }
+    setLoadingScenarioName(name);
+    setScenariosError(null);
+    try {
+      await client.loadScenario(name);
+      closeLoadModal();
+      await refreshGames();
+    } catch (err) {
+      setScenariosError(err instanceof Error ? err.message : "Load failed.");
+    } finally {
+      setLoadingScenarioName(null);
+    }
+  };
+
+  const handleUploadSave = async (file: File) => {
+    const client = setupApiClient();
+    if (!client) {
+      return;
+    }
+    setScenarioUploading(true);
+    setScenarioUploadError(null);
+    try {
+      await client.loadUploadedSave(file);
+      closeLoadModal();
+      await refreshGames();
+    } catch (err) {
+      setScenarioUploadError(err instanceof Error ? err.message : "Upload failed.");
+    } finally {
+      setScenarioUploading(false);
+    }
+  };
+
+  const handleUploadInputChange = (event: Event) => {
+    const target = event.currentTarget as HTMLInputElement;
+    const file = target.files?.[0];
+    if (!file) {
+      return;
+    }
+    void handleUploadSave(file);
+    target.value = "";
   };
 
   const handleAddServer = async (event: SubmitEvent) => {
@@ -599,17 +741,31 @@ export function SetupPage() {
           <section class="setup-games" aria-label="Games">
             <div class="setup-games-header">
               <PanelHeader title="Games" count={isConnected() ? gameCount() : undefined} />
-              <Show when={isConnected() && gameCount() > 0}>
-                <button
-                  class="primary-button setup-new-game-btn"
-                  type="button"
-                  onClick={openModal}
-                >
-                  <PlusIcon />
-                  New Game
-                </button>
+              <Show when={isConnected()}>
+                <div class="setup-games-actions">
+                  <button
+                    class="link-button setup-load-game-btn"
+                    type="button"
+                    onClick={() => void openLoadModal()}
+                  >
+                    Load Game
+                  </button>
+                  <Show when={gameCount() > 0}>
+                    <button
+                      class="primary-button setup-new-game-btn"
+                      type="button"
+                      onClick={openModal}
+                    >
+                      <PlusIcon />
+                      New Game
+                    </button>
+                  </Show>
+                </div>
               </Show>
             </div>
+            <Show when={saveFeedback()}>
+              <p class="setup-save-feedback">{saveFeedback()}</p>
+            </Show>
 
             <Show
               when={isConnected()}
@@ -713,6 +869,18 @@ export function SetupPage() {
                               </For>
                             </div>
                           </div>
+                          <button
+                            type="button"
+                            class="game-save-btn"
+                            title="Download this game"
+                            disabled={downloadingGameId() === game.game_id}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              void handleDownloadGame(game.game_id);
+                            }}
+                          >
+                            {downloadingGameId() === game.game_id ? "…" : "Download"}
+                          </button>
                         </div>
                       </li>
                     )}
@@ -879,6 +1047,109 @@ export function SetupPage() {
                   </button>
                 </footer>
               </form>
+            </div>
+          </div>
+        </Portal>
+      </Show>
+
+      <Show when={isLoadModalOpen()}>
+        <Portal>
+          <div
+            class="ng-backdrop"
+            onClick={closeLoadModal}
+            role="presentation"
+          >
+            <div
+              class="ng-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="load-title"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <header class="ng-header">
+                <div>
+                  <h2 id="load-title">Load Game</h2>
+                  <p class="ng-subtitle">Restore a saved game on this server.</p>
+                </div>
+                <button
+                  type="button"
+                  class="ng-close"
+                  onClick={closeLoadModal}
+                  aria-label="Close"
+                >
+                  ×
+                </button>
+              </header>
+
+              <div class="load-modal-body">
+                <p class="load-modal-note">
+                  Download the JSON file to save a game. Use the list below to
+                  load one of the built-in scenarios, or upload a JSON you
+                  previously downloaded.
+                </p>
+                <Show when={scenariosError()}>
+                  <p class="ng-row-error">{scenariosError()}</p>
+                </Show>
+                <Show
+                  when={!scenariosLoading()}
+                  fallback={<p class="setup-saves-status">Loading scenarios…</p>}
+                >
+                  <Show
+                    when={scenarios().length > 0}
+                    fallback={
+                      <p class="setup-saves-status">
+                        No scenarios available on this server.
+                      </p>
+                    }
+                  >
+                    <ul class="scenarios-list">
+                      <For each={scenarios()}>
+                        {(scenario) => (
+                          <li class="scenarios-item">
+                            <div class="scenarios-item-body">
+                              <span class="saves-item-name">
+                                {scenario.name}
+                              </span>
+                              <span class="saves-item-meta">
+                                T{formatStardate(scenario.current_turn)} ·{" "}
+                                {scenario.num_stars} stars ·{" "}
+                                {formatGameLastTurnAt(scenario.saved_at)}
+                              </span>
+                            </div>
+                              <button
+                                type="button"
+                                class="scenario-load-btn"
+                                onClick={() => void handleLoadScenario(scenario.name)}
+                                disabled={
+                                  scenariosLoading() ||
+                                  scenarioUploading() ||
+                                  loadingScenarioName() === scenario.name
+                                }
+                              >
+                                Load
+                              </button>
+                          </li>
+                        )}
+                      </For>
+                    </ul>
+                  </Show>
+                </Show>
+                <div class="load-modal-upload">
+                  <label for="scenario-upload">Upload saved game</label>
+                  <div class="load-modal-upload-control">
+                    <input
+                      id="scenario-upload"
+                      type="file"
+                      accept=".json"
+                      disabled={scenarioUploading()}
+                      onChange={handleUploadInputChange}
+                    />
+                  </div>
+                  <Show when={scenarioUploadError()}>
+                    <p class="ng-row-error">{scenarioUploadError()}</p>
+                  </Show>
+                </div>
+              </div>
             </div>
           </div>
         </Portal>

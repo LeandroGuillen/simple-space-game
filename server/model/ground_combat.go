@@ -36,20 +36,20 @@ type GroundBattleRound struct {
 
 // InvasionReport represents the result of a ground combat invasion
 type InvasionReport struct {
-	ID              uint                 `json:"id"`
-	Turn            int64                `json:"turn"`
-	PlanetID        uint                 `json:"planet_id"`
-	PlanetName      string               `json:"planet_name"`
-	X               float64              `json:"x"`
-	Y               float64              `json:"y"`
-	AttackerOwnerID uint                 `json:"attacker_owner_id"`
-	DefenderOwnerID uint                 `json:"defender_owner_id"`
-	Success         bool                 `json:"success"`
-	PlanetCaptured  bool                 `json:"planet_captured"`
-	Rounds          []GroundBattleRound  `json:"rounds"`
-	InitialAttacker GroundForce          `json:"initial_attacker"`
-	InitialDefender GroundForce          `json:"initial_defender"`
-	SurvivingUnits  GroundForce          `json:"surviving_units"`
+	ID              uint                `json:"id"`
+	Turn            int64               `json:"turn"`
+	PlanetID        uint                `json:"planet_id"`
+	PlanetName      string              `json:"planet_name"`
+	X               float64             `json:"x"`
+	Y               float64             `json:"y"`
+	AttackerOwnerID uint                `json:"attacker_owner_id"`
+	DefenderOwnerID uint                `json:"defender_owner_id"`
+	Success         bool                `json:"success"`
+	PlanetCaptured  bool                `json:"planet_captured"`
+	Rounds          []GroundBattleRound `json:"rounds"`
+	InitialAttacker GroundForce         `json:"initial_attacker"`
+	InitialDefender GroundForce         `json:"initial_defender"`
+	SurvivingUnits  GroundForce         `json:"surviving_units"`
 }
 
 // NewGroundUnit creates a new ground unit with default stats

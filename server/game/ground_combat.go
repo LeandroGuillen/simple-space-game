@@ -25,7 +25,7 @@ func (g *Game) resolveGroundInvasions() []*InvasionReport {
 		if fleet == nil || fleet.DestinationStarID != 0 || fleet.TurnsRemaining != 0 {
 			continue
 		}
-		// Find planets at this star  
+		// Find planets at this star
 		star, err := g.getStar(fleet.StarID)
 		if err != nil {
 			continue
@@ -84,8 +84,8 @@ func (g *Game) resolveGroundInvasions() []*InvasionReport {
 					g.updatePlanetDefenders(planet, &report.SurvivingUnits)
 				}
 
-		// Remove marines from attacking transport ships
-		g.removeMarinesFromTransports(attackerFleet.Owner, fleets, &attackerForce, &report.SurvivingUnits)
+				// Remove marines from attacking transport ships
+				g.removeMarinesFromTransports(attackerFleet.Owner, fleets, &attackerForce, &report.SurvivingUnits)
 			}
 		}
 	}
@@ -119,7 +119,7 @@ func (g *Game) getTransportMarineCount(ship FleetShip) int64 {
 // gatherMarinesFromTransports creates a ground force from all marines in player's transport ships at a planet
 func (g *Game) gatherMarinesFromTransports(ownerID uint, fleets []*Fleet) GroundForce {
 	force := GroundForce{OwnerID: ownerID}
-	
+
 	for _, fleet := range fleets {
 		if fleet.Owner != ownerID {
 			continue
@@ -131,24 +131,24 @@ func (g *Game) gatherMarinesFromTransports(ownerID uint, fleets []*Fleet) Ground
 			}
 		}
 	}
-	
+
 	return force
 }
 
 // createPlanetDefenseForce creates ground force from planet's marines and armored units
 func (g *Game) createPlanetDefenseForce(planet *Planet) GroundForce {
 	force := GroundForce{OwnerID: planet.Owner}
-	
+
 	// Add marines
 	for i := int64(0); i < planet.Marines; i++ {
 		force.Marines = append(force.Marines, NewGroundUnit(MarineUnit))
 	}
-	
+
 	// Add armored units
 	for i := int64(0); i < planet.Armored; i++ {
 		force.Armored = append(force.Armored, NewGroundUnit(ArmoredUnit))
 	}
-	
+
 	return force
 }
 
@@ -238,7 +238,7 @@ func calculateGroundDamage(attackerForce, defenderForce *GroundForce, attackerPl
 
 	totalDamage := int64(0)
 	attackerStrength := attackerForce.TotalStrength()
-	
+
 	// Apply racial ground combat multiplier
 	multiplier := GroundCombatMultiplier(attackerPlayer)
 	effectiveStrength := float64(attackerStrength) * multiplier
@@ -301,14 +301,14 @@ func copyGroundForce(force GroundForce) GroundForce {
 	copy := GroundForce{OwnerID: force.OwnerID}
 	copy.Marines = make([]GroundUnit, len(force.Marines))
 	copy.Armored = make([]GroundUnit, len(force.Armored))
-	
+
 	for i, marine := range force.Marines {
 		copy.Marines[i] = marine
 	}
 	for i, armored := range force.Armored {
 		copy.Armored[i] = armored
 	}
-	
+
 	return copy
 }
 
@@ -338,14 +338,14 @@ func (g *Game) updatePlanetDefenders(planet *Planet, survivingUnits *GroundForce
 			livingMarines++
 		}
 	}
-	
+
 	livingArmored := int64(0)
 	for _, armored := range survivingUnits.Armored {
 		if armored.IsAlive() {
 			livingArmored++
 		}
 	}
-	
+
 	planet.Marines = livingMarines
 	planet.Armored = livingArmored
 }
@@ -366,4 +366,3 @@ func (g *Game) removeMarinesFromTransports(ownerID uint, fleets []*Fleet, origin
 		}
 	}
 }
-

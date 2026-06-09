@@ -107,6 +107,233 @@
   font-size: 0.78rem;
 }
 
+.setup-games-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.setup-load-game-btn {
+  font-size: 0.78rem;
+  padding: 6px 10px;
+}
+
+.setup-save-feedback {
+  margin: 4px 0 0;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+
+.game-save-btn {
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease,
+    border-color 0.12s ease;
+  flex-shrink: 0;
+}
+
+.game-save-btn:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.game-save-btn:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.load-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 20px 20px;
+}
+
+.setup-saves-status {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+
+.load-modal-note {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+
+.scenarios-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.scenarios-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  background: transparent;
+}
+
+.scenarios-item-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.scenario-load-btn {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease,
+    color 0.12s ease;
+}
+
+.scenario-load-btn:hover:not(:disabled) {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.scenario-load-btn:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.load-modal-upload {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.load-modal-upload-control {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.load-modal-upload-control input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elev);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.load-modal-upload-control input:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.saves-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.saves-item {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.saves-item-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.saves-item-main:hover:not(:disabled) {
+  background: var(--surface-quiet);
+  border-color: var(--accent);
+}
+
+.saves-item-main:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.saves-item-name {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text);
+}
+
+.saves-item-meta {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+}
+
+.saves-item-delete {
+  width: 32px;
+  padding: 0;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-mute);
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+  flex-shrink: 0;
+}
+
+.saves-item-delete:hover {
+  background: var(--danger);
+  color: var(--bg);
+}
+
+.saves-item-delete.confirming {
+  background: var(--danger);
+  color: var(--bg);
+  animation: shake 0.3s ease-in-out;
+}
+
 .setup-panel-header {
   display: flex;
   align-items: center;

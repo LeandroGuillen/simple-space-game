@@ -13,6 +13,15 @@ export type ApiGameListItem = {
   players: ApiGameListPlayer[];
 };
 
+export type ScenarioInfo = {
+  name: string;
+  game_id: string;
+  current_turn: number;
+  num_stars: number;
+  saved_at: string;
+  size: number;
+};
+
 export type ApiGameListPlayer = {
   id?: number;
   name: string;

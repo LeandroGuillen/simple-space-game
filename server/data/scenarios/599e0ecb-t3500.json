@@ -1,0 +1,6355 @@
+{
+  "galaxy": {
+    "stars": [
+      {
+        "id": 1,
+        "name": "KausBorealis",
+        "planets": [
+          {
+            "id": 1,
+            "name": "KausBorealis I",
+            "owner": 1,
+            "parent_star": 1,
+            "mineral_class": 3,
+            "size": 3,
+            "gravity": 2,
+            "environment": 11,
+            "population": 8000,
+            "max_population": 12000,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 3,
+              "produced_per_worker": 3,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 4,
+              "produced_per_farmer": 2,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 1,
+              "produced_per_scientist": 3,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 8,
+              "buildings": 0,
+              "trade_goods": 2,
+              "maintenance": 3,
+              "total": 17,
+              "bonus": 1
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 1
+            },
+            "government": {
+              "name": "Dictatorship",
+              "food_labor_multiplier": 1,
+              "industry_labor_multiplier": 1,
+              "science_labor_multiplier": 1,
+              "tax_multiplier": 1
+            },
+            "pollution": 2,
+            "gravity_multiplier": 0.75,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": [
+              "Capitol",
+              "Star Base",
+              "Marine Barracks"
+            ],
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 2,
+            "name": "KausBorealis II",
+            "owner": 0,
+            "parent_star": 1,
+            "mineral_class": 3,
+            "size": 2,
+            "gravity": 1,
+            "environment": 9,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 1,
+        "x": 541,
+        "y": 332
+      },
+      {
+        "id": 2,
+        "name": "Sabik",
+        "planets": [
+          {
+            "id": 3,
+            "name": "Sabik I",
+            "owner": 0,
+            "parent_star": 2,
+            "mineral_class": 1,
+            "size": 1,
+            "gravity": 2,
+            "environment": 11,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 4,
+            "name": "Sabik II",
+            "owner": 0,
+            "parent_star": 2,
+            "mineral_class": 5,
+            "size": 3,
+            "gravity": 2,
+            "environment": 6,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 5,
+            "name": "Sabik III",
+            "owner": 0,
+            "parent_star": 2,
+            "mineral_class": 3,
+            "size": 2,
+            "gravity": 3,
+            "environment": 11,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 6,
+            "name": "Sabik IV",
+            "owner": 0,
+            "parent_star": 2,
+            "mineral_class": 3,
+            "size": 2,
+            "gravity": 2,
+            "environment": 3,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 7,
+            "name": "Sabik V",
+            "owner": 0,
+            "parent_star": 2,
+            "mineral_class": 1,
+            "size": 1,
+            "gravity": 2,
+            "environment": 10,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 2,
+        "x": 344,
+        "y": 32
+      },
+      {
+        "id": 3,
+        "name": "Phoo",
+        "planets": [
+          {
+            "id": 8,
+            "name": "Phoo I",
+            "owner": 0,
+            "parent_star": 3,
+            "mineral_class": 2,
+            "size": 5,
+            "gravity": 2,
+            "environment": 12,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 0,
+        "x": 178,
+        "y": 263
+      },
+      {
+        "id": 4,
+        "name": "Strue",
+        "planets": [
+          {
+            "id": 9,
+            "name": "Strue I",
+            "owner": 0,
+            "parent_star": 4,
+            "mineral_class": 3,
+            "size": 3,
+            "gravity": 1,
+            "environment": 7,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 10,
+            "name": "Strue II",
+            "owner": 0,
+            "parent_star": 4,
+            "mineral_class": 2,
+            "size": 5,
+            "gravity": 3,
+            "environment": 9,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 11,
+            "name": "Strue III",
+            "owner": 0,
+            "parent_star": 4,
+            "mineral_class": 3,
+            "size": 4,
+            "gravity": 2,
+            "environment": 10,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 12,
+            "name": "Strue IV",
+            "owner": 0,
+            "parent_star": 4,
+            "mineral_class": 5,
+            "size": 2,
+            "gravity": 1,
+            "environment": 6,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 1,
+        "x": 219,
+        "y": 316
+      },
+      {
+        "id": 5,
+        "name": "Uzlaugtun",
+        "planets": [
+          {
+            "id": 13,
+            "name": "Uzlaugtun I",
+            "owner": 0,
+            "parent_star": 5,
+            "mineral_class": 2,
+            "size": 1,
+            "gravity": 2,
+            "environment": 6,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 14,
+            "name": "Uzlaugtun II",
+            "owner": 0,
+            "parent_star": 5,
+            "mineral_class": 1,
+            "size": 2,
+            "gravity": 3,
+            "environment": 5,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 15,
+            "name": "Uzlaugtun III",
+            "owner": 0,
+            "parent_star": 5,
+            "mineral_class": 3,
+            "size": 2,
+            "gravity": 3,
+            "environment": 4,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 2,
+        "x": 271,
+        "y": 81
+      },
+      {
+        "id": 6,
+        "name": "Orionis",
+        "planets": [
+          {
+            "id": 16,
+            "name": "Orionis I",
+            "owner": 0,
+            "parent_star": 6,
+            "mineral_class": 1,
+            "size": 4,
+            "gravity": 1,
+            "environment": 5,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 17,
+            "name": "Orionis II",
+            "owner": 0,
+            "parent_star": 6,
+            "mineral_class": 4,
+            "size": 3,
+            "gravity": 3,
+            "environment": 6,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 18,
+            "name": "Orionis III",
+            "owner": 0,
+            "parent_star": 6,
+            "mineral_class": 4,
+            "size": 5,
+            "gravity": 3,
+            "environment": 1,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 19,
+            "name": "Orionis IV",
+            "owner": 0,
+            "parent_star": 6,
+            "mineral_class": 3,
+            "size": 4,
+            "gravity": 2,
+            "environment": 4,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 20,
+            "name": "Orionis V",
+            "owner": 0,
+            "parent_star": 6,
+            "mineral_class": 1,
+            "size": 4,
+            "gravity": 3,
+            "environment": 6,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 4,
+        "x": 154,
+        "y": 117
+      },
+      {
+        "id": 7,
+        "name": "Foi",
+        "planets": [
+          {
+            "id": 21,
+            "name": "Foi I",
+            "owner": 0,
+            "parent_star": 7,
+            "mineral_class": 3,
+            "size": 4,
+            "gravity": 2,
+            "environment": 12,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 2,
+        "x": 4,
+        "y": 46
+      },
+      {
+        "id": 8,
+        "name": "Drentoys",
+        "planets": [
+          {
+            "id": 22,
+            "name": "Drentoys I",
+            "owner": 0,
+            "parent_star": 8,
+            "mineral_class": 5,
+            "size": 4,
+            "gravity": 1,
+            "environment": 2,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 23,
+            "name": "Drentoys II",
+            "owner": 0,
+            "parent_star": 8,
+            "mineral_class": 4,
+            "size": 1,
+            "gravity": 3,
+            "environment": 7,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 24,
+            "name": "Drentoys III",
+            "owner": 0,
+            "parent_star": 8,
+            "mineral_class": 2,
+            "size": 4,
+            "gravity": 2,
+            "environment": 2,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 1,
+        "x": 314,
+        "y": 340
+      },
+      {
+        "id": 9,
+        "name": "Pegasi",
+        "planets": [
+          {
+            "id": 25,
+            "name": "Pegasi I",
+            "owner": 0,
+            "parent_star": 9,
+            "mineral_class": 2,
+            "size": 1,
+            "gravity": 2,
+            "environment": 4,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 26,
+            "name": "Pegasi II",
+            "owner": 0,
+            "parent_star": 9,
+            "mineral_class": 4,
+            "size": 5,
+            "gravity": 1,
+            "environment": 1,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 27,
+            "name": "Pegasi III",
+            "owner": 0,
+            "parent_star": 9,
+            "mineral_class": 1,
+            "size": 4,
+            "gravity": 2,
+            "environment": 11,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 28,
+            "name": "Pegasi IV",
+            "owner": 0,
+            "parent_star": 9,
+            "mineral_class": 2,
+            "size": 1,
+            "gravity": 1,
+            "environment": 10,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 29,
+            "name": "Pegasi V",
+            "owner": 0,
+            "parent_star": 9,
+            "mineral_class": 5,
+            "size": 3,
+            "gravity": 3,
+            "environment": 12,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 0,
+        "x": 92,
+        "y": 271
+      },
+      {
+        "id": 10,
+        "name": "Bellatrix",
+        "planets": [
+          {
+            "id": 30,
+            "name": "Bellatrix I",
+            "owner": 0,
+            "parent_star": 10,
+            "mineral_class": 2,
+            "size": 4,
+            "gravity": 1,
+            "environment": 7,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 31,
+            "name": "Bellatrix II",
+            "owner": 0,
+            "parent_star": 10,
+            "mineral_class": 2,
+            "size": 5,
+            "gravity": 3,
+            "environment": 9,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 32,
+            "name": "Bellatrix III",
+            "owner": 0,
+            "parent_star": 10,
+            "mineral_class": 1,
+            "size": 5,
+            "gravity": 3,
+            "environment": 3,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 33,
+            "name": "Bellatrix IV",
+            "owner": 0,
+            "parent_star": 10,
+            "mineral_class": 1,
+            "size": 1,
+            "gravity": 2,
+            "environment": 3,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 0,
+        "x": 162,
+        "y": 342
+      },
+      {
+        "id": 11,
+        "name": "Iwataunt",
+        "planets": [
+          {
+            "id": 34,
+            "name": "Iwataunt I",
+            "owner": 0,
+            "parent_star": 11,
+            "mineral_class": 2,
+            "size": 1,
+            "gravity": 3,
+            "environment": 6,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 35,
+            "name": "Iwataunt II",
+            "owner": 0,
+            "parent_star": 11,
+            "mineral_class": 5,
+            "size": 2,
+            "gravity": 2,
+            "environment": 10,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 36,
+            "name": "Iwataunt III",
+            "owner": 0,
+            "parent_star": 11,
+            "mineral_class": 1,
+            "size": 5,
+            "gravity": 1,
+            "environment": 1,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 37,
+            "name": "Iwataunt IV",
+            "owner": 0,
+            "parent_star": 11,
+            "mineral_class": 2,
+            "size": 1,
+            "gravity": 1,
+            "environment": 4,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 0,
+        "x": 395,
+        "y": 335
+      },
+      {
+        "id": 12,
+        "name": "Sam",
+        "planets": [
+          {
+            "id": 38,
+            "name": "Sam I",
+            "owner": 0,
+            "parent_star": 12,
+            "mineral_class": 1,
+            "size": 1,
+            "gravity": 1,
+            "environment": 3,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 2,
+        "x": 335,
+        "y": 247
+      },
+      {
+        "id": 13,
+        "name": "KausBorealis 2",
+        "planets": [
+          {
+            "id": 39,
+            "name": "KausBorealis 2 I",
+            "owner": 0,
+            "parent_star": 13,
+            "mineral_class": 3,
+            "size": 4,
+            "gravity": 1,
+            "environment": 12,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 4,
+        "x": 144,
+        "y": 195
+      },
+      {
+        "id": 14,
+        "name": "Lambda",
+        "planets": [
+          {
+            "id": 40,
+            "name": "Lambda I",
+            "owner": 0,
+            "parent_star": 14,
+            "mineral_class": 3,
+            "size": 5,
+            "gravity": 1,
+            "environment": 10,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 2,
+        "x": 474,
+        "y": 207
+      },
+      {
+        "id": 15,
+        "name": "Draa",
+        "planets": [
+          {
+            "id": 41,
+            "name": "Draa I",
+            "owner": 0,
+            "parent_star": 15,
+            "mineral_class": 3,
+            "size": 2,
+            "gravity": 2,
+            "environment": 7,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 42,
+            "name": "Draa II",
+            "owner": 0,
+            "parent_star": 15,
+            "mineral_class": 3,
+            "size": 4,
+            "gravity": 3,
+            "environment": 10,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 0,
+        "x": 63,
+        "y": 336
+      },
+      {
+        "id": 16,
+        "name": "Usogtaib",
+        "planets": [
+          {
+            "id": 43,
+            "name": "Usogtaib I",
+            "owner": 0,
+            "parent_star": 16,
+            "mineral_class": 2,
+            "size": 5,
+            "gravity": 3,
+            "environment": 11,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 0,
+        "x": 532,
+        "y": 399
+      },
+      {
+        "id": 17,
+        "name": "Canopus",
+        "planets": [
+          {
+            "id": 44,
+            "name": "Canopus I",
+            "owner": 0,
+            "parent_star": 17,
+            "mineral_class": 1,
+            "size": 5,
+            "gravity": 3,
+            "environment": 1,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 3,
+        "x": 328,
+        "y": 181
+      },
+      {
+        "id": 18,
+        "name": "Ithials",
+        "planets": [
+          {
+            "id": 45,
+            "name": "Ithials I",
+            "owner": 0,
+            "parent_star": 18,
+            "mineral_class": 3,
+            "size": 5,
+            "gravity": 3,
+            "environment": 1,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 46,
+            "name": "Ithials II",
+            "owner": 0,
+            "parent_star": 18,
+            "mineral_class": 1,
+            "size": 4,
+            "gravity": 1,
+            "environment": 8,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 0,
+        "x": 463,
+        "y": 280
+      },
+      {
+        "id": 19,
+        "name": "Drentoys 2",
+        "planets": [
+          {
+            "id": 47,
+            "name": "Drentoys 2 I",
+            "owner": 0,
+            "parent_star": 19,
+            "mineral_class": 5,
+            "size": 2,
+            "gravity": 3,
+            "environment": 6,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 2,
+        "x": 69,
+        "y": 151
+      },
+      {
+        "id": 20,
+        "name": "Nihal",
+        "planets": [
+          {
+            "id": 48,
+            "name": "Nihal I",
+            "owner": 0,
+            "parent_star": 20,
+            "mineral_class": 3,
+            "size": 5,
+            "gravity": 2,
+            "environment": 1,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 49,
+            "name": "Nihal II",
+            "owner": 0,
+            "parent_star": 20,
+            "mineral_class": 3,
+            "size": 3,
+            "gravity": 3,
+            "environment": 11,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 2,
+        "x": 228,
+        "y": 383
+      },
+      {
+        "id": 21,
+        "name": "Pruecdins",
+        "planets": [
+          {
+            "id": 50,
+            "name": "Pruecdins I",
+            "owner": 0,
+            "parent_star": 21,
+            "mineral_class": 5,
+            "size": 4,
+            "gravity": 3,
+            "environment": 6,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 0,
+        "x": 543,
+        "y": 232
+      },
+      {
+        "id": 22,
+        "name": "Pleione",
+        "planets": [
+          {
+            "id": 51,
+            "name": "Pleione I",
+            "owner": 0,
+            "parent_star": 22,
+            "mineral_class": 2,
+            "size": 4,
+            "gravity": 2,
+            "environment": 7,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 52,
+            "name": "Pleione II",
+            "owner": 0,
+            "parent_star": 22,
+            "mineral_class": 5,
+            "size": 2,
+            "gravity": 1,
+            "environment": 9,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 53,
+            "name": "Pleione III",
+            "owner": 0,
+            "parent_star": 22,
+            "mineral_class": 1,
+            "size": 1,
+            "gravity": 2,
+            "environment": 3,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 54,
+            "name": "Pleione IV",
+            "owner": 0,
+            "parent_star": 22,
+            "mineral_class": 2,
+            "size": 2,
+            "gravity": 2,
+            "environment": 4,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 55,
+            "name": "Pleione V",
+            "owner": 0,
+            "parent_star": 22,
+            "mineral_class": 3,
+            "size": 3,
+            "gravity": 3,
+            "environment": 3,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 1,
+        "x": 429,
+        "y": 135
+      },
+      {
+        "id": 23,
+        "name": "Zrait",
+        "planets": [
+          {
+            "id": 56,
+            "name": "Zrait I",
+            "owner": 0,
+            "parent_star": 23,
+            "mineral_class": 3,
+            "size": 4,
+            "gravity": 1,
+            "environment": 2,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 57,
+            "name": "Zrait II",
+            "owner": 0,
+            "parent_star": 23,
+            "mineral_class": 2,
+            "size": 3,
+            "gravity": 3,
+            "environment": 11,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 3,
+        "x": 491,
+        "y": 100
+      },
+      {
+        "id": 24,
+        "name": "Groifel",
+        "planets": [
+          {
+            "id": 58,
+            "name": "Groifel I",
+            "owner": 0,
+            "parent_star": 24,
+            "mineral_class": 3,
+            "size": 2,
+            "gravity": 1,
+            "environment": 7,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 59,
+            "name": "Groifel II",
+            "owner": 0,
+            "parent_star": 24,
+            "mineral_class": 1,
+            "size": 3,
+            "gravity": 1,
+            "environment": 6,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 60,
+            "name": "Groifel III",
+            "owner": 0,
+            "parent_star": 24,
+            "mineral_class": 4,
+            "size": 3,
+            "gravity": 1,
+            "environment": 6,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 4,
+        "x": 58,
+        "y": 74
+      },
+      {
+        "id": 25,
+        "name": "Blait",
+        "planets": [
+          {
+            "id": 61,
+            "name": "Blait I",
+            "owner": 0,
+            "parent_star": 25,
+            "mineral_class": 3,
+            "size": 2,
+            "gravity": 1,
+            "environment": 10,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 62,
+            "name": "Blait II",
+            "owner": 0,
+            "parent_star": 25,
+            "mineral_class": 1,
+            "size": 2,
+            "gravity": 2,
+            "environment": 4,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 63,
+            "name": "Blait III",
+            "owner": 0,
+            "parent_star": 25,
+            "mineral_class": 5,
+            "size": 3,
+            "gravity": 3,
+            "environment": 11,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 0,
+        "x": 558,
+        "y": 32
+      },
+      {
+        "id": 26,
+        "name": "Klagueth",
+        "planets": [
+          {
+            "id": 64,
+            "name": "Klagueth I",
+            "owner": 0,
+            "parent_star": 26,
+            "mineral_class": 2,
+            "size": 3,
+            "gravity": 2,
+            "environment": 12,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 65,
+            "name": "Klagueth II",
+            "owner": 0,
+            "parent_star": 26,
+            "mineral_class": 5,
+            "size": 1,
+            "gravity": 3,
+            "environment": 11,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 66,
+            "name": "Klagueth III",
+            "owner": 0,
+            "parent_star": 26,
+            "mineral_class": 3,
+            "size": 4,
+            "gravity": 2,
+            "environment": 8,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 67,
+            "name": "Klagueth IV",
+            "owner": 0,
+            "parent_star": 26,
+            "mineral_class": 4,
+            "size": 2,
+            "gravity": 1,
+            "environment": 8,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 68,
+            "name": "Klagueth V",
+            "owner": 0,
+            "parent_star": 26,
+            "mineral_class": 3,
+            "size": 2,
+            "gravity": 1,
+            "environment": 3,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 2,
+        "x": 22,
+        "y": 249
+      },
+      {
+        "id": 27,
+        "name": "Mintaka",
+        "planets": [
+          {
+            "id": 69,
+            "name": "Mintaka I",
+            "owner": 0,
+            "parent_star": 27,
+            "mineral_class": 1,
+            "size": 4,
+            "gravity": 2,
+            "environment": 12,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 70,
+            "name": "Mintaka II",
+            "owner": 0,
+            "parent_star": 27,
+            "mineral_class": 3,
+            "size": 2,
+            "gravity": 3,
+            "environment": 10,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 71,
+            "name": "Mintaka III",
+            "owner": 0,
+            "parent_star": 27,
+            "mineral_class": 1,
+            "size": 4,
+            "gravity": 2,
+            "environment": 11,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 72,
+            "name": "Mintaka IV",
+            "owner": 0,
+            "parent_star": 27,
+            "mineral_class": 3,
+            "size": 5,
+            "gravity": 3,
+            "environment": 1,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 1,
+        "x": 587,
+        "y": 283
+      },
+      {
+        "id": 28,
+        "name": "Obriuccuk",
+        "planets": [
+          {
+            "id": 73,
+            "name": "Obriuccuk I",
+            "owner": 0,
+            "parent_star": 28,
+            "mineral_class": 4,
+            "size": 4,
+            "gravity": 3,
+            "environment": 4,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 74,
+            "name": "Obriuccuk II",
+            "owner": 0,
+            "parent_star": 28,
+            "mineral_class": 3,
+            "size": 4,
+            "gravity": 1,
+            "environment": 2,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 75,
+            "name": "Obriuccuk III",
+            "owner": 0,
+            "parent_star": 28,
+            "mineral_class": 2,
+            "size": 2,
+            "gravity": 3,
+            "environment": 8,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 3,
+        "x": 334,
+        "y": 108
+      },
+      {
+        "id": 29,
+        "name": "Sadalsuud",
+        "planets": [
+          {
+            "id": 76,
+            "name": "Sadalsuud I",
+            "owner": 0,
+            "parent_star": 29,
+            "mineral_class": 2,
+            "size": 5,
+            "gravity": 1,
+            "environment": 7,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 77,
+            "name": "Sadalsuud II",
+            "owner": 0,
+            "parent_star": 29,
+            "mineral_class": 3,
+            "size": 1,
+            "gravity": 1,
+            "environment": 5,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 4,
+        "x": 587,
+        "y": 132
+      },
+      {
+        "id": 30,
+        "name": "Lelsaib",
+        "planets": [
+          {
+            "id": 78,
+            "name": "Lelsaib I",
+            "owner": 0,
+            "parent_star": 30,
+            "mineral_class": 4,
+            "size": 4,
+            "gravity": 2,
+            "environment": 11,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 79,
+            "name": "Lelsaib II",
+            "owner": 0,
+            "parent_star": 30,
+            "mineral_class": 4,
+            "size": 2,
+            "gravity": 1,
+            "environment": 9,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 80,
+            "name": "Lelsaib III",
+            "owner": 0,
+            "parent_star": 30,
+            "mineral_class": 3,
+            "size": 4,
+            "gravity": 3,
+            "environment": 3,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 0,
+        "x": 428,
+        "y": 48
+      },
+      {
+        "id": 31,
+        "name": "Lelsaib 2",
+        "planets": [
+          {
+            "id": 81,
+            "name": "Lelsaib 2 I",
+            "owner": 0,
+            "parent_star": 31,
+            "mineral_class": 5,
+            "size": 1,
+            "gravity": 1,
+            "environment": 4,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 82,
+            "name": "Lelsaib 2 II",
+            "owner": 0,
+            "parent_star": 31,
+            "mineral_class": 5,
+            "size": 5,
+            "gravity": 1,
+            "environment": 1,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 83,
+            "name": "Lelsaib 2 III",
+            "owner": 0,
+            "parent_star": 31,
+            "mineral_class": 1,
+            "size": 5,
+            "gravity": 3,
+            "environment": 1,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 0,
+        "x": 528,
+        "y": 148
+      },
+      {
+        "id": 32,
+        "name": "Sadalbari",
+        "planets": [
+          {
+            "id": 84,
+            "name": "Sadalbari I",
+            "owner": 0,
+            "parent_star": 32,
+            "mineral_class": 3,
+            "size": 5,
+            "gravity": 1,
+            "environment": 11,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 85,
+            "name": "Sadalbari II",
+            "owner": 0,
+            "parent_star": 32,
+            "mineral_class": 1,
+            "size": 4,
+            "gravity": 2,
+            "environment": 6,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 86,
+            "name": "Sadalbari III",
+            "owner": 0,
+            "parent_star": 32,
+            "mineral_class": 4,
+            "size": 5,
+            "gravity": 2,
+            "environment": 1,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 87,
+            "name": "Sadalbari IV",
+            "owner": 0,
+            "parent_star": 32,
+            "mineral_class": 1,
+            "size": 3,
+            "gravity": 2,
+            "environment": 7,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 0,
+        "x": 93,
+        "y": 10
+      },
+      {
+        "id": 33,
+        "name": "Yioclon",
+        "planets": [
+          {
+            "id": 88,
+            "name": "Yioclon I",
+            "owner": 0,
+            "parent_star": 33,
+            "mineral_class": 2,
+            "size": 1,
+            "gravity": 1,
+            "environment": 11,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 89,
+            "name": "Yioclon II",
+            "owner": 0,
+            "parent_star": 33,
+            "mineral_class": 2,
+            "size": 5,
+            "gravity": 1,
+            "environment": 7,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 2,
+        "x": 445,
+        "y": 395
+      },
+      {
+        "id": 34,
+        "name": "Phoo 2",
+        "planets": [
+          {
+            "id": 90,
+            "name": "Phoo 2 I",
+            "owner": 0,
+            "parent_star": 34,
+            "mineral_class": 4,
+            "size": 3,
+            "gravity": 3,
+            "environment": 5,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 91,
+            "name": "Phoo 2 II",
+            "owner": 0,
+            "parent_star": 34,
+            "mineral_class": 5,
+            "size": 2,
+            "gravity": 2,
+            "environment": 5,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 92,
+            "name": "Phoo 2 III",
+            "owner": 0,
+            "parent_star": 34,
+            "mineral_class": 4,
+            "size": 3,
+            "gravity": 1,
+            "environment": 5,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 93,
+            "name": "Phoo 2 IV",
+            "owner": 0,
+            "parent_star": 34,
+            "mineral_class": 1,
+            "size": 4,
+            "gravity": 2,
+            "environment": 12,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 94,
+            "name": "Phoo 2 V",
+            "owner": 0,
+            "parent_star": 34,
+            "mineral_class": 5,
+            "size": 2,
+            "gravity": 1,
+            "environment": 4,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 4,
+        "x": 270,
+        "y": 206
+      },
+      {
+        "id": 35,
+        "name": "Orionis 2",
+        "planets": [
+          {
+            "id": 95,
+            "name": "Orionis 2 I",
+            "owner": 0,
+            "parent_star": 35,
+            "mineral_class": 3,
+            "size": 4,
+            "gravity": 1,
+            "environment": 2,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 96,
+            "name": "Orionis 2 II",
+            "owner": 0,
+            "parent_star": 35,
+            "mineral_class": 4,
+            "size": 3,
+            "gravity": 3,
+            "environment": 7,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 97,
+            "name": "Orionis 2 III",
+            "owner": 0,
+            "parent_star": 35,
+            "mineral_class": 3,
+            "size": 4,
+            "gravity": 1,
+            "environment": 3,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 1,
+        "x": 172,
+        "y": 59
+      },
+      {
+        "id": 36,
+        "name": "Ipleeh",
+        "planets": [
+          {
+            "id": 98,
+            "name": "Ipleeh I",
+            "owner": 0,
+            "parent_star": 36,
+            "mineral_class": 5,
+            "size": 1,
+            "gravity": 3,
+            "environment": 11,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 99,
+            "name": "Ipleeh II",
+            "owner": 0,
+            "parent_star": 36,
+            "mineral_class": 5,
+            "size": 4,
+            "gravity": 1,
+            "environment": 12,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 2,
+        "x": 8,
+        "y": 186
+      },
+      {
+        "id": 37,
+        "name": "Mothallah",
+        "planets": [
+          {
+            "id": 100,
+            "name": "Mothallah I",
+            "owner": 0,
+            "parent_star": 37,
+            "mineral_class": 5,
+            "size": 1,
+            "gravity": 3,
+            "environment": 8,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 101,
+            "name": "Mothallah II",
+            "owner": 0,
+            "parent_star": 37,
+            "mineral_class": 2,
+            "size": 5,
+            "gravity": 1,
+            "environment": 7,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 102,
+            "name": "Mothallah III",
+            "owner": 0,
+            "parent_star": 37,
+            "mineral_class": 3,
+            "size": 5,
+            "gravity": 2,
+            "environment": 5,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 103,
+            "name": "Mothallah IV",
+            "owner": 0,
+            "parent_star": 37,
+            "mineral_class": 2,
+            "size": 3,
+            "gravity": 3,
+            "environment": 11,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 3,
+        "x": 237,
+        "y": 141
+      },
+      {
+        "id": 38,
+        "name": "Muliphein",
+        "planets": [
+          {
+            "id": 104,
+            "name": "Muliphein I",
+            "owner": 0,
+            "parent_star": 38,
+            "mineral_class": 2,
+            "size": 4,
+            "gravity": 2,
+            "environment": 2,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 105,
+            "name": "Muliphein II",
+            "owner": 0,
+            "parent_star": 38,
+            "mineral_class": 3,
+            "size": 2,
+            "gravity": 2,
+            "environment": 11,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 1,
+        "x": 14,
+        "y": 388
+      },
+      {
+        "id": 39,
+        "name": "Epsilon",
+        "planets": [
+          {
+            "id": 106,
+            "name": "Epsilon I",
+            "owner": 0,
+            "parent_star": 39,
+            "mineral_class": 4,
+            "size": 4,
+            "gravity": 3,
+            "environment": 10,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 107,
+            "name": "Epsilon II",
+            "owner": 0,
+            "parent_star": 39,
+            "mineral_class": 2,
+            "size": 4,
+            "gravity": 1,
+            "environment": 2,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 108,
+            "name": "Epsilon III",
+            "owner": 0,
+            "parent_star": 39,
+            "mineral_class": 2,
+            "size": 4,
+            "gravity": 1,
+            "environment": 2,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 3,
+        "x": 108,
+        "y": 385
+      },
+      {
+        "id": 40,
+        "name": "Prooldog",
+        "planets": [
+          {
+            "id": 109,
+            "name": "Prooldog I",
+            "owner": 0,
+            "parent_star": 40,
+            "mineral_class": 3,
+            "size": 4,
+            "gravity": 3,
+            "environment": 4,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 110,
+            "name": "Prooldog II",
+            "owner": 0,
+            "parent_star": 40,
+            "mineral_class": 2,
+            "size": 1,
+            "gravity": 2,
+            "environment": 10,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 111,
+            "name": "Prooldog III",
+            "owner": 0,
+            "parent_star": 40,
+            "mineral_class": 1,
+            "size": 4,
+            "gravity": 1,
+            "environment": 11,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 112,
+            "name": "Prooldog IV",
+            "owner": 0,
+            "parent_star": 40,
+            "mineral_class": 4,
+            "size": 3,
+            "gravity": 1,
+            "environment": 12,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 113,
+            "name": "Prooldog V",
+            "owner": 0,
+            "parent_star": 40,
+            "mineral_class": 4,
+            "size": 4,
+            "gravity": 2,
+            "environment": 12,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 2,
+        "x": 397,
+        "y": 197
+      }
+    ],
+    "width": 600,
+    "height": 400
+  },
+  "players": [
+    {
+      "id": 1,
+      "name": "Leandro",
+      "color": "#AF52DE",
+      "race": {
+        "id": 0,
+        "name": "Gnolams",
+        "government": "Dictatorship",
+        "trait_ids": [
+          "money_plus_1",
+          "low_g_world"
+        ],
+        "grants": {
+          "unlocks": {},
+          "modifiers": [
+            {
+              "name": "income_bonus",
+              "value": 1
+            }
+          ]
+        },
+        "stats": {
+          "money_bonus": 1
+        }
+      },
+      "treasury": 10,
+      "tax_rate": 0,
+      "research_points": 0,
+      "researched_techs": [
+        "Starting Colony Infrastructure"
+      ],
+      "available": {
+        "buildings": [
+          "Capitol",
+          "Colony Base",
+          "Star Base",
+          "Marine Barracks",
+          "Transport"
+        ],
+        "hull_sizes": [
+          "Frigate",
+          "Destroyer",
+          "Cruiser",
+          "Battleship"
+        ],
+        "drives": [
+          "None",
+          "Nuclear"
+        ],
+        "armors": [
+          "None",
+          "Titanium"
+        ],
+        "computers": [
+          "None"
+        ],
+        "fuel_cells": [
+          "None",
+          "Standard"
+        ],
+        "shields": [
+          "None"
+        ],
+        "beams": null,
+        "ship_systems": null
+      },
+      "fleets": null,
+      "freighters": 0,
+      "freighters_used": 0,
+      "ship_designs": null,
+      "explored_stars": [
+        1
+      ],
+      "command_points_capacity": 7,
+      "command_points_used": 0,
+      "command_points_remaining": 7,
+      "command_overdraw_bc": 0,
+      "command_points_starting_bonus": 5
+    }
+  ],
+  "fleets": [],
+  "population_transfers": [],
+  "id": "599e0ecb-7e8d-48a2-b78b-a6007b5753bf",
+  "current_turn": 3500,
+  "created_at": "2026-06-09T01:27:26.867160398Z",
+  "resources": null,
+  "pending_colony_bases": {},
+  "pending_colony_ships": {},
+  "pending_artificial_planets": {},
+  "turn_status": {
+    "mode": "simultaneous",
+    "ready_player_ids": [],
+    "waiting_player_ids": [
+      1
+    ],
+    "required_player_ids": [
+      1
+    ]
+  }
+}
