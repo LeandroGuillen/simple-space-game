@@ -33,7 +33,7 @@ type FleetInspectorPanelProps = {
 };
 
 export function FleetInspectorPanel(props: FleetInspectorPanelProps) {
-  const { state, currentPlayer, beginColonyShipColonization, cancelColonyShipColonization } = useAppContext();
+  const { state, currentPlayer, beginColonyShipColonization, cancelColonyShipColonization, beginInvasion, cancelInvasion } = useAppContext();
   const fleetsAtStar = createMemo(() => {
     if (!props.starId) {
       return [];
@@ -127,6 +127,33 @@ export function FleetInspectorPanel(props: FleetInspectorPanelProps) {
   const isColonizing = createMemo(() =>
     state.pendingCommands.colonize.some((command) => command.fleet_id === activeStack()?.fleetId),
   );
+  
+  const canInvadeWithShip = createMemo(() => {
+    const stack = activeStack();
+    const star = system();
+    const player = currentPlayer();
+    return Boolean(
+      stack &&
+        star &&
+        player &&
+        stack.key.startsWith("orbit-") &&
+        stack.ships.some((ship) => ship.type === "transport") &&
+        star.planets.some((planet) => planet.owner !== player.id && planet.owner !== 0),
+    );
+  });
+  
+  const isInvading = createMemo(() =>
+    state.pendingCommands.invade.some((command) => command.fleet_id === activeStack()?.fleetId),
+  );
+
+  const invasionTarget = createMemo(() => {
+    const star = system();
+    const player = currentPlayer();
+    if (!star || !player) {
+      return null;
+    }
+    return star.planets.find((planet) => planet.owner !== player.id && planet.owner !== 0) || null;
+  });
   const selectedFuelRange = createMemo(() => {
     const stack = activeStack();
     if (!stack) {
@@ -231,7 +258,11 @@ export function FleetInspectorPanel(props: FleetInspectorPanelProps) {
                       ? "Colonizing a planet"
                       : ship.type === "colony_ship"
                         ? "Colony Ship"
-                        : ship.name}
+                        : ship.type === "transport" && isInvading()
+                          ? "Preparing invasion"
+                          : ship.type === "transport"
+                            ? "Transport"
+                            : ship.name}
                   </strong>
                 </article>
               )}
@@ -267,6 +298,24 @@ export function FleetInspectorPanel(props: FleetInspectorPanelProps) {
                 }
               >
                 {isColonizing() ? "Cancel Colonization" : "Colonize Planet"}
+              </button>
+            </Show>
+            <Show when={canInvadeWithShip() || isInvading()}>
+              <button
+                class={isInvading() ? "secondary-button" : "primary-button"}
+                type="button"
+                disabled={state.isBusy}
+                onClick={() => {
+                  const stack_val = stack();
+                  const target = invasionTarget();
+                  if (isInvading()) {
+                    cancelInvasion(stack_val.fleetId);
+                  } else if (target) {
+                    beginInvasion(stack_val.fleetId, target.id);
+                  }
+                }}
+              >
+                {isInvading() ? "Cancel Invasion" : "Invade Planet"}
               </button>
             </Show>
           </div>

@@ -46,6 +46,12 @@ type TransferPopulationCommand struct {
 	PopulationUnits     uint `json:"population_units"`
 }
 
+type InvadeCommand struct {
+	FleetID        uint    `json:"fleet_id"`
+	TargetPlanetID uint    `json:"target_planet_id"`
+	ShipIndexes    *[]uint `json:"ship_indexes,omitempty"`
+}
+
 type Commands struct {
 	Build                []*BuildCommand              `json:"build"`
 	MovePopulation       []*MovePopulationCommand     `json:"movePopulation,omitempty"`
@@ -57,6 +63,7 @@ type Commands struct {
 	ArtificialPlanetMany []*ArtificialPlanetCommand   `json:"artificial_planet_many,omitempty"`
 	ColonyShip           *PrepareColonyShipCommand    `json:"colony_ship,omitempty"`
 	FleetMove            []*FleetMoveCommand          `json:"fleet_move,omitempty"`
+	Invade               []*InvadeCommand             `json:"invade,omitempty"`
 	BuyProduction        []*BuyProductionCommand      `json:"buy_production,omitempty"`
 	MutateRace           *MutateRaceCommand           `json:"mutate_race,omitempty"`
 }

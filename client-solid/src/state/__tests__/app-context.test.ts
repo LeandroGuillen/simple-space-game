@@ -12,6 +12,7 @@ function pendingCommands(overrides: Partial<PendingCommands> = {}): PendingComma
     colonize: [],
     artificialPlanet: [],
     fleetMove: [],
+    invade: [],
     buyProduction: [],
     transferPopulation: [],
     ...overrides,

@@ -762,3 +762,79 @@ func playerHasTech(player *Player, techName string) bool {
 	}
 	return false
 }
+
+func (g *Game) issueInvadeCommands(playerID uint, commands []*InvadeCommand) error {
+	for _, command := range commands {
+		if command == nil {
+			continue
+		}
+		if err := g.issueInvadeCommand(playerID, command); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (g *Game) issueInvadeCommand(playerID uint, command *InvadeCommand) error {
+	// Validate fleet ownership
+	fleet, err := g.getFleet(command.FleetID)
+	if err != nil {
+		return err
+	}
+	if fleet.Owner != playerID {
+		return fmt.Errorf("fleet %d does not belong to player %d", fleet.ID, playerID)
+	}
+
+	// Validate fleet is at destination (not in transit)
+	if fleet.TurnsRemaining > 0 || fleet.DestinationStarID != 0 {
+		return fmt.Errorf("fleet %d is in transit and cannot invade", fleet.ID)
+	}
+
+	// Validate target planet exists
+	planet, err := g.getPlanet(command.TargetPlanetID)
+	if err != nil {
+		return err
+	}
+
+	// Validate planet is at the same star as fleet
+	if planet.ParentStar != fleet.StarID {
+		return fmt.Errorf("planet %d is not at the same star as fleet %d", planet.ID, fleet.ID)
+	}
+
+	// Validate planet is owned by another player (not empty, not same owner)
+	if planet.Owner == 0 {
+		return fmt.Errorf("cannot invade uncolonized planet %d", planet.ID)
+	}
+	if planet.Owner == playerID {
+		return fmt.Errorf("cannot invade your own planet %d", planet.ID)
+	}
+
+	// Validate fleet has transport ships with the specified indexes
+	if command.ShipIndexes != nil {
+		for _, index := range *command.ShipIndexes {
+			if int(index) >= len(fleet.Ships) {
+				return fmt.Errorf("ship index %d is out of range for fleet %d", index, fleet.ID)
+			}
+			ship := fleet.Ships[index]
+			if ship.Type != "transport" {
+				return fmt.Errorf("ship at index %d is not a transport ship", index)
+			}
+		}
+	} else {
+		// If no specific ships specified, check if fleet has any transport ships
+		hasTransport := false
+		for _, ship := range fleet.Ships {
+			if ship.Type == "transport" {
+				hasTransport = true
+				break
+			}
+		}
+		if !hasTransport {
+			return fmt.Errorf("fleet %d has no transport ships for invasion", fleet.ID)
+		}
+	}
+
+	// Invasion command is valid - it will be executed during turn resolution
+	// The actual invasion logic happens in resolveGroundInvasions() during turn processing
+	return nil
+}

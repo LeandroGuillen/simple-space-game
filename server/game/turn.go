@@ -204,6 +204,12 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game, foodRe
 					Name: "Colony Ship",
 					Icon: "🚀",
 				})
+			} else if completedProject == "Transport" {
+				game.addShipToOrbitFleet(player.ID, p.ParentStar, FleetShip{
+					Type: "transport",
+					Name: "Transport",
+					Icon: "🚢",
+				})
 			} else if completedProject == "Freighters" {
 				player.Freighters += 5
 			} else if design, ok := game.findBuildableShipDesign(player, completedProject); ok {
@@ -229,6 +235,9 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game, foodRe
 		// if nothing to work on, save production
 		p.IndustryStack += industryProduced
 	}
+
+	// Produce ground units from barracks buildings
+	produceGroundUnits(p, game, player)
 
 	return nil
 }
@@ -326,6 +335,8 @@ func isAutobuildProject(buildingName string) bool {
 		"Transport",
 		"Freighters",
 		"Spy",
+		"Marine Barracks",
+		"Armor Barracks",
 		"Android Farmers",
 		"Android Workers",
 		"Android Scientists":
@@ -694,7 +705,7 @@ func isEmpireUniqueBuildingLocked(game *Game, ownerID uint, buildingName string,
 }
 
 func isRepeatableProject(buildingName string) bool {
-	return buildingName == "Colony Base" || buildingName == "Colony Ship" || buildingName == "Freighters" || buildingName == artificialPlanetProject || isTerraformingProject(buildingName)
+	return buildingName == "Colony Base" || buildingName == "Colony Ship" || buildingName == "Transport" || buildingName == "Freighters" || buildingName == artificialPlanetProject || isTerraformingProject(buildingName)
 }
 
 // BuyProductionCost returns the treasury cost (in BC) to immediately finish a build project
@@ -748,4 +759,47 @@ func applyBuyProduction(p *Planet, player *Player, game *Game) error {
 	p.IndustryStack = 0
 	p.BuildBucket = 0
 	return nil
+}
+
+// produceGroundUnits adds marines and armored units based on building modifiers
+func produceGroundUnits(p *Planet, game *Game, player *Player) {
+	if game == nil || game.Resources == nil || game.Resources.BuildingCollection == nil {
+		return
+	}
+
+	marineProduction := int64(0)
+	armoredProduction := int64(0)
+
+	// Check buildings for ground unit production modifiers
+	for _, buildingName := range p.Buildings {
+		if building, err := getBuildingFromName(game, buildingName); err == nil {
+			marineProduction += groundUnitModifierValue(building.Grants.Modifiers, "marine_production")
+			armoredProduction += groundUnitModifierValue(building.Grants.Modifiers, "armored_production")
+		}
+	}
+
+	// Check technologies for ground unit production bonuses
+	if game.Resources.TechTree != nil && player != nil {
+		for _, techName := range player.ResearchedTechs {
+			if tech, ok := game.findTechDefinition(techName); ok {
+				marineProduction += groundUnitModifierValue(tech.Grants.Modifiers, "marine_production")
+				armoredProduction += groundUnitModifierValue(tech.Grants.Modifiers, "armored_production")
+			}
+		}
+	}
+
+	// Add produced units to planet
+	p.Marines += marineProduction
+	p.Armored += armoredProduction
+}
+
+// groundUnitModifierValue extracts ground unit production values from modifier lists
+func groundUnitModifierValue(modifiers []Modifier, modifierName string) int64 {
+	total := int64(0)
+	for _, modifier := range modifiers {
+		if modifier.Name == modifierName {
+			total += int64(modifier.Value)
+		}
+	}
+	return total
 }

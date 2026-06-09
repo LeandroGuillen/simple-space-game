@@ -5,7 +5,7 @@
     "hidden": true,
     "grants": {
       "unlocks": {
-        "buildings": ["Capitol", "Colony Base", "Star Base", "Marine Barracks"],
+        "buildings": ["Capitol", "Colony Base", "Star Base", "Marine Barracks", "Transport"],
         "hull_sizes": ["Frigate", "Destroyer", "Cruiser", "Battleship"],
         "drives": ["None", "Nuclear"],
         "armors": ["None", "Titanium"],

@@ -28,7 +28,7 @@ func TestNewGameStartsWithDefaultBuildingsAvailableFromStartingTech(t *testing.T
 
 	player := game.Players[0]
 	assert.Contains(t, player.ResearchedTechs, startingColonyInfrastructureTech)
-	assert.Equal(t, []string{"Capitol", "Colony Base", "Star Base", "Marine Barracks"}, player.Available.Buildings)
+		assert.Equal(t, []string{"Capitol", "Colony Base", "Star Base", "Marine Barracks", "Transport"}, player.Available.Buildings)
 	assert.Contains(t, player.Available.Drives, "Nuclear")
 	assert.Contains(t, player.Available.Armors, "Titanium")
 }

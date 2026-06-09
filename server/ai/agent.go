@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"slices"
 	"sync"
 	"time"
 )
@@ -185,9 +186,9 @@ func (a *Agent) recordSnapshot(vg *VisibleGame) {
 	a.snapshot = vg
 	a.lastTurn = vg.CurrentTurn
 	a.lastErr = ""
-	if playerIDIn(vg.TurnStatus.WaitingPlayerIDs, a.Client.PlayerID) {
+	if slices.Contains(vg.TurnStatus.WaitingPlayerIDs, a.Client.PlayerID) {
 		a.status = StatusWaiting
-	} else if playerIDIn(vg.TurnStatus.ReadyPlayerIDs, a.Client.PlayerID) {
+	} else if slices.Contains(vg.TurnStatus.ReadyPlayerIDs, a.Client.PlayerID) {
 		a.status = StatusReady
 	}
 	a.mu.Unlock()
@@ -270,7 +271,7 @@ func (a *Agent) consume(ctx context.Context, updates <-chan *VisibleGame) {
 // is idempotent: once we've submitted for this turn the server moves us to
 // ready_player_ids and we'll early-return on subsequent updates.
 func (a *Agent) maybeAct(ctx context.Context, vg *VisibleGame) {
-	if !playerIDIn(vg.TurnStatus.WaitingPlayerIDs, a.Client.PlayerID) {
+	if !slices.Contains(vg.TurnStatus.WaitingPlayerIDs, a.Client.PlayerID) {
 		return
 	}
 	// Wait so fast turn cycles don't spam the server and UI. Re-check pause

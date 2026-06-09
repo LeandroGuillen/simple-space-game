@@ -5,7 +5,7 @@ import { ApiClient, parseGameUpdate } from '../lib/api';
 import { mapGame, mapPlayerColorOptions } from '../lib/mappers';
 import type { ApiGameListItem, NewGameOptions } from '../lib/types/api';
 import type { BuildingViewModel, GameViewModel, PlayerColorOptions, ShipDesignForm } from '../lib/types/domain';
-import type { ArtificialPlanetCommand, ColonizeCommand, FleetMoveCommand, MovePopulationCommand, PendingCommands, SelectResearchCommand, TransferPopulationCommand, TurnCommands } from '../lib/types/commands';
+import type { ArtificialPlanetCommand, ColonizeCommand, FleetMoveCommand, InvadeCommand, MovePopulationCommand, PendingCommands, SelectResearchCommand, TransferPopulationCommand, TurnCommands } from '../lib/types/commands';
 import {
   clearSessionLastSetupServerUrl,
   getInitialSetupSelectedServerUrl,
@@ -99,6 +99,9 @@ type AppContextValue = {
   addTransferPopulationCommand: (command: TransferPopulationCommand) => void;
   addFleetMoveCommand: (command: FleetMoveCommand) => void;
   addColonizeCommand: (command: ColonizeCommand) => void;
+  addInvadeCommand: (command: InvadeCommand) => void;
+  beginInvasion: (fleetId: number, planetId: number) => void;
+  cancelInvasion: (fleetId: number) => void;
   beginColonyShipColonization: (fleetId: number) => void;
   cancelColonyShipColonization: (fleetId: number) => void;
   selectColonizeTarget: (planetId: number) => void;
@@ -159,6 +162,7 @@ export function AppProvider(props: ParentProps) {
     selectResearch: undefined,
     colonize: [],
     artificialPlanet: [],
+    invade: [],
     buyProduction: [],
     mutateRace: undefined,
   });
@@ -572,6 +576,52 @@ export function AppProvider(props: ParentProps) {
     setState('info', 'Colonize command queued for next turn');
   }
 
+  function addInvadeCommand(command: InvadeCommand) {
+    // Clear any existing fleet move commands for this fleet
+    setState('pendingCommands', 'fleetMove', (commands) =>
+      commands.filter((item) => item.fleet_id !== command.fleet_id),
+    );
+    // Add invasion command, replacing any existing invasion by this fleet or to this planet
+    setState('pendingCommands', 'invade', (commands) => [
+      ...commands.filter((item) => item.fleet_id !== command.fleet_id && item.target_planet_id !== command.target_planet_id),
+      command,
+    ]);
+    setState('info', 'Invasion command queued for next turn');
+  }
+
+  function beginInvasion(fleetId: number, planetId: number) {
+    const game = state.game;
+    const fleet = game?.fleets.find((f) => f.id === fleetId);
+    if (!fleet) {
+      return;
+    }
+    
+    // Find transport ships in the fleet
+    const transportIndexes = fleet.ships
+      .map((ship, index) => ({ ship, index }))
+      .filter(({ ship }) => ship.type === 'transport')
+      .map(({ index }) => index);
+    
+    if (transportIndexes.length === 0) {
+      setState('error', 'No transport ships available for invasion');
+      return;
+    }
+
+    addInvadeCommand({
+      fleet_id: fleetId,
+      target_planet_id: planetId,
+      ship_indexes: transportIndexes,
+    });
+  }
+
+  function cancelInvasion(fleetId: number) {
+    if (!state.pendingCommands.invade.some((command) => command.fleet_id === fleetId)) {
+      return;
+    }
+    setState('pendingCommands', 'invade', (commands) => commands.filter((command) => command.fleet_id !== fleetId));
+    setState('info', 'Invasion cancelled');
+  }
+
   function selectColonizeTarget(planetId: number) {
     const game = state.game;
     const target = game ? findPlanet(game, planetId) : null;
@@ -972,6 +1022,9 @@ export function AppProvider(props: ParentProps) {
     addTransferPopulationCommand,
     addFleetMoveCommand,
     addColonizeCommand,
+    addInvadeCommand,
+    beginInvasion,
+    cancelInvasion,
     beginColonyShipColonization,
     cancelColonyShipColonization,
     selectColonizeTarget,
@@ -1028,6 +1081,17 @@ export function toTurnCommands(commands: PendingCommands, game: GameViewModel | 
     turnCommands.fleet_move = fleetMoveCommands.map((cmd) => ({
       fleet_id: cmd.fleet_id,
       destination_star_id: cmd.destination_star_id,
+      ship_indexes: [...cmd.ship_indexes],
+    }));
+  }
+
+  const invadeCommands = commands.invade.filter(
+    (command) => existingFleetIds == null || existingFleetIds.has(command.fleet_id),
+  );
+  if (invadeCommands.length > 0) {
+    turnCommands.invade = invadeCommands.map((cmd) => ({
+      fleet_id: cmd.fleet_id,
+      target_planet_id: cmd.target_planet_id,
       ship_indexes: [...cmd.ship_indexes],
     }));
   }

@@ -49,12 +49,3 @@ func myFleets(snapshot *VisibleGame, playerID uint) []*model.Fleet {
 	}
 	return out
 }
-
-func playerIDIn(ids []uint, id uint) bool {
-	for _, x := range ids {
-		if x == id {
-			return true
-		}
-	}
-	return false
-}

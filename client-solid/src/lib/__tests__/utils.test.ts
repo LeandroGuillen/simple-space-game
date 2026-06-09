@@ -498,6 +498,7 @@ describe("getColonyRows", () => {
         fleetMove: [],
         colonize: [],
         artificialPlanet: [],
+        invade: [],
         buyProduction: [],
         selectResearch: undefined,
         movePopulation: [
@@ -580,6 +581,7 @@ describe("getEmpireFoodBalance", () => {
         fleetMove: [],
         colonize: [],
         artificialPlanet: [],
+        invade: [],
         buyProduction: [],
         selectResearch: undefined,
         movePopulation: [

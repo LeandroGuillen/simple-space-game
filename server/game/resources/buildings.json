@@ -25,6 +25,14 @@
       "maintenance": 0
     },
     {
+      "name": "Transport",
+      "description": "Builds a transport ship capable of carrying marines for planetary invasions.",
+      "icon": "🚢",
+      "built_on": "PLANET",
+      "cost": 250,
+      "maintenance": 0
+    },
+    {
       "name": "Star Base",
       "description": "Orbital defensive satellite that provides planet defense and scanning.",
       "built_on": "PLANET",
@@ -312,7 +320,7 @@
     },
     {
       "name": "Marine Barracks",
-      "description": "Produces Marines and enables planetary invasions.",
+      "description": "Produces Marines for planetary defense and invasions.",
       "built_on": "PLANET",
       "grants": {
         "modifiers": [

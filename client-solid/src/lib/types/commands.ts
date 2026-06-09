@@ -32,6 +32,12 @@ export type FleetMoveCommand = {
   ship_indexes: number[];
 };
 
+export type InvadeCommand = {
+  fleet_id: number;
+  target_planet_id: number;
+  ship_indexes: number[];
+};
+
 export type BuyProductionCommand = {
   planetId: number;
 };
@@ -54,6 +60,7 @@ export type PendingCommands = {
   colonize: ColonizeCommand[];
   artificialPlanet: ArtificialPlanetCommand[];
   fleetMove: FleetMoveCommand[];
+  invade: InvadeCommand[];
   buyProduction: BuyProductionCommand[];
   mutateRace?: MutateRaceCommand;
 };
@@ -74,6 +81,7 @@ export type TurnCommands = {
   artificial_planet?: ArtificialPlanetCommand;
   artificial_planet_many?: ArtificialPlanetCommand[];
   fleet_move?: FleetMoveCommand[];
+  invade?: InvadeCommand[];
   buy_production?: BuyProductionCommand[];
   transfer_population?: TransferPopulationCommand[];
   mutate_race?: MutateRaceCommand;
