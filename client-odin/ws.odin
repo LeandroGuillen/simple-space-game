@@ -24,14 +24,16 @@ WS_Args :: struct {
 	path:      string, // includes ?game_id=…&player_id=…
 	game_id:   string,
 	player_id: int,
+	gen:       int,     // session generation this reader belongs to
 }
 
-ws_start :: proc(c: ^Api_Client, game_id: string) {
+ws_start :: proc(c: ^Api_Client, game_id: string, gen: int) {
 	args := new(WS_Args)
 	args.host = c.host
 	args.port = c.port
 	args.game_id = game_id
 	args.player_id = c.player_id
+	args.gen = gen
 
 	pid_buf := make([]byte, 16)
 	pid_s := strconv.write_int(pid_buf, i64(c.player_id), 10)
@@ -71,7 +73,7 @@ ws_reader_thread :: proc(args: ^WS_Args) {
 			fmt.eprintfln("ws: decode error: %v", err)
 			continue
 		}
-		ws_set_game(msg.game_update)
+		ws_set_game(msg.game_update, args.gen)
 		// NOTE: This leaks the old snapshot's allocations because we
 		// reuse the default allocator for everything. For an MVP that's
 		// fine — the deltas are small JSON objects, not hundreds of MB.

@@ -99,23 +99,91 @@ Api_Game_Update :: struct {
 	game_update: Api_Game `json:"game_update"`,
 }
 
-// Turn POST body. The server's Commands struct has many optional sub-fields;
-// for the MVP we only send fleet_move. JSON marshal in core:encoding/json
-// does not omit zero values by default, so we keep this struct minimal —
-// only what we want to actually send.
-Turn_Commands_Body :: struct {
-	fleet_move: []Fleet_Move_Command `json:"fleet_move"`,
+// The /turn command sub-structs below mirror the server's `model.Commands`
+// (server/model/commands.go) and the web client's TurnCommands
+// (client-solid/src/lib/types/commands.ts). The commands *object* itself is
+// assembled by hand in commands.odin (build_turn_body) rather than via a
+// single struct marshal, because Odin's json.marshal cannot serialise
+// non-nil pointer fields — so optional singular commands can't be modelled
+// as pointers. Manual assembly emits only the command kinds actually queued
+// and lets us keep the server's exact (and deliberately inconsistent) keys:
+// `movePopulation`/`selectResearch` are camelCase, the rest snake_case.
+
+Build_Command :: struct {
+	planet_id:   int      `json:"planetId"`,
+	building:    string   `json:"building"`,
+	build_queue: []string `json:"build_queue,omitempty"`,
 }
 
+Move_Population_Command :: struct {
+	planet_id:  int `json:"planetId"`,
+	farmers:    int `json:"farmers"`,
+	workers:    int `json:"workers"`,
+	scientists: int `json:"scientists"`,
+}
+
+Transfer_Population_Command :: struct {
+	source_planet_id:      int `json:"source_planet_id"`,
+	destination_planet_id: int `json:"destination_planet_id"`,
+	population_units:      int `json:"population_units"`,
+}
+
+Select_Research_Command :: struct {
+	tech_name: string `json:"tech_name"`,
+}
+
+Colonize_Command :: struct {
+	planet_id: int `json:"planet_id"`,
+	fleet_id:  int `json:"fleet_id,omitempty"`,
+}
+
+Artificial_Planet_Command :: struct {
+	source_planet_id: int `json:"source_planet_id,omitempty"`,
+	target_planet_id: int `json:"target_planet_id"`,
+}
+
+Invade_Command :: struct {
+	fleet_id:         int   `json:"fleet_id"`,
+	target_planet_id: int   `json:"target_planet_id"`,
+	ship_indexes:     []int `json:"ship_indexes,omitempty"`,
+}
+
+Buy_Production_Command :: struct {
+	planet_id: int `json:"planetId"`,
+}
+
+Mutate_Race_Command :: struct {
+	trait_ids: []string `json:"trait_ids"`,
+}
+
+// ship_indexes uses omitempty so an empty slice is omitted entirely: the
+// server treats an omitted field as "move the whole fleet", but an empty
+// array (`[]`) as "no ships selected" and rejects it. So: empty => whole
+// fleet, populated => exactly those ship indexes.
 Fleet_Move_Command :: struct {
 	fleet_id:            int   `json:"fleet_id"`,
 	destination_star_id: int   `json:"destination_star_id"`,
-	ship_indexes:        []int `json:"ship_indexes"`,
+	ship_indexes:        []int `json:"ship_indexes,omitempty"`,
 }
 
-Turn_Request :: struct {
-	game_id:  string             `json:"game_id"`,
-	commands: Turn_Commands_Body `json:"commands"`,
+// POST /games body. All fields omitempty; the server fills sensible
+// defaults for anything left out (see handler.NewGameRequest).
+New_Game_Request :: struct {
+	num_stars:    int    `json:"num_stars,omitempty"`,
+	player_name:  string `json:"player_name,omitempty"`,
+	player_color: string `json:"player_color,omitempty"`,
+	difficulty:   string `json:"difficulty,omitempty"`,
+	galaxy_size:  string `json:"galaxy_size,omitempty"`,
+	galaxy_age:   string `json:"galaxy_age,omitempty"`,
+	players:      int    `json:"players,omitempty"`,
+	tech_level:   string `json:"tech_level,omitempty"`,
+	race:         string `json:"race,omitempty"`,
+}
+
+// POST /games response: {"ok": true, "gameID": "..."}.
+New_Game_Response :: struct {
+	ok:      bool   `json:"ok"`,
+	game_id: string `json:"gameID"`,
 }
 
 Api_Turn_Response :: struct {

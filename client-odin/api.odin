@@ -3,6 +3,7 @@ package main
 import "core:encoding/json"
 import "core:fmt"
 import "core:strconv"
+import "core:strings"
 
 // Typed wrappers over the HTTP client. Mirrors the endpoints used by
 // client-solid/src/lib/api.ts.
@@ -73,13 +74,30 @@ api_get_game :: proc(c: ^Api_Client, game_id: string, allocator := context.alloc
 	return out, true
 }
 
-api_end_turn :: proc(c: ^Api_Client, game_id: string, commands: Turn_Commands_Body) -> (Api_Turn_Response, bool) {
-	req := Turn_Request{game_id = game_id, commands = commands}
+api_create_game :: proc(c: ^Api_Client, req: New_Game_Request) -> (string, bool) {
 	body, merr := json.marshal(req, allocator = context.temp_allocator)
 	if merr != nil {
-		fmt.eprintfln("api: marshal turn: %v", merr)
-		return {}, false
+		fmt.eprintfln("api: marshal new-game: %v", merr)
+		return "", false
 	}
+	resp, ok := http_post_json(c.host, c.port, "/games", body, nil, context.temp_allocator)
+	if !ok do return "", false
+	if resp.status_code != 200 {
+		fmt.eprintfln("api: POST /games -> %d: %s", resp.status_code, string(resp.body))
+		return "", false
+	}
+	out: New_Game_Response
+	if err := json.unmarshal(resp.body, &out, allocator = context.temp_allocator); err != nil {
+		fmt.eprintfln("api: /games create decode: %v", err)
+		return "", false
+	}
+	// game_id must outlive the temp allocator: copy into the caller's context.
+	return strings.clone(out.game_id), out.game_id != ""
+}
+
+// Submits the current pending-command buffer as a single /turn POST.
+api_end_turn :: proc(c: ^Api_Client, game_id: string) -> (Api_Turn_Response, bool) {
+	body := build_turn_body(game_id, context.temp_allocator)
 	resp, ok := http_post_json(c.host, c.port, "/turn", body, game_headers(c, game_id), context.temp_allocator)
 	if !ok do return {}, false
 	if resp.status_code != 200 {

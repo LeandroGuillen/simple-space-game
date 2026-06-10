@@ -42,15 +42,18 @@ run_endturn :: proc(c: ^Api_Client, game_id_arg: string) {
 		game_id = games[0].game_id
 	}
 	fmt.printfln("endturn: posting empty commands to game %s", game_id)
-	resp, ok := api_end_turn(c, game_id, Turn_Commands_Body{})
+	resp, ok := api_end_turn(c, game_id)
 	if !ok {
 		fmt.eprintln("endturn: request failed")
 		return
 	}
-	fmt.printfln("endturn: ok=%v advanced=%v ready=%v waiting=%v",
-		resp.ok, resp.advanced,
+	fmt.printfln(
+		"endturn: ok=%v advanced=%v ready=%v waiting=%v",
+		resp.ok,
+		resp.advanced,
 		resp.turn_status.ready_player_ids,
-		resp.turn_status.waiting_player_ids)
+		resp.turn_status.waiting_player_ids,
+	)
 }
 
 run_m1 :: proc(c: ^Api_Client) {
