@@ -22,7 +22,8 @@ Api_Game_List_Player :: struct {
 Api_Game_List_Item :: struct {
 	game_id:      string                 `json:"game_id"`,
 	num_stars:    int                    `json:"num_stars"`,
-	current_turn: int                    `json:"current_turn"`,
+	// Fractional: turn processing advances it by 0.1 (stardate-style).
+	current_turn: f64                    `json:"current_turn"`,
 	players:      []Api_Game_List_Player `json:"players"`,
 }
 
@@ -45,6 +46,7 @@ Api_Planet :: struct {
 	max_population:       int `json:"max_population"`,
 	last_turn_pop_growth: int `json:"last_turn_pop_growth"`,
 	marines:              int `json:"marines"`,
+	armor:                int `json:"armor"`,
 
 	food:     Api_Food_Output     `json:"food"`,
 	industry: Api_Industry_Output `json:"industry"`,
@@ -119,12 +121,37 @@ Api_Fleet :: struct {
 	ships:                []Api_Fleet_Ship `json:"ships"`,
 }
 
+// Per-player race info (server embeds this under the "race" key).
+Api_Race :: struct {
+	name:       string   `json:"name"`,
+	government: string   `json:"government"`,
+	trait_ids:  []string `json:"trait_ids"`,
+}
+
+// What the player is currently researching. The server omits the whole
+// object when idle, so a zero value (subject == "") means "no project".
+Api_Research_Project :: struct {
+	subject:    string `json:"subject"`,
+	tech_name:  string `json:"tech_name"`,
+	level_name: string `json:"level_name"`,
+	progress:   int    `json:"progress"`,
+}
+
 Api_Player :: struct {
 	id:        int           `json:"id"`,
 	name:      string        `json:"name"`,
 	color:     string        `json:"color"`,
+	race:      Api_Race      `json:"race"`,
 	treasury:  f64           `json:"treasury"`,
 	available: Api_Available `json:"available"`,
+
+	research_points:  int                  `json:"research_points"`,
+	current_research: Api_Research_Project `json:"current_research"`,
+	researched_techs: []string             `json:"researched_techs"`,
+	hyper_advanced:   map[string]int       `json:"hyper_advanced"`,
+
+	evolutionary_mutation_points:    int  `json:"evolutionary_mutation_points"`,
+	has_used_evolutionary_mutation:  bool `json:"has_used_evolutionary_mutation"`,
 }
 
 // Per-player unlocked content. Only `buildings` is used so far (the list of
@@ -133,10 +160,43 @@ Api_Available :: struct {
 	buildings: []string `json:"buildings"`,
 }
 
-// Subset of the game's `resources` payload: just the building catalog, which
-// supplies costs/uniqueness for the construction UI.
+// Subset of the game's `resources` payload: the building catalog (costs /
+// uniqueness for the construction UI) plus the tech tree and tech catalog
+// (research choices for the Technology tab).
 Api_Resources :: struct {
 	building_collection: Api_Building_Collection `json:"building_collection"`,
+	tech_tree:           Api_Tech_Tree           `json:"tech_tree"`,
+	tech_collection:     Api_Tech_Collection     `json:"tech_collection"`,
+}
+
+Api_Tech_Tree :: struct {
+	subjects: []Api_Tech_Subject `json:"subjects"`,
+}
+
+Api_Tech_Subject :: struct {
+	name:   string           `json:"name"`,
+	levels: []Api_Tech_Level `json:"levels"`,
+}
+
+Api_Tech_Level :: struct {
+	name:            string   `json:"name"`,
+	cost:            int      `json:"cost"`,
+	force_all:       bool     `json:"force_all"`,
+	available_techs: []string `json:"available_techs"`,
+}
+
+Api_Tech_Collection :: struct {
+	techs: []Api_Tech `json:"techs"`,
+}
+
+Api_Tech :: struct {
+	name:        string   `json:"name"`,
+	description: string   `json:"description"`,
+	type:        string   `json:"type"`,
+	default:     bool     `json:"default"`,
+	upgrades:    []string `json:"upgrades"`,
+	cost:        int      `json:"cost"`,
+	maintenance: int      `json:"maintenance"`,
 }
 
 Api_Building_Collection :: struct {
@@ -156,14 +216,54 @@ Api_Turn_Status :: struct {
 	required_player_ids:[]int  `json:"required_player_ids"`,
 }
 
+// Ground-combat report types (mirror server/model/ground_combat.go). Only
+// what the Fleets tab's invasion summary needs.
+Api_Ground_Unit :: struct {
+	type:     string `json:"type"`,
+	strength: int    `json:"strength"`,
+	health:   int    `json:"health"`,
+	max_hp:   int    `json:"max_hp"`,
+}
+
+Api_Ground_Force :: struct {
+	owner_id: int              `json:"owner_id"`,
+	marines:  []Api_Ground_Unit `json:"marines"`,
+	armored:  []Api_Ground_Unit `json:"armored"`,
+}
+
+Api_Invasion_Report :: struct {
+	id:                int    `json:"id"`,
+	turn:              int    `json:"turn"`,
+	planet_id:         int    `json:"planet_id"`,
+	planet_name:       string `json:"planet_name"`,
+	attacker_owner_id: int    `json:"attacker_owner_id"`,
+	defender_owner_id: int    `json:"defender_owner_id"`,
+	success:           bool   `json:"success"`,
+	planet_captured:   bool   `json:"planet_captured"`,
+	initial_attacker:  Api_Ground_Force `json:"initial_attacker"`,
+	initial_defender:  Api_Ground_Force `json:"initial_defender"`,
+	surviving_units:   Api_Ground_Force `json:"surviving_units"`,
+}
+
 Api_Game :: struct {
 	id:           string         `json:"id"`,
-	current_turn: int            `json:"current_turn"`,
+	// Fractional (e.g. 3500.1 after one processed turn): must be f64 or the
+	// whole game payload fails to decode once any turn has been taken.
+	current_turn: f64            `json:"current_turn"`,
 	galaxy:       Api_Galaxy     `json:"galaxy"`,
 	players:      []Api_Player   `json:"players"`,
 	fleets:       []Api_Fleet    `json:"fleets"`,
 	turn_status:  Api_Turn_Status `json:"turn_status"`,
 	resources:    Api_Resources  `json:"resources"`,
+
+	invasion_reports: []Api_Invasion_Report `json:"invasion_reports"`,
+
+	// playerID (as a JSON-object string key) -> ids. Colony bases / colony
+	// ship commands / artificial planet projects that completed and now
+	// await a target choice from the player.
+	pending_colony_bases:       map[string][]int `json:"pending_colony_bases"`,
+	pending_colony_ships:       map[string][]int `json:"pending_colony_ships"`,
+	pending_artificial_planets: map[string][]int `json:"pending_artificial_planets"`,
 }
 
 Api_Game_Update :: struct {

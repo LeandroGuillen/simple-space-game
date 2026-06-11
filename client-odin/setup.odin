@@ -100,7 +100,7 @@ setup_screen :: proc(s: ^Setup_State, c: ^Api_Client) -> (game_id: string, playe
 
 		short := g.game_id
 		if len(short) > 8 do short = short[:8]
-		title := fmt.ctprintf("%s   turn %d   %d stars", short, g.current_turn, g.num_stars)
+		title := fmt.ctprintf("%s   turn %.1f   %d stars", short, g.current_turn, g.num_stars)
 		rl.DrawText(title, i32(rec.x) + pxi(12), i32(rec.y) + pxi(9), pxi(16), rl.RAYWHITE)
 		sub := fmt.ctprintf("%d player(s)", len(g.players))
 		rl.DrawText(sub, i32(rec.x) + pxi(12), i32(rec.y) + pxi(33), pxi(14), {160, 175, 200, 255})
@@ -218,9 +218,30 @@ setup_draw_create :: proc(s: ^Setup_State, c: ^Api_Client) -> (game_id: string, 
 
 // --- Tiny immediate-mode widgets (shared with ui.odin) ---
 
-gui_button :: proc(rec: rl.Rectangle, label: cstring, enabled := true) -> bool {
+// Optional clip rectangle for widgets drawn inside a scissored/scrolling
+// region: while active, buttons outside it neither hover nor click (the
+// scissor already hides their pixels; this hides their hitboxes too).
+ui_clip_on: bool
+ui_clip: rl.Rectangle
+
+// Optional modal rectangle: while a modal (e.g. the research popup) is open,
+// only widgets inside it respond. Top-level chrome that must stay clickable
+// (the popup's own opener button) checks hover manually instead.
+ui_modal_on: bool
+ui_modal_rect: rl.Rectangle
+
+// Hit-test for hand-rolled hoverable rows and gui_button: collision with
+// `rec`, limited by the active clip and modal regions.
+ui_hover :: proc(rec: rl.Rectangle) -> bool {
 	mp := rl.GetMousePosition()
-	hover := rl.CheckCollisionPointRec(mp, rec)
+	if !rl.CheckCollisionPointRec(mp, rec) do return false
+	if ui_clip_on && !rl.CheckCollisionPointRec(mp, ui_clip) do return false
+	if ui_modal_on && !rl.CheckCollisionPointRec(mp, ui_modal_rect) do return false
+	return true
+}
+
+gui_button :: proc(rec: rl.Rectangle, label: cstring, enabled := true) -> bool {
+	hover := ui_hover(rec)
 	bg := rl.Color{40, 48, 66, 255}
 	if !enabled {
 		bg = {28, 32, 42, 255}

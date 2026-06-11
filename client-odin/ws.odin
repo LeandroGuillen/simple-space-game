@@ -8,6 +8,7 @@ import "core:net"
 import "core:strconv"
 import "core:strings"
 import "core:thread"
+import "core:time"
 
 // Minimal RFC 6455 WebSocket client, text frames only.
 // 1. HTTP/1.1 GET with Upgrade headers -> expect 101.
@@ -46,27 +47,43 @@ ws_start :: proc(c: ^Api_Client, game_id: string, gen: int) {
 ws_reader_thread :: proc(args: ^WS_Args) {
 	defer free(args)
 
-	sock, ok := ws_handshake(args.host, args.port, args.path)
-	if !ok {
-		fmt.eprintln("ws: handshake failed")
-		return
-	}
-	defer net.close(sock)
+	// Reconnect loop: keep (re)dialing while this reader's session
+	// generation is still live. After each successful handshake, pull a
+	// REST snapshot so state missed while disconnected is recovered (the
+	// server only pushes on changes).
+	first := true
+	for ws_gen_is_current(args.gen) {
+		if !first do time.sleep(2 * time.Second)
+		first = false
 
-	// Frame loop
+		sock, ok := ws_handshake(args.host, args.port, args.path)
+		if !ok {
+			fmt.eprintln("ws: handshake failed, retrying...")
+			continue
+		}
+
+		client := Api_Client{host = args.host, port = args.port, player_id = args.player_id}
+		if game, gok := api_get_game(&client, args.game_id); gok {
+			ws_set_game(game, args.gen)
+		}
+
+		ws_frame_loop(sock, args)
+		net.close(sock)
+		if ws_gen_is_current(args.gen) do fmt.eprintln("ws: connection closed, reconnecting...")
+	}
+}
+
+@(private="file")
+ws_frame_loop :: proc(sock: net.TCP_Socket, args: ^WS_Args) {
 	rx := make([dynamic]byte, 0, 1 << 16)
 	defer delete(rx)
 
 	for {
 		payload, frame_ok := ws_read_text_frame(sock, &rx)
-		if !frame_ok {
-			fmt.eprintln("ws: connection closed")
-			return
-		}
+		if !frame_ok do return
 		if len(payload) == 0 do continue
 
 		// The server sends {"game_update": {...}} on every state change.
-		// Pre-allocate a single Api_Game_Update for each message.
 		msg: Api_Game_Update
 		err := json.unmarshal(payload, &msg)
 		if err != nil {
