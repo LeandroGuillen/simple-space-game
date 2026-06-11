@@ -74,6 +74,25 @@ api_get_game :: proc(c: ^Api_Client, game_id: string, allocator := context.alloc
 	return out, true
 }
 
+// Toggles a planet's autobuild flag. This is a standalone PUT (not part of the
+// turn batch) and takes effect immediately on the server.
+api_set_autobuild :: proc(c: ^Api_Client, game_id: string, planet_id: int, enabled: bool) -> bool {
+	body: string
+	if enabled {
+		body = `{"enabled":true}`
+	} else {
+		body = `{"enabled":false}`
+	}
+	path := fmt.tprintf("/planets/%d/autobuild", planet_id)
+	resp, ok := http_request(c.host, c.port, "PUT", path, game_headers(c, game_id), transmute([]byte)body, context.temp_allocator)
+	if !ok do return false
+	if resp.status_code != 200 {
+		fmt.eprintfln("api: PUT /planets/%d/autobuild -> %d: %s", planet_id, resp.status_code, string(resp.body))
+		return false
+	}
+	return true
+}
+
 api_create_game :: proc(c: ^Api_Client, req: New_Game_Request) -> (string, bool) {
 	body, merr := json.marshal(req, allocator = context.temp_allocator)
 	if merr != nil {

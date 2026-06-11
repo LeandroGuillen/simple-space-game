@@ -35,9 +35,55 @@ Api_Planet :: struct {
 	name:         string `json:"name"`,
 	owner:        int    `json:"owner"`,
 	parent_star:  int    `json:"parent_star"`,
-	size:         int    `json:"size"`,
-	population:   int    `json:"population"`,
-	marines:      int    `json:"marines"`,
+
+	mineral_class: int `json:"mineral_class"`,
+	size:          int `json:"size"`,
+	gravity:       int `json:"gravity"`,
+	environment:   int `json:"environment"`,
+
+	population:           int `json:"population"`,
+	max_population:       int `json:"max_population"`,
+	last_turn_pop_growth: int `json:"last_turn_pop_growth"`,
+	marines:              int `json:"marines"`,
+
+	food:     Api_Food_Output     `json:"food"`,
+	industry: Api_Industry_Output `json:"industry"`,
+	science:  Api_Science_Output  `json:"science"`,
+	income:   Api_Income_Output   `json:"income"`,
+
+	current_project: string   `json:"current_project"`,
+	build_queue:     []string `json:"build_queue"`,
+	buildings:       []string `json:"buildings"`,
+	build_bucket:    int      `json:"build_bucket"`,
+	industry_stack:  int      `json:"industry_stack"`,
+	is_building:     bool     `json:"is_building"`,
+	autobuild:       bool     `json:"autobuild"`,
+}
+
+Api_Food_Output :: struct {
+	farmers:               int `json:"farmers"`,
+	produced_per_farmer:   int `json:"produced_per_farmer"`,
+	produced_per_building: int `json:"produced_per_building"`,
+}
+
+Api_Industry_Output :: struct {
+	workers:               int `json:"workers"`,
+	produced_per_worker:   int `json:"produced_per_worker"`,
+	produced_per_building: int `json:"produced_per_building"`,
+}
+
+Api_Science_Output :: struct {
+	scientists:            int `json:"scientists"`,
+	produced_per_scientist:int `json:"produced_per_scientist"`,
+	produced_per_building: int `json:"produced_per_building"`,
+}
+
+Api_Income_Output :: struct {
+	taxes:       int `json:"taxes"`,
+	buildings:   int `json:"buildings"`,
+	trade_goods: int `json:"trade_goods"`,
+	maintenance: int `json:"maintenance"`,
+	total:       int `json:"total"`,
 }
 
 Api_Star :: struct {
@@ -51,8 +97,8 @@ Api_Star :: struct {
 
 Api_Galaxy :: struct {
 	stars:  []Api_Star `json:"stars"`,
-	width:  i64        `json:"width"`,
-	height: i64        `json:"height"`,
+	width:  f64        `json:"width"`,
+	height: f64        `json:"height"`,
 }
 
 Api_Fleet_Ship :: struct {
@@ -74,9 +120,33 @@ Api_Fleet :: struct {
 }
 
 Api_Player :: struct {
-	id:    int    `json:"id"`,
-	name:  string `json:"name"`,
-	color: string `json:"color"`,
+	id:        int           `json:"id"`,
+	name:      string        `json:"name"`,
+	color:     string        `json:"color"`,
+	treasury:  f64           `json:"treasury"`,
+	available: Api_Available `json:"available"`,
+}
+
+// Per-player unlocked content. Only `buildings` is used so far (the list of
+// buildings the player may construct).
+Api_Available :: struct {
+	buildings: []string `json:"buildings"`,
+}
+
+// Subset of the game's `resources` payload: just the building catalog, which
+// supplies costs/uniqueness for the construction UI.
+Api_Resources :: struct {
+	building_collection: Api_Building_Collection `json:"building_collection"`,
+}
+
+Api_Building_Collection :: struct {
+	buildings: []Api_Building `json:"buildings"`,
+}
+
+Api_Building :: struct {
+	name:   string `json:"name"`,
+	cost:   int    `json:"cost"`,
+	unique: bool   `json:"unique"`,
 }
 
 Api_Turn_Status :: struct {
@@ -93,6 +163,7 @@ Api_Game :: struct {
 	players:      []Api_Player   `json:"players"`,
 	fleets:       []Api_Fleet    `json:"fleets"`,
 	turn_status:  Api_Turn_Status `json:"turn_status"`,
+	resources:    Api_Resources  `json:"resources"`,
 }
 
 Api_Game_Update :: struct {

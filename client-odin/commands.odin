@@ -63,6 +63,90 @@ enqueue_fleet_move :: proc(fleet_id, destination_star_id: int) {
 	})
 }
 
+// --- Population (move_population) ---------------------------------------
+//
+// The wire command carries absolute farmer/worker/scientist counts. We seed
+// the queued allocation from the planet's current split and reallocate within
+// it; the sum stays <= the planet's assignable units.
+
+// The allocation to display/edit for a planet: the queued one if present,
+// otherwise the planet's current split.
+planet_allocation :: proc(p: Api_Planet) -> (farmers, workers, scientists: int) {
+	for c in pending.move_population {
+		if c.planet_id == p.id do return c.farmers, c.workers, c.scientists
+	}
+	return p.food.farmers, p.industry.workers, p.science.scientists
+}
+
+set_planet_allocation :: proc(planet_id, farmers, workers, scientists: int) {
+	for &c in pending.move_population {
+		if c.planet_id == planet_id {
+			c.farmers, c.workers, c.scientists = farmers, workers, scientists
+			return
+		}
+	}
+	append(&pending.move_population, Move_Population_Command{
+		planet_id = planet_id, farmers = farmers, workers = workers, scientists = scientists,
+	})
+}
+
+// --- Construction (build) ----------------------------------------------
+
+// The queued build list for a planet (current project first), if any.
+planet_build_queue :: proc(planet_id: int) -> []string {
+	for c in pending.build {
+		if c.planet_id == planet_id do return c.build_queue
+	}
+	return nil
+}
+
+// Append a building to a planet's queued build list. The first entry is sent
+// as the immediate project. Names are cloned so they survive snapshot churn.
+enqueue_build :: proc(planet_id: int, building: string) {
+	name := strings.clone(building)
+	for &c in pending.build {
+		if c.planet_id == planet_id {
+			q := make([]string, len(c.build_queue) + 1)
+			copy(q, c.build_queue)
+			q[len(c.build_queue)] = name
+			c.build_queue = q
+			c.building = q[0]
+			return
+		}
+	}
+	q := make([]string, 1)
+	q[0] = name
+	append(&pending.build, Build_Command{planet_id = planet_id, building = name, build_queue = q})
+}
+
+clear_build :: proc(planet_id: int) {
+	for i in 0 ..< len(pending.build) {
+		if pending.build[i].planet_id == planet_id {
+			ordered_remove(&pending.build, i)
+			return
+		}
+	}
+}
+
+// --- Buy production (rush) ---------------------------------------------
+
+buy_production_queued :: proc(planet_id: int) -> bool {
+	for c in pending.buy_production {
+		if c.planet_id == planet_id do return true
+	}
+	return false
+}
+
+toggle_buy_production :: proc(planet_id: int) {
+	for i in 0 ..< len(pending.buy_production) {
+		if pending.buy_production[i].planet_id == planet_id {
+			ordered_remove(&pending.buy_production, i)
+			return
+		}
+	}
+	append(&pending.buy_production, Buy_Production_Command{planet_id = planet_id})
+}
+
 // Drop every queued command. Called after a turn is submitted successfully.
 clear_pending :: proc() {
 	clear(&pending.build)

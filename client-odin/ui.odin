@@ -24,6 +24,9 @@ pxi :: proc(v: i32) -> i32 { return i32(f32(v) * ui_scale) }
 // Side-panel width in physical pixels (scaled).
 panel_w :: proc() -> i32 { return pxi(300) }
 
+// Top-bar height in physical pixels (scaled).
+topbar_h :: proc() -> i32 { return pxi(40) }
+
 // Galaxy state shared between WS reader thread and main thread.
 // `current` is replaced atomically (under the mutex) each time a new
 // snapshot arrives. We never mutate fields of an existing snapshot — the
@@ -59,10 +62,21 @@ ws_snapshot :: proc() -> (Api_Game, bool) {
 }
 
 Selection :: struct {
-	star_id:  int,
-	has_star: bool,
-	fleet_id: int,
-	has_fleet:bool,
+	star_id:    int,
+	has_star:   bool,
+	fleet_id:   int,
+	has_fleet:  bool,
+	planet_id:  int,
+	has_planet: bool,
+}
+
+// Actions the panel reports back to run_ui for handling outside the draw pass
+// (turn submission, leaving the game, the immediate autobuild PUT).
+Panel_Action :: struct {
+	end_turn:         bool,
+	back:             bool,
+	autobuild_planet: int, // 0 = none
+	autobuild_value:  bool,
 }
 
 Screen :: enum {
@@ -90,6 +104,10 @@ Turn_Feedback :: struct {
 }
 turn_feedback: Turn_Feedback
 
+// Building picker state: tracks which building is selected per planet.
+build_picker_planet: int // planet currently showing the picker (-1 = none)
+build_picker_index: int  // index into buildable_buildings for that planet
+
 // Join a game: pull an initial REST snapshot (so there's something to draw
 // before the first WS frame) and start the live-update reader thread tagged
 // with a fresh session generation.
@@ -99,6 +117,7 @@ ui_enter_game :: proc(c: ^Api_Client, game_id: string) -> bool {
 		fmt.eprintfln("ui: failed to GET /games/%s", game_id)
 		return false
 	}
+	cache_building_catalog(game)
 	sync.lock(&state_mu)
 	ws_gen += 1
 	gen := ws_gen
@@ -187,17 +206,17 @@ run_ui :: proc(client: ^Api_Client, game_id_arg: string) {
 		vw := f32(rl.GetScreenWidth())
 		vh := f32(rl.GetScreenHeight())
 		map_w := vw - f32(panel_w())
-		// Keep the galaxy centred in the visible (non-panel) area every frame;
-		// this also tracks window resizes for free.
-		camera.offset = {map_w * 0.5, vh * 0.5}
+		top_h := f32(topbar_h())
+		// Keep the galaxy centred in the visible (non-panel, non-topbar) area.
+		camera.offset = {map_w * 0.5, top_h + (vh - top_h) * 0.5}
 
 		if loaded && !camera_initialized {
 			// Center camera on the galaxy bounding box and pick a zoom that
-			// fits all stars roughly within the visible (non-panel) area.
+			// fits all stars roughly within the visible (non-panel, non-topbar) area.
 			cx, cy, span := galaxy_extent(game)
 			camera.target = {f32(cx), f32(cy)}
 			if span > 0 {
-				camera.zoom = min(map_w, vh) / (f32(span) * 1.2)
+				camera.zoom = min(map_w, vh - top_h) / (f32(span) * 1.2)
 			}
 			camera_initialized = true
 		}
@@ -227,9 +246,9 @@ run_ui :: proc(client: ^Api_Client, game_id_arg: string) {
 		// selected, target a star for movement (M6).
 		if rl.IsMouseButtonPressed(.LEFT) {
 			mp := rl.GetMousePosition()
-			if mp.x < map_w && loaded {
+			if mp.x < map_w && mp.y > f32(topbar_h()) && loaded {
 				world := rl.GetScreenToWorld2D(mp, camera)
-				star_id, hit := pick_star(game, world, 18.0 / camera.zoom)
+				star_id, hit := pick_star(game, world, 12.0)
 				if hit {
 					if sel.has_fleet {
 						// Queue the move; it's submitted later via End Turn.
@@ -239,6 +258,20 @@ run_ui :: proc(client: ^Api_Client, game_id_arg: string) {
 					} else {
 						sel.star_id = star_id
 						sel.has_star = true
+						// Auto-select first owned planet at this star.
+						for s in game.galaxy.stars {
+							if s.id == star_id {
+								for p in s.planets {
+									if p.owner == client.player_id {
+										sel.planet_id = p.id
+										sel.has_planet = true
+										active_tab = .Planet
+										break
+									}
+								}
+								break
+							}
+						}
 					}
 				}
 			}
@@ -264,6 +297,9 @@ run_ui :: proc(client: ^Api_Client, game_id_arg: string) {
 		rl.BeginDrawing()
 		rl.ClearBackground({8, 10, 18, 255})
 
+		// Top bar (empire stats)
+		if loaded do draw_top_bar(game, client.player_id)
+
 		rl.BeginMode2D(camera)
 		if loaded {
 			draw_galaxy(game)
@@ -274,7 +310,9 @@ run_ui :: proc(client: ^Api_Client, game_id_arg: string) {
 		rl.EndMode2D()
 
 		// Side panel (screen space). Reports End Turn / Menu clicks.
-		end_turn, back := draw_panel(game, loaded, sel, client.player_id)
+		act := draw_panel(game, loaded, &sel, client.player_id)
+		end_turn := act.end_turn
+		back := act.back
 		if rl.IsKeyPressed(.E) do end_turn = true
 
 		rl.EndDrawing()
@@ -301,6 +339,11 @@ run_ui :: proc(client: ^Api_Client, game_id_arg: string) {
 			} else {
 				turn_feedback = {shown = true, ok = false, advanced = false}
 			}
+		}
+
+		// Autobuild toggle: fire the PUT immediately (not batched).
+		if act.autobuild_planet != 0 && loaded {
+			api_set_autobuild(client, game_id, act.autobuild_planet, act.autobuild_value)
 		}
 
 		free_all(context.temp_allocator)
@@ -345,6 +388,15 @@ draw_galaxy :: proc(g: Api_Game) {
 	for s in g.galaxy.stars {
 		c := star_color(s.color)
 		rl.DrawCircleV({f32(s.x), f32(s.y)}, 6, c)
+		// Star name, colored by the owner of its first planet (if any).
+		name_col := rl.Color{120, 130, 150, 255}
+		for p in s.planets {
+			if p.owner != 0 {
+				name_col = player_color(g, p.owner)
+				break
+			}
+		}
+		rl.DrawText(fmt.ctprintf("%s", s.name), i32(f32(s.x) - f32(rl.MeasureText(fmt.ctprintf("%s", s.name), 12)) / 2), i32(f32(s.y) + 8), 12, name_col)
 	}
 	// Fleets
 	for f in g.fleets {
@@ -424,9 +476,10 @@ player_fleets :: proc(g: Api_Game, player_id: int, allocator := context.allocato
 	return out[:]
 }
 
-// Draws the side panel. Returns whether End Turn or Menu (leave game) were
-// clicked this frame. All sizes go through px()/pxi() so the panel scales.
-draw_panel :: proc(g: Api_Game, loaded: bool, sel: Selection, player_id: int) -> (end_turn_clicked: bool, back_clicked: bool) {
+// Draws the side panel and reports actions (End Turn / Menu / autobuild) back
+// to run_ui. Takes the selection by pointer so tabs can change it (e.g. pick a
+// planet). All sizes go through px()/pxi() so the panel scales.
+draw_panel :: proc(g: Api_Game, loaded: bool, sel: ^Selection, player_id: int) -> (act: Panel_Action) {
 	sw := rl.GetScreenWidth()
 	sh := rl.GetScreenHeight()
 	pw := panel_w()
@@ -439,7 +492,7 @@ draw_panel :: proc(g: Api_Game, loaded: bool, sel: Selection, player_id: int) ->
 	rl.DrawText("SSG", cx, cy, pxi(20), rl.RAYWHITE)
 	// Menu button (leave game -> setup), always available, top-right of panel.
 	menu_w := pxi(78)
-	back_clicked = gui_button({f32(sw - menu_w - pxi(14)), f32(pxi(13)), f32(menu_w), px(28)}, "Menu")
+	act.back = gui_button({f32(sw - menu_w - pxi(14)), f32(pxi(13)), f32(menu_w), px(28)}, "Menu")
 	cy += pxi(30)
 
 	if !loaded {
@@ -458,11 +511,11 @@ draw_panel :: proc(g: Api_Game, loaded: bool, sel: Selection, player_id: int) ->
 	// --- Active tab content ---
 	switch active_tab {
 	case .Galaxy:
-		draw_galaxy_tab(g, cx, cy, sel, player_id)
+		draw_galaxy_tab(g, cx, cy, sel^, player_id)
 	case .Planet:
-		draw_placeholder(cx, cy, "Planet", "Phase 1: population + construction")
+		draw_planet_tab(g, cx, cy, sel, player_id, &act)
 	case .Colonies:
-		draw_placeholder(cx, cy, "Colonies", "Phase 1: colony list")
+		draw_colonies_tab(g, cx, cy, sel, player_id)
 	case .Fleets:
 		draw_placeholder(cx, cy, "Fleets", "Phase 2: fleet inspector")
 	case .Technology:
@@ -482,7 +535,7 @@ draw_panel :: proc(g: Api_Game, loaded: bool, sel: Selection, player_id: int) ->
 		rl.DrawText(fb, cx, i32(by) - pxi(44), pxi(14), col)
 	}
 	label: cstring = count > 0 ? "End Turn  >" : "End Turn (no commands)  >"
-	end_turn_clicked = gui_button({f32(cx), by, f32(pw - pxi(32)), px(48)}, label)
+	act.end_turn = gui_button({f32(cx), by, f32(pw - pxi(32)), px(48)}, label)
 	return
 }
 
@@ -568,11 +621,298 @@ draw_galaxy_tab :: proc(g: Api_Game, cx, cy_in: i32, sel: Selection, player_id: 
 	}
 }
 
+draw_planet_tab :: proc(g: Api_Game, cx, cy_in: i32, sel: ^Selection, player_id: int, act: ^Panel_Action) {
+	cy := cy_in
+
+	if !sel.has_planet {
+		rl.DrawText("Planet", cx, cy, pxi(20), rl.RAYWHITE); cy += pxi(28)
+		rl.DrawText("click a star to select a planet", cx, cy, pxi(14), rl.GRAY)
+		return
+	}
+
+	planet, ok := find_planet(g, sel.planet_id)
+	if !ok {
+		rl.DrawText("Planet not found", cx, cy, pxi(16), rl.RED)
+		sel.has_planet = false
+		return
+	}
+
+	star, _ := star_of_planet(g, planet.id)
+
+	// --- Planet header ---
+	rl.DrawText(fmt.ctprintf("%s", planet.name), cx, cy, pxi(18), rl.RAYWHITE); cy += pxi(24)
+	rl.DrawText(fmt.ctprintf("%s  %s  %s  %s", env_name(planet.environment), size_name(planet.size), gravity_name(planet.gravity), mineral_name(planet.mineral_class)), cx, cy, pxi(13), {150, 165, 190, 255}); cy += pxi(18)
+	rl.DrawText(fmt.ctprintf("System: %s", star.name), cx, cy, pxi(13), {150, 165, 190, 255}); cy += pxi(22)
+
+	// --- Population metrics ---
+	units := planet_units(planet)
+	max_units := planet.max_population / 1000
+	rl.DrawText(fmt.ctprintf("Population: %d / %d units", units, max_units), cx, cy, pxi(14), rl.LIGHTGRAY); cy += pxi(18)
+	food_net := planet.food.farmers * planet.food.produced_per_farmer + planet.food.produced_per_building - units
+	food_col := food_net >= 0 ? rl.Color{140, 200, 150, 255} : rl.Color{210, 130, 120, 255}
+	rl.DrawText(fmt.ctprintf("Food: %d net", food_net), cx, cy, pxi(13), food_col); cy += pxi(16)
+	ind_net := planet.industry.workers * planet.industry.produced_per_worker + planet.industry.produced_per_building
+	rl.DrawText(fmt.ctprintf("Industry: %d/turn", ind_net), cx, cy, pxi(13), rl.LIGHTGRAY); cy += pxi(16)
+	rl.DrawText(fmt.ctprintf("Income: %d BC", planet.income.total), cx, cy, pxi(13), rl.LIGHTGRAY); cy += pxi(20)
+
+	// --- Population allocation ---
+	farmers, workers, scientists := planet_allocation(planet)
+	alloc: [3]int = {farmers, workers, scientists}
+
+	rl.DrawText("Population Allocation", cx, cy, pxi(15), {180, 200, 220, 255}); cy += pxi(20)
+
+	// Farmers
+	rl.DrawText(fmt.ctprintf("Food:    %d", alloc[0]), cx, cy, pxi(14), rl.LIGHTGRAY)
+	if gui_button({f32(cx + pxi(200)), f32(cy), f32(pxi(28)), f32(pxi(18))}, "-") do pop_dec(&alloc, 0)
+	if gui_button({f32(cx + pxi(232)), f32(cy), f32(pxi(28)), f32(pxi(18))}, "+") do pop_inc(&alloc, units, 0)
+	cy += pxi(20)
+
+	// Workers
+	rl.DrawText(fmt.ctprintf("Industry:%d", alloc[1]), cx, cy, pxi(14), rl.LIGHTGRAY)
+	if gui_button({f32(cx + pxi(200)), f32(cy), f32(pxi(28)), f32(pxi(18))}, "-") do pop_dec(&alloc, 1)
+	if gui_button({f32(cx + pxi(232)), f32(cy), f32(pxi(28)), f32(pxi(18))}, "+") do pop_inc(&alloc, units, 1)
+	cy += pxi(20)
+
+	// Scientists
+	rl.DrawText(fmt.ctprintf("Science: %d", alloc[2]), cx, cy, pxi(14), rl.LIGHTGRAY)
+	if gui_button({f32(cx + pxi(200)), f32(cy), f32(pxi(28)), f32(pxi(18))}, "-") do pop_dec(&alloc, 2)
+	if gui_button({f32(cx + pxi(232)), f32(cy), f32(pxi(28)), f32(pxi(18))}, "+") do pop_inc(&alloc, units, 2)
+	cy += pxi(22)
+
+	if alloc[0] != farmers || alloc[1] != workers || alloc[2] != scientists {
+		set_planet_allocation(planet.id, alloc[0], alloc[1], alloc[2])
+	}
+
+	// --- Build queue ---
+	rl.DrawText("Construction", cx, cy, pxi(15), {180, 200, 220, 255}); cy += pxi(20)
+
+	current_project := planet.current_project
+	if current_project == "" do current_project = "None"
+	rl.DrawText(fmt.ctprintf("Project: %s", current_project), cx, cy, pxi(13), rl.LIGHTGRAY); cy += pxi(16)
+
+	if planet.is_building && planet.build_bucket > 0 {
+		if info, ok := building_info(current_project); ok {
+			progress := f32(planet.build_bucket) / f32(info.cost)
+			bar_w := f32(pxi(220))
+			rl.DrawRectangle(cx, cy, i32(bar_w), pxi(12), {40, 50, 70, 255})
+			rl.DrawRectangle(cx, cy, i32(bar_w * progress), pxi(12), {80, 160, 120, 255})
+			rl.DrawText(fmt.ctprintf("%d/%d PP", planet.build_bucket, info.cost), cx + pxi(224), cy, pxi(11), rl.GRAY)
+			cy += pxi(16)
+		}
+	}
+
+	// Queued build list
+	q := planet_build_queue(planet.id)
+	if len(q) > 0 {
+		for name, i in q {
+			rl.DrawText(fmt.ctprintf("  [%d] %s", i + 1, name), cx, cy, pxi(12), rl.LIGHTGRAY)
+			cy += pxi(15)
+		}
+		cy += pxi(4)
+	}
+
+	// Building picker: shows available buildings, click to add.
+	buildings := buildable_buildings(g, planet, player_id, context.temp_allocator)
+	if len(buildings) > 0 {
+		// Reset picker index if planet changed or out of range
+		if build_picker_planet != planet.id || build_picker_index >= len(buildings) {
+			build_picker_planet = planet.id
+			build_picker_index = 0
+		}
+		selected := buildings[build_picker_index]
+
+		// Cycle through buildings with < > buttons
+		if gui_button({f32(cx), f32(cy), f32(pxi(24)), f32(pxi(20))}, "<") {
+			build_picker_index = (build_picker_index - 1 + len(buildings)) % len(buildings)
+		}
+		rl.DrawText(fmt.ctprintf("%s", selected), cx + pxi(28), cy, pxi(13), rl.RAYWHITE)
+		if gui_button({f32(cx + pxi(180)), f32(cy), f32(pxi(24)), f32(pxi(20))}, ">") {
+			build_picker_index = (build_picker_index + 1) % len(buildings)
+		}
+		cy += pxi(22)
+
+		// Add selected building to queue
+		if gui_button({f32(cx), f32(cy), f32(pxi(100)), f32(pxi(22))}, "Add to Queue") {
+			enqueue_build(planet.id, selected)
+		}
+		if gui_button({f32(cx + pxi(104)), f32(cy), f32(pxi(70)), f32(pxi(22))}, "Clear") {
+			clear_build(planet.id)
+		}
+		cy += pxi(26)
+	} else {
+		rl.DrawText("(no buildings available)", cx, cy, pxi(12), rl.GRAY)
+		cy += pxi(18)
+	}
+
+	// Buy production
+	buying := buy_production_queued(planet.id)
+	buy_label: cstring = buying ? "Buying (queued)" : "Buy Production"
+	if gui_button({f32(cx), f32(cy), f32(pxi(180)), f32(pxi(22))}, buy_label) {
+		toggle_buy_production(planet.id)
+	}
+	cy += pxi(24)
+
+	// Autobuild toggle
+	ab_label: cstring = planet.autobuild ? "Autobuild: ON" : "Autobuild: OFF"
+	if gui_button({f32(cx), f32(cy), f32(pxi(180)), f32(pxi(22))}, ab_label) {
+		act.autobuild_planet = planet.id
+		act.autobuild_value = !planet.autobuild
+	}
+	cy += pxi(26)
+
+	// --- Transfer population ---
+	if units > 1 {
+		rl.DrawText("Transfer Population", cx, cy, pxi(15), {180, 200, 220, 255}); cy += pxi(20)
+
+		// Find destination planets
+		dest_planets := owned_planets(g, player_id, context.temp_allocator)
+		// Simple: use first other planet as destination (TODO: picker)
+		dest_name: cstring = "(no other planet)"
+		for dp in dest_planets {
+			if dp.id != planet.id {
+				s, sok := star_of_planet(g, dp.id)
+				sn := s.name if sok else "?"
+				dest_name = fmt.ctprintf("%s - %s", sn, dp.name)
+				break
+			}
+		}
+
+		rl.DrawText(fmt.ctprintf("Dest: %s", dest_name), cx, cy, pxi(13), rl.LIGHTGRAY); cy += pxi(16)
+		rl.DrawText(fmt.ctprintf("Max transfer: %d units", units - 1), cx, cy, pxi(13), rl.GRAY); cy += pxi(20)
+	}
+}
+
+draw_colonies_tab :: proc(g: Api_Game, cx, cy_in: i32, sel: ^Selection, player_id: int) {
+	cy := cy_in
+
+	planets := owned_planets(g, player_id, context.temp_allocator)
+	rl.DrawText(fmt.ctprintf("Your Colonies (%d)", len(planets)), cx, cy, pxi(16), rl.RAYWHITE); cy += pxi(22)
+
+	if len(planets) == 0 {
+		rl.DrawText("(no colonies yet)", cx, cy, pxi(14), rl.GRAY)
+		return
+	}
+
+	// Column headers
+	rl.DrawText("Name", cx, cy, pxi(12), {130, 150, 180, 255})
+	rl.DrawText("Pop", cx + pxi(100), cy, pxi(12), {130, 150, 180, 255})
+	rl.DrawText("F/W/S", cx + pxi(140), cy, pxi(12), {130, 150, 180, 255})
+	rl.DrawText("Project", cx + pxi(190), cy, pxi(12), {130, 150, 180, 255})
+	cy += pxi(16)
+
+	for p in planets {
+		row_h := pxi(18)
+		row_rec := rl.Rectangle{f32(cx), f32(cy), f32(pxi(280)), f32(row_h)}
+		hover := rl.CheckCollisionPointRec(rl.GetMousePosition(), row_rec)
+
+		if hover {
+			rl.DrawRectangleRec(row_rec, {34, 42, 60, 255})
+		}
+
+		// Name (clickable)
+		name := p.name
+		if name == "" do name = "?"
+		rl.DrawText(fmt.ctprintf("%s", name), cx, cy, pxi(12), hover ? rl.YELLOW : rl.LIGHTGRAY)
+
+		// Pop
+		units := planet_units(p)
+		rl.DrawText(fmt.ctprintf("%d", units), cx + pxi(100), cy, pxi(12), rl.LIGHTGRAY)
+
+		// Farmers/Workers/Scientists
+		rl.DrawText(fmt.ctprintf("%d/%d/%d", p.food.farmers, p.industry.workers, p.science.scientists), cx + pxi(140), cy, pxi(11), rl.LIGHTGRAY)
+
+		// Project
+		proj := p.current_project
+		if proj == "" do proj = "-"
+		rl.DrawText(fmt.ctprintf("%s", proj), cx + pxi(190), cy, pxi(11), rl.LIGHTGRAY)
+
+		// Click to jump to planet
+		if hover && rl.IsMouseButtonPressed(.LEFT) {
+			sel.planet_id = p.id
+			sel.has_planet = true
+			// Also select the parent star
+			if s, sok := star_of_planet(g, p.id); sok {
+				sel.star_id = s.id
+				sel.has_star = true
+			}
+			active_tab = .Planet
+		}
+
+		cy += row_h
+	}
+}
+
 player_name_for :: proc(g: Api_Game, id: int) -> string {
 	if id == 0 do return "-"
 	for p in g.players {
 		if p.id == id do return p.name
 	}
 	return "?"
+}
+
+// Draw the top bar with empire-wide stats (treasury, income, food, research,
+// stardate). Matches the Solid client's game-topbar layout.
+draw_top_bar :: proc(g: Api_Game, player_id: int) {
+	sw := rl.GetScreenWidth()
+	th := topbar_h()
+
+	// Bar background
+	rl.DrawRectangle(0, 0, sw, th, {14, 18, 28, 255})
+	rl.DrawLineEx({0, f32(th)}, {f32(sw), f32(th)}, px(1), {50, 60, 80, 255})
+
+	// Find current player
+	player: Api_Player
+	for p in g.players {
+		if p.id == player_id {
+			player = p
+			break
+		}
+	}
+
+	// Compute empire totals from owned planets
+	treasury := player.treasury
+	total_income := 0
+	total_food := 0
+	planet_count := 0
+	for s in g.galaxy.stars {
+		for p in s.planets {
+			if p.owner != player_id do continue
+			planet_count += 1
+			total_income += p.income.total
+			units := planet_units(p)
+			total_food += p.food.farmers * p.food.produced_per_farmer + p.food.produced_per_building - units
+		}
+	}
+
+	cx := pxi(16)
+	fs := pxi(14)
+	fs_big := pxi(16)
+
+	// Stardate (left)
+	stardate := f64(g.current_turn) / 10.0
+	rl.DrawText(fmt.ctprintf("Star date: %.1f", stardate), cx, i32(f32(th) - f32(fs_big) - px(2)), fs_big, rl.LIGHTGRAY)
+
+	// Stats (right-aligned, flowing left)
+	sx := f32(sw) - px(16)
+
+	// End turn hint
+	rl.DrawText("[E] End Turn", i32(sx - px(110)), i32(f32(th) - f32(fs) - px(4)), fs, {120, 140, 160, 255})
+
+	// Stardate label on right side
+	rl.DrawText(fmt.ctprintf("Turn %d", g.current_turn), i32(sx - px(200)), i32(f32(th) - f32(fs) - px(4)), fs, {120, 140, 160, 255})
+
+	// Income
+	income_col := total_income >= 0 ? rl.Color{140, 200, 150, 255} : rl.Color{210, 130, 120, 255}
+	rl.DrawText(fmt.ctprintf("Income: %+d BC", total_income), i32(sx - px(380)), i32(f32(th) - f32(fs) - px(4)), fs, income_col)
+
+	// Food
+	food_col := total_food >= 0 ? rl.Color{140, 200, 150, 255} : rl.Color{210, 130, 120, 255}
+	rl.DrawText(fmt.ctprintf("Food: %+d", total_food), i32(sx - px(500)), i32(f32(th) - f32(fs) - px(4)), fs, food_col)
+
+	// Treasury (gold)
+	rl.DrawText(fmt.ctprintf("%.0f BC", treasury), i32(sx - px(620)), i32(f32(th) - f32(fs) - px(4)), fs, {220, 200, 120, 255})
+
+	// Colonies count
+	rl.DrawText(fmt.ctprintf("Colonies: %d", planet_count), i32(sx - px(740)), i32(f32(th) - f32(fs) - px(4)), fs, {120, 140, 160, 255})
 }
 
