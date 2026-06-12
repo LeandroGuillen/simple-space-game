@@ -1,0 +1,6697 @@
+{
+  "galaxy": {
+    "stars": [
+      {
+        "id": 1,
+        "name": "Arosh",
+        "planets": [
+          {
+            "id": 1,
+            "name": "Arosh I",
+            "owner": 1,
+            "parent_star": 1,
+            "mineral_class": 3,
+            "size": 3,
+            "gravity": 2,
+            "environment": 11,
+            "population": 8000,
+            "max_population": 12000,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 3,
+              "produced_per_worker": 3,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 4,
+              "produced_per_farmer": 2,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 1,
+              "produced_per_scientist": 3,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 8,
+              "buildings": 0,
+              "trade_goods": 3,
+              "maintenance": 3,
+              "total": 8,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 1
+            },
+            "government": {
+              "name": "Dictatorship",
+              "food_labor_multiplier": 1,
+              "industry_labor_multiplier": 1,
+              "science_labor_multiplier": 1,
+              "tax_multiplier": 1
+            },
+            "pollution": 2,
+            "gravity_multiplier": 1,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": [
+              "Capitol",
+              "Star Base",
+              "Marine Barracks"
+            ],
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 1,
+        "x": 350,
+        "y": 106
+      },
+      {
+        "id": 2,
+        "name": "Caph",
+        "planets": [
+          {
+            "id": 2,
+            "name": "Caph I",
+            "owner": 0,
+            "parent_star": 2,
+            "mineral_class": 3,
+            "size": 5,
+            "gravity": 2,
+            "environment": 9,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 3,
+            "name": "Caph II",
+            "owner": 0,
+            "parent_star": 2,
+            "mineral_class": 3,
+            "size": 4,
+            "gravity": 3,
+            "environment": 2,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 4,
+            "name": "Caph III",
+            "owner": 0,
+            "parent_star": 2,
+            "mineral_class": 1,
+            "size": 3,
+            "gravity": 3,
+            "environment": 10,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 2,
+        "x": 464,
+        "y": 41
+      },
+      {
+        "id": 3,
+        "name": "Ukral",
+        "planets": [
+          {
+            "id": 5,
+            "name": "Ukral I",
+            "owner": 0,
+            "parent_star": 3,
+            "mineral_class": 5,
+            "size": 2,
+            "gravity": 2,
+            "environment": 6,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 2,
+        "x": 496,
+        "y": 309
+      },
+      {
+        "id": 4,
+        "name": "Ebroaglus",
+        "planets": [
+          {
+            "id": 6,
+            "name": "Ebroaglus I",
+            "owner": 0,
+            "parent_star": 4,
+            "mineral_class": 1,
+            "size": 3,
+            "gravity": 3,
+            "environment": 9,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 7,
+            "name": "Ebroaglus II",
+            "owner": 0,
+            "parent_star": 4,
+            "mineral_class": 1,
+            "size": 5,
+            "gravity": 3,
+            "environment": 12,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 8,
+            "name": "Ebroaglus III",
+            "owner": 0,
+            "parent_star": 4,
+            "mineral_class": 1,
+            "size": 4,
+            "gravity": 1,
+            "environment": 6,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 3,
+        "x": 340,
+        "y": 249
+      },
+      {
+        "id": 5,
+        "name": "Praar",
+        "planets": [
+          {
+            "id": 9,
+            "name": "Praar I",
+            "owner": 2,
+            "parent_star": 5,
+            "mineral_class": 3,
+            "size": 3,
+            "gravity": 2,
+            "environment": 11,
+            "population": 8000,
+            "max_population": 12000,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 3,
+              "produced_per_worker": 3,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 4,
+              "produced_per_farmer": 2,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 1,
+              "produced_per_scientist": 3,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 8,
+              "buildings": 0,
+              "trade_goods": 3,
+              "maintenance": 3,
+              "total": 8,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 1
+            },
+            "government": {
+              "name": "Dictatorship",
+              "food_labor_multiplier": 1,
+              "industry_labor_multiplier": 1,
+              "science_labor_multiplier": 1,
+              "tax_multiplier": 1
+            },
+            "pollution": 2,
+            "gravity_multiplier": 1,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": [
+              "Capitol",
+              "Star Base",
+              "Marine Barracks"
+            ],
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 10,
+            "name": "Praar II",
+            "owner": 0,
+            "parent_star": 5,
+            "mineral_class": 2,
+            "size": 3,
+            "gravity": 1,
+            "environment": 8,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 11,
+            "name": "Praar III",
+            "owner": 0,
+            "parent_star": 5,
+            "mineral_class": 1,
+            "size": 5,
+            "gravity": 3,
+            "environment": 1,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 0,
+        "x": 289,
+        "y": 370
+      },
+      {
+        "id": 6,
+        "name": "Chara",
+        "planets": [
+          {
+            "id": 12,
+            "name": "Chara I",
+            "owner": 0,
+            "parent_star": 6,
+            "mineral_class": 3,
+            "size": 4,
+            "gravity": 2,
+            "environment": 7,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 13,
+            "name": "Chara II",
+            "owner": 0,
+            "parent_star": 6,
+            "mineral_class": 1,
+            "size": 4,
+            "gravity": 3,
+            "environment": 2,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 14,
+            "name": "Chara III",
+            "owner": 0,
+            "parent_star": 6,
+            "mineral_class": 4,
+            "size": 5,
+            "gravity": 2,
+            "environment": 1,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 15,
+            "name": "Chara IV",
+            "owner": 0,
+            "parent_star": 6,
+            "mineral_class": 5,
+            "size": 1,
+            "gravity": 1,
+            "environment": 7,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 16,
+            "name": "Chara V",
+            "owner": 0,
+            "parent_star": 6,
+            "mineral_class": 5,
+            "size": 5,
+            "gravity": 3,
+            "environment": 5,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 3,
+        "x": 537,
+        "y": 24
+      },
+      {
+        "id": 7,
+        "name": "Tras",
+        "planets": [
+          {
+            "id": 17,
+            "name": "Tras I",
+            "owner": 0,
+            "parent_star": 7,
+            "mineral_class": 5,
+            "size": 1,
+            "gravity": 2,
+            "environment": 10,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 18,
+            "name": "Tras II",
+            "owner": 0,
+            "parent_star": 7,
+            "mineral_class": 2,
+            "size": 4,
+            "gravity": 1,
+            "environment": 5,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 19,
+            "name": "Tras III",
+            "owner": 0,
+            "parent_star": 7,
+            "mineral_class": 2,
+            "size": 3,
+            "gravity": 2,
+            "environment": 6,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 20,
+            "name": "Tras IV",
+            "owner": 0,
+            "parent_star": 7,
+            "mineral_class": 5,
+            "size": 1,
+            "gravity": 3,
+            "environment": 5,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 2,
+        "x": 283,
+        "y": 3
+      },
+      {
+        "id": 8,
+        "name": "Porran",
+        "planets": [
+          {
+            "id": 21,
+            "name": "Porran I",
+            "owner": 0,
+            "parent_star": 8,
+            "mineral_class": 3,
+            "size": 1,
+            "gravity": 3,
+            "environment": 10,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 22,
+            "name": "Porran II",
+            "owner": 0,
+            "parent_star": 8,
+            "mineral_class": 4,
+            "size": 2,
+            "gravity": 2,
+            "environment": 8,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 23,
+            "name": "Porran III",
+            "owner": 0,
+            "parent_star": 8,
+            "mineral_class": 3,
+            "size": 3,
+            "gravity": 1,
+            "environment": 11,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 24,
+            "name": "Porran IV",
+            "owner": 0,
+            "parent_star": 8,
+            "mineral_class": 3,
+            "size": 1,
+            "gravity": 2,
+            "environment": 11,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          },
+          {
+            "id": 25,
+            "name": "Porran V",
+            "owner": 0,
+            "parent_star": 8,
+            "mineral_class": 4,
+            "size": 5,
+            "gravity": 1,
+            "environment": 12,
+            "population": 0,
+            "max_population": 0,
+            "last_turn_pop_growth": 0,
+            "industry": {
+              "workers": 0,
+              "produced_per_worker": 0,
+              "produced_per_building": 0,
+              "produced_per_colonist": 0
+            },
+            "food": {
+              "farmers": 0,
+              "produced_per_farmer": 0,
+              "produced_per_building": 0
+            },
+            "science": {
+              "scientists": 0,
+              "produced_per_scientist": 0,
+              "produced_per_building": 0
+            },
+            "income": {
+              "taxes": 0,
+              "buildings": 0,
+              "trade_goods": 0,
+              "maintenance": 0,
+              "total": 0,
+              "bonus": 0
+            },
+            "morale": {
+              "bonus": 0,
+              "multiplier": 0
+            },
+            "government": {},
+            "pollution": 0,
+            "marines": 0,
+            "armor": 0,
+            "current_project": "",
+            "buildings": null,
+            "build_queue": null,
+            "industry_stack": 0,
+            "build_bucket": 0,
+            "is_building": false,
+            "autobuild": false
+          }
+        ],
+        "color": 3,
+        "x": 24,
+        "y": 147
+      }
+    ],
+    "width": 600,
+    "height": 400
+  },
+  "players": [
+    {
+      "id": 1,
+      "name": "Commander",
+      "color": "#FFFFFF",
+      "is_human": true,
+      "race": {
+        "id": 0,
+        "name": "Human",
+        "government": "Dictatorship",
+        "grants": {
+          "unlocks": {}
+        },
+        "stats": {}
+      },
+      "treasury": 10,
+      "tax_rate": 0,
+      "research_points": 0,
+      "researched_techs": [
+        "Starting Colony Infrastructure"
+      ],
+      "available": {
+        "buildings": [
+          "Capitol",
+          "Colony Base",
+          "Star Base",
+          "Marine Barracks",
+          "Transport"
+        ],
+        "hull_sizes": [
+          "Frigate",
+          "Destroyer",
+          "Cruiser",
+          "Battleship"
+        ],
+        "drives": [
+          "None",
+          "Nuclear"
+        ],
+        "armors": [
+          "None",
+          "Titanium"
+        ],
+        "computers": [
+          "None"
+        ],
+        "fuel_cells": [
+          "None",
+          "Standard"
+        ],
+        "shields": [
+          "None"
+        ],
+        "beams": null,
+        "ship_systems": null
+      },
+      "fleets": [
+        1
+      ],
+      "freighters": 0,
+      "freighters_used": 0,
+      "ship_designs": [
+        {
+          "name": "Laser Gunship",
+          "weapons": [
+            {
+              "name": "Laser",
+              "minDamage": 1,
+              "maxDamage": 4
+            },
+            {
+              "name": "Laser",
+              "minDamage": 1,
+              "maxDamage": 4
+            },
+            {
+              "name": "Laser",
+              "minDamage": 1,
+              "maxDamage": 4
+            }
+          ],
+          "special_systems": null,
+          "base_space": 10,
+          "drive": {
+            "name": "Nuclear",
+            "interstellar_speed": 1,
+            "combat_speed": 0
+          },
+          "computer": {
+            "name": "Electronic",
+            "beam_attack_bonus": 30
+          },
+          "shield": {
+            "name": "None",
+            "recharge_rate": 0,
+            "reduce_damage": 0,
+            "absortion_factor": 0
+          },
+          "armor": {
+            "name": "Titanium",
+            "multiplier": 1,
+            "ground_troop_strength": 5
+          },
+          "hull_size": {
+            "name": "Frigate",
+            "size_rating": 1,
+            "space": 25,
+            "marines": 4,
+            "base_speed": 10,
+            "base_hp": 4,
+            "computer_hp": 1,
+            "drive_hp": 2,
+            "shield_hp": 1
+          },
+          "fuel_cell": {
+            "name": "Standard",
+            "autonomy": 2
+          }
+        }
+      ],
+      "explored_stars": [
+        1,
+        2
+      ],
+      "command_points_capacity": 7,
+      "command_points_used": 0,
+      "command_points_remaining": 7,
+      "command_overdraw_bc": 0,
+      "command_points_starting_bonus": 5
+    },
+    {
+      "id": 2,
+      "name": "Player 2",
+      "color": "#34C759",
+      "race": {
+        "id": 0,
+        "name": "Human",
+        "government": "Dictatorship",
+        "grants": {
+          "unlocks": {}
+        },
+        "stats": {}
+      },
+      "treasury": 10,
+      "tax_rate": 0,
+      "research_points": 0,
+      "researched_techs": [
+        "Starting Colony Infrastructure"
+      ],
+      "available": {
+        "buildings": [
+          "Capitol",
+          "Colony Base",
+          "Star Base",
+          "Marine Barracks",
+          "Transport"
+        ],
+        "hull_sizes": [
+          "Frigate",
+          "Destroyer",
+          "Cruiser",
+          "Battleship"
+        ],
+        "drives": [
+          "None",
+          "Nuclear"
+        ],
+        "armors": [
+          "None",
+          "Titanium"
+        ],
+        "computers": [
+          "None"
+        ],
+        "fuel_cells": [
+          "None",
+          "Standard"
+        ],
+        "shields": [
+          "None"
+        ],
+        "beams": null,
+        "ship_systems": null
+      },
+      "fleets": [
+        2
+      ],
+      "freighters": 0,
+      "freighters_used": 0,
+      "ship_designs": [
+        {
+          "name": "Fusion Raider",
+          "weapons": [
+            {
+              "name": "Fusion",
+              "minDamage": 2,
+              "maxDamage": 8
+            },
+            {
+              "name": "Fusion",
+              "minDamage": 2,
+              "maxDamage": 8
+            }
+          ],
+          "special_systems": null,
+          "base_space": 10,
+          "drive": {
+            "name": "Nuclear",
+            "interstellar_speed": 1,
+            "combat_speed": 0
+          },
+          "computer": {
+            "name": "Electronic",
+            "beam_attack_bonus": 30
+          },
+          "shield": {
+            "name": "None",
+            "recharge_rate": 0,
+            "reduce_damage": 0,
+            "absortion_factor": 0
+          },
+          "armor": {
+            "name": "Titanium",
+            "multiplier": 1,
+            "ground_troop_strength": 5
+          },
+          "hull_size": {
+            "name": "Destroyer",
+            "size_rating": 2,
+            "space": 60,
+            "marines": 8,
+            "base_speed": 8,
+            "base_hp": 10,
+            "computer_hp": 2,
+            "drive_hp": 5,
+            "shield_hp": 2
+          },
+          "fuel_cell": {
+            "name": "Standard",
+            "autonomy": 2
+          }
+        }
+      ],
+      "explored_stars": [
+        5,
+        2
+      ],
+      "command_points_capacity": 7,
+      "command_points_used": 0,
+      "command_points_remaining": 7,
+      "command_overdraw_bc": 0,
+      "command_points_starting_bonus": 5
+    }
+  ],
+  "fleets": [
+    {
+      "id": 1,
+      "owner": 1,
+      "star_id": 2,
+      "x": 464,
+      "y": 41,
+      "origin_x": 464,
+      "origin_y": 41,
+      "ships": [
+        {
+          "type": "ship_design",
+          "name": "Dark Blade",
+          "design_name": "Laser Gunship",
+          "hull_size": "Frigate",
+          "drive": "Nuclear"
+        },
+        {
+          "type": "ship_design",
+          "name": "Night Falcon",
+          "design_name": "Laser Gunship",
+          "hull_size": "Frigate",
+          "drive": "Nuclear"
+        },
+        {
+          "type": "ship_design",
+          "name": "Star Lance",
+          "design_name": "Laser Gunship",
+          "hull_size": "Frigate",
+          "drive": "Nuclear"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "owner": 2,
+      "star_id": 2,
+      "x": 464,
+      "y": 41,
+      "origin_x": 464,
+      "origin_y": 41,
+      "ships": [
+        {
+          "type": "ship_design",
+          "name": "Crimson Maw",
+          "design_name": "Fusion Raider",
+          "hull_size": "Destroyer",
+          "drive": "Nuclear"
+        },
+        {
+          "type": "ship_design",
+          "name": "Void Render",
+          "design_name": "Fusion Raider",
+          "hull_size": "Destroyer",
+          "drive": "Nuclear"
+        }
+      ]
+    }
+  ],
+  "population_transfers": [],
+  "id": "battle-demo",
+  "current_turn": 3500,
+  "created_at": "2026-06-11T21:04:46.906199051Z",
+  "resources": {
+    "ship_parts": {
+      "hull_sizes": [
+        {
+          "name": "Frigate",
+          "size_rating": 1,
+          "space": 25,
+          "marines": 4,
+          "base_speed": 10,
+          "base_hp": 4,
+          "computer_hp": 1,
+          "drive_hp": 2,
+          "shield_hp": 1
+        },
+        {
+          "name": "Destroyer",
+          "size_rating": 2,
+          "space": 60,
+          "marines": 8,
+          "base_speed": 8,
+          "base_hp": 10,
+          "computer_hp": 2,
+          "drive_hp": 5,
+          "shield_hp": 2
+        },
+        {
+          "name": "Cruiser",
+          "size_rating": 3,
+          "space": 120,
+          "marines": 12,
+          "base_speed": 6,
+          "base_hp": 30,
+          "computer_hp": 5,
+          "drive_hp": 10,
+          "shield_hp": 6
+        },
+        {
+          "name": "Battleship",
+          "size_rating": 4,
+          "space": 250,
+          "marines": 20,
+          "base_speed": 5,
+          "base_hp": 50,
+          "computer_hp": 7,
+          "drive_hp": 15,
+          "shield_hp": 8
+        },
+        {
+          "name": "Titan",
+          "size_rating": 6,
+          "space": 500,
+          "marines": 30,
+          "base_speed": 4,
+          "base_hp": 80,
+          "computer_hp": 15,
+          "drive_hp": 30,
+          "shield_hp": 15
+        },
+        {
+          "name": "Doomstar",
+          "size_rating": 10,
+          "space": 1200,
+          "marines": 50,
+          "base_speed": 3,
+          "base_hp": 150,
+          "computer_hp": 25,
+          "drive_hp": 50,
+          "shield_hp": 25
+        }
+      ],
+      "drives": [
+        {
+          "name": "None",
+          "interstellar_speed": 0,
+          "combat_speed": 0
+        },
+        {
+          "name": "Nuclear",
+          "interstellar_speed": 1,
+          "combat_speed": 0
+        },
+        {
+          "name": "Fusion",
+          "interstellar_speed": 2,
+          "combat_speed": 1
+        },
+        {
+          "name": "Ion",
+          "interstellar_speed": 3,
+          "combat_speed": 2
+        },
+        {
+          "name": "Anti-matter",
+          "interstellar_speed": 4,
+          "combat_speed": 3
+        },
+        {
+          "name": "Hyper",
+          "interstellar_speed": 5,
+          "combat_speed": 4
+        },
+        {
+          "name": "Interphased",
+          "interstellar_speed": 6,
+          "combat_speed": 5
+        }
+      ],
+      "armors": [
+        {
+          "name": "None",
+          "multiplier": 0,
+          "ground_troop_strength": 0
+        },
+        {
+          "name": "Titanium",
+          "multiplier": 1,
+          "ground_troop_strength": 5
+        },
+        {
+          "name": "Tritanium",
+          "multiplier": 2,
+          "ground_troop_strength": 10
+        },
+        {
+          "name": "Zortrium",
+          "multiplier": 4,
+          "ground_troop_strength": 15
+        },
+        {
+          "name": "Neutronium",
+          "multiplier": 6,
+          "ground_troop_strength": 25
+        },
+        {
+          "name": "Adamantium",
+          "multiplier": 8,
+          "ground_troop_strength": 30
+        },
+        {
+          "name": "Xentronium",
+          "multiplier": 10,
+          "ground_troop_strength": 40
+        }
+      ],
+      "computers": [
+        {
+          "name": "None",
+          "beam_attack_bonus": 0
+        },
+        {
+          "name": "Electronic",
+          "beam_attack_bonus": 30
+        },
+        {
+          "name": "Optronic",
+          "beam_attack_bonus": 60
+        },
+        {
+          "name": "Positronic",
+          "beam_attack_bonus": 90
+        },
+        {
+          "name": "Cybertronic",
+          "beam_attack_bonus": 120
+        },
+        {
+          "name": "Moleculatronic",
+          "beam_attack_bonus": 150
+        }
+      ],
+      "fuel_cells": [
+        {
+          "name": "None",
+          "autonomy": 0
+        },
+        {
+          "name": "Standard",
+          "autonomy": 2
+        },
+        {
+          "name": "Deuterium",
+          "autonomy": 4
+        },
+        {
+          "name": "Iridium",
+          "autonomy": 6
+        },
+        {
+          "name": "Urridium",
+          "autonomy": 8
+        },
+        {
+          "name": "Thorium",
+          "autonomy": 100
+        }
+      ],
+      "shields": [
+        {
+          "name": "None",
+          "recharge_rate": 0,
+          "reduce_damage": 0,
+          "absortion_factor": 0
+        },
+        {
+          "name": "Class I",
+          "recharge_rate": 0.3,
+          "reduce_damage": 1,
+          "absortion_factor": 1
+        },
+        {
+          "name": "Class III",
+          "recharge_rate": 0.3,
+          "reduce_damage": 3,
+          "absortion_factor": 3
+        },
+        {
+          "name": "Class V",
+          "recharge_rate": 0.3,
+          "reduce_damage": 5,
+          "absortion_factor": 5
+        },
+        {
+          "name": "Class VII",
+          "recharge_rate": 0.3,
+          "reduce_damage": 7,
+          "absortion_factor": 7
+        },
+        {
+          "name": "Class X",
+          "recharge_rate": 0.3,
+          "reduce_damage": 10,
+          "absortion_factor": 10
+        }
+      ]
+    },
+    "ship_system_collection": {
+      "ship_systems": [
+        {
+          "name": "Reinforced Hull",
+          "description": "Significantly increases ship structural strength."
+        },
+        {
+          "name": "Heavy Armor",
+          "description": "Strong armor plating for ships and starbases."
+        },
+        {
+          "name": "Battle Pods",
+          "description": "Increases internal space on ships."
+        },
+        {
+          "name": "Troop Pods",
+          "description": "Increases marine capacity on ships."
+        },
+        {
+          "name": "Survival Pods",
+          "description": "Protects ship leaders when their ship is destroyed."
+        },
+        {
+          "name": "Fast Missile Racks",
+          "description": "Allows ships to fire missiles twice per combat turn."
+        },
+        {
+          "name": "Advanced Damage Control",
+          "description": "Improves post-combat ship repair."
+        },
+        {
+          "name": "Anti-Missile Rockets",
+          "description": "Ship point-defense weapon specialized against missiles."
+        },
+        {
+          "name": "Fighter Bays",
+          "description": "Allows ships to carry and launch interceptor fighters."
+        },
+        {
+          "name": "Assault Shuttles",
+          "description": "Enables automatic boarding of enemy ships and starbases."
+        },
+        {
+          "name": "Bomber Bays",
+          "description": "Allows ships to carry and launch bombers."
+        },
+        {
+          "name": "Heavy Fighters",
+          "description": "Allows ships to carry and launch heavy fighters."
+        },
+        {
+          "name": "Emissions Guidance System",
+          "description": "Improves missile targeting by tracking enemy ship emissions."
+        },
+        {
+          "name": "Rangemaster Targeting Unit",
+          "description": "Improves long-range weapon targeting accuracy."
+        },
+        {
+          "name": "Structural Analyzer",
+          "description": "No description provided"
+        },
+        {
+          "name": "Achilles Targeting Unit",
+          "description": "No description provided"
+        },
+        {
+          "name": "Battle Scanner",
+          "description": "No description provided"
+        },
+        {
+          "name": "Multi-Phased Shields",
+          "description": "No description provided"
+        },
+        {
+          "name": "Lightning Field",
+          "description": "No description provided"
+        },
+        {
+          "name": "Multi-Wave ECM Jammer",
+          "description": "No description provided"
+        },
+        {
+          "name": "Hard Shields",
+          "description": "No description provided"
+        },
+        {
+          "name": "Wide Area Jammer",
+          "description": "No description provided"
+        },
+        {
+          "name": "Displacement Device",
+          "description": "No description provided"
+        },
+        {
+          "name": "Subspace Teleporter",
+          "description": "No description provided"
+        },
+        {
+          "name": "Phasing Cloak",
+          "description": "No description provided"
+        },
+        {
+          "name": "Stealth Field",
+          "description": "No description provided"
+        },
+        {
+          "name": "Time Warp Facilitator",
+          "description": "No description provided"
+        },
+        {
+          "name": "Warp Dissipator",
+          "description": "No description provided"
+        },
+        {
+          "name": "Inertial Stabilizer",
+          "description": "No description provided"
+        }
+      ]
+    },
+    "building_collection": {
+      "buildings": [
+        {
+          "name": "Capitol",
+          "description": "Central government building of the empire.",
+          "icon": "🏛️",
+          "cost": 200,
+          "unique": true,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Colony Base",
+          "description": "Enables a colony to colonize another planet in the same star system.",
+          "cost": 200,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Colony Ship",
+          "description": "Builds a colony ship and deploys it to this system's orbit fleet.",
+          "icon": "🚀",
+          "cost": 300,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Transport",
+          "description": "Builds a transport ship capable of carrying marines for planetary invasions.",
+          "icon": "🚢",
+          "cost": 250,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Star Base",
+          "description": "Orbital defensive satellite that provides planet defense and scanning.",
+          "cost": 400,
+          "maintenance": 2,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "scanner_range",
+                "value": 3
+              },
+              {
+                "name": "command_points",
+                "value": 1
+              },
+              {
+                "name": "max_ship_size_bonus",
+                "value": 2
+              }
+            ]
+          }
+        },
+        {
+          "name": "Battlestation",
+          "description": "Upgraded orbital starbase.",
+          "cost": 1000,
+          "maintenance": 3,
+          "built_on": "PLANET",
+          "upgrades": [
+            "Star Base"
+          ],
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "scanner_range",
+                "value": 4
+              },
+              {
+                "name": "command_points",
+                "value": 2
+              },
+              {
+                "name": "max_ship_size_bonus",
+                "value": 2
+              },
+              {
+                "name": "fleet_defense",
+                "value": 25
+              },
+              {
+                "name": "fleet_attack",
+                "value": 25
+              }
+            ]
+          }
+        },
+        {
+          "name": "Star Fortress",
+          "description": "Upgraded orbital starbase.",
+          "cost": 2500,
+          "maintenance": 4,
+          "built_on": "PLANET",
+          "upgrades": [
+            "Star Base",
+            "Batttlestation"
+          ],
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "scanner_range",
+                "value": 5
+              },
+              {
+                "name": "command_points",
+                "value": 3
+              },
+              {
+                "name": "max_ship_size_bonus",
+                "value": 2
+              },
+              {
+                "name": "fleet_defense",
+                "value": 50
+              },
+              {
+                "name": "fleet_attack",
+                "value": 50
+              }
+            ]
+          }
+        },
+        {
+          "name": "Hydroponic Farm",
+          "description": "Orbital and controlled-environment farming that provides extra food for the colony.",
+          "icon": "🌾",
+          "cost": 60,
+          "maintenance": 1,
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "food_flat",
+                "value": 2
+              }
+            ]
+          }
+        },
+        {
+          "name": "Soil Enrichment",
+          "cost": 120,
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "food_per_farmer",
+                "value": 1
+              }
+            ]
+          }
+        },
+        {
+          "name": "Subterranean Farms",
+          "description": "No description provided",
+          "cost": 150,
+          "maintenance": 4,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "food_flat",
+                "value": 4
+              }
+            ]
+          }
+        },
+        {
+          "name": "Weather Controller",
+          "description": "No description provided",
+          "cost": 200,
+          "maintenance": 3,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "food_per_farmer",
+                "value": 2
+              }
+            ]
+          }
+        },
+        {
+          "name": "Food Replicators",
+          "description": "Converts 2 production into 1 food when needed.",
+          "cost": 200,
+          "maintenance": 10,
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Automated Factory",
+          "description": "Robotic assembly lines that add flat production and improve each worker's industrial output.",
+          "icon": "🏭",
+          "cost": 60,
+          "maintenance": 1,
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "industry_flat",
+                "value": 5
+              },
+              {
+                "name": "industry_per_worker",
+                "value": 1
+              }
+            ]
+          }
+        },
+        {
+          "name": "Robo-Miners",
+          "description": "Advanced mining facility.",
+          "cost": 150,
+          "maintenance": 2,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "industry_flat",
+                "value": 10
+              },
+              {
+                "name": "industry_per_worker",
+                "value": 2
+              }
+            ]
+          }
+        },
+        {
+          "name": "Deep Core Mine",
+          "description": "Super advanced mining facility.",
+          "cost": 250,
+          "maintenance": 3,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "industry_flat",
+                "value": 15
+              },
+              {
+                "name": "industry_per_worker",
+                "value": 3
+              }
+            ]
+          }
+        },
+        {
+          "name": "Recyclotron",
+          "description": "Converts population into production with no pollution.",
+          "cost": 200,
+          "maintenance": 3,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "industry_per_colonist",
+                "value": 1
+              }
+            ]
+          }
+        },
+        {
+          "name": "Robotic Factory",
+          "description": "Converts population into production with no pollution.",
+          "cost": 200,
+          "maintenance": 3,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "industry_ultrapoor",
+                "value": 5
+              },
+              {
+                "name": "industry_poor",
+                "value": 8
+              },
+              {
+                "name": "industry_abundant",
+                "value": 10
+              },
+              {
+                "name": "industry_rich",
+                "value": 15
+              },
+              {
+                "name": "industry_ultrarich",
+                "value": 20
+              }
+            ]
+          }
+        },
+        {
+          "name": "Pollution Processor",
+          "description": "Reduces pollution generated by industry.",
+          "cost": 80,
+          "maintenance": 1,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "environment_bonus",
+                "value": -0.5
+              }
+            ]
+          }
+        },
+        {
+          "name": "Atmospheric Renewer",
+          "description": "Reduces pollution generated by industry.",
+          "cost": 150,
+          "maintenance": 3,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "environment_bonus",
+                "value": -0.75
+              }
+            ]
+          }
+        },
+        {
+          "name": "Biospheres",
+          "description": "No description provided",
+          "cost": 60,
+          "maintenance": 1,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "max_population",
+                "value": 2000
+              }
+            ]
+          }
+        },
+        {
+          "name": "Research Lab",
+          "description": "Improves research output of a colony.",
+          "cost": 60,
+          "maintenance": 1,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "science_flat",
+                "value": 5
+              },
+              {
+                "name": "science_per_scientist",
+                "value": 1
+              }
+            ]
+          }
+        },
+        {
+          "name": "Planetary Supercomputer",
+          "description": "Improves research output of a colony.",
+          "cost": 150,
+          "maintenance": 2,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "science_flat",
+                "value": 10
+              },
+              {
+                "name": "science_per_scientist",
+                "value": 2
+              }
+            ]
+          }
+        },
+        {
+          "name": "Galactic Cybernet",
+          "description": "No description provided",
+          "cost": 250,
+          "maintenance": 3,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "science_flat",
+                "value": 15
+              },
+              {
+                "name": "science_per_scientist",
+                "value": 3
+              }
+            ]
+          }
+        },
+        {
+          "name": "Autolab",
+          "description": "No description provided",
+          "cost": 200,
+          "maintenance": 3,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "science_flat",
+                "value": 30
+              }
+            ]
+          }
+        },
+        {
+          "name": "Holo Simulator",
+          "description": "No description provided",
+          "cost": 120,
+          "maintenance": 1,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "morale_bonus",
+                "value": 0.2
+              }
+            ]
+          }
+        },
+        {
+          "name": "Pleasure Dome",
+          "description": "No description provided",
+          "cost": 250,
+          "maintenance": 3,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "morale_bonus",
+                "value": 0.3
+              }
+            ]
+          }
+        },
+        {
+          "name": "Missile Base",
+          "description": "Ground-based planetary missile defense.",
+          "cost": 120,
+          "maintenance": 2,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Space Port",
+          "description": "Advanced orbital facility that boosts colony income.",
+          "cost": 80,
+          "maintenance": 1,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "income_bonus",
+                "value": 0.5
+              }
+            ]
+          }
+        },
+        {
+          "name": "Stock Exchange",
+          "cost": 150,
+          "maintenance": 2,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "income_bonus",
+                "value": 1
+              }
+            ]
+          }
+        },
+        {
+          "name": "Astro University",
+          "cost": 200,
+          "maintenance": 4,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "industry_per_worker",
+                "value": 1
+              },
+              {
+                "name": "food_per_farmer",
+                "value": 1
+              },
+              {
+                "name": "science_per_scientist",
+                "value": 1
+              }
+            ]
+          }
+        },
+        {
+          "name": "Marine Barracks",
+          "description": "Produces Marines for planetary defense and invasions.",
+          "cost": 60,
+          "maintenance": 1,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "marine_production",
+                "value": 1
+              },
+              {
+                "name": "marine_hit_points",
+                "value": 1
+              }
+            ]
+          }
+        },
+        {
+          "name": "Armor Barracks",
+          "description": "Produces armored ground units.",
+          "cost": 150,
+          "maintenance": 2,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "armored_production",
+                "value": 1
+              }
+            ]
+          }
+        },
+        {
+          "name": "Fighter Garrison",
+          "description": "Orbital fighter defense for colonies.",
+          "cost": 150,
+          "maintenance": 2,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "interceptor",
+                "value": 10
+              }
+            ]
+          }
+        },
+        {
+          "name": "Ground Batteries",
+          "description": "Powerful planetary beam defense system.",
+          "cost": 200,
+          "maintenance": 2,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Artemis System Net",
+          "description": "Network of space mines that damages ships attacking any colony in the system.",
+          "cost": 1000,
+          "maintenance": 5,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "scanner_range",
+                "value": 5
+              },
+              {
+                "name": "max_ship_size_bonus",
+                "value": 2
+              },
+              {
+                "name": "fleet_defense",
+                "value": 50
+              },
+              {
+                "name": "fleet_attack",
+                "value": 50
+              }
+            ]
+          }
+        },
+        {
+          "name": "Terraforming",
+          "description": "Transforms the planet's environment one step toward a more habitable state. Cost increases by 250 PP with each use.",
+          "cost": 250,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Gaia Transformation",
+          "description": "Transforms a Terran world into a lush Gaia world, the most habitable environment of all.",
+          "cost": 500,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Gravity Generator",
+          "description": "Removes the gravity penalty on planets whose gravity does not match the race's preferred gravity.",
+          "cost": 120,
+          "maintenance": 2,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Dimensional Portal",
+          "description": "No description provided",
+          "cost": 500,
+          "maintenance": 2,
+          "unique": true,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Warp Interdictor",
+          "description": "No description provided",
+          "cost": 300,
+          "maintenance": 3,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Planetary Radiation Shield",
+          "description": "No description provided",
+          "cost": 80,
+          "maintenance": 1,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Planetary Flux Shield",
+          "description": "No description provided",
+          "cost": 200,
+          "maintenance": 3,
+          "built_on": "PLANET",
+          "upgrades": [
+            "Planetary Radiation Shield"
+          ],
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Planetary Barrier Shield",
+          "description": "No description provided",
+          "cost": 500,
+          "maintenance": 5,
+          "built_on": "PLANET",
+          "upgrades": [
+            "Planetary Radiation Shield",
+            "Planetary Flux Shield"
+          ],
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Android Farmers",
+          "description": "Robotic colonists that can only farm, but each generates 3 more food than a normal colonist.",
+          "cost": 50,
+          "maintenance": 1,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "food_per_farmer",
+                "value": 1
+              }
+            ]
+          }
+        },
+        {
+          "name": "Android Workers",
+          "description": "No description provided",
+          "cost": 50,
+          "maintenance": 1,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "industry_per_worker",
+                "value": 1
+              }
+            ]
+          }
+        },
+        {
+          "name": "Android Scientists",
+          "description": "No description provided",
+          "cost": 50,
+          "maintenance": 1,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "science_per_scientist",
+                "value": 1
+              }
+            ]
+          }
+        },
+        {
+          "name": "Alien Management Center",
+          "description": "Assimilates conquered populations at the rate of 1 per 2 turns, regardless of government",
+          "cost": 60,
+          "maintenance": 1,
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Artificial Planet Construction",
+          "description": "Enables a colony to create new colonizable planets in the same system by converting Gas Giants into Huge Barren Abundant planets and Asteroid Belts into Large Barren Abundant planets.",
+          "cost": 800,
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Freighters",
+          "description": "Builds a freighter fleet, adding 5 freighters to empire logistics capacity.",
+          "icon": "🚚",
+          "cost": 50,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Cloning Center",
+          "description": "No description provided",
+          "cost": 100,
+          "maintenance": 2,
+          "built_on": "PLANET",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "population_growth",
+                "value": 100
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "modifier_collection": {
+      "modifiers": [
+        {
+          "name": "morale_bonus",
+          "description": "Improves colony morale.",
+          "scope": "PLANET",
+          "stat": "morale",
+          "operation": "ADD_PERCENT"
+        },
+        {
+          "name": "scanner_range",
+          "description": "Adds scanner range.",
+          "scope": "PLANET",
+          "stat": "scanner_range",
+          "operation": "ADD"
+        },
+        {
+          "name": "command_points",
+          "description": "Adds command points to the empire budget (ADD; negative values subtract from capacity).",
+          "scope": "EMPIRE",
+          "stat": "command_points",
+          "operation": "ADD"
+        },
+        {
+          "name": "command_points_multiplier",
+          "description": "Multiplies the empire command point capacity.",
+          "scope": "EMPIRE",
+          "stat": "command_points",
+          "operation": "MULTIPLY"
+        },
+        {
+          "name": "ship_cost_multiplier",
+          "description": "Multiplies ship construction costs.",
+          "scope": "EMPIRE",
+          "stat": "ship_cost",
+          "operation": "MULTIPLY"
+        },
+        {
+          "name": "defensive_spy_bonus",
+          "description": "Adds a defensive espionage bonus.",
+          "scope": "EMPIRE",
+          "stat": "defensive_spying",
+          "operation": "ADD_PERCENT"
+        },
+        {
+          "name": "offensive_spy_bonus",
+          "description": "Adds an offensive espionage effectiveness bonus.",
+          "scope": "EMPIRE",
+          "stat": "offensive_spying",
+          "operation": "ADD_PERCENT"
+        },
+        {
+          "name": "psionics_morale_bonus",
+          "description": "Improves colony morale while Psionics is active for compatible governments.",
+          "scope": "EMPIRE",
+          "stat": "morale",
+          "operation": "ADD_PERCENT"
+        },
+        {
+          "name": "ground_combat_bonus",
+          "description": "Multiplies ground combat strength (marines, invasions).",
+          "scope": "EMPIRE",
+          "stat": "ground_combat",
+          "operation": "ADD_PERCENT"
+        },
+        {
+          "name": "missing_barracks_morale",
+          "description": "Applies morale when a colony lacks barracks.",
+          "scope": "EMPIRE",
+          "stat": "morale",
+          "operation": "ADD_PERCENT"
+        },
+        {
+          "name": "barracks_morale_bonus",
+          "description": "Applies morale when a colony has barracks.",
+          "scope": "EMPIRE",
+          "stat": "morale",
+          "operation": "ADD_PERCENT"
+        },
+        {
+          "name": "missing_capitol_morale",
+          "description": "Applies morale when an empire lacks a Capitol.",
+          "scope": "EMPIRE",
+          "stat": "morale",
+          "operation": "ADD_PERCENT"
+        },
+        {
+          "name": "morale_neutral",
+          "description": "Makes an empire ignore morale effects.",
+          "scope": "EMPIRE",
+          "stat": "morale",
+          "operation": "SET"
+        },
+        {
+          "name": "environment_bonus",
+          "description": "Reduces pollution.",
+          "scope": "PLANET",
+          "stat": "pollution",
+          "operation": "ADD_PERCENT"
+        },
+        {
+          "name": "max_ship_size_bonus",
+          "description": "Increases the maximum supported ship size.",
+          "scope": "EMPIRE",
+          "stat": "max_ship_size",
+          "operation": "ADD"
+        },
+        {
+          "name": "fleet_defense",
+          "description": "Adds fleet defense bonus.",
+          "scope": "SHIP",
+          "stat": "defense",
+          "operation": "ADD"
+        },
+        {
+          "name": "fleet_attack",
+          "description": "Adds fleet attack bonus.",
+          "scope": "SHIP",
+          "stat": "attack",
+          "operation": "ADD"
+        },
+        {
+          "name": "marine_production",
+          "description": "Adds marine production.",
+          "scope": "PLANET",
+          "stat": "marine_production",
+          "operation": "ADD"
+        },
+        {
+          "name": "marine_hit_points",
+          "description": "Adds marine hit points.",
+          "scope": "GROUND_COMBAT",
+          "stat": "marine_hit_points",
+          "operation": "ADD"
+        },
+        {
+          "name": "industry_per_worker",
+          "description": "Adds production per worker.",
+          "scope": "PLANET",
+          "stat": "industry_per_worker",
+          "operation": "ADD"
+        },
+        {
+          "name": "industry_labor_multiplier",
+          "description": "Multiplies worker labor production.",
+          "scope": "EMPIRE",
+          "stat": "industry_labor",
+          "operation": "MULTIPLY"
+        },
+        {
+          "name": "industry_flat",
+          "description": "Adds fixed production.",
+          "scope": "PLANET",
+          "stat": "industry_flat",
+          "operation": "ADD"
+        },
+        {
+          "name": "food_per_farmer",
+          "description": "Adds food per farmer.",
+          "scope": "PLANET",
+          "stat": "food_per_farmer",
+          "operation": "ADD"
+        },
+        {
+          "name": "food_labor_multiplier",
+          "description": "Multiplies farmer labor food output.",
+          "scope": "EMPIRE",
+          "stat": "food_labor",
+          "operation": "MULTIPLY"
+        },
+        {
+          "name": "food_flat",
+          "description": "Adds fixed food.",
+          "scope": "PLANET",
+          "stat": "food_flat",
+          "operation": "ADD"
+        },
+        {
+          "name": "science_per_scientist",
+          "description": "Adds science per scientist.",
+          "scope": "PLANET",
+          "stat": "science_per_scientist",
+          "operation": "ADD"
+        },
+        {
+          "name": "science_labor_multiplier",
+          "description": "Multiplies scientist labor research output.",
+          "scope": "EMPIRE",
+          "stat": "science_labor",
+          "operation": "MULTIPLY"
+        },
+        {
+          "name": "science_flat",
+          "description": "Adds fixed science.",
+          "scope": "PLANET",
+          "stat": "science_flat",
+          "operation": "ADD"
+        },
+        {
+          "name": "income_flat",
+          "description": "Adds fixed colony income.",
+          "scope": "PLANET",
+          "stat": "income",
+          "operation": "ADD"
+        },
+        {
+          "name": "income_bonus",
+          "description": "Adds a percentage bonus to colony income.",
+          "scope": "PLANET",
+          "stat": "income",
+          "operation": "ADD_PERCENT"
+        },
+        {
+          "name": "tax_multiplier",
+          "description": "Multiplies tax income.",
+          "scope": "EMPIRE",
+          "stat": "tax",
+          "operation": "MULTIPLY"
+        },
+        {
+          "name": "armored_production",
+          "description": "Adds armored unit production.",
+          "scope": "PLANET",
+          "stat": "armored_production",
+          "operation": "ADD"
+        },
+        {
+          "name": "interceptor",
+          "description": "Adds interceptor capacity.",
+          "scope": "PLANET",
+          "stat": "interceptor",
+          "operation": "ADD"
+        },
+        {
+          "name": "industry_per_colonist",
+          "description": "Adds production per colonist.",
+          "scope": "PLANET",
+          "stat": "industry_per_colonist",
+          "operation": "ADD"
+        },
+        {
+          "name": "industry_ultrapoor",
+          "description": "Adds fixed production on ultra poor planets.",
+          "scope": "PLANET",
+          "stat": "industry_ultrapoor",
+          "operation": "ADD"
+        },
+        {
+          "name": "industry_poor",
+          "description": "Adds fixed production on poor planets.",
+          "scope": "PLANET",
+          "stat": "industry_poor",
+          "operation": "ADD"
+        },
+        {
+          "name": "industry_abundant",
+          "description": "Adds fixed production on abundant planets.",
+          "scope": "PLANET",
+          "stat": "industry_abundant",
+          "operation": "ADD"
+        },
+        {
+          "name": "industry_rich",
+          "description": "Adds fixed production on rich planets.",
+          "scope": "PLANET",
+          "stat": "industry_rich",
+          "operation": "ADD"
+        },
+        {
+          "name": "industry_ultrarich",
+          "description": "Adds fixed production on ultra rich planets.",
+          "scope": "PLANET",
+          "stat": "industry_ultrarich",
+          "operation": "ADD"
+        },
+        {
+          "name": "max_population",
+          "description": "Adds maximum population.",
+          "scope": "PLANET",
+          "stat": "max_population",
+          "operation": "ADD"
+        },
+        {
+          "name": "population_growth",
+          "description": "Adds flat population growth each turn.",
+          "scope": "PLANET",
+          "stat": "population_growth",
+          "operation": "ADD"
+        },
+        {
+          "name": "population_growth_percent",
+          "description": "Adds a percentage bonus to colony population growth.",
+          "scope": "EMPIRE",
+          "stat": "population_growth_percent",
+          "operation": "ADD_PERCENT"
+        }
+      ]
+    },
+    "name_collection": {
+      "stars": [
+        "Thuban",
+        "Bruef",
+        "Achernar",
+        "Nunki",
+        "Ebreaddop",
+        "Alnilam",
+        "Iblaya",
+        "Juath",
+        "Aludra",
+        "Kliu",
+        "Algorab",
+        "Nuzdaix",
+        "Kluc",
+        "Srecraeth",
+        "Crippeiph",
+        "Peacock",
+        "La",
+        "Scorpii",
+        "Sroox",
+        "Fomalhaut",
+        "Eltanin",
+        "Cheag",
+        "Trurs",
+        "Delta",
+        "Opoib",
+        "Rukbat",
+        "Afoirtect",
+        "Markab",
+        "Vlirti",
+        "Meimun",
+        "Trurs",
+        "Cheag",
+        "Cers",
+        "Alya",
+        "Leertat",
+        "Phiafuts",
+        "Luc",
+        "Capella",
+        "Zlet",
+        "Blait",
+        "Akaictot",
+        "Zreegrops",
+        "Obluza",
+        "Taoct",
+        "Trionecs",
+        "Bulleems",
+        "Dabih",
+        "Haokil",
+        "Dubhe",
+        "Wezen",
+        "Gacrux",
+        "Kitalpha",
+        "Alcor",
+        "Ichoab",
+        "Zrathog",
+        "Dreif",
+        "Vega",
+        "Uglantaar",
+        "Treat",
+        "Wasat",
+        "Cotsut",
+        "Afeuf",
+        "Celaeno",
+        "Drur",
+        "Geaf",
+        "Theo",
+        "Deorda",
+        "Baih",
+        "Zlae",
+        "Ezracseg",
+        "Clulsau",
+        "Almach",
+        "Ehiobac",
+        "Saons",
+        "Fod",
+        "Mira",
+        "Dreik",
+        "Menkalinan",
+        "Pluevars",
+        "Plauce",
+        "Aldebaran",
+        "Kallips",
+        "Viy",
+        "Ovat",
+        "Jaed",
+        "Kaupdur",
+        "Toci",
+        "Alpha",
+        "Seor",
+        "Cebalrai",
+        "Wauzeb",
+        "Ophiuchi",
+        "Alaaksis",
+        "Otheeztab",
+        "Bliu",
+        "Huaner",
+        "Mesarthim",
+        "Ophiuchi",
+        "Lelsaib",
+        "Vraent",
+        "Alrescha",
+        "Drentoys",
+        "Menkent",
+        "Cancri",
+        "Azlindof",
+        "Teopdups",
+        "Slat",
+        "Teopdups",
+        "Teuprom",
+        "Vlaph",
+        "Zreildoc",
+        "Itressaox",
+        "Grobbuy",
+        "Zavijava",
+        "Zaurak",
+        "Tras",
+        "Mebsuta",
+        "Foi",
+        "Cas",
+        "Ipreab",
+        "Odeays",
+        "Carinae",
+        "Jersuas",
+        "Xiaps",
+        "Sulafat",
+        "Ewiocres",
+        "Elnath",
+        "Jeagtons",
+        "Plauft",
+        "Draa",
+        "Phuft",
+        "Ipraub",
+        "Mirfak",
+        "Pean",
+        "Furud",
+        "Chussik",
+        "Cacdueth",
+        "Gluamdin",
+        "Blait",
+        "Ufa",
+        "Iciheem",
+        "Jeaggacs",
+        "Yeors",
+        "Qooms",
+        "Enif",
+        "Sleukko",
+        "Klom",
+        "Zao",
+        "Sheratan",
+        "Emoaloft",
+        "Oxeansuns",
+        "Vrus",
+        "CorCaroli",
+        "Zruebli",
+        "Alnasl",
+        "Sigma",
+        "Feet",
+        "Atauster",
+        "Hadar",
+        "Sleeja",
+        "Pligtauy",
+        "Klogtued",
+        "Adhara",
+        "Nihal",
+        "Klul",
+        "Reniod",
+        "Vindemiatrix",
+        "Zreomay",
+        "Schedar",
+        "Sritlea",
+        "Geminorum",
+        "Qeeju",
+        "Polaris",
+        "Krissuks",
+        "Phor",
+        "Axeis",
+        "Canis",
+        "Glamse",
+        "Feimsiys",
+        "Epsilon",
+        "Mizar",
+        "Thoift",
+        "Sagittarii",
+        "Ovloiy",
+        "Sheliak",
+        "Sadalsuud",
+        "Gres",
+        "Glue",
+        "Maia",
+        "Ethips",
+        "Akeuys",
+        "Adaums",
+        "Lambda",
+        "Ophiuchi",
+        "Glars",
+        "Uphe",
+        "Drilda",
+        "Naensur",
+        "Miaplacidus",
+        "Usogtaib",
+        "Grumium",
+        "Kaokdocs",
+        "Streuddiy",
+        "Kod",
+        "Arcturus",
+        "Toigdok",
+        "Electra",
+        "Atlas",
+        "Acrab",
+        "Wazn",
+        "Slim",
+        "Velorum",
+        "KausBorealis",
+        "Iklaebsi",
+        "Ceesdop",
+        "Mimosa",
+        "Sadalmelik",
+        "Blag",
+        "Chutruks",
+        "Meassa",
+        "Posterior",
+        "Phued",
+        "Pollux",
+        "Stroks",
+        "Scheat",
+        "Rastaban",
+        "Vuepuk",
+        "Alphecca",
+        "Jueph",
+        "Klio",
+        "Asterope",
+        "Laosdoc",
+        "Uslofle",
+        "Herculis",
+        "Lesath",
+        "Crippeiph",
+        "Jau",
+        "Blaeslaph",
+        "Sabik",
+        "Cers",
+        "Trionecs",
+        "Xao",
+        "Teibda",
+        "Ixaihlokt",
+        "Saagsek",
+        "Uxains",
+        "Xao",
+        "Qoitluph",
+        "Yoozdic",
+        "Clu",
+        "Floiph",
+        "Shil",
+        "Ethid",
+        "Uglantaar",
+        "Shicheu",
+        "Algenib",
+        "Mursiya",
+        "Rigel",
+        "Zrait",
+        "Zlint",
+        "Izar",
+        "Jochaek",
+        "Geminorum",
+        "Iwataunt",
+        "Geumsoph",
+        "Phact",
+        "Pruecdins",
+        "Zubenelgenubi",
+        "Alfirk",
+        "Driozley",
+        "Regulus",
+        "Raakdah",
+        "Ishaarum",
+        "Jau",
+        "Kornephoros",
+        "Sam",
+        "Prooldog",
+        "Antares",
+        "Shaan",
+        "Peandoc",
+        "Corvi",
+        "Jueggap",
+        "Naensur",
+        "Cassiopeiae",
+        "Pherkad",
+        "Zrewud",
+        "Kict",
+        "Sratam",
+        "Choccois",
+        "Croo",
+        "Alhena",
+        "Yeors",
+        "Ruchbah",
+        "Acamar",
+        "Braets",
+        "Saiph",
+        "Merope",
+        "Yildun",
+        "ArkabPrior",
+        "Wiam",
+        "Aseah",
+        "Esuk",
+        "Proctaa",
+        "Xoog",
+        "Diphda",
+        "Vleitlins",
+        "Alpheratz",
+        "Porrima",
+        "Anaobsag",
+        "Xukro",
+        "Alshain",
+        "Ehen",
+        "Braztar",
+        "Sagittarii",
+        "Nashira",
+        "Akaakil",
+        "Otrookduls",
+        "Albireo",
+        "Spica",
+        "Algieba",
+        "Sriuwok",
+        "Iseotob",
+        "Opraecten",
+        "Zepsil",
+        "Brao",
+        "Nuephor",
+        "Oplas",
+        "Acrux",
+        "Vrekdaph",
+        "Shicheu",
+        "Taar",
+        "Estraoh",
+        "Ka",
+        "Pluabsut",
+        "Kaivrakt",
+        "Duay",
+        "Crucis",
+        "Orionis",
+        "Braug",
+        "Proam",
+        "Phitsit",
+        "Cheans",
+        "Castor",
+        "Xeemekt",
+        "Pivria",
+        "Cygni",
+        "Nokaa",
+        "Uphe",
+        "Theucib",
+        "Apresli",
+        "Raewa",
+        "Errai",
+        "Heesh",
+        "Denebola",
+        "Jochaek",
+        "Obecuc",
+        "Fuqath",
+        "Breoys",
+        "Muscida",
+        "Vreok",
+        "Atria",
+        "Qealdi",
+        "Caurs",
+        "Fliacu",
+        "Edasich",
+        "Algol",
+        "Suhail",
+        "Virginis",
+        "Fleim",
+        "Ascella",
+        "Sriolsu",
+        "Osreo",
+        "KausMedia",
+        "Ujai",
+        "Peut",
+        "Upsilon",
+        "Klushi",
+        "Orionis",
+        "Sirius",
+        "Ejuec",
+        "Drio",
+        "Okluertiys",
+        "Slak",
+        "Efih",
+        "Bellatrix",
+        "Akruag",
+        "Propus",
+        "Omicron",
+        "Struhuek",
+        "Zubeneschamali",
+        "Iklapi",
+        "Slat",
+        "Kochab",
+        "Unukalhai",
+        "Acubens",
+        "Marfik",
+        "Faintix",
+        "Mirach",
+        "Kruams",
+        "Aleg",
+        "Ankaa",
+        "Uvlao",
+        "Mirzam",
+        "Kraerokt",
+        "Phuft",
+        "Jiph",
+        "Chara",
+        "Teqen",
+        "Algedi",
+        "Vrus",
+        "Evra",
+        "Ebroaglus",
+        "Ebreu",
+        "Vliup",
+        "Flizraa",
+        "Raakdah",
+        "Suezrut",
+        "Vroitles",
+        "Opraecten",
+        "Crilocs",
+        "Pleictac",
+        "Neonnot",
+        "Sadachbia",
+        "Ebleex",
+        "Plar",
+        "Afoirtect",
+        "Iraavley",
+        "Shaula",
+        "Hus",
+        "Nuers",
+        "Xic",
+        "Cursa",
+        "Alioth",
+        "Sriodriks",
+        "Glia",
+        "Ipleeh",
+        "Sreclue",
+        "Ojuenol",
+        "Vraeflit",
+        "Alnitak",
+        "Phecda",
+        "Canopus",
+        "Krei",
+        "BatenKaitos",
+        "IotaCarinae",
+        "Ovicriuy",
+        "Vliarsat",
+        "Bloo",
+        "Alderamin",
+        "Praar",
+        "Ezradroah",
+        "Qoizza",
+        "Sargas",
+        "Oqooph",
+        "Jeb",
+        "Tu",
+        "Piuh",
+        "Blaedda",
+        "Eralaosh",
+        "Crigrep",
+        "Phoo",
+        "Sadalbari",
+        "Ithials",
+        "Mothallah",
+        "Vestrish",
+        "Gaggioct",
+        "Oplas",
+        "Groifel",
+        "Faod",
+        "Odriuy",
+        "Clo",
+        "Asli",
+        "Ezael",
+        "Pleione",
+        "Mob",
+        "Scorpii",
+        "Aspidiske",
+        "Plauft",
+        "Vroox",
+        "Muphrid",
+        "Klagueth",
+        "Vaut",
+        "Zobac",
+        "Zrolleen",
+        "Zosma",
+        "Naos",
+        "Draa",
+        "Rasalgethi",
+        "Plar",
+        "Muliphein",
+        "Zliomdog",
+        "Ukral",
+        "Taygeta",
+        "Vrab",
+        "Ovlao",
+        "Sagittarii",
+        "Iseotob",
+        "Nusakan",
+        "Klioksat",
+        "Avior",
+        "Kaonsu",
+        "Megrez",
+        "Dinue",
+        "Qa",
+        "Sroad",
+        "Pegasi",
+        "Merak",
+        "Sosted",
+        "Streiphix",
+        "Uvrea",
+        "Beob",
+        "Igaik",
+        "Webde",
+        "Iseegdo",
+        "Phoo",
+        "Tauri",
+        "Meu",
+        "Praems",
+        "Orionis",
+        "Seginus",
+        "Kaustop",
+        "Thoipho",
+        "Homam",
+        "Meassa",
+        "Obriuccuk",
+        "Bexuf",
+        "YedPrior",
+        "Pleibdun",
+        "Meissa",
+        "Alcyone",
+        "Craols",
+        "Jechoft",
+        "Neldiact",
+        "Gueks",
+        "Strue",
+        "Arosh",
+        "Ophaefam",
+        "Ezlaummils",
+        "Ofluec",
+        "Yaabdiks",
+        "Crictaakt",
+        "Dairser",
+        "Creolsug",
+        "Emoaloft",
+        "Hamal",
+        "Scorpii",
+        "Jitlog",
+        "Leonis",
+        "Iflaop",
+        "Altair",
+        "Zejeib",
+        "Boötis",
+        "Naps",
+        "Alnair",
+        "Ixiyel",
+        "Alkalurops",
+        "Vreo",
+        "Dschubba",
+        "Alkaid",
+        "Lineo",
+        "Gienah",
+        "Vroax",
+        "Qaploaf",
+        "Chuekt",
+        "XiDraconis",
+        "Caph",
+        "Rals",
+        "Procyon",
+        "Menkar",
+        "Rasalhague",
+        "Vro",
+        "Krets",
+        "Plokkiacs",
+        "Deneb",
+        "Igreax",
+        "Tarazed",
+        "Jainti",
+        "Nekkar",
+        "Uzlaugtun",
+        "Qeeju",
+        "Porran",
+        "Shaan",
+        "Taam",
+        "Mintaka",
+        "Brocs",
+        "Yioclon",
+        "Igloits",
+        "MuBoötis",
+        "Drio",
+        "Sadr",
+        "Fli",
+        "Gomeisa",
+        "Ceublath",
+        "Cancri",
+        "Kliomsam",
+        "Amaimde",
+        "Bleps",
+        "Hur",
+        "Betelgeuse",
+        "Zlad",
+        "Lineo"
+      ]
+    },
+    "ship_design_collection": {
+      "ship_design_defs": [
+        {
+          "name": "Flunker I",
+          "drive": "Nuclear",
+          "computer": "None",
+          "shield": "None",
+          "armor": "Titanium",
+          "hull_size": "Frigate",
+          "fuel_cell": "Standard"
+        }
+      ],
+      "ship_designs": [
+        {
+          "name": "Flunker I",
+          "weapons": [],
+          "special_systems": [],
+          "base_space": 10,
+          "drive": {
+            "name": "Nuclear",
+            "interstellar_speed": 1,
+            "combat_speed": 0
+          },
+          "computer": {
+            "name": "None",
+            "beam_attack_bonus": 0
+          },
+          "shield": {
+            "name": "None",
+            "recharge_rate": 0,
+            "reduce_damage": 0,
+            "absortion_factor": 0
+          },
+          "armor": {
+            "name": "Titanium",
+            "multiplier": 1,
+            "ground_troop_strength": 5
+          },
+          "hull_size": {
+            "name": "Frigate",
+            "size_rating": 1,
+            "space": 25,
+            "marines": 4,
+            "base_speed": 10,
+            "base_hp": 4,
+            "computer_hp": 1,
+            "drive_hp": 2,
+            "shield_hp": 1
+          },
+          "fuel_cell": {
+            "name": "Standard",
+            "autonomy": 2
+          }
+        }
+      ]
+    },
+    "beam_collection": {
+      "beams": [
+        {
+          "name": "Laser",
+          "minDamage": 1,
+          "maxDamage": 4
+        },
+        {
+          "name": "Fusion",
+          "minDamage": 2,
+          "maxDamage": 8
+        },
+        {
+          "name": "Death Spores",
+          "minDamage": 0,
+          "maxDamage": 0
+        },
+        {
+          "name": "Bio Terminator",
+          "minDamage": 0,
+          "maxDamage": 0
+        },
+        {
+          "name": "Fusion Beam",
+          "minDamage": 0,
+          "maxDamage": 0
+        },
+        {
+          "name": "Tractor Beam",
+          "minDamage": 0,
+          "maxDamage": 0
+        },
+        {
+          "name": "Phasors",
+          "minDamage": 0,
+          "maxDamage": 0
+        },
+        {
+          "name": "Plasma Web",
+          "minDamage": 0,
+          "maxDamage": 0
+        },
+        {
+          "name": "Stellar Converter",
+          "minDamage": 0,
+          "maxDamage": 0
+        },
+        {
+          "name": "Gyro Destabilizer",
+          "minDamage": 0,
+          "maxDamage": 0
+        }
+      ]
+    },
+    "environment_collection": {
+      "environments": [
+        {
+          "name": "Toxic",
+          "base_food_per_farmer": 0,
+          "description": "A poisoned world where nothing edible grows without intervention."
+        },
+        {
+          "name": "Radiated",
+          "base_food_per_farmer": 0,
+          "description": "An irradiated world hostile to all unprotected farming."
+        },
+        {
+          "name": "Barren",
+          "base_food_per_farmer": 0,
+          "description": "A lifeless rock with no soil to farm."
+        },
+        {
+          "name": "Desert",
+          "base_food_per_farmer": 1,
+          "description": "A dry world where only hardy crops take root."
+        },
+        {
+          "name": "Arid",
+          "base_food_per_farmer": 1,
+          "description": "A parched world with sparse arable land."
+        },
+        {
+          "name": "Tundra",
+          "base_food_per_farmer": 1,
+          "description": "A cold world with a short growing season."
+        },
+        {
+          "name": "Swamp",
+          "base_food_per_farmer": 2,
+          "description": "A wet world with fertile, if soggy, ground."
+        },
+        {
+          "name": "Ocean",
+          "base_food_per_farmer": 2,
+          "description": "A water world rich in aquatic food sources."
+        },
+        {
+          "name": "Terran",
+          "base_food_per_farmer": 2,
+          "description": "An Earth-like world well suited to agriculture."
+        },
+        {
+          "name": "Gaia",
+          "base_food_per_farmer": 3,
+          "description": "A paradise world of extraordinary fertility."
+        }
+      ]
+    },
+    "tech_tree": {
+      "subjects": [
+        {
+          "name": "Construction",
+          "levels": [
+            {
+              "name": "Advanced Engineering",
+              "cost": 80,
+              "available_techs": [
+                "Anti-Missile Rockets",
+                "Fighter Bays",
+                "Reinforced Hull"
+              ]
+            },
+            {
+              "name": "Advanced Construction",
+              "cost": 150,
+              "available_techs": [
+                "Automated Factory",
+                "Missile Base",
+                "Heavy Armor"
+              ]
+            },
+            {
+              "name": "Capsule Construction",
+              "cost": 250,
+              "available_techs": [
+                "Battle Pods",
+                "Troop Pods",
+                "Survival Pods"
+              ]
+            },
+            {
+              "name": "Astro Engineering",
+              "cost": 400,
+              "available_techs": [
+                "Space Port",
+                "Armor Barracks",
+                "Fighter Garrison"
+              ]
+            },
+            {
+              "name": "Robotics",
+              "cost": 650,
+              "available_techs": [
+                "Robo-Miners",
+                "Battlestation",
+                "Powered Armor"
+              ]
+            },
+            {
+              "name": "Servo Mechanics",
+              "cost": 900,
+              "available_techs": [
+                "Fast Missile Racks",
+                "Advanced Damage Control",
+                "Assault Shuttles"
+              ]
+            },
+            {
+              "name": "Astro Construction",
+              "cost": 1150,
+              "available_techs": [
+                "Titan Construction",
+                "Ground Batteries",
+                "Battleoids"
+              ]
+            },
+            {
+              "name": "Advanced Manufacturing",
+              "cost": 1500,
+              "available_techs": [
+                "Recyclotron",
+                "Automated Repair Unit",
+                "Artificial Planet Construction"
+              ]
+            },
+            {
+              "name": "Advanced Robotics",
+              "cost": 2000,
+              "available_techs": [
+                "Robotic Factory",
+                "Bomber Bays"
+              ]
+            },
+            {
+              "name": "Tectonic Engineering",
+              "cost": 3500,
+              "available_techs": [
+                "Deep Core Mine",
+                "Core Waste Dump"
+              ]
+            },
+            {
+              "name": "Superscalar Construction",
+              "cost": 6000,
+              "available_techs": [
+                "Star Fortress",
+                "Advanced City Planning",
+                "Heavy Fighters"
+              ]
+            },
+            {
+              "name": "Planetoid Construction",
+              "cost": 7500,
+              "available_techs": [
+                "Doom Star Construction",
+                "Artemis System Net"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Power",
+          "levels": [
+            {
+              "name": "Nuclear Fission",
+              "cost": 50,
+              "force_all": true,
+              "available_techs": [
+                "Freighters",
+                "Nuclear Drive",
+                "Nuclear Bomb"
+              ]
+            },
+            {
+              "name": "Cold Fusion",
+              "cost": 80,
+              "force_all": true,
+              "available_techs": [
+                "Colony Ship",
+                "Outpost Ship",
+                "Transport"
+              ]
+            },
+            {
+              "name": "Advanced Fusion",
+              "cost": 250,
+              "available_techs": [
+                "Fusion Drive",
+                "Fusion Bomb",
+                "Augmented Engines"
+              ]
+            },
+            {
+              "name": "Ion Fission",
+              "cost": 900,
+              "available_techs": [
+                "Ion Drive",
+                "Ion Pulse Cannon",
+                "Shield Capacitor"
+              ]
+            },
+            {
+              "name": "Anti-Matter Fission",
+              "cost": 2000,
+              "available_techs": [
+                "Anti-Matter Drive",
+                "Anti-Matter Torpedoes",
+                "Anti-Matter Bomb"
+              ]
+            },
+            {
+              "name": "Matter-Energy Conversion",
+              "cost": 2750,
+              "available_techs": [
+                "Transporters",
+                "Food Replicators"
+              ]
+            },
+            {
+              "name": "High Energy Distribution",
+              "cost": 3500,
+              "available_techs": [
+                "High Energy Focus",
+                "Energy Absorber",
+                "Megafluxers"
+              ]
+            },
+            {
+              "name": "Hyper-Dimensional Fission",
+              "cost": 4500,
+              "available_techs": [
+                "Proton Torpedo",
+                "Hyper Drive",
+                "Hyper-X Capacitors"
+              ]
+            },
+            {
+              "name": "Interphased Fission",
+              "cost": 10000,
+              "available_techs": [
+                "Interphased Drive",
+                "Plasma Torpedo",
+                "Neutronium Bomb"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Chemistry",
+          "levels": [
+            {
+              "name": "Chemistry",
+              "cost": 50,
+              "force_all": true,
+              "available_techs": [
+                "Nuclear Missile",
+                "Standard Fuel Cells",
+                "Extended Fuel Tanks",
+                "Titanium Armor"
+              ]
+            },
+            {
+              "name": "Advanced Metallurgy",
+              "cost": 250,
+              "available_techs": [
+                "Deuterium Fuel Cells",
+                "Tritanium Armor"
+              ]
+            },
+            {
+              "name": "Advanced Chemistry",
+              "cost": 650,
+              "available_techs": [
+                "Merculite Missile",
+                "Pollution Processor"
+              ]
+            },
+            {
+              "name": "Molecular Compression",
+              "cost": 1150,
+              "available_techs": [
+                "Pulson Missile",
+                "Atmospheric Renewer",
+                "Iridium Fuel Cells"
+              ]
+            },
+            {
+              "name": "Nano Technology",
+              "cost": 2000,
+              "available_techs": [
+                "Nano Disassemblers",
+                "Microlite Construction",
+                "Zortrium Armor"
+              ]
+            },
+            {
+              "name": "Molecular Manipulation",
+              "cost": 4500,
+              "available_techs": [
+                "Zeon Missile",
+                "Neutronium Armor",
+                "Uridium Fuel Cells"
+              ]
+            },
+            {
+              "name": "Molecular Control",
+              "cost": 10000,
+              "available_techs": [
+                "Thorium Fuel Cells",
+                "Adamantium Armor"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Sociology",
+          "levels": [
+            {
+              "name": "Military Tactics",
+              "cost": 150,
+              "available_techs": [
+                "Space Academy"
+              ]
+            },
+            {
+              "name": "Xeno Relations",
+              "cost": 650,
+              "available_techs": [
+                "Xeno Psychology",
+                "Alien Management Center"
+              ]
+            },
+            {
+              "name": "Macro Economics",
+              "cost": 1150,
+              "available_techs": [
+                "Stock Exchange"
+              ]
+            },
+            {
+              "name": "Teaching Methods",
+              "cost": 2000,
+              "available_techs": [
+                "Astro University"
+              ]
+            },
+            {
+              "name": "Advanced Government",
+              "cost": 4500,
+              "available_techs": [
+                "Confederation",
+                "Imperium",
+                "Federation",
+                "Galactic Unification"
+              ]
+            },
+            {
+              "name": "Galactic Economics",
+              "cost": 6000,
+              "available_techs": [
+                "Galactic Currency Exchange"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Computers",
+          "levels": [
+            {
+              "name": "Electronics",
+              "cost": 50,
+              "available_techs": [
+                "Electronic Computer"
+              ]
+            },
+            {
+              "name": "Optronics",
+              "cost": 150,
+              "available_techs": [
+                "Research Lab",
+                "Optronic Computer",
+                "Dauntless Guidance System"
+              ]
+            },
+            {
+              "name": "Artificial Intelligence",
+              "cost": 400,
+              "available_techs": [
+                "Neural Scanner",
+                "Scout Lab",
+                "Security Stations"
+              ]
+            },
+            {
+              "name": "Positronics",
+              "cost": 900,
+              "available_techs": [
+                "Positronic Computer",
+                "Planetary Supercomputer",
+                "Holo Simulator"
+              ]
+            },
+            {
+              "name": "Artificial Consciousness",
+              "cost": 1500,
+              "available_techs": [
+                "Emissions Guidance System",
+                "Rangemaster Targeting Unit",
+                "Cyber Security Link"
+              ]
+            },
+            {
+              "name": "Cybertronics",
+              "cost": 2750,
+              "available_techs": [
+                "Cybertronic Computer",
+                "Autolab",
+                "Structural Analyzer"
+              ]
+            },
+            {
+              "name": "Cybertechnics",
+              "cost": 3500,
+              "available_techs": [
+                "Android Farmers",
+                "Android Workers",
+                "Android Scientists"
+              ]
+            },
+            {
+              "name": "Galactic Networking",
+              "cost": 4500,
+              "available_techs": [
+                "Virtual Reality Network",
+                "Galactic Cybernet"
+              ]
+            },
+            {
+              "name": "Moleculatronics",
+              "cost": 6000,
+              "available_techs": [
+                "Pleasure Dome",
+                "Moleculatronic Computer",
+                "Achilles Targeting Unit"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Biology",
+          "levels": [
+            {
+              "name": "Astro Biology",
+              "cost": 80,
+              "available_techs": [
+                "Hydroponic Farm",
+                "Biospheres"
+              ]
+            },
+            {
+              "name": "Advanced Biology",
+              "cost": 400,
+              "available_techs": [
+                "Soil Enrichment",
+                "Cloning Center",
+                "Death Spores"
+              ]
+            },
+            {
+              "name": "Genetic Engineering",
+              "cost": 900,
+              "available_techs": [
+                "Telepathic Training",
+                "Microbiotics"
+              ]
+            },
+            {
+              "name": "Genetic Mutations",
+              "cost": 1150,
+              "available_techs": [
+                "Terraforming"
+              ]
+            },
+            {
+              "name": "Macro Genetics",
+              "cost": 1500,
+              "available_techs": [
+                "Subterranean Farms",
+                "Weather Controller"
+              ]
+            },
+            {
+              "name": "Evolutionary Genetics",
+              "cost": 2750,
+              "available_techs": [
+                "Psionics",
+                "Heightened Intelligence"
+              ]
+            },
+            {
+              "name": "Artificial Life",
+              "cost": 4500,
+              "available_techs": [
+                "Bio Terminator",
+                "Universal Antidote"
+              ]
+            },
+            {
+              "name": "Trans Genetics",
+              "cost": 7500,
+              "available_techs": [
+                "Biomorphic Fungi",
+                "Gaia Transformation",
+                "Evolutionary Mutation"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Physics",
+          "levels": [
+            {
+              "name": "Physics",
+              "cost": 50,
+              "force_all": true,
+              "available_techs": [
+                "Laser Cannon",
+                "Laser Rifle",
+                "Space Scanner"
+              ]
+            },
+            {
+              "name": "Fusion Physics",
+              "cost": 150,
+              "available_techs": [
+                "Fusion Beam",
+                "Fusion Rifle"
+              ]
+            },
+            {
+              "name": "Tachyon Physics",
+              "cost": 250,
+              "available_techs": [
+                "Tachyon Communications",
+                "Tachyon Scanner",
+                "Battle Scanner"
+              ]
+            },
+            {
+              "name": "Neutrino Physics",
+              "cost": 900,
+              "available_techs": [
+                "Neutron Blaster",
+                "Neutron Scanner"
+              ]
+            },
+            {
+              "name": "Artificial Gravity",
+              "cost": 1150,
+              "available_techs": [
+                "Tractor Beam",
+                "Graviton Beam",
+                "Gravity Generator"
+              ]
+            },
+            {
+              "name": "Subspace Physics",
+              "cost": 1500,
+              "available_techs": [
+                "Subspace Communications",
+                "Jump Gate"
+              ]
+            },
+            {
+              "name": "Multi-Phased Physics",
+              "cost": 2000,
+              "available_techs": [
+                "Phasors",
+                "Phasor Rifle",
+                "Multi-Phased Shields"
+              ]
+            },
+            {
+              "name": "Plasma Physics",
+              "cost": 3500,
+              "available_techs": [
+                "Plasma Cannon",
+                "Plasma Rifle",
+                "Plasma Web"
+              ]
+            },
+            {
+              "name": "Multi-Dimensional Physics",
+              "cost": 4500,
+              "available_techs": [
+                "Disruptor Cannon",
+                "Dimensional Portal"
+              ]
+            },
+            {
+              "name": "Hyper-Dimensional Physics",
+              "cost": 4500,
+              "available_techs": [
+                "Hyperspace Communications",
+                "Mauler Device",
+                "Sensors"
+              ]
+            },
+            {
+              "name": "Temporal Physics",
+              "cost": 15000,
+              "available_techs": [
+                "Time Warp Facilitator",
+                "Stellar Converter",
+                "Star Gate"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Force Fields",
+          "levels": [
+            {
+              "name": "Advanced Magnetism",
+              "cost": 250,
+              "available_techs": [
+                "Class I Shield",
+                "Mass Driver",
+                "ECM Jammer"
+              ]
+            },
+            {
+              "name": "Gravitic Fields",
+              "cost": 650,
+              "available_techs": [
+                "Anti-Grav Harness",
+                "Inertial Stabilizer",
+                "Gyro Destabilizer"
+              ]
+            },
+            {
+              "name": "Magneto Gravitics",
+              "cost": 900,
+              "available_techs": [
+                "Class III Shield",
+                "Planetary Radiation Shield",
+                "Warp Dissipator"
+              ]
+            },
+            {
+              "name": "Electromagnetic Refraction",
+              "cost": 1500,
+              "available_techs": [
+                "Stealth Field",
+                "Personal Shield",
+                "Stealth Suit"
+              ]
+            },
+            {
+              "name": "Warp Fields",
+              "cost": 2000,
+              "available_techs": [
+                "Pulsar",
+                "Warp Interdictor",
+                "Lightning Field"
+              ]
+            },
+            {
+              "name": "Subspace Fields",
+              "cost": 2750,
+              "available_techs": [
+                "Class V Shield",
+                "Multi-Wave ECM Jammer",
+                "Gauss Cannon"
+              ]
+            },
+            {
+              "name": "Distortion Fields",
+              "cost": 3500,
+              "available_techs": [
+                "Cloaking Device",
+                "Stasis Field",
+                "Hard Shields"
+              ]
+            },
+            {
+              "name": "Quantum Fields",
+              "cost": 4500,
+              "available_techs": [
+                "Class VII Shield",
+                "Planetary Flux Shield",
+                "Wide Area Jammer"
+              ]
+            },
+            {
+              "name": "Transwarp Fields",
+              "cost": 7500,
+              "available_techs": [
+                "Displacement Device",
+                "Subspace Teleporter",
+                "Inertial Nullifier"
+              ]
+            },
+            {
+              "name": "Temporal Fields",
+              "cost": 15000,
+              "available_techs": [
+                "Class X Shield",
+                "Planetary Barrier Shield",
+                "Phasing Cloak"
+              ]
+            }
+          ]
+        }
+      ],
+      "all_techs": [
+        {
+          "name": "Starting Colony Infrastructure",
+          "description": "Basic infrastructure every empire begins with.",
+          "hidden": true,
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Capitol",
+                "Colony Base",
+                "Star Base",
+                "Marine Barracks",
+                "Transport"
+              ],
+              "hull_sizes": [
+                "Frigate",
+                "Destroyer",
+                "Cruiser",
+                "Battleship"
+              ],
+              "drives": [
+                "None",
+                "Nuclear"
+              ],
+              "armors": [
+                "None",
+                "Titanium"
+              ],
+              "computers": [
+                "None"
+              ],
+              "fuel_cells": [
+                "None",
+                "Standard"
+              ],
+              "shields": [
+                "None"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Automated Factory",
+          "description": "Robotic assembly lines that improve colony industry.",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Automated Factory"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Hydroponic Farm",
+          "description": "Orbital and controlled-environment farming that provides extra food for the colony.",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Hydroponic Farm"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Missile Base",
+          "description": "Ground-based planetary missile defense.",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Missile Base"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Space Port",
+          "description": "Advanced orbital facility that boosts colony income.",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Space Port"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Stock Exchange",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Stock Exchange"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Armor Barracks",
+          "description": "Produces armored ground units.",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Armor Barracks"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Fighter Garrison",
+          "description": "Orbital fighter defense for colonies.",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Fighter Garrison"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Robo-Miners",
+          "description": "Advanced mining facility.",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Robo-Miners"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Battlestation",
+          "description": "Upgraded orbital starbase.",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Battlestation"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ground Batteries",
+          "description": "Powerful planetary beam defense system.",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Ground Batteries"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Recyclotron",
+          "description": "Converts population into production with no pollution.",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Recyclotron"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Robotic Factory",
+          "description": "Advanced robotic colony production facility.",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Robotic Factory"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Research Lab",
+          "description": "Improves research output of a colony.",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Research Lab"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Deep Core Mine",
+          "description": "Super advanced mining facility.",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Deep Core Mine"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Core Waste Dump",
+          "description": "Completely eliminates pollution penalties.",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Star Fortress",
+          "description": "Major orbital defensive facility.",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Star Fortress"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Artemis System Net",
+          "description": "Network of space mines that damages ships attacking any colony in the system.",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Artemis System Net"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Galactic Cybernet",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Galactic Cybernet"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pleasure Dome",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Pleasure Dome"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Terraforming",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Terraforming"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Subterranean Farms",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Subterranean Farms"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Weather Controller",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Weather Controller"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Gaia Transformation",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Gaia Transformation"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Gravity Generator",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Gravity Generator"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Dimensional Portal",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Dimensional Portal"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Warp Interdictor",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Warp Interdictor"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Planetary Radiation Shield",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Planetary Radiation Shield"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Planetary Flux Shield",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Planetary Flux Shield"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Planetary Barrier Shield",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Planetary Barrier Shield"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Artificial Planet Construction",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Artificial Planet Construction"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Food Replicators",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Food Replicators"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pollution Processor",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Pollution Processor"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Atmospheric Renewer",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Atmospheric Renewer"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Alien Management Center",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Alien Management Center"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Astro University",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Astro University"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Planetary Supercomputer",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Planetary Supercomputer"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Holo Simulator",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Holo Simulator"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Autolab",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Autolab"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Android Farmers",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Android Farmers"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Android Workers",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Android Workers"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Android Scientists",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Android Scientists"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Biospheres",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Biospheres"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cloning Center",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Cloning Center"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Soil Enrichment",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Soil Enrichment"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Nuclear Drive",
+          "description": "Basic interstellar propulsion.",
+          "grants": {
+            "unlocks": {
+              "drives": [
+                "Nuclear"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Fusion Drive",
+          "description": "Fusion-powered interstellar propulsion.",
+          "grants": {
+            "unlocks": {
+              "drives": [
+                "Fusion"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ion Drive",
+          "description": "Ion-powered interstellar propulsion.",
+          "grants": {
+            "unlocks": {
+              "drives": [
+                "Ion"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Anti-Matter Drive",
+          "description": "Anti-matter interstellar propulsion.",
+          "grants": {
+            "unlocks": {
+              "drives": [
+                "Anti-matter"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Hyper Drive",
+          "description": "Hyper-dimensional interstellar propulsion.",
+          "grants": {
+            "unlocks": {
+              "drives": [
+                "Hyper"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Interphased Drive",
+          "description": "Interphased interstellar propulsion.",
+          "grants": {
+            "unlocks": {
+              "drives": [
+                "Interphased"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Titanium Armor",
+          "description": "Basic ship armor.",
+          "grants": {
+            "unlocks": {
+              "armors": [
+                "Titanium"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Tritanium Armor",
+          "description": "Improved ship armor.",
+          "grants": {
+            "unlocks": {
+              "armors": [
+                "Tritanium"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Zortrium Armor",
+          "description": "Advanced ship armor.",
+          "grants": {
+            "unlocks": {
+              "armors": [
+                "Zortrium"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Neutronium Armor",
+          "description": "Dense neutronium ship armor.",
+          "grants": {
+            "unlocks": {
+              "armors": [
+                "Neutronium"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Adamantium Armor",
+          "description": "Extremely strong ship armor.",
+          "grants": {
+            "unlocks": {
+              "armors": [
+                "Adamantium"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Electronic Computer",
+          "description": "Basic battle computer.",
+          "grants": {
+            "unlocks": {
+              "computers": [
+                "Electronic"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Optronic Computer",
+          "description": "Improved battle computer.",
+          "grants": {
+            "unlocks": {
+              "computers": [
+                "Optronic"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Positronic Computer",
+          "description": "Advanced battle computer.",
+          "grants": {
+            "unlocks": {
+              "computers": [
+                "Positronic"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cybertronic Computer",
+          "description": "Cybertronic battle computer.",
+          "grants": {
+            "unlocks": {
+              "computers": [
+                "Cybertronic"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Standard Fuel Cells",
+          "description": "Basic fuel cells.",
+          "grants": {
+            "unlocks": {
+              "fuel_cells": [
+                "Standard"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Deuterium Fuel Cells",
+          "description": "Improved fuel cells.",
+          "grants": {
+            "unlocks": {
+              "fuel_cells": [
+                "Deuterium"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Iridium Fuel Cells",
+          "description": "Advanced fuel cells.",
+          "grants": {
+            "unlocks": {
+              "fuel_cells": [
+                "Iridium"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Uridium Fuel Cells",
+          "description": "Long-range fuel cells.",
+          "grants": {
+            "unlocks": {
+              "fuel_cells": [
+                "Urridium"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Thorium Fuel Cells",
+          "description": "Effectively unlimited-range fuel cells.",
+          "grants": {
+            "unlocks": {
+              "fuel_cells": [
+                "Thorium"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Class I Shield",
+          "description": "Basic shield generator.",
+          "grants": {
+            "unlocks": {
+              "shields": [
+                "Class I"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Class III Shield",
+          "description": "Improved shield generator.",
+          "grants": {
+            "unlocks": {
+              "shields": [
+                "Class III"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Class V Shield",
+          "description": "Advanced shield generator.",
+          "grants": {
+            "unlocks": {
+              "shields": [
+                "Class V"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Class VII Shield",
+          "description": "High-energy shield generator.",
+          "grants": {
+            "unlocks": {
+              "shields": [
+                "Class VII"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Class X Shield",
+          "description": "Powerful shield generator.",
+          "grants": {
+            "unlocks": {
+              "shields": [
+                "Class X"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Titan Construction",
+          "description": "Enables construction of Titan-class ships.",
+          "grants": {
+            "unlocks": {
+              "hull_sizes": [
+                "Titan"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Doom Star Construction",
+          "description": "Enables construction of Doom Star-class ships.",
+          "grants": {
+            "unlocks": {
+              "hull_sizes": [
+                "Doomstar"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Moleculatronic Computer",
+          "description": "Advanced moleculatronic battle computer.",
+          "grants": {
+            "unlocks": {
+              "computers": [
+                "Moleculatronic"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ion Pulse Cannon",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Mass Driver",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Mauler Device",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Neutronium Bomb",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Neutron Blaster",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Nuclear Bomb",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Plasma Cannon",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Nuclear Missile",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Zeon Missile",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Particle Beam",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Pulson Missile",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Plasma Torpedo",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Stasis Field",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Proton Torpedo",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Phasor",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Merculite Missile",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Gauss Cannon",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Graviton Beam",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Disruptor Cannon",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Black Hole Generator",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Anti-Matter Bomb",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Anti-Matter Torpedoes",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Fusion Bomb",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Laser Cannon",
+          "description": "Basic beam weapon.",
+          "grants": {
+            "unlocks": {
+              "beams": [
+                "Laser"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Anti-Missile Rockets",
+          "description": "Ship point-defense weapon specialized against missiles.",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Anti-Missile Rockets"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Fighter Bays",
+          "description": "Allows ships to carry and launch interceptor fighters.",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Fighter Bays"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Assault Shuttles",
+          "description": "Enables automatic boarding of enemy ships and starbases.",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Assault Shuttles"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Bomber Bays",
+          "description": "Allows ships to carry and launch bombers.",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Bomber Bays"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Heavy Fighters",
+          "description": "Allows ships to carry and launch heavy fighters.",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Heavy Fighters"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Death Spores",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "beams": [
+                "Death Spores"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Bio Terminator",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "beams": [
+                "Bio Terminator"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Fusion Beam",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "beams": [
+                "Fusion Beam"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Tractor Beam",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "beams": [
+                "Tractor Beam"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Phasors",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "beams": [
+                "Phasors"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Plasma Web",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "beams": [
+                "Plasma Web"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Stellar Converter",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "beams": [
+                "Stellar Converter"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Gyro Destabilizer",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "beams": [
+                "Gyro Destabilizer"
+              ]
+            }
+          }
+        },
+        {
+          "name": "High Energy Focus",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Hyper-X Capacitors",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Inertial Nullifier",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Scout Lab",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Security Stations",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Transporters",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Shield Capacitor",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Megafluxers",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "ECM Jammer",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Energy Absorber",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Cloaking Device",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Augmented Engines",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Automated Repair Unit",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Reinforced Hull",
+          "description": "Significantly increases ship structural strength.",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Reinforced Hull"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Heavy Armor",
+          "description": "Strong armor plating for ships and starbases.",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Heavy Armor"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Battle Pods",
+          "description": "Increases internal space on ships.",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Battle Pods"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Troop Pods",
+          "description": "Increases marine capacity on ships.",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Troop Pods"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Survival Pods",
+          "description": "Protects ship leaders when their ship is destroyed.",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Survival Pods"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Fast Missile Racks",
+          "description": "Allows ships to fire missiles twice per combat turn.",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Fast Missile Racks"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Advanced Damage Control",
+          "description": "Improves post-combat ship repair.",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Advanced Damage Control"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Emissions Guidance System",
+          "description": "Improves missile targeting by tracking enemy ship emissions.",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Emissions Guidance System"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Rangemaster Targeting Unit",
+          "description": "Improves long-range weapon targeting accuracy.",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Rangemaster Targeting Unit"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Structural Analyzer",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Structural Analyzer"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Achilles Targeting Unit",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Achilles Targeting Unit"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Battle Scanner",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Battle Scanner"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Multi-Phased Shields",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Multi-Phased Shields"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Lightning Field",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Lightning Field"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Multi-Wave ECM Jammer",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Multi-Wave ECM Jammer"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Hard Shields",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Hard Shields"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Wide Area Jammer",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Wide Area Jammer"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Displacement Device",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Displacement Device"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Subspace Teleporter",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Subspace Teleporter"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Phasing Cloak",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Phasing Cloak"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Stealth Field",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Stealth Field"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Time Warp Facilitator",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Time Warp Facilitator"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Warp Dissipator",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Warp Dissipator"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Inertial Stabilizer",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "ship_systems": [
+                "Inertial Stabilizer"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Advanced City Planning",
+          "description": "Increases the maximum population of every colony.",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "max_population",
+                "value": 5000
+              }
+            ]
+          }
+        },
+        {
+          "name": "Battleoids",
+          "description": "Enables robotic ground combat units.",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Colony Ship",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Colony Ship"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Feudal",
+          "description": "A decentralized noble hierarchy with cheap ship construction and weak research.",
+          "type": "government",
+          "pick_cost": -4,
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "ship_cost_multiplier",
+                "value": 0.6666666667
+              },
+              {
+                "name": "science_labor_multiplier",
+                "value": 0.5
+              },
+              {
+                "name": "missing_barracks_morale",
+                "value": -0.2
+              },
+              {
+                "name": "missing_capitol_morale",
+                "value": -0.5
+              }
+            ]
+          }
+        },
+        {
+          "name": "Dictatorship",
+          "description": "A centralized authoritarian government with stable internal security.",
+          "type": "government",
+          "default": true,
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "defensive_spy_bonus",
+                "value": 0.1
+              },
+              {
+                "name": "missing_barracks_morale",
+                "value": -0.2
+              },
+              {
+                "name": "missing_capitol_morale",
+                "value": -0.35
+              }
+            ]
+          }
+        },
+        {
+          "name": "Democracy",
+          "description": "A representative government with strong research and tax output but weaker counter-espionage.",
+          "type": "government",
+          "pick_cost": 7,
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "science_labor_multiplier",
+                "value": 1.5
+              },
+              {
+                "name": "tax_multiplier",
+                "value": 1.5
+              },
+              {
+                "name": "defensive_spy_bonus",
+                "value": -0.1
+              },
+              {
+                "name": "missing_capitol_morale",
+                "value": -0.2
+              }
+            ]
+          }
+        },
+        {
+          "name": "Unification",
+          "description": "A unified collective with strong farming and industry that ignores morale.",
+          "type": "government",
+          "pick_cost": 6,
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "industry_labor_multiplier",
+                "value": 1.5
+              },
+              {
+                "name": "food_labor_multiplier",
+                "value": 1.5
+              },
+              {
+                "name": "defensive_spy_bonus",
+                "value": 0.15
+              },
+              {
+                "name": "morale_neutral",
+                "value": 1
+              }
+            ]
+          }
+        },
+        {
+          "name": "Confederation",
+          "description": "An advanced feudal compact with dramatically cheaper ship construction.",
+          "type": "government",
+          "upgrades": [
+            "Feudal"
+          ],
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "ship_cost_multiplier",
+                "value": 0.3333333333
+              },
+              {
+                "name": "science_labor_multiplier",
+                "value": 0.75
+              },
+              {
+                "name": "missing_barracks_morale",
+                "value": -0.2
+              },
+              {
+                "name": "missing_capitol_morale",
+                "value": -0.5
+              }
+            ]
+          }
+        },
+        {
+          "name": "Dauntless Guidance System",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Evolutionary Mutation",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Extended Fuel Tanks",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Federation",
+          "description": "An advanced democracy with exceptional research and tax output.",
+          "type": "government",
+          "upgrades": [
+            "Democracy"
+          ],
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "science_labor_multiplier",
+                "value": 1.75
+              },
+              {
+                "name": "tax_multiplier",
+                "value": 1.75
+              },
+              {
+                "name": "defensive_spy_bonus",
+                "value": -0.1
+              },
+              {
+                "name": "missing_capitol_morale",
+                "value": -0.2
+              }
+            ]
+          }
+        },
+        {
+          "name": "Freighters",
+          "description": "Enables construction of freighter fleets.",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Freighters"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Galactic Currency Exchange",
+          "description": "Improves income across the empire.",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "income_bonus",
+                "value": 0.5
+              }
+            ]
+          }
+        },
+        {
+          "name": "Galactic Unification",
+          "description": "An advanced unification with doubled food and industry labor.",
+          "type": "government",
+          "upgrades": [
+            "Unification"
+          ],
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "industry_labor_multiplier",
+                "value": 2
+              },
+              {
+                "name": "food_labor_multiplier",
+                "value": 2
+              },
+              {
+                "name": "defensive_spy_bonus",
+                "value": 0.15
+              },
+              {
+                "name": "morale_neutral",
+                "value": 1
+              }
+            ]
+          }
+        },
+        {
+          "name": "Imperium",
+          "description": "An advanced dictatorship with improved security, barracks morale, and command capacity.",
+          "type": "government",
+          "upgrades": [
+            "Dictatorship"
+          ],
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "defensive_spy_bonus",
+                "value": 0.2
+              },
+              {
+                "name": "barracks_morale_bonus",
+                "value": 0.2
+              },
+              {
+                "name": "missing_capitol_morale",
+                "value": -0.35
+              },
+              {
+                "name": "command_points_multiplier",
+                "value": 1.5
+              }
+            ]
+          }
+        },
+        {
+          "name": "Laser Rifle",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Fusion Rifle",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Phasor Rifle",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Plasma Rifle",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Microlite Construction",
+          "description": "Empire-wide microlite materials increase worker production.",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "industry_per_worker",
+                "value": 1
+              }
+            ]
+          }
+        },
+        {
+          "name": "Nano Disassemblers",
+          "description": "Doubles every colony's tolerance to pollution.",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Neural Scanner",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Outpost Ship",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Powered Armor",
+          "description": "Improves marine ground combat effectiveness.",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Pulsar",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Space Academy",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Space Scanner",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Transport",
+          "description": "Enables construction of transport ships for planetary invasions.",
+          "grants": {
+            "unlocks": {
+              "buildings": [
+                "Transport"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Universal Antidote",
+          "description": "Empire-wide medical breakthrough: colonies grow 50% faster (replaces Microbiotics).",
+          "upgrades": [
+            "Microbiotics"
+          ],
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "population_growth_percent",
+                "value": 50
+              }
+            ]
+          }
+        },
+        {
+          "name": "Xeno Psychology",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Cyber Security Link",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Personal Shield",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Stealth Suit",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Virtual Reality Network",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "morale_bonus",
+                "value": 0.2
+              }
+            ]
+          }
+        },
+        {
+          "name": "Telepathic Training",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Microbiotics",
+          "description": "Empire-wide medical breakthrough: colonies grow 25% faster.",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "population_growth_percent",
+                "value": 25
+              }
+            ]
+          }
+        },
+        {
+          "name": "Psionics",
+          "description": "Empire-wide psionic coordination improves spies and morale for Feudal, Dictatorship, Confederation, and Imperium governments.",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "offensive_spy_bonus",
+                "value": 0.1
+              },
+              {
+                "name": "defensive_spy_bonus",
+                "value": 0.1
+              },
+              {
+                "name": "psionics_morale_bonus",
+                "value": 0.1
+              }
+            ]
+          }
+        },
+        {
+          "name": "Heightened Intelligence",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "science_per_scientist",
+                "value": 1
+              }
+            ]
+          }
+        },
+        {
+          "name": "Biomorphic Fungi",
+          "description": "Empire-wide engineered fungi let every farmer produce one extra food on any world, even Toxic, Barren, and Radiated planets, and allow farmer-bonus farming buildings to be built there.",
+          "grants": {
+            "unlocks": {},
+            "modifiers": [
+              {
+                "name": "food_per_farmer",
+                "value": 1
+              }
+            ]
+          }
+        },
+        {
+          "name": "Tachyon Communications",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Tachyon Scanner",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Neutron Scanner",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Subspace Communications",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Jump Gate",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Hyperspace Communications",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Star Gate",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Sensors",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        },
+        {
+          "name": "Anti-Grav Harness",
+          "description": "No description provided",
+          "grants": {
+            "unlocks": {}
+          }
+        }
+      ]
+    }
+  },
+  "pending_colony_bases": {},
+  "pending_colony_ships": {},
+  "pending_artificial_planets": {},
+  "turn_status": {
+    "mode": "simultaneous",
+    "ready_player_ids": [],
+    "waiting_player_ids": [
+      1,
+      2
+    ],
+    "required_player_ids": [
+      1,
+      2
+    ]
+  }
+}

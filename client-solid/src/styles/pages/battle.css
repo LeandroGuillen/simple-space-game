@@ -1,0 +1,163 @@
+/* Tactical combat screen (MoO2-style): full-bleed Phaser canvas with a
+   retro bottom command bar. */
+
+.battle-page {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 64px);
+  min-height: 480px;
+  background: #05060d;
+  border: 1px solid #2b3656;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.battle-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.battle-stage canvas {
+  display: block;
+}
+
+.battle-stage-status {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 14px;
+  font-family: "Space Grotesk", monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #cfd8ff;
+  background: rgba(10, 14, 28, 0.78);
+  border: 1px solid #3b4d7a;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.battle-hud {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) minmax(200px, 1.3fr) auto minmax(190px, 1fr);
+  gap: 8px;
+  padding: 8px;
+  background: linear-gradient(180deg, #1d2435 0%, #141a29 100%);
+  border-top: 2px solid #4a5a85;
+}
+
+.battle-hud-panel {
+  background: #0c101d;
+  border: 1px solid #39466b;
+  border-radius: 4px;
+  padding: 8px 10px;
+  min-height: 110px;
+  font-size: 0.82rem;
+  overflow: hidden;
+}
+
+.battle-hud-title {
+  margin: 0 0 6px;
+  font-family: "Space Grotesk", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8fa3d9;
+  border-bottom: 1px solid #2b3656;
+  padding-bottom: 4px;
+}
+
+.battle-ship-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin: 0 0 2px;
+}
+
+.battle-ship-sub {
+  margin: 0;
+  color: #9aa7bd;
+  font-size: 0.78rem;
+}
+
+.battle-weapon-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: #7df0a8;
+  font-family: "Space Grotesk", monospace;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.battle-weapon-row.is-spent {
+  color: #5a6a8a;
+}
+
+.battle-systems-grid {
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: 14px;
+  row-gap: 2px;
+  font-family: "Space Grotesk", monospace;
+  font-size: 0.78rem;
+  color: #cfd8ff;
+}
+
+.battle-systems-grid dt {
+  color: #8fa3d9;
+}
+
+.battle-systems-grid dd {
+  margin: 0;
+  text-align: right;
+}
+
+.battle-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(86px, 1fr));
+  gap: 6px;
+  align-content: center;
+  padding: 4px;
+}
+
+.battle-button {
+  font-family: "Space Grotesk", monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 8px 10px;
+  color: #e8edff;
+  background: linear-gradient(180deg, #3a4a74 0%, #232c47 100%);
+  border: 1px solid #5d70a5;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: filter 120ms ease;
+}
+
+.battle-button:hover:not(:disabled) {
+  filter: brightness(1.25);
+}
+
+.battle-button:disabled {
+  color: #5a6a8a;
+  background: #161c2c;
+  border-color: #2b3656;
+  cursor: default;
+}
+
+.battle-button.is-toggled {
+  color: #ffd166;
+  border-color: #ffd166;
+  box-shadow: 0 0 6px rgba(255, 209, 102, 0.45) inset;
+}
+
+.battle-empty {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: #8fa3d9;
+  font-family: "Space Grotesk", monospace;
+  letter-spacing: 0.1em;
+}

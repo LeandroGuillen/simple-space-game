@@ -144,11 +144,17 @@ describe('isBuildingApplicableToPlanet', () => {
 
   const farmerBonusBuilding = {
     name: 'Soil Enrichment',
-    grants: { modifiers: [{ name: 'food_per_farmer', value: 1 }] },
+    grants: {
+      unlocks: { buildings: [], hullSizes: [], drives: [], armors: [], computers: [], fuelCells: [], shields: [], beams: [], shipSystems: [] },
+      modifiers: [{ name: 'food_per_farmer', value: 1 }],
+    },
   };
   const flatFoodBuilding = {
     name: 'Hydroponic Farm',
-    grants: { modifiers: [{ name: 'food_flat', value: 2 }] },
+    grants: {
+      unlocks: { buildings: [], hullSizes: [], drives: [], armors: [], computers: [], fuelCells: [], shields: [], beams: [], shipSystems: [] },
+      modifiers: [{ name: 'food_flat', value: 2 }],
+    },
   };
 
   it('hides farmer-bonus-only buildings on hostile worlds without Biomorphic Fungi', () => {

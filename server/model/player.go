@@ -5,6 +5,10 @@ type Player struct {
 	Name  string `json:"name"`
 	Color string `json:"color"`
 
+	// IsHuman marks players whose battles pause for interactive tactical
+	// combat instead of instant auto-resolve.
+	IsHuman bool `json:"is_human,omitempty"`
+
 	Race `json:"race"`
 
 	Treasury        float64           `json:"treasury"`

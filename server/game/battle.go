@@ -40,6 +40,12 @@ func (g *Game) resolveStarBattles() []*BattleReport {
 		if !multipleOwners(fleets) {
 			continue
 		}
+		// Battles with a human participant pause as interactive tactical
+		// battles, resolved through the battle action API after the turn.
+		if g.starHasHumanConflict(fleets) {
+			g.createTacticalBattle(starID, fleets)
+			continue
+		}
 		report := g.resolveBattle(starID, fleets)
 		if report != nil {
 			reports = append(reports, report)

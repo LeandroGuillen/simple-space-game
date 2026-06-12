@@ -614,6 +614,19 @@ export function AppShell(props: RouteSectionProps) {
     recordPlanetReturnCandidate(location.pathname);
   });
 
+  // An interactive tactical battle awaits this player: take over the screen.
+  createEffect(() => {
+    const playerId = currentPlayer()?.id ?? state.session.playerId;
+    const pending = (state.game?.pendingBattles ?? []).find(
+      (battle) =>
+        battle.status === "active" &&
+        battle.human_owner_ids.includes(playerId),
+    );
+    if (pending && !location.pathname.startsWith("/battle")) {
+      navigate(`/battle/${pending.id}`);
+    }
+  });
+
   createShortcut(
     END_TURN_SHORTCUT,
     () => {

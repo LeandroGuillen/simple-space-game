@@ -37,6 +37,7 @@ type Game struct {
 	PendingColonyShips       map[uint][]uint      `json:"pending_colony_ships"`
 	PendingArtificialPlanets map[uint][]uint      `json:"pending_artificial_planets"`
 	BattleReports            []*BattleReport      `json:"battle_reports,omitempty"`
+	PendingBattles           []*TacticalBattle    `json:"pending_battles,omitempty"`
 	InvasionReports          []*InvasionReport    `json:"invasion_reports,omitempty"`
 	TurnSubmissions          map[uint]Commands    `json:"-"`
 	TurnStatus               TurnStatus           `json:"turn_status"`
@@ -83,6 +84,7 @@ func NewGame(resources *ResourceManager, options NewGameOptions) (*Game, error) 
 	firstPlayerID := uint(1)
 	players := make([]*Player, 0, numPlayers)
 	player1 := NewPlayer(firstPlayerID, playerName, playerColor, race)
+	player1.IsHuman = true
 	players = append(players, player1)
 
 	// Build the pool of colors still available for non-interactive slots by
@@ -192,6 +194,11 @@ func (g *Game) SubmitTurn(playerID uint, commands Commands) (TurnStatus, bool, e
 	if _, err := g.getPlayer(playerID); err != nil {
 		return g.currentTurnStatus(), false, err
 	}
+	for _, battle := range g.PendingBattles {
+		if battle != nil && battle.Status == TacticalBattleActive && battle.IsHumanOwner(playerID) {
+			return g.currentTurnStatus(), false, fmt.Errorf("resolve pending battle %d at star %d before ending the turn", battle.ID, battle.StarID)
+		}
+	}
 	if g.TurnSubmissions == nil {
 		g.TurnSubmissions = make(map[uint]Commands)
 	}
@@ -213,6 +220,9 @@ func (g *Game) SubmitTurn(playerID uint, commands Commands) (TurnStatus, bool, e
 }
 
 func (g *Game) AdvanceTurn(submissions map[uint]Commands) error {
+	// A pending battle should have been fought via the battle API before any
+	// turn submission, but never let a stale one wedge the game.
+	g.autoResolveLeftoverBattles()
 	existingPopulationTransfers := g.populationTransferIDs()
 	playerIDs := g.playerIDs()
 	for _, playerID := range playerIDs {

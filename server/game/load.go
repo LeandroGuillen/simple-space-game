@@ -26,5 +26,19 @@ func HydrateLoadedGame(g *Game, resources *ResourceManager) {
 	if g.PendingArtificialPlanets == nil {
 		g.PendingArtificialPlanets = make(map[uint][]uint)
 	}
+	// Saves from before interactive combat never marked a human player;
+	// default to player 1 so loaded games get tactical battles too.
+	if len(g.Players) > 0 {
+		anyHuman := false
+		for _, p := range g.Players {
+			if p != nil && p.IsHuman {
+				anyHuman = true
+				break
+			}
+		}
+		if !anyHuman {
+			g.Players[0].IsHuman = true
+		}
+	}
 	g.mu = &sync.Mutex{}
 }

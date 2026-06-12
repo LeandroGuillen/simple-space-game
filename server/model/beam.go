@@ -1,7 +1,9 @@
 package model
 
+// Beam JSON tags must stay camelCase: game/resources/beams.json uses
+// minDamage/maxDamage and loads straight into this struct.
 type Beam struct {
-	Name      string
-	MinDamage int64
-	MaxDamage int64
+	Name      string `json:"name"`
+	MinDamage int64  `json:"minDamage"`
+	MaxDamage int64  `json:"maxDamage"`
 }

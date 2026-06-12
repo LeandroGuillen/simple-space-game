@@ -113,13 +113,6 @@ export function MutationPage() {
   const middleColumnGroups = createMemo(() => raceTraitGroupsForCategories(RACE_EDITOR_MIDDLE_COLUMN));
   const rightColumnGroups = createMemo(() => raceTraitGroupsForCategories(RACE_EDITOR_RIGHT_COLUMN));
 
-  // Calculate original race pick cost (what the race was designed with)
-  const originalRacePickCost = createMemo(() => {
-    const player = currentPlayer();
-    if (!player?.raceTraitIds) return 0;
-    return racePickCost(player.raceTraitIds);
-  });
-
   // Current picks being used in the mutation editor
   const currentPickCost = createMemo(() => {
     return racePickCost(traitIds());

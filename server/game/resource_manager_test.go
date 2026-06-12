@@ -18,6 +18,22 @@ func TestResourceManagerLoadsShipSystems(t *testing.T) {
 	assert.True(t, shipSystemExists(shipSystems.ShipSystems, "Anti-Missile Rockets"))
 }
 
+// Guards the Beam JSON tags: beams.json uses camelCase keys, so a tag rename
+// would silently zero every beam's damage.
+func TestResourceManagerLoadsBeamDamage(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+	var laser *Beam
+	for i := range resources.Beams {
+		if resources.Beams[i].Name == "Laser" {
+			laser = &resources.Beams[i]
+		}
+	}
+	require.NotNil(t, laser, "Laser beam missing from beams.json")
+	assert.Equal(t, int64(1), laser.MinDamage)
+	assert.Equal(t, int64(4), laser.MaxDamage)
+}
+
 func TestNewResourceManagerLoadsHumanBuiltinRace(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)

@@ -164,6 +164,9 @@ func (s *Server) registerRoutes(r *gin.Engine) {
 		resources.GET("/governments", GetGovernments)
 	}
 
+	r.GET("/battles/:battleID", GetBattle)
+	r.POST("/battles/:battleID/action", PostBattleAction)
+
 	r.GET("/gameupdates", func(c *gin.Context) {
 		ws.Handler(s.hub, c)
 	})

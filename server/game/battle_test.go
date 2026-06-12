@@ -21,6 +21,9 @@ func newBattleGame(t *testing.T) *Game {
 		NumPlayers:  2,
 	})
 	require.NoError(t, err)
+	// These tests cover the instant auto-resolve path, which only applies to
+	// battles with no human participant.
+	g.Players[0].IsHuman = false
 	return g
 }
 

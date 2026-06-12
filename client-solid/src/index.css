@@ -30,5 +30,6 @@
 @import "./styles/pages/setup.css";
 @import "./styles/pages/custom-race.css";
 @import "./styles/pages/ship-editor.css";
+@import "./styles/pages/battle.css";
 
 @import "./styles/responsive/breakpoints.css";

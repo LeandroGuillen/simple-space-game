@@ -6,7 +6,6 @@ import { GalaxyMap } from "../components/GalaxyMap";
 import { PlanetVisual } from "../components/PlanetVisual";
 import {
   calculateFleetTravelTurnsFromCoordinates,
-  calculateFleetTravelTurnsWithStarGate,
   destinationInSupplyRange,
   findPlayerFleetsAtStar,
   findStar,
@@ -77,7 +76,7 @@ export function GalaxyPage() {
         eta,
         starGate: isStarGate,
       };
-    }).filter((route): route is { fromX: number; fromY: number; toX: number; toY: number; eta: number; starGate?: boolean } => Boolean(route)),
+    }).filter((route): route is { fromX: number; fromY: number; toX: number; toY: number; eta: number; starGate: boolean } => Boolean(route)),
   );
   const activeFleetRoutes = createMemo(() =>
     (state.game?.fleets ?? [])
@@ -128,7 +127,7 @@ export function GalaxyPage() {
     };
   });
   const fleetRouteLines = createMemo(() => {
-    const routes = [...activeFleetRoutes(), ...pendingFleetRoutes()];
+    const routes = [...activeFleetRoutes(), ...pendingFleetRoutes().filter((r): r is NonNullable<typeof r> => r !== null)];
     if (previewFleetRoute()) {
       routes.push(previewFleetRoute()!);
     }

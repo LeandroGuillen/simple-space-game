@@ -6,6 +6,7 @@ import { mapGame, mapPlayerColorOptions } from '../lib/mappers';
 import type { ApiGameListItem, NewGameOptions } from '../lib/types/api';
 import type { BuildingViewModel, GameViewModel, PlayerColorOptions, ShipDesignForm } from '../lib/types/domain';
 import type { ArtificialPlanetCommand, ColonizeCommand, FleetMoveCommand, InvadeCommand, MovePopulationCommand, PendingCommands, SelectResearchCommand, TransferPopulationCommand, TurnCommands } from '../lib/types/commands';
+import type { ApiTacticalBattle, BattleActionRequest } from '../lib/types/battle';
 import {
   clearSessionLastSetupServerUrl,
   getInitialSetupSelectedServerUrl,
@@ -115,6 +116,8 @@ type AppContextValue = {
   colonize: (planetId: number) => Promise<void>;
   exploreStar: (starId: number) => Promise<void>;
   endTurn: () => Promise<void>;
+  getBattle: (battleId: number) => Promise<ApiTacticalBattle>;
+  sendBattleAction: (battleId: number, action: BattleActionRequest) => Promise<ApiTacticalBattle>;
   saveShipDesign: (form: ShipDesignForm, mode: 'create' | 'update') => Promise<void>;
   setInfo: (info: string) => void;
   clearError: () => void;
@@ -827,6 +830,25 @@ export function AppProvider(props: ParentProps) {
     }
   }
 
+  function requireBattleApi() {
+    const client = api();
+    const gameId = state.session.selectedGameId;
+    if (!client || !gameId) {
+      throw new Error('Connect to a server and select a game first.');
+    }
+    return { client, gameId };
+  }
+
+  async function getBattle(battleId: number) {
+    const { client, gameId } = requireBattleApi();
+    return client.getBattle(gameId, battleId);
+  }
+
+  async function sendBattleAction(battleId: number, action: BattleActionRequest) {
+    const { client, gameId } = requireBattleApi();
+    return client.postBattleAction(gameId, battleId, action);
+  }
+
   async function exploreStar(starId: number) {
     if (!api() || !state.session.selectedGameId) {
       return;
@@ -1038,6 +1060,8 @@ export function AppProvider(props: ParentProps) {
     colonize,
     exploreStar,
     endTurn,
+    getBattle,
+    sendBattleAction,
     saveShipDesign,
     setInfo,
     clearError,

@@ -15,6 +15,7 @@ import type {
 } from './types/api';
 import type { ShipDesignForm } from './types/domain';
 import type { TurnCommands } from './types/commands';
+import type { ApiTacticalBattle, BattleActionRequest } from './types/battle';
 import { normalizeServerUrl } from './utils';
 
 type JsonHeaders = Record<string, string>;
@@ -240,6 +241,24 @@ export class ApiClient {
       }),
     });
     return readJson<ApiTurnResponse>(response);
+  }
+
+  async getBattle(gameId: string, battleId: number) {
+    const response = await fetch(`${this.baseUrl}/battles/${battleId}`, {
+      headers: this.headers(gameId),
+    });
+    const body = await readJson<{ battle: ApiTacticalBattle }>(response);
+    return body.battle;
+  }
+
+  async postBattleAction(gameId: string, battleId: number, action: BattleActionRequest) {
+    const response = await fetch(`${this.baseUrl}/battles/${battleId}/action`, {
+      method: 'POST',
+      headers: this.headers(gameId),
+      body: JSON.stringify(action),
+    });
+    const body = await readJson<{ ok: boolean; battle: ApiTacticalBattle }>(response);
+    return body.battle;
   }
 
   async setPlanetAutobuild(gameId: string, planetId: number, enabled: boolean) {

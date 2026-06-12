@@ -1,5 +1,7 @@
 import { Navigate, Route, Router } from "@solidjs/router";
 
+import { lazy } from "solid-js";
+
 import { AppShell } from "./components/AppShell";
 import { ColoniesPage } from "./routes/ColoniesPage";
 import { FleetsPage } from "./routes/FleetsPage";
@@ -11,6 +13,13 @@ import { SetupPage } from "./routes/SetupPage";
 import { ShipEditorPage } from "./routes/ShipEditorPage";
 import { TechnologyPage } from "./routes/TechnologyPage";
 import { AppProvider } from "./state/app-context";
+
+// Lazy so Phaser only loads when a battle actually starts.
+const BattlePage = lazy(() =>
+  import("./routes/BattlePage").then((module) => ({
+    default: module.BattlePage,
+  })),
+);
 
 export default function App() {
   return (
@@ -24,6 +33,7 @@ export default function App() {
         <Route path="/setup/custom-race" component={() => <Navigate href="/race-editor" />} />
         <Route path="/setup/ship-editor" component={() => <Navigate href="/ship-editor" />} />
         <Route path="/galaxy" component={GalaxyPage} />
+        <Route path="/battle/:battleId" component={BattlePage} />
         <Route path="/stars/:starId/planets/:planetId" component={PlanetPage} />
         <Route path="/colonies" component={ColoniesPage} />
         <Route path="/fleets" component={FleetsPage} />
