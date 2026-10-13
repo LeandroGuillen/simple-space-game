@@ -1,3 +1,4 @@
+import { attachModalBehavior } from "../lib/modal";
 import { Portal } from "solid-js/web";
 import { For, Show, createEffect, createMemo, createSignal } from "solid-js";
 
@@ -68,6 +69,7 @@ export function ShipDesignModal(props: ShipDesignModalProps) {
             role="dialog"
             aria-modal="true"
             aria-labelledby="ship-design-modal-title"
+            ref={(element) => attachModalBehavior(element, props.onClose)}
             onClick={(event) => event.stopPropagation()}
           >
             <div class="research-modal-header">

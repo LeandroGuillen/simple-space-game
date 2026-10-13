@@ -301,25 +301,26 @@ export function BattlePage() {
         <div class="battle-buttons" role="group" aria-label="Battle commands">
           <button
             type="button"
-            class="battle-button"
+            class="secondary-button battle-button"
             classList={{ "is-toggled": autoMode() }}
+            aria-pressed={autoMode()}
             onClick={toggleAuto}
             disabled={battle()?.status !== "active"}
           >
             Auto
           </button>
-          <button type="button" class="battle-button" disabled title="Coming soon">
+          <button type="button" class="secondary-button battle-button" disabled title="Coming soon">
             Scan
           </button>
-          <button type="button" class="battle-button" disabled title="Coming soon">
+          <button type="button" class="secondary-button battle-button" disabled title="Coming soon">
             Board
           </button>
-          <button type="button" class="battle-button" disabled title="Coming soon">
+          <button type="button" class="secondary-button battle-button" disabled title="Coming soon">
             Retreat
           </button>
           <button
             type="button"
-            class="battle-button"
+            class="secondary-button battle-button"
             onClick={() => void act({ type: "wait" })}
             disabled={!canAct()}
           >
@@ -327,7 +328,7 @@ export function BattlePage() {
           </button>
           <button
             type="button"
-            class="battle-button"
+            class="secondary-button battle-button"
             onClick={() => void act({ type: "done" })}
             disabled={!canAct()}
           >

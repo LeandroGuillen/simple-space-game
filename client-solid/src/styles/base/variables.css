@@ -16,6 +16,15 @@
   --gold: #d5b46f;
   --danger: #e08e86;
 
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --control-height: 36px;
+  --control-height-compact: 28px;
+  --dialog-gutter: 24px;
+
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 10px;

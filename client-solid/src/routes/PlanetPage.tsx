@@ -1,5 +1,7 @@
 import { A, useNavigate, useParams } from "@solidjs/router";
 import { createMemo, createSignal, For, Show } from "solid-js";
+import { Portal } from "solid-js/web";
+import { attachModalBehavior } from "../lib/modal";
 import { ConstructionPanel } from "../components/ConstructionPanel";
 import { FleetOrbitModal } from "../components/FleetOrbitModal";
 import { PlanetVisual } from "../components/PlanetVisual";
@@ -26,6 +28,7 @@ export function PlanetPage() {
   const navigate = useNavigate();
   const { state, currentPlayer, addTransferPopulationCommand } = useAppContext();
   const [isFleetModalOpen, setIsFleetModalOpen] = createSignal(false);
+  const [isTransferModalOpen, setIsTransferModalOpen] = createSignal(false);
   const [transferDestinationId, setTransferDestinationId] = createSignal<number | null>(null);
   const [transferUnits, setTransferUnits] = createSignal(1);
 
@@ -183,17 +186,38 @@ export function PlanetPage() {
       destination.star.y,
     );
   });
+  const requestedTransferUnits = createMemo(() => {
+    const units = transferUnits();
+    return Number.isInteger(units) && units > 0
+      ? Math.min(units, Math.max(1, maxTransferUnits()))
+      : 0;
+  });
+  const selectedTransferUnits = createMemo(() =>
+    Math.min(requestedTransferUnits(), maxTransferUnits()),
+  );
+  const transferBlockedReason = createMemo(() => {
+    if (availableTransferFreighters() < 5) return "You need 5 available freighters to transfer one population unit.";
+    if (maxTransferUnits() <= 0) return "There is no population available to send or no room at this destination, including queued transfers.";
+    return null;
+  });
+  const closeTransferModal = () => setIsTransferModalOpen(false);
+  const openTransferModal = () => {
+    setTransferDestinationId(null);
+    setTransferUnits(1);
+    setIsTransferModalOpen(true);
+  };
+
   function queuePopulationTransfer() {
     const current = planet();
     const destination = selectedTransferDestination();
-    const units = Math.min(Math.max(1, transferUnits()), maxTransferUnits());
-    if (!current || !destination || units <= 0) return;
+    const units = selectedTransferUnits();
+    if (!current || !destination || units <= 0 || state.isBusy) return;
     addTransferPopulationCommand({
       source_planet_id: current.id,
       destination_planet_id: destination.planet.id,
       population_units: units,
     });
-    setTransferUnits(1);
+    closeTransferModal();
   }
 
   return (
@@ -470,60 +494,104 @@ export function PlanetPage() {
             </div>
           </section>
 
-          <PopulationPanel planet={currentPlanet()} />
-          <section class="panel transfer-pop-panel">
-            <div class="fleet-list-header">
-              <h2>Transfer Pop</h2>
-            </div>
-            <Show
-              when={transferDestinations().length > 0}
-              fallback={<p class="lede">No owned destination colonies.</p>}
-            >
-              <div class="form-grid">
-                <label class="form-field">
-                  <span>Destination</span>
-                  <select
-                    value={selectedTransferDestination()?.planet.id ?? ""}
-                    onChange={(event) => setTransferDestinationId(Number(event.currentTarget.value))}
-                  >
-                    <For each={transferDestinations()}>
-                      {(item) => (
-                        <option value={item.planet.id}>
-                          {item.star.name} · {item.planet.name}
-                        </option>
-                      )}
-                    </For>
-                  </select>
-                </label>
-                <label class="form-field">
-                  <span>Population units</span>
-                  <input
-                    type="number"
-                    min="1"
-                    max={Math.max(1, maxTransferUnits())}
-                    value={Math.min(transferUnits(), Math.max(1, maxTransferUnits()))}
-                    onInput={(event) => setTransferUnits(Number(event.currentTarget.value))}
-                  />
-                </label>
-                <article class="metric-card">
-                  <span>ETA</span>
-                  <strong>{transferEta()} turn{transferEta() === 1 ? "" : "s"}</strong>
-                </article>
-                <article class="metric-card">
-                  <span>Freighters</span>
-                  <strong>{Math.min(maxTransferUnits(), transferUnits()) * 5}/{availableTransferFreighters()}</strong>
-                </article>
-                <button
-                  class="primary-button"
-                  type="button"
-                  disabled={maxTransferUnits() <= 0}
-                  onClick={queuePopulationTransfer}
+          <PopulationPanel
+            planet={currentPlanet()}
+            onTransfer={currentPlanet().owner === currentPlayer()?.id ? openTransferModal : undefined}
+          />
+          <Show when={isTransferModalOpen()}>
+            <Portal>
+              <div class="research-modal-backdrop" onClick={closeTransferModal}>
+                <section
+                  class="research-modal panel transfer-pop-modal"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="transfer-pop-title"
+                  ref={(element) => attachModalBehavior(element, closeTransferModal)}
+                  onClick={(event) => event.stopPropagation()}
                 >
-                  Queue Transfer
-                </button>
+                  <header class="research-modal-header">
+                    <div>
+                      <p class="eyebrow">{currentPlanet().name}</p>
+                      <h2 id="transfer-pop-title">Transfer population</h2>
+                    </div>
+                    <button class="link-button" type="button" onClick={closeTransferModal}>
+                      Close
+                    </button>
+                  </header>
+                  <Show
+                    when={transferDestinations().length > 0}
+                    fallback={<p class="lede">Colonize another planet before transferring population.</p>}
+                  >
+                    <form class="stack-form" onSubmit={(event) => {
+                      event.preventDefault();
+                      queuePopulationTransfer();
+                    }}>
+                      <label class="field">
+                        <span>Destination colony</span>
+                        <select
+                          value={selectedTransferDestination()?.planet.id ?? ""}
+                          onChange={(event) => {
+                            setTransferDestinationId(Number(event.currentTarget.value));
+                            setTransferUnits(1);
+                          }}
+                        >
+                          <For each={transferDestinations()}>
+                            {(item) => (
+                              <option value={item.planet.id}>
+                                {item.star.name} · {item.planet.name}
+                              </option>
+                            )}
+                          </For>
+                        </select>
+                      </label>
+                      <label class="field">
+                        <span>Population units</span>
+                        <input
+                          type="number"
+                          min="1"
+                          max={Math.max(1, maxTransferUnits())}
+                          step="1"
+                          required
+                          disabled={maxTransferUnits() <= 0}
+                          value={Number.isFinite(transferUnits()) ? Math.min(transferUnits(), Math.max(1, maxTransferUnits())) : ""}
+                          onInput={(event) => setTransferUnits(event.currentTarget.valueAsNumber)}
+                          aria-describedby="transfer-pop-help"
+                        />
+                      </label>
+                      <p class="transfer-pop-help" id="transfer-pop-help">
+                        Each unit is 1,000 colonists and requires 5 freighters. Transfers depart next turn.
+                      </p>
+                      <div class="transfer-pop-summary">
+                        <article class="stat-card">
+                          <span>Travel time</span>
+                          <strong>{transferEta()} turn{transferEta() === 1 ? "" : "s"}</strong>
+                        </article>
+                        <article class="stat-card">
+                          <span>Freighters needed / available</span>
+                          <strong>{requestedTransferUnits() * 5} / {availableTransferFreighters()}</strong>
+                        </article>
+                      </div>
+                      <Show when={transferBlockedReason()}>
+                        <p class="transfer-pop-notice" role="status">{transferBlockedReason()}</p>
+                      </Show>
+                      <footer class="form-actions">
+                        <button class="secondary-button" type="button" onClick={closeTransferModal}>
+                          Cancel
+                        </button>
+                        <button
+                          class="primary-button"
+                          type="submit"
+                          disabled={selectedTransferUnits() <= 0 || state.isBusy}
+                        >
+                          Queue transfer
+                        </button>
+                      </footer>
+                    </form>
+                  </Show>
+                </section>
               </div>
-            </Show>
-          </section>
+            </Portal>
+          </Show>
           <FleetOrbitModal
             starId={currentPlanet().parentStar}
             isOpen={isFleetModalOpen()}

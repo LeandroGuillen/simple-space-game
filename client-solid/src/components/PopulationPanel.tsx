@@ -1,4 +1,4 @@
-import { createMemo, createSignal, For } from "solid-js";
+import { createMemo, createSignal, For, Show } from "solid-js";
 import type { MovePopulationCommand } from "../lib/types/commands";
 import type { PlanetViewModel } from "../lib/types/domain";
 import { raceTraitById } from "../lib/race-design";
@@ -67,6 +67,7 @@ function formatSignedPercent(value: number) {
 
 type PopulationPanelProps = {
   planet: PlanetViewModel;
+  onTransfer?: () => void;
 };
 
 export function PopulationPanel(props: PopulationPanelProps) {
@@ -622,7 +623,20 @@ export function PopulationPanel(props: PopulationPanelProps) {
 
   return (
     <section class="panel">
-      <p class="eyebrow">Population</p>
+      <div class="population-panel-header">
+        <p class="eyebrow">Population</p>
+        <Show when={props.onTransfer}>
+          <button
+            class="secondary-button button-compact"
+            type="button"
+            onClick={() => props.onTransfer?.()}
+            disabled={state.isBusy}
+            aria-haspopup="dialog"
+          >
+            Transfer population
+          </button>
+        </Show>
+      </div>
 
       <div class={`pop-grid ${isDragging() ? "is-dragging" : ""}`}>
         <div class={`pop-row ${isDragging() ? "pop-row--drag-active" : ""}`}>

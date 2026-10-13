@@ -117,40 +117,9 @@
 .battle-buttons {
   display: grid;
   grid-template-columns: repeat(2, minmax(86px, 1fr));
-  gap: 6px;
+  gap: var(--space-2);
   align-content: center;
   padding: 4px;
-}
-
-.battle-button {
-  font-family: "Space Grotesk", monospace;
-  font-size: 0.8rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 8px 10px;
-  color: #e8edff;
-  background: linear-gradient(180deg, #3a4a74 0%, #232c47 100%);
-  border: 1px solid #5d70a5;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: filter 120ms ease;
-}
-
-.battle-button:hover:not(:disabled) {
-  filter: brightness(1.25);
-}
-
-.battle-button:disabled {
-  color: #5a6a8a;
-  background: #161c2c;
-  border-color: #2b3656;
-  cursor: default;
-}
-
-.battle-button.is-toggled {
-  color: #ffd166;
-  border-color: #ffd166;
-  box-shadow: 0 0 6px rgba(255, 209, 102, 0.45) inset;
 }
 
 .battle-empty {
@@ -160,4 +129,10 @@
   color: #8fa3d9;
   font-family: "Space Grotesk", monospace;
   letter-spacing: 0.1em;
+}
+
+.battle-button.is-toggled {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }

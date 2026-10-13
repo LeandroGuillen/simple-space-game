@@ -1,3 +1,4 @@
+import { attachModalBehavior } from "../lib/modal";
 import { Portal } from "solid-js/web";
 import { For, Show, createEffect, createMemo, createSignal, on } from "solid-js";
 
@@ -179,6 +180,7 @@ export function FleetOrbitModal(props: FleetOrbitModalProps) {
             role="dialog"
             aria-modal="true"
             aria-labelledby="fleet-orbit-modal-title"
+            ref={(element) => attachModalBehavior(element, props.onClose)}
             onClick={(event) => event.stopPropagation()}
           >
             <div class="research-modal-header fleet-orbit-modal-header">

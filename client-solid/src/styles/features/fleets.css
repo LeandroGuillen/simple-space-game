@@ -43,19 +43,20 @@
 }
 
 .fleet-orbit-tab.is-active {
-  border-bottom-color: var(--gold);
-  color: var(--gold);
-  background: rgba(213, 180, 111, 0.075);
+  border-bottom-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .fleet-orbit-modal-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  margin-top: 1.25rem;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
   padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--rule);
 }
 
 .fleet-orbit-actions-left {

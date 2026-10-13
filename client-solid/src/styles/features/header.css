@@ -265,21 +265,9 @@
     opacity: 0.7;
 }
 
-.research-modal-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 40;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 28px;
-    background: rgba(2, 8, 14, 0.72);
-    backdrop-filter: blur(8px);
-}
-
 .research-modal {
     width: min(980px, 100%);
-    max-height: min(760px, calc(100vh - 56px));
+    max-height: min(760px, calc(100dvh - 2 * var(--dialog-gutter)));
     overflow: auto;
 }
 
@@ -287,8 +275,8 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 18px;
-    margin-bottom: 22px;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
 
     & h2 {
         margin: 0;

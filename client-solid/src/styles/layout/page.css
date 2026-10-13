@@ -12,7 +12,7 @@
 
 .page-grid {
   display: grid;
-  gap: 18px;
+  gap: var(--space-4);
 }
 
 .page-grid > .panel {
@@ -38,5 +38,5 @@
 
 .planet-layout {
   display: grid;
-  gap: 18px;
+  gap: var(--space-4);
 }

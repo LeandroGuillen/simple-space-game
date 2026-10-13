@@ -1,10 +1,10 @@
+import { attachModalBehavior } from "../lib/modal";
 import {
   createEffect,
   createMemo,
   createSignal,
   For,
   onCleanup,
-  onMount,
   Show,
 } from "solid-js";
 import { Portal } from "solid-js/web";
@@ -128,7 +128,6 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
   const [hoveredProjectId, setHoveredProjectId] = createSignal<number | null>(
     null,
   );
-  let modalRef: HTMLElement | undefined;
   let dragClickTimer: ReturnType<typeof setTimeout> | undefined;
 
   const builtBuildingIds = createMemo(
@@ -847,31 +846,6 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     }
   });
 
-  onMount(() => {
-    const handlePointerDown = (event: PointerEvent) => {
-      const target = event.target as Element | null;
-      if (
-        !isChoosing() ||
-        modalRef?.contains(event.target as Node) ||
-        target?.closest(".construction-modal")
-      ) {
-        return;
-      }
-      cancelSelection();
-    };
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        cancelSelection();
-      }
-    };
-    document.addEventListener("pointerdown", handlePointerDown);
-    document.addEventListener("keydown", handleKeyDown);
-    onCleanup(() => {
-      document.removeEventListener("pointerdown", handlePointerDown);
-      document.removeEventListener("keydown", handleKeyDown);
-    });
-  });
-
   return (
     <section
       class="construction-panel"
@@ -906,7 +880,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
         <Show when={canBuyProject()}>
           <button
             type="button"
-            class="construction-buy-button"
+            class="secondary-button button-compact construction-buy-button"
             classList={{ "is-pending": isBuyPending() }}
             onClick={handleBuyClick}
             disabled={state.isBusy || (!isBuyPending() && !canAffordBuy())}
@@ -943,13 +917,14 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
 
       <Show when={isChoosing()}>
         <Portal>
-          <div class="construction-modal-backdrop">
+          <div class="construction-modal-backdrop" onClick={cancelSelection}>
             <section
               class="construction-modal"
               role="dialog"
               aria-modal="true"
               aria-labelledby="construction-modal-title"
-              ref={modalRef}
+              ref={(element) => attachModalBehavior(element, cancelSelection)}
+              onClick={(event) => event.stopPropagation()}
             >
               <header class="construction-modal-header">
                 <div>

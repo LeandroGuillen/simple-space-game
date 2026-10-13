@@ -1,3 +1,4 @@
+import { attachModalBehavior } from "../lib/modal";
 import { useNavigate } from "@solidjs/router";
 import {
   createEffect,
@@ -376,17 +377,6 @@ export function SetupPage() {
     }
   });
 
-  createEffect(() => {
-    if (!isNewGameModalOpen()) return;
-    const handler = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        closeModal();
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  });
-
   const closeModal = () => {
     setIsNewGameModalOpen(false);
     setValidationAttempted(false);
@@ -744,7 +734,7 @@ export function SetupPage() {
               <Show when={isConnected()}>
                 <div class="setup-games-actions">
                   <button
-                    class="link-button setup-load-game-btn"
+                    class="secondary-button button-compact"
                     type="button"
                     onClick={() => void openLoadModal()}
                   >
@@ -871,7 +861,7 @@ export function SetupPage() {
                           </div>
                           <button
                             type="button"
-                            class="game-save-btn"
+                            class="secondary-button button-compact"
                             title="Download this game"
                             disabled={downloadingGameId() === game.game_id}
                             onClick={(event) => {
@@ -925,6 +915,7 @@ export function SetupPage() {
               role="dialog"
               aria-modal="true"
               aria-labelledby="ng-title"
+              ref={(element) => attachModalBehavior(element, closeModal)}
               onClick={(event) => event.stopPropagation()}
             >
               <header class="ng-header">
@@ -1064,6 +1055,7 @@ export function SetupPage() {
               role="dialog"
               aria-modal="true"
               aria-labelledby="load-title"
+              ref={(element) => attachModalBehavior(element, closeLoadModal)}
               onClick={(event) => event.stopPropagation()}
             >
               <header class="ng-header">
@@ -1118,7 +1110,7 @@ export function SetupPage() {
                             </div>
                               <button
                                 type="button"
-                                class="scenario-load-btn"
+                                class="secondary-button button-compact"
                                 onClick={() => void handleLoadScenario(scenario.name)}
                                 disabled={
                                   scenariosLoading() ||

@@ -511,40 +511,10 @@
 }
 
 .construction-buy-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 12px;
-  border: 1px solid var(--rule);
-  border-radius: 6px;
-  background: transparent;
-  color: var(--text);
-  font-size: 0.74rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  cursor: pointer;
   white-space: nowrap;
-  transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
-
-  &:hover:not(:disabled),
-  &:focus-visible:not(:disabled) {
-    color: var(--text);
-    border-color: var(--accent);
-    background: var(--accent-soft);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
-
-  &:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-  }
 
   &.is-pending {
-    color: var(--accent-strong, var(--accent));
+    color: var(--accent);
     border-color: var(--accent);
     background: var(--accent-soft);
   }
@@ -584,28 +554,16 @@
   display: none;
 }
 
-.construction-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: rgba(2, 8, 14, 0.72);
-  backdrop-filter: blur(8px);
-}
-
 .construction-modal {
   width: min(1180px, 100%);
-  max-height: min(880px, calc(100vh - 24px));
+  max-height: min(880px, calc(100dvh - 2 * var(--dialog-gutter)));
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   gap: 16px;
   overflow: hidden;
-  padding: 18px;
+  padding: var(--space-5);
   border: 1px solid var(--rule-strong);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-lg);
   background: var(--bg-elev);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.42);
 }
@@ -653,7 +611,7 @@
 }
 
 .construction-modal-header h2 {
-  font-size: 1.12rem;
+  font-size: 1.18rem;
 }
 
 .construction-close-button {
@@ -1051,7 +1009,7 @@
   }
 
   .construction-modal {
-    max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 2 * var(--dialog-gutter));
     overflow: auto;
   }
 

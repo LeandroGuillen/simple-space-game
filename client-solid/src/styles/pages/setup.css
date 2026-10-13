@@ -113,48 +113,17 @@
   gap: 8px;
 }
 
-.setup-load-game-btn {
-  font-size: 0.78rem;
-  padding: 6px 10px;
-}
-
 .setup-save-feedback {
   margin: 4px 0 0;
   font-size: 0.72rem;
   color: var(--text-dim);
 }
 
-.game-save-btn {
-  border: 1px solid var(--rule);
-  background: transparent;
-  color: var(--text-dim);
-  font-size: 0.7rem;
-  padding: 4px 10px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition:
-    background 0.12s ease,
-    color 0.12s ease,
-    border-color 0.12s ease;
-  flex-shrink: 0;
-}
-
-.game-save-btn:hover {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  color: var(--text);
-}
-
-.game-save-btn:disabled {
-  opacity: 0.5;
-  cursor: wait;
-}
-
 .load-modal-body {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 16px 20px 20px;
+  padding: var(--space-4) var(--space-5) var(--space-5);
 }
 
 .setup-saves-status {
@@ -196,31 +165,6 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-}
-
-.scenario-load-btn {
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--text-dim);
-  font-size: 0.7rem;
-  padding: 4px 10px;
-  cursor: pointer;
-  transition:
-    background 0.12s ease,
-    border-color 0.12s ease,
-    color 0.12s ease;
-}
-
-.scenario-load-btn:hover:not(:disabled) {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  color: var(--text);
-}
-
-.scenario-load-btn:disabled {
-  opacity: 0.5;
-  cursor: wait;
 }
 
 .load-modal-upload {
@@ -504,34 +448,6 @@
   flex-direction: column;
   gap: 8px;
   margin-top: 4px;
-
-  & input {
-    width: 100%;
-    padding: 8px 10px;
-    background: var(--bg-elev);
-    border: 1px solid var(--rule-strong);
-    border-radius: var(--radius-sm);
-    color: var(--text);
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-
-    &:focus {
-      outline: none;
-      border-color: var(--accent-strong);
-    }
-
-    &::placeholder {
-      color: var(--text-mute);
-    }
-  }
-
-  & .form-actions {
-    & .link-button,
-    & .primary-button {
-      padding: 6px 12px;
-      font-size: 0.78rem;
-    }
-  }
 }
 
 .empty-state {
@@ -548,14 +464,6 @@
 .empty-text {
   font-size: 0.84rem;
   color: var(--text-dim);
-}
-
-.empty-state .primary-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 18px;
-  font-size: 0.84rem;
 }
 
 .game-list {
@@ -691,21 +599,9 @@
 
 /* ───────────────────────── New Game modal ───────────────────────── */
 
-.ng-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-  background: rgba(2, 8, 14, 0.7);
-  backdrop-filter: blur(8px);
-  animation: ng-fade 0.16s ease-out;
-}
-
 .ng-modal {
   width: min(520px, 100%);
-  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 2 * var(--dialog-gutter));
   overflow: auto;
   display: flex;
   flex-direction: column;
@@ -732,12 +628,12 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  padding: 22px 24px 6px;
+  padding: var(--space-5) var(--space-5) var(--space-2);
 
   & h2 {
     margin: 0;
     font-family: var(--font-heading);
-    font-size: 1.15rem;
+    font-size: 1.18rem;
     font-weight: 600;
     color: var(--text);
   }
@@ -774,7 +670,7 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 14px 24px 22px;
+  padding: var(--space-4) var(--space-5) var(--space-5);
 }
 
 .ng-row {
@@ -803,26 +699,6 @@
   margin: 2px 0 0;
   color: var(--danger);
   font-size: 0.72rem;
-}
-
-.ng-input {
-  padding: 8px 10px;
-  background: transparent;
-  border: 0;
-  border-bottom: 1px solid var(--rule-strong);
-  border-radius: 0;
-  color: var(--text);
-  font-size: 0.88rem;
-  transition: border-color 0.12s ease;
-
-  &:focus {
-    outline: none;
-    border-bottom-color: var(--accent);
-  }
-
-  &::placeholder {
-    color: var(--text-mute);
-  }
 }
 
 .ng-toggle-group {
@@ -913,16 +789,11 @@
 .ng-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
-  margin-top: 4px;
-  padding-top: 14px;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+  padding-top: var(--space-4);
   border-top: 1px solid var(--rule);
-}
-
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
 }
 
 /* legacy option-row toggles used by ShipDesignModal */

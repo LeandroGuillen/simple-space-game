@@ -32,4 +32,5 @@
 @import "./styles/pages/ship-editor.css";
 @import "./styles/pages/battle.css";
 
+@import "./styles/components/modals.css";
 @import "./styles/responsive/breakpoints.css";

@@ -1,3 +1,4 @@
+import { attachModalBehavior } from "../lib/modal";
 import {
   A,
   useLocation,
@@ -10,8 +11,6 @@ import {
   createEffect,
   createMemo,
   createSignal,
-  onCleanup,
-  onMount,
 } from "solid-js";
 import { Portal } from "solid-js/web";
 
@@ -677,16 +676,6 @@ export function AppShell(props: RouteSectionProps) {
     }
   });
 
-  onMount(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsResearchOpen(false);
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    onCleanup(() => document.removeEventListener("keydown", handleKeyDown));
-  });
-
   function chooseResearch(choice: ResearchChoice) {
     selectResearch({ tech_name: choice.commandTechName });
     setRecentBreakthroughs([]);
@@ -1027,6 +1016,7 @@ export function AppShell(props: RouteSectionProps) {
               role="dialog"
               aria-modal="true"
               aria-labelledby="research-modal-title"
+              ref={(element) => attachModalBehavior(element, () => setIsResearchOpen(false))}
               onClick={(event) => event.stopPropagation()}
             >
               <div class="research-modal-header">
@@ -1121,6 +1111,7 @@ export function AppShell(props: RouteSectionProps) {
               role="dialog"
               aria-modal="true"
               aria-labelledby="colonize-modal-title"
+              ref={(element) => attachModalBehavior(element, closeColonizeModal)}
               onClick={(event) => event.stopPropagation()}
             >
               <div class="research-modal-header">
@@ -1250,6 +1241,7 @@ export function AppShell(props: RouteSectionProps) {
               role="dialog"
               aria-modal="true"
               aria-labelledby="artificial-planet-modal-title"
+              ref={(element) => attachModalBehavior(element, closeArtificialPlanetModal)}
               onClick={(event) => event.stopPropagation()}
             >
               <div class="research-modal-header">

@@ -2,100 +2,88 @@
 .secondary-button,
 .link-button,
 .sort-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--control-height);
   border: 1px solid var(--rule-strong);
   border-radius: var(--radius-sm);
-  padding: 8px 14px;
+  padding: var(--space-2) var(--space-4);
   background: transparent;
   color: var(--text);
   cursor: pointer;
   font-weight: 500;
   font-size: 0.82rem;
-  transition:
-    background 0.12s ease,
-    border-color 0.12s ease,
-    color 0.12s ease;
+  line-height: 1.25;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
 }
 
 .primary-button {
   color: var(--accent);
   border-color: var(--accent-strong);
 
-  &:hover {
+  &:hover:enabled {
     background: var(--accent-soft);
     border-color: var(--accent);
   }
-
-  &:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-    background: transparent;
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
 }
 
-.secondary-button,
-.link-button,
-.sort-button {
-  &:hover {
+.secondary-button:hover:enabled {
+  background: var(--surface-quiet);
+  border-color: var(--accent-strong);
+}
+
+.link-button {
+  border-color: transparent;
+  color: var(--text-dim);
+
+  &:hover:enabled {
     background: var(--surface-quiet);
-    border-color: var(--rule-strong);
     color: var(--text);
   }
+}
 
-  &:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-    background: transparent;
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
+.button-compact {
+  min-height: var(--control-height-compact);
+  padding: var(--space-1) var(--space-3);
+  font-size: 0.74rem;
 }
 
 .sort-button {
+  min-height: 0;
   padding: 0;
-  background: transparent;
   border: 0;
   color: inherit;
-  font-weight: 500;
   font-size: inherit;
   text-transform: inherit;
   letter-spacing: inherit;
 
-  &:hover {
-    color: var(--text);
-    background: transparent;
+  &:hover:enabled {
+    color: var(--accent);
   }
 }
 
 .games-refresh {
-  padding: 4px 10px;
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  border-color: transparent;
-  color: var(--text-dim);
-
-  &:hover {
-    color: var(--text);
-    border-color: var(--rule-strong);
-    background: transparent;
-  }
+  min-height: var(--control-height-compact);
+  padding: var(--space-1) var(--space-3);
+  font-size: 0.74rem;
 }
 
 .reveal-actions {
-  margin-top: 16px;
+  margin-top: var(--space-4);
   justify-content: flex-start;
 }
 
 .form-actions {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
-  gap: 8px;
+  gap: var(--space-2);
 }

@@ -1,5 +1,5 @@
 .panel {
-    padding: 26px 28px;
+    padding: var(--space-5);
     background: var(--surface);
     border: 1px solid var(--rule-strong);
     border-radius: var(--radius-lg);
