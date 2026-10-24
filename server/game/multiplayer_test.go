@@ -180,6 +180,90 @@ func TestConcurrentSubmitTurnDoesNotDoubleAdvance(t *testing.T) {
 	assert.Equal(t, advanceStardate(initialTurn), g.CurrentTurn)
 }
 
+func TestInvalidOrderDoesNotMutateGameState(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{
+		PlayerName:  "Ada",
+		PlayerColor: model.DefaultPlayerColor(),
+		NumStars:    8,
+		Race:        DefaultRace("Human"),
+		NumPlayers:  1,
+	})
+	require.NoError(t, err)
+
+	homeworld := getPlayerHomeworld(g, 1)
+	require.NotNil(t, homeworld)
+	initialPopulation := homeworld.Population
+	initialMarines := homeworld.Marines
+	initialTurn := g.CurrentTurn
+
+	// Submit an invalid colonize order (no pending colony base)
+	invalidCommands := model.Commands{
+		Colonize: &model.ColonizeCommand{PlanetID: 2},
+	}
+	_, advanced, err := g.SubmitTurn(1, invalidCommands)
+
+	// Should fail with an error
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "no pending colony base")
+
+	// Game state should be unchanged
+	assert.False(t, advanced)
+	assert.Equal(t, initialTurn, g.CurrentTurn)
+	assert.Equal(t, initialPopulation, homeworld.Population, "population should not change on rejected turn")
+	assert.Equal(t, initialMarines, homeworld.Marines, "marines should not change on rejected turn")
+
+	// Player should not be marked ready
+	assert.Empty(t, g.TurnSubmissions)
+	assert.Empty(t, g.TurnStatus.ReadyPlayerIDs)
+}
+
+func TestInvalidOrderInMultiplayerDoesNotBlockOtherPlayer(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{
+		PlayerName:  "Ada",
+		PlayerColor: model.DefaultPlayerColor(),
+		NumStars:    8,
+		Race:        DefaultRace("Human"),
+		NumPlayers:  2,
+	})
+	require.NoError(t, err)
+
+	// Player 1 submits invalid orders
+	invalidCommands := model.Commands{
+		Colonize: &model.ColonizeCommand{PlanetID: 999},
+	}
+	_, advanced, err := g.SubmitTurn(1, invalidCommands)
+	require.Error(t, err)
+	assert.False(t, advanced)
+
+	// Player 1 should NOT be marked ready
+	assert.Empty(t, g.TurnSubmissions)
+
+	// Player 2 can still submit valid orders
+	validCommands := model.Commands{}
+	_, advanced, err = g.SubmitTurn(2, validCommands)
+	require.NoError(t, err)
+	assert.False(t, advanced, "should not advance with only 1 of 2 players ready")
+	assert.Equal(t, []uint{2}, g.TurnStatus.ReadyPlayerIDs)
+	assert.Equal(t, []uint{1}, g.TurnStatus.WaitingPlayerIDs)
+}
+
+func getPlayerHomeworld(g *Game, playerID uint) *model.Planet {
+	for _, star := range g.Galaxy.Stars {
+		for _, planet := range star.Planets {
+			if planet.Owner == playerID && hasBuilding(planet, "Capitol") {
+				return planet
+			}
+		}
+	}
+	return nil
+}
+
 func exploredStarIDs(g *Game) []uint {
 	ids := []uint{}
 	for _, star := range g.Galaxy.Stars {

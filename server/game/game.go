@@ -184,6 +184,84 @@ func (g *Game) Turn(playerID uint, commands Commands) error {
 	return err
 }
 
+// validatePlayerCommands checks that all commands are valid without mutating game state.
+// This must be called before any state mutations to ensure rejected turns don't change the game.
+func (g *Game) validatePlayerCommands(playerID uint, commands Commands) error {
+	player, err := g.getPlayer(playerID)
+	if err != nil {
+		return err
+	}
+
+	// Validate fleet move commands
+	if err := g.validateFleetMoveCommands(playerID, commands.FleetMove); err != nil {
+		return err
+	}
+
+	// Validate invade commands
+	if err := g.validateInvadeCommands(playerID, commands.Invade); err != nil {
+		return err
+	}
+
+	// Validate population transfer commands
+	if err := g.validatePopulationTransferCommands(playerID, commands.TransferPopulation); err != nil {
+		return err
+	}
+
+	// Validate colony ship preparation
+	if commands.ColonyShip != nil {
+		if err := g.validatePrepareColonyShip(playerID, commands.ColonyShip.FleetID); err != nil {
+			return err
+		}
+	}
+
+	// Validate colonize commands
+	colonizeCommands := commands.ColonizeMany
+	if commands.Colonize != nil {
+		colonizeCommands = append(colonizeCommands, commands.Colonize)
+	}
+	for _, command := range colonizeCommands {
+		if err := g.validateColonizeCommand(playerID, command); err != nil {
+			return err
+		}
+	}
+
+	// Validate artificial planet commands
+	artificialPlanetCommands := commands.ArtificialPlanetMany
+	if commands.ArtificialPlanet != nil {
+		artificialPlanetCommands = append(artificialPlanetCommands, commands.ArtificialPlanet)
+	}
+	for _, command := range artificialPlanetCommands {
+		if err := g.validateArtificialPlanetCommand(playerID, command); err != nil {
+			return err
+		}
+	}
+
+	// Validate planet commands (buy production, move population)
+	colonyList, err := g.GetColonyList(playerID)
+	if err != nil {
+		return err
+	}
+	for _, colony := range colonyList {
+		// Validate buy production commands
+		for _, command := range commands.BuyProduction {
+			if command == nil || command.PlanetID != colony.ID {
+				continue
+			}
+			if err := g.validateBuyProduction(colony, player); err != nil {
+				return err
+			}
+			break
+		}
+
+		// Validate move population commands
+		if err := validateMovePopulationCommands(colony, commands.MovePopulation); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (g *Game) SubmitTurn(playerID uint, commands Commands) (TurnStatus, bool, error) {
 	if g.mu == nil {
 		g.mu = &sync.Mutex{}
@@ -199,6 +277,12 @@ func (g *Game) SubmitTurn(playerID uint, commands Commands) (TurnStatus, bool, e
 			return g.currentTurnStatus(), false, fmt.Errorf("resolve pending battle %d at star %d before ending the turn", battle.ID, battle.StarID)
 		}
 	}
+
+	// Validate commands BEFORE accepting the submission
+	if err := g.validatePlayerCommands(playerID, commands); err != nil {
+		return g.currentTurnStatus(), false, err
+	}
+
 	if g.TurnSubmissions == nil {
 		g.TurnSubmissions = make(map[uint]Commands)
 	}
@@ -381,6 +465,193 @@ func (g *Game) resetTurnStatus() {
 
 func advanceStardate(stardate float64) float64 {
 	return math.Round((stardate+0.1)*10) / 10
+}
+
+// Validation helper functions
+
+func (g *Game) validateFleetMoveCommands(playerID uint, commands []*FleetMoveCommand) error {
+	for _, command := range commands {
+		if command == nil {
+			continue
+		}
+		fleet, err := g.getFleet(command.FleetID)
+		if err != nil {
+			return err
+		}
+		if fleet.Owner != playerID {
+			return fmt.Errorf("fleet %d does not belong to player %d", fleet.ID, playerID)
+		}
+		// Additional range/validity checks would go here
+	}
+	return nil
+}
+
+func (g *Game) validateInvadeCommands(playerID uint, commands []*InvadeCommand) error {
+	for _, command := range commands {
+		if command == nil {
+			continue
+		}
+		fleet, err := g.getFleet(command.FleetID)
+		if err != nil {
+			return err
+		}
+		if fleet.Owner != playerID {
+			return fmt.Errorf("fleet %d does not belong to player %d", fleet.ID, playerID)
+		}
+	}
+	return nil
+}
+
+func (g *Game) validatePopulationTransferCommands(playerID uint, commands []*TransferPopulationCommand) error {
+	for _, command := range commands {
+		if command == nil {
+			continue
+		}
+		source, err := g.getPlanet(command.SourcePlanetID)
+		if err != nil {
+			return err
+		}
+		if source.Owner != playerID {
+			return fmt.Errorf("source planet %d does not belong to player %d", command.SourcePlanetID, playerID)
+		}
+		dest, err := g.getPlanet(command.DestinationPlanetID)
+		if err != nil {
+			return err
+		}
+		if dest.Owner != playerID {
+			return fmt.Errorf("destination planet %d does not belong to player %d", command.DestinationPlanetID, playerID)
+		}
+	}
+	return nil
+}
+
+func (g *Game) validatePrepareColonyShip(playerID uint, fleetID uint) error {
+	fleet, err := g.getFleet(fleetID)
+	if err != nil {
+		return err
+	}
+	if fleet.Owner != playerID {
+		return fmt.Errorf("fleet %d does not belong to player %d", fleetID, playerID)
+	}
+	hasColonyShip := false
+	for _, ship := range fleet.Ships {
+		if ship.Type == "colony_ship" {
+			hasColonyShip = true
+			break
+		}
+	}
+	if !hasColonyShip {
+		return fmt.Errorf("fleet %d has no colony ship", fleetID)
+	}
+	return nil
+}
+
+func (g *Game) validateColonizeCommand(playerID uint, command *ColonizeCommand) error {
+	if command == nil {
+		return nil
+	}
+	if command.FleetID != 0 {
+		// Validate colony ship exists and belongs to player
+		// Note: if fleet ID is stale, the actual colonize will fall back to finding
+		// any colony ship in the target system, so we allow that case here too
+		fleet, err := g.getFleet(command.FleetID)
+		if err != nil {
+			// Fleet not found - check if there's a valid target planet and colony ship in its system
+			target, err := g.getPlanet(command.PlanetID)
+			if err != nil {
+				return err
+			}
+			fleet = g.findOrbitColonyShipFleet(playerID, target.ParentStar)
+			if fleet == nil {
+				return fmt.Errorf("no orbiting colony ship in target system")
+			}
+			// Found a valid fallback fleet, validation passes
+			return nil
+		}
+		if fleet.Owner != playerID {
+			return fmt.Errorf("fleet %d does not belong to player %d", fleet.ID, playerID)
+		}
+		hasColonyShip := false
+		for _, ship := range fleet.Ships {
+			if ship.Type == "colony_ship" {
+				hasColonyShip = true
+				break
+			}
+		}
+		if !hasColonyShip {
+			return fmt.Errorf("fleet %d has no colony ship", fleet.ID)
+		}
+		return nil
+	}
+	// Validate pending colony base exists
+	if g.PendingColonyBases == nil {
+		return fmt.Errorf("no pending colony base")
+	}
+	pending := g.PendingColonyBases[playerID]
+	if len(pending) == 0 {
+		return fmt.Errorf("no pending colony base")
+	}
+	return nil
+}
+
+func (g *Game) validateArtificialPlanetCommand(playerID uint, command *ArtificialPlanetCommand) error {
+	if command == nil {
+		return nil
+	}
+	if g.PendingArtificialPlanets == nil {
+		return fmt.Errorf("no pending artificial planet construction")
+	}
+	pending := g.PendingArtificialPlanets[playerID]
+	if len(pending) == 0 {
+		return fmt.Errorf("no pending artificial planet construction")
+	}
+	return nil
+}
+
+func (g *Game) validateBuyProduction(p *Planet, player *Player) error {
+	if isSpecialNonBuildingProject(p.CurrentProject) {
+		return fmt.Errorf("cannot buy %s", p.CurrentProject)
+	}
+	if !p.IsBuilding || p.CurrentProject == "" {
+		return fmt.Errorf("cannot buy production: planet %d is not building", p.ID)
+	}
+	effectiveCost, ok := effectiveShipDesignCost(p, p.CurrentProject, g)
+	if !ok {
+		building, err := getBuildingFromName(g, p.CurrentProject)
+		if err != nil {
+			return fmt.Errorf("cannot buy production: unknown project %q on planet %d", p.CurrentProject, p.ID)
+		}
+		effectiveCost = effectiveBuildingCost(p, building, g)
+	}
+	if effectiveCost <= 0 {
+		return nil
+	}
+	remaining := max(0, p.BuildBucket-p.IndustryStack)
+	if remaining <= 0 {
+		return nil
+	}
+	cost := BuyProductionCost(effectiveCost, remaining)
+	if player.Treasury < float64(cost) {
+		return fmt.Errorf("cannot buy production: need %d BC, have %.1f BC", cost, player.Treasury)
+	}
+	return nil
+}
+
+func validateMovePopulationCommands(p *Planet, commands []*MovePopulationCommand) error {
+	for _, movePopulation := range commands {
+		if movePopulation.PlanetID != p.ID {
+			continue
+		}
+		newTotal := movePopulation.Farmers + movePopulation.Workers + movePopulation.Scientists
+		if newTotal > p.Population/1000 {
+			return fmt.Errorf("bad pop movement: too many units")
+		}
+		if movePopulation.Farmers > 0 && !farmingPossible(p) {
+			return fmt.Errorf("bad pop movement: farming is not possible on this planet")
+		}
+		break
+	}
+	return nil
 }
 
 func (g *Game) processColonizeCommand(playerID uint, command *ColonizeCommand) error {
