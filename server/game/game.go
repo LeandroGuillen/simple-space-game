@@ -642,14 +642,35 @@ func validateMovePopulationCommands(p *Planet, commands []*MovePopulationCommand
 		if movePopulation.PlanetID != p.ID {
 			continue
 		}
-		newTotal := movePopulation.Farmers + movePopulation.Workers + movePopulation.Scientists
-		if newTotal > p.Population/1000 {
-			return fmt.Errorf("bad pop movement: too many units")
-		}
-		if movePopulation.Farmers > 0 && !farmingPossible(p) {
-			return fmt.Errorf("bad pop movement: farming is not possible on this planet")
+		if err := validateMovePopulationCommand(movePopulation, p); err != nil {
+			return err
 		}
 		break
+	}
+	return nil
+}
+
+// validateMovePopulationCommand checks that a single movePopulation command is valid.
+// This is called at submit time and defensively at apply time.
+func validateMovePopulationCommand(cmd *MovePopulationCommand, p *Planet) error {
+	if cmd.Farmers < 0 {
+		return fmt.Errorf("bad pop movement: farmers cannot be negative")
+	}
+	if cmd.Workers < 0 {
+		return fmt.Errorf("bad pop movement: workers cannot be negative")
+	}
+	if cmd.Scientists < 0 {
+		return fmt.Errorf("bad pop movement: scientists cannot be negative")
+	}
+	newTotal := cmd.Farmers + cmd.Workers + cmd.Scientists
+	if newTotal > p.Population/1000 {
+		return fmt.Errorf("bad pop movement: too many units")
+	}
+	if cmd.Farmers > 0 && !farmingPossible(p) {
+		return fmt.Errorf("bad pop movement: farming is not possible on this planet")
+	}
+	if p.Owner == 0 {
+		return fmt.Errorf("bad pop movement: planet %d is not colonized", p.ID)
 	}
 	return nil
 }

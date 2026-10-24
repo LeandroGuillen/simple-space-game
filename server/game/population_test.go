@@ -316,6 +316,150 @@ func TestMovePopulationRejectsFarmersWhenFarmingImpossible(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestMovePopulationRejectsNegativeFarmers(t *testing.T) {
+	player := &model.Player{ID: 1}
+	planet := &model.Planet{
+		ID:          1,
+		Owner:       1,
+		ParentStar:  1,
+		Size:        model.PlanetSizeMedium,
+		Environment: model.PlanetEnvironmentTerran,
+		Population:  5000,
+		Food: model.PlanetFoodOutput{
+			Farmers:           2,
+			ProducedPerFarmer: 2,
+		},
+		Industry: model.PlanetIndustryOutput{
+			Workers: 3,
+		},
+	}
+	g := &Game{
+		Players: []*model.Player{player},
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{
+					ID:      1,
+					Planets: []*model.Planet{planet},
+				},
+			},
+		},
+	}
+
+	originalFarmers := planet.Food.Farmers
+	originalWorkers := planet.Industry.Workers
+
+	err := g.Turn(player.ID, model.Commands{
+		MovePopulation: []*model.MovePopulationCommand{
+			{PlanetID: 1, Farmers: -5, Workers: 10, Scientists: 0},
+		},
+	})
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "farmers cannot be negative")
+	// Verify state unchanged
+	assert.Equal(t, originalFarmers, planet.Food.Farmers)
+	assert.Equal(t, originalWorkers, planet.Industry.Workers)
+}
+
+func TestMovePopulationRejectsNegativeWorkers(t *testing.T) {
+	player := &model.Player{ID: 1}
+	planet := &model.Planet{
+		ID:          1,
+		Owner:       1,
+		ParentStar:  1,
+		Size:        model.PlanetSizeMedium,
+		Environment: model.PlanetEnvironmentTerran,
+		Population:  5000,
+		Food: model.PlanetFoodOutput{
+			Farmers:           2,
+			ProducedPerFarmer: 2,
+		},
+		Industry: model.PlanetIndustryOutput{
+			Workers: 3,
+		},
+	}
+	g := &Game{
+		Players: []*model.Player{player},
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{
+					ID:      1,
+					Planets: []*model.Planet{planet},
+				},
+			},
+		},
+	}
+
+	originalFarmers := planet.Food.Farmers
+	originalWorkers := planet.Industry.Workers
+
+	err := g.Turn(player.ID, model.Commands{
+		MovePopulation: []*model.MovePopulationCommand{
+			{PlanetID: 1, Farmers: 10, Workers: -5, Scientists: 0},
+		},
+	})
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "workers cannot be negative")
+	// Verify state unchanged
+	assert.Equal(t, originalFarmers, planet.Food.Farmers)
+	assert.Equal(t, originalWorkers, planet.Industry.Workers)
+}
+
+func TestMovePopulationRejectsNegativeScientists(t *testing.T) {
+	player := &model.Player{ID: 1}
+	planet := &model.Planet{
+		ID:          1,
+		Owner:       1,
+		ParentStar:  1,
+		Size:        model.PlanetSizeMedium,
+		Environment: model.PlanetEnvironmentTerran,
+		Population:  5000,
+		Food: model.PlanetFoodOutput{
+			Farmers:           2,
+			ProducedPerFarmer: 2,
+		},
+		Industry: model.PlanetIndustryOutput{
+			Workers: 3,
+		},
+	}
+	g := &Game{
+		Players: []*model.Player{player},
+		Resources: &Resources{
+			BuildingCollection: &BuildingCollection{},
+		},
+		Galaxy: model.Galaxy{
+			Stars: []*model.Star{
+				{
+					ID:      1,
+					Planets: []*model.Planet{planet},
+				},
+			},
+		},
+	}
+
+	originalFarmers := planet.Food.Farmers
+	originalWorkers := planet.Industry.Workers
+
+	err := g.Turn(player.ID, model.Commands{
+		MovePopulation: []*model.MovePopulationCommand{
+			{PlanetID: 1, Farmers: 3, Workers: 2, Scientists: -1},
+		},
+	})
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "scientists cannot be negative")
+	// Verify state unchanged
+	assert.Equal(t, originalFarmers, planet.Food.Farmers)
+	assert.Equal(t, originalWorkers, planet.Industry.Workers)
+}
+
 func TestTurnAssignsNewPopulationToLargerIndustryOrScienceWorkforceWhenFed(t *testing.T) {
 	tests := []struct {
 		name           string

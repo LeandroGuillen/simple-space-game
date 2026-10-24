@@ -297,12 +297,9 @@ func applyMovePopulationCommands(p *Planet, commands []*MovePopulationCommand) e
 		if movePopulation.PlanetID != p.ID {
 			continue
 		}
-		newTotal := movePopulation.Farmers + movePopulation.Workers + movePopulation.Scientists
-		if newTotal > p.Population/1000 {
-			return fmt.Errorf("bad pop movement: too many units")
-		}
-		if movePopulation.Farmers > 0 && !farmingPossible(p) {
-			return fmt.Errorf("bad pop movement: farming is not possible on this planet")
+		// Defensive validation at apply time
+		if err := validateMovePopulationCommand(movePopulation, p); err != nil {
+			return err
 		}
 		p.Food.Farmers = movePopulation.Farmers
 		p.Industry.Workers = movePopulation.Workers
