@@ -9,6 +9,29 @@ import type {
 import { researchLevelUnlocksAllTechs } from "../lib/research";
 import { useAppContext } from "../state/app-context";
 
+function arePreviousLevelsComplete(
+  subject: TechSubjectViewModel,
+  levelIndex: number,
+  researchedTechs: string[],
+  traitIds: string[] | undefined,
+): boolean {
+  for (let i = 0; i < levelIndex; i++) {
+    const level = subject.levels[i];
+    const allTechs = researchLevelUnlocksAllTechs(level, traitIds);
+    
+    if (allTechs) {
+      if (!level.availableTechs.every((tech) => researchedTechs.includes(tech))) {
+        return false;
+      }
+    } else {
+      if (!level.availableTechs.some((tech) => researchedTechs.includes(tech))) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 type KnownTechEntry = {
   name: string;
   description: string;
@@ -59,7 +82,7 @@ export function TechnologyPage() {
       .map((subject) => ({
         subject,
         levels: subject.levels
-          .map((level) => ({
+          .map((level, levelIndex) => ({
             level,
             techs: level.availableTechs
               .filter(
@@ -70,11 +93,17 @@ export function TechnologyPage() {
                 knownTechEntry(
                   techName,
                   knownNames.has(techName.toLowerCase()),
-                  !researchLevelUnlocksAllTechs(level, player.raceTraitIds) &&
-                    level.availableTechs.some((levelTech) =>
-                      knownNames.has(levelTech.toLowerCase()),
-                    ) &&
-                    !knownNames.has(techName.toLowerCase()),
+                  !arePreviousLevelsComplete(
+                    subject,
+                    levelIndex,
+                    player.researchedTechs,
+                    player.raceTraitIds,
+                  ) ||
+                    (!researchLevelUnlocksAllTechs(level, player.raceTraitIds) &&
+                      level.availableTechs.some((levelTech) =>
+                        knownNames.has(levelTech.toLowerCase()),
+                      ) &&
+                      !knownNames.has(techName.toLowerCase())),
                   techByName.get(techName.toLowerCase()),
                   findUnlockedBuilding(
                     techByName.get(techName.toLowerCase()),

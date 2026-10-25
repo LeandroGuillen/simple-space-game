@@ -55,6 +55,14 @@ func TestAdvancedGovernmentResearchRequiresUpgradePath(t *testing.T) {
 	require.NoError(t, err)
 	player := g.Players[0]
 
+	subject, ok := findSubjectByName(g, "Sociology")
+	require.True(t, ok, "Sociology subject must exist")
+	for i := 0; i < 4; i++ {
+		for _, techName := range subject.Levels[i].AvailableTechs {
+			g.research(player, techName)
+		}
+	}
+
 	require.NoError(t, g.selectResearch(player, model.SelectResearchCommand{TechName: "Federation"}))
 	err = g.selectResearch(player, model.SelectResearchCommand{TechName: "Imperium"})
 
@@ -68,6 +76,14 @@ func TestUnificationCannotResearchMoraleBuildings(t *testing.T) {
 	require.NoError(t, err)
 	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: unification})
 	require.NoError(t, err)
+
+	subject, ok := findSubjectByName(g, "Computers")
+	require.True(t, ok, "Computers subject must exist")
+	for i := 0; i < 3; i++ {
+		for _, techName := range subject.Levels[i].AvailableTechs {
+			g.research(g.Players[0], techName)
+		}
+	}
 
 	err = g.selectResearch(g.Players[0], model.SelectResearchCommand{TechName: "Holo Simulator"})
 
@@ -230,4 +246,13 @@ func psionicsSourceBonus(sources []model.PlanetMoraleSource) float64 {
 		}
 	}
 	return 0
+}
+
+func findSubjectByName(g *Game, name string) (model.TechSubject, bool) {
+	for _, subject := range g.Resources.TechTree.Subjects {
+		if subject.Name == name {
+			return subject, true
+		}
+	}
+	return model.TechSubject{}, false
 }

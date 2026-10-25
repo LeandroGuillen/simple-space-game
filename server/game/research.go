@@ -29,6 +29,17 @@ func (g *Game) selectResearch(player *Player, cmd SelectResearchCommand) error {
 	if isResearchLevelComplete(player, level) {
 		return fmt.Errorf("research level %q is already complete", level.Name)
 	}
+
+	subject, levelIdx, ok := g.findSubjectAndLevelIndex(level.Name)
+	if !ok {
+		return fmt.Errorf("research level %q does not belong to any subject", level.Name)
+	}
+	if !arePreviousLevelsComplete(player, subject, levelIdx) {
+		if levelIdx > 0 {
+			return fmt.Errorf("research level %q requires %q to be completed first", level.Name, subject.Levels[levelIdx-1].Name)
+		}
+	}
+
 	unlockAll := researchLevelUnlocksAllTechs(level, player)
 	if tech, ok := g.findTechDefinition(cmd.TechName); ok {
 		if err := g.validateResearchTechForGovernment(player, tech); err != nil {
@@ -128,6 +139,16 @@ func (g *Game) applyResearch(player *Player, generatedResearch uint64) error {
 	level, ok := g.findResearchLevel(player.CurrentResearch.LevelName)
 	if !ok {
 		return fmt.Errorf("research level %q does not exist", player.CurrentResearch.LevelName)
+	}
+
+	subject, levelIdx, ok := g.findSubjectAndLevelIndex(player.CurrentResearch.LevelName)
+	if !ok {
+		return fmt.Errorf("research level %q does not belong to any subject", player.CurrentResearch.LevelName)
+	}
+	if !arePreviousLevelsComplete(player, subject, levelIdx) {
+		if levelIdx > 0 {
+			return fmt.Errorf("research level %q requires %q to be completed first", level.Name, subject.Levels[levelIdx-1].Name)
+		}
 	}
 
 	player.CurrentResearch.Progress = player.ResearchPoints
@@ -327,6 +348,26 @@ func isResearchSubjectComplete(player *Player, subject TechSubject) bool {
 	}
 	for _, level := range subject.Levels {
 		if !isResearchLevelComplete(player, level) {
+			return false
+		}
+	}
+	return true
+}
+
+func (g *Game) findSubjectAndLevelIndex(levelName string) (TechSubject, int, bool) {
+	for _, subject := range g.Resources.TechTree.Subjects {
+		for idx, level := range subject.Levels {
+			if level.Name == levelName {
+				return subject, idx, true
+			}
+		}
+	}
+	return TechSubject{}, 0, false
+}
+
+func arePreviousLevelsComplete(player *Player, subject TechSubject, levelIdx int) bool {
+	for i := 0; i < levelIdx; i++ {
+		if !isResearchLevelComplete(player, subject.Levels[i]) {
 			return false
 		}
 	}

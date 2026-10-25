@@ -373,3 +373,94 @@ func countStrings(values []string, needle string) int {
 	}
 	return count
 }
+
+func TestSelectResearchRejectsOutOfOrderLevel(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: DefaultRace("Human")})
+	require.NoError(t, err)
+
+	player := g.Players[0]
+
+	subject := g.Resources.TechTree.Subjects[0]
+	require.True(t, len(subject.Levels) >= 2, "test needs a subject with at least 2 levels")
+
+	secondLevelTech := subject.Levels[1].AvailableTechs[0]
+	err = g.selectResearch(player, model.SelectResearchCommand{TechName: secondLevelTech})
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "requires")
+	assert.Contains(t, err.Error(), subject.Levels[0].Name)
+}
+
+func TestSelectResearchAcceptsNextLevelAfterPreviousComplete(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: DefaultRace("Human")})
+	require.NoError(t, err)
+
+	player := g.Players[0]
+
+	subject := g.Resources.TechTree.Subjects[0]
+	require.True(t, len(subject.Levels) >= 2, "test needs a subject with at least 2 levels")
+
+	firstLevelTech := subject.Levels[0].AvailableTechs[0]
+	g.research(player, firstLevelTech)
+
+	secondLevelTech := subject.Levels[1].AvailableTechs[0]
+	err = g.selectResearch(player, model.SelectResearchCommand{TechName: secondLevelTech})
+
+	require.NoError(t, err)
+	assert.NotNil(t, player.CurrentResearch)
+	assert.Equal(t, secondLevelTech, player.CurrentResearch.TechName)
+}
+
+func TestSelectResearchCreativePlayerCanSkipLevels(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	race, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Psilons", TraitIDs: []string{"creative"}})
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: race})
+	require.NoError(t, err)
+
+	player := g.Players[0]
+
+	subject := g.Resources.TechTree.Subjects[0]
+	require.True(t, len(subject.Levels) >= 2, "test needs a subject with at least 2 levels")
+
+	firstLevel := subject.Levels[0]
+	player.ResearchPoints = firstLevel.Cost
+	require.NoError(t, g.selectResearch(player, model.SelectResearchCommand{TechName: firstLevel.AvailableTechs[0]}))
+	require.NoError(t, g.applyResearch(player, 1))
+
+	secondLevelTech := subject.Levels[1].AvailableTechs[0]
+	err = g.selectResearch(player, model.SelectResearchCommand{TechName: secondLevelTech})
+
+	require.NoError(t, err)
+}
+
+func TestSelectResearchUncreativePlayerMustCompleteEarlierLevels(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	race, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Klackons", TraitIDs: []string{"uncreative"}})
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: race})
+	require.NoError(t, err)
+
+	player := g.Players[0]
+
+	subject := g.Resources.TechTree.Subjects[0]
+	require.True(t, len(subject.Levels) >= 2, "test needs a subject with at least 2 levels")
+
+	secondLevelTech := subject.Levels[1].AvailableTechs[0]
+	err = g.selectResearch(player, model.SelectResearchCommand{TechName: secondLevelTech})
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "requires")
+}
