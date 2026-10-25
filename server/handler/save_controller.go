@@ -144,7 +144,7 @@ func LoadScenario(c *gin.Context) {
 	}
 	game.HydrateLoadedGame(&loaded, s.ResourceManager)
 
-	s.GameList[loaded.ID] = &loaded
+	s.putGame(loaded.ID, &loaded)
 	c.JSON(http.StatusOK, gin.H{"ok": true, "gameID": loaded.ID})
 }
 
@@ -165,7 +165,7 @@ func LoadUploadedSave(c *gin.Context) {
 	loaded.ID = uuid.New().String()
 	game.HydrateLoadedGame(&loaded, s.ResourceManager)
 
-	s.GameList[loaded.ID] = &loaded
+	s.putGame(loaded.ID, &loaded)
 	c.JSON(http.StatusOK, gin.H{"ok": true, "gameID": loaded.ID})
 }
 

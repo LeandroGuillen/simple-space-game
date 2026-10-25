@@ -90,7 +90,7 @@ func NewGame(c *gin.Context) {
 		})
 		return
 	}
-	server.GameList[g.ID] = g
+	server.putGame(g.ID, g)
 
 	c.JSON(http.StatusOK, gin.H{"ok": true, "gameID": g.ID})
 }
@@ -158,7 +158,7 @@ func GetGameList(c *gin.Context) {
 	s := rawServer.(*Server)
 
 	var gameList = make([]GameListResponseItem, 0)
-	for gameID, g := range s.GameList {
+	for gameID, g := range s.listGames() {
 		playerInfos := make([]GameListPlayerInfo, len(g.Players))
 		for i, p := range g.Players {
 			ownedStars := 0
@@ -221,8 +221,8 @@ func GetGame(c *gin.Context) {
 	}
 
 	s := rawServer.(*Server)
-	g, gameFound := s.GameList[req.GameID]
-	if !gameFound {
+	g := s.getGame(req.GameID)
+	if g == nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"message": fmt.Sprintf("game with id %s was not found", req.GameID),
 		})

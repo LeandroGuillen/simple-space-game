@@ -34,8 +34,8 @@ func GetColonyList(c *gin.Context) {
 	}
 
 	s := rawServer.(*Server)
-	g, gameFound := s.GameList[req.GameID]
-	if !gameFound {
+	g := s.getGame(req.GameID)
+	if g == nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"message": fmt.Sprintf("game with id %s was not found", req.GameID),
 		})

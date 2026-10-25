@@ -14,7 +14,8 @@ import (
 )
 
 type Server struct {
-	GameList          map[string]*game.Game
+	gameList          map[string]*game.Game
+	gameListMu        sync.RWMutex
 	CustomRaces       map[string]game.RaceDesign
 	CustomShipDesigns map[string]model.ShipDesign
 	ResourceManager   *game.ResourceManager
@@ -25,8 +26,30 @@ type Server struct {
 	hubOnce           sync.Once
 }
 
+func (s *Server) getGame(id string) *game.Game {
+	s.gameListMu.RLock()
+	defer s.gameListMu.RUnlock()
+	return s.gameList[id]
+}
+
+func (s *Server) putGame(id string, g *game.Game) {
+	s.gameListMu.Lock()
+	defer s.gameListMu.Unlock()
+	s.gameList[id] = g
+}
+
+func (s *Server) listGames() map[string]*game.Game {
+	s.gameListMu.RLock()
+	defer s.gameListMu.RUnlock()
+	result := make(map[string]*game.Game, len(s.gameList))
+	for k, v := range s.gameList {
+		result[k] = v
+	}
+	return result
+}
+
 func (s *Server) GetGame(id string) *game.Game {
-	return s.GameList[id]
+	return s.getGame(id)
 }
 
 func AddGameState(s *Server) gin.HandlerFunc {
@@ -75,7 +98,7 @@ func NewServer() (*Server, error) {
 	}))
 
 	server := &Server{
-		GameList:          make(map[string]*game.Game),
+		gameList:          make(map[string]*game.Game),
 		CustomRaces:       customMap,
 		CustomShipDesigns: customShipMap,
 		ResourceManager:   resourceManager,

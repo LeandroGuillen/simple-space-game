@@ -26,7 +26,7 @@ func TestListScenarios(t *testing.T) {
 	createScenarioFile(t, resources, "scenario-alpha")
 
 	server := &Server{
-		GameList:        make(map[string]*game.Game),
+		gameList:        make(map[string]*game.Game),
 		ResourceManager: resources,
 	}
 
@@ -57,7 +57,7 @@ func TestLoadScenarioAddsGame(t *testing.T) {
 	scenario := createScenarioFile(t, resources, "scenario-beta")
 
 	server := &Server{
-		GameList:        make(map[string]*game.Game),
+		gameList:        make(map[string]*game.Game),
 		ResourceManager: resources,
 	}
 
@@ -71,7 +71,7 @@ func TestLoadScenarioAddsGame(t *testing.T) {
 	LoadScenario(ctx)
 
 	require.Equal(t, http.StatusOK, recorder.Code)
-	require.Contains(t, server.GameList, scenario.ID)
+	require.NotNil(t, server.getGame(scenario.ID))
 }
 
 func TestLoadUploadedSaveAddsGame(t *testing.T) {
@@ -96,7 +96,7 @@ func TestLoadUploadedSaveAddsGame(t *testing.T) {
 	require.NoError(t, err)
 
 	server := &Server{
-		GameList:        make(map[string]*game.Game),
+		gameList:        make(map[string]*game.Game),
 		ResourceManager: resources,
 	}
 
@@ -116,8 +116,8 @@ func TestLoadUploadedSaveAddsGame(t *testing.T) {
 	require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &response))
 	require.NotEmpty(t, response.GameID)
 	require.NotEqual(t, gameState.ID, response.GameID)
-	require.Contains(t, server.GameList, response.GameID)
-	require.NotContains(t, server.GameList, gameState.ID)
+	require.NotNil(t, server.getGame(response.GameID))
+	require.Nil(t, server.getGame(gameState.ID))
 }
 
 func createScenarioFile(t *testing.T, resources *game.ResourceManager, name string) *game.Game {

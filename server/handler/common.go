@@ -40,8 +40,8 @@ func getGameHandle(c *gin.Context, gameID string) (g *game.Game, s *Server, err 
 	}
 
 	s = rawServer.(*Server)
-	g, gameFound := s.GameList[gameID]
-	if !gameFound {
+	g = s.getGame(gameID)
+	if g == nil {
 		msg := fmt.Sprintf("game with id %s was not found", gameID)
 		c.JSON(http.StatusNotFound, gin.H{"message": msg})
 		return nil, nil, errors.New(msg)
