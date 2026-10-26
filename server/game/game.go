@@ -246,15 +246,37 @@ func (g *Game) validatePlayerCommands(playerID uint, commands Commands) error {
 	if err != nil {
 		return err
 	}
+	remainingTreasury := player.Treasury
+	totalBuyCost := int64(0)
 	for _, colony := range colonyList {
-		// Validate buy production commands
+		// Turn processing visits each colony once and applies at most one buy
+		// command for it, so duplicates must not consume the budget twice.
 		for _, command := range commands.BuyProduction {
 			if command == nil || command.PlanetID != colony.ID {
 				continue
 			}
-			if err := g.validateBuyProduction(colony, player); err != nil {
+
+			projected := *colony
+			if buildCommand := findPlanetBuildCommand(colony, commands); buildCommand != nil {
+				if buildCommand.Building == housingProject {
+					projected.CurrentProject = housingProject
+					projected.IsBuilding = false
+					projected.BuildBucket = 0
+				} else if !Build(&projected, buildCommand.Building, player.Available.Buildings, g) {
+					projected.CurrentProject = tradeGoodsProject
+					projected.IsBuilding = false
+					projected.BuildBucket = 0
+				}
+			}
+			_, _, cost, err := quoteBuyProduction(&projected, g)
+			if err != nil {
 				return err
 			}
+			if remainingTreasury < float64(cost) {
+				return fmt.Errorf("cannot buy production: total purchases need %d BC, have %.1f BC", totalBuyCost+cost, player.Treasury)
+			}
+			remainingTreasury -= float64(cost)
+			totalBuyCost += cost
 			break
 		}
 
@@ -842,29 +864,33 @@ func (g *Game) validateArtificialPlanetCommand(playerID uint, command *Artificia
 	return nil
 }
 
-func (g *Game) validateBuyProduction(p *Planet, player *Player) error {
+func quoteBuyProduction(p *Planet, game *Game) (effectiveCost, remaining, cost int64, err error) {
 	if isSpecialNonBuildingProject(p.CurrentProject) {
-		return fmt.Errorf("cannot buy %s", p.CurrentProject)
+		return 0, 0, 0, fmt.Errorf("cannot buy %s", p.CurrentProject)
 	}
 	if !p.IsBuilding || p.CurrentProject == "" {
-		return fmt.Errorf("cannot buy production: planet %d is not building", p.ID)
+		return 0, 0, 0, fmt.Errorf("cannot buy production: planet %d is not building", p.ID)
 	}
-	effectiveCost, ok := effectiveShipDesignCost(p, p.CurrentProject, g)
+	effectiveCost, ok := effectiveShipDesignCost(p, p.CurrentProject, game)
 	if !ok {
-		building, err := getBuildingFromName(g, p.CurrentProject)
+		building, err := getBuildingFromName(game, p.CurrentProject)
 		if err != nil {
-			return fmt.Errorf("cannot buy production: unknown project %q on planet %d", p.CurrentProject, p.ID)
+			return 0, 0, 0, fmt.Errorf("cannot buy production: unknown project %q on planet %d", p.CurrentProject, p.ID)
 		}
-		effectiveCost = effectiveBuildingCost(p, building, g)
+		effectiveCost = effectiveBuildingCost(p, building, game)
 	}
 	if effectiveCost <= 0 {
-		return nil
+		return effectiveCost, 0, 0, nil
 	}
-	remaining := max(0, p.BuildBucket-p.IndustryStack)
-	if remaining <= 0 {
-		return nil
+	remaining = max(0, p.BuildBucket-p.IndustryStack)
+	return effectiveCost, remaining, BuyProductionCost(effectiveCost, remaining), nil
+}
+
+func (g *Game) validateBuyProduction(p *Planet, player *Player) error {
+	_, _, cost, err := quoteBuyProduction(p, g)
+	if err != nil {
+		return err
 	}
-	cost := BuyProductionCost(effectiveCost, remaining)
 	if player.Treasury < float64(cost) {
 		return fmt.Errorf("cannot buy production: need %d BC, have %.1f BC", cost, player.Treasury)
 	}

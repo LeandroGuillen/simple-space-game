@@ -724,31 +724,19 @@ func BuyProductionCost(effectiveCost, remaining int64) int64 {
 }
 
 func applyBuyProduction(p *Planet, player *Player, game *Game) error {
-	if isSpecialNonBuildingProject(p.CurrentProject) {
-		return fmt.Errorf("cannot buy %s", p.CurrentProject)
-	}
-	if !p.IsBuilding || p.CurrentProject == "" {
-		return fmt.Errorf("cannot buy production: planet %d is not building", p.ID)
-	}
-	effectiveCost, ok := effectiveShipDesignCost(p, p.CurrentProject, game)
-	if !ok {
-		building, err := getBuildingFromName(game, p.CurrentProject)
-		if err != nil {
-			return fmt.Errorf("cannot buy production: unknown project %q on planet %d", p.CurrentProject, p.ID)
-		}
-		effectiveCost = effectiveBuildingCost(p, building, game)
+	effectiveCost, remaining, cost, err := quoteBuyProduction(p, game)
+	if err != nil {
+		return err
 	}
 	if effectiveCost <= 0 {
 		p.BuildBucket = 0
 		return nil
 	}
-	remaining := max(0, p.BuildBucket-p.IndustryStack)
 	if remaining <= 0 {
 		p.IndustryStack = max(0, p.IndustryStack-p.BuildBucket)
 		p.BuildBucket = 0
 		return nil
 	}
-	cost := BuyProductionCost(effectiveCost, remaining)
 	if player.Treasury < float64(cost) {
 		return fmt.Errorf("cannot buy production: need %d BC, have %.1f BC", cost, player.Treasury)
 	}

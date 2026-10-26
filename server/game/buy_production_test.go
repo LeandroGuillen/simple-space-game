@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"testing"
 
 	"ssg/model"
@@ -68,6 +69,99 @@ func TestTurnBuyProductionFinishesProjectAndDeductsTreasury(t *testing.T) {
 	// treasury at end of turn = pre-turn - buy cost + this turn's income.
 	assert.Less(t, player.Treasury, treasuryBeforeBuy, "buyout must reduce treasury net of income")
 	assert.GreaterOrEqual(t, player.Treasury, treasuryBeforeBuy-float64(expectedCost), "treasury should never drop more than the buy cost (income only adds back)")
+}
+
+func TestTurnBuyProductionRejectsCombinedPurchasesWithoutMutatingState(t *testing.T) {
+	g := newSinglePlanetBuyHarness(t, 400)
+	player := g.Players[0]
+	first := g.Galaxy.Stars[0].Planets[0]
+	second := *first
+	second.ID = 2
+	g.Galaxy.Stars[0].Planets = append(g.Galaxy.Stars[0].Planets, &second)
+
+	firstPop, secondPop := first.Population, second.Population
+	firstBucket, secondBucket := first.BuildBucket, second.BuildBucket
+	treasury := player.Treasury
+
+	err := g.Turn(player.ID, model.Commands{BuyProduction: []*model.BuyProductionCommand{
+		{PlanetID: first.ID},
+		{PlanetID: second.ID},
+	}})
+
+	require.Error(t, err, "two 400 BC buys must be rejected with only 400 BC available")
+	assert.Equal(t, treasury, player.Treasury)
+	assert.Equal(t, firstPop, first.Population)
+	assert.Equal(t, secondPop, second.Population)
+	assert.Equal(t, firstBucket, first.BuildBucket)
+	assert.Equal(t, secondBucket, second.BuildBucket)
+	assert.Equal(t, "Cheap Lab", first.CurrentProject)
+	assert.Equal(t, "Cheap Lab", second.CurrentProject)
+}
+
+func TestTurnBuyProductionCompletesBothAffordablePurchasesAndChargesTheirSum(t *testing.T) {
+	g := newSinglePlanetBuyHarness(t, 800)
+	player := g.Players[0]
+	first := g.Galaxy.Stars[0].Planets[0]
+	second := *first
+	second.ID = 2
+	g.Galaxy.Stars[0].Planets = append(g.Galaxy.Stars[0].Planets, &second)
+	startingTreasury := player.Treasury
+
+	require.NoError(t, g.Turn(player.ID, model.Commands{BuyProduction: []*model.BuyProductionCommand{
+		{PlanetID: first.ID},
+		{PlanetID: second.ID},
+	}}))
+
+	income := planetIncomeAfterTurn(t, g, player.ID, first.ID) + planetIncomeAfterTurn(t, g, player.ID, second.ID)
+	assert.Equal(t, float64(800), startingTreasury-player.Treasury+float64(income))
+	assert.Contains(t, first.Buildings, "Cheap Lab")
+	assert.Contains(t, second.Buildings, "Cheap Lab")
+}
+
+func TestTurnBuyProductionDuplicatePlanetCommandIsChargedOnce(t *testing.T) {
+	g := newSinglePlanetBuyHarness(t, 400)
+	player := g.Players[0]
+	planet := g.Galaxy.Stars[0].Planets[0]
+	startingTreasury := player.Treasury
+
+	require.NoError(t, g.Turn(player.ID, model.Commands{BuyProduction: []*model.BuyProductionCommand{
+		{PlanetID: planet.ID},
+		{PlanetID: planet.ID},
+	}}))
+
+	income := planetIncomeAfterTurn(t, g, player.ID, planet.ID)
+	assert.Equal(t, float64(400), startingTreasury-player.Treasury+float64(income))
+	assert.Contains(t, planet.Buildings, "Cheap Lab")
+}
+
+func TestTurnBuyProductionSameTurnBuildUsesNewProjectCost(t *testing.T) {
+	for _, treasury := range []int64{799, 800} {
+		t.Run(fmt.Sprintf("treasury_%d", treasury), func(t *testing.T) {
+			g := newSinglePlanetBuyHarness(t, treasury)
+			player := g.Players[0]
+			planet := g.Galaxy.Stars[0].Planets[0]
+			g.Resources.BuildingCollection.Buildings = append(g.Resources.BuildingCollection.Buildings, model.Building{Name: "Expensive Lab", Cost: 200})
+			player.Available.Buildings = append(player.Available.Buildings, "Expensive Lab")
+			startingPopulation, startingBucket := planet.Population, planet.BuildBucket
+
+			err := g.Turn(player.ID, model.Commands{
+				Build:         []*model.BuildCommand{{PlanetID: planet.ID, Building: "Expensive Lab"}},
+				BuyProduction: []*model.BuyProductionCommand{{PlanetID: planet.ID}},
+			})
+			if treasury == 799 {
+				require.Error(t, err, "the new project's 800 BC cost must be checked before turn processing")
+				assert.Equal(t, float64(799), player.Treasury)
+				assert.Equal(t, startingPopulation, planet.Population)
+				assert.Equal(t, startingBucket, planet.BuildBucket)
+				assert.Equal(t, "Cheap Lab", planet.CurrentProject)
+				return
+			}
+			require.NoError(t, err)
+			income := planetIncomeAfterTurn(t, g, player.ID, planet.ID)
+			assert.Equal(t, float64(800), float64(treasury)-player.Treasury+float64(income))
+			assert.Contains(t, planet.Buildings, "Expensive Lab")
+		})
+	}
 }
 
 func TestTurnBuyProductionRejectsInsufficientTreasury(t *testing.T) {

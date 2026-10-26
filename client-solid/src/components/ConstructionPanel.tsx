@@ -611,7 +611,20 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
       : 0,
   );
   const playerTreasury = createMemo(() => currentPlayer()?.treasury ?? 0);
-  const canAffordBuy = createMemo(() => playerTreasury() >= buyCost());
+  const queuedBuyTotal = createMemo(() => {
+    const planets = state.game?.galaxy.stars.flatMap((star) => star.planets) ?? [];
+    return state.pendingCommands.buyProduction.reduce((total, command) => {
+      if (command.planetId === props.planet.id) return total;
+      const planet = planets.find((candidate) => candidate.id === command.planetId);
+      if (!planet?.isBuilding || !planet.currentProject) return total;
+      const remaining = Math.max(0, planet.buildBucket - planet.industryStack);
+      return total + getBuyProductionCost(planet.currentProject.cost, remaining);
+    }, 0);
+  });
+  const remainingBuyBudget = createMemo(() =>
+    Math.max(0, playerTreasury() - queuedBuyTotal()),
+  );
+  const canAffordBuy = createMemo(() => remainingBuyBudget() >= buyCost());
   const buyRateLabel = createMemo(() => {
     const cost = effectiveProjectCost(activeProject());
     const invested = Math.max(0, cost - displayedBuildBucket());
@@ -625,7 +638,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
       return `Buy queued: ${formatInteger(buyCost())} BC · click to cancel`;
     }
     if (!canAffordBuy()) {
-      return `Need ${formatInteger(buyCost())} BC (treasury: ${formatInteger(playerTreasury())} BC)`;
+      return `Need ${formatInteger(buyCost())} BC (available after queued buys: ${formatInteger(remainingBuyBudget())} BC)`;
     }
     return `Pay ${formatInteger(buyCost())} BC to finish next turn (${buyRateLabel()})`;
   });

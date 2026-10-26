@@ -23,7 +23,10 @@ function planetBuyContext(planet: PlanetViewModel | undefined) {
     return null;
   }
   return {
-    cost: getBuyProductionCost(baseCost, planet.buildBucket),
+    cost: getBuyProductionCost(
+      baseCost,
+      Math.max(0, planet.buildBucket - planet.industryStack),
+    ),
     projectName: planet.currentProject.name,
   };
 }
@@ -220,9 +223,24 @@ export function ColoniesPage() {
                         state.pendingCommands.buyProduction.some(
                           (command) => command.planetId === rowId,
                         );
+                      const queuedBuyTotal = () =>
+                        state.pendingCommands.buyProduction.reduce(
+                          (total, command) => {
+                            if (command.planetId === rowId) return total;
+                            const context = planetBuyContext(
+                              planetForRow(command.planetId),
+                            );
+                            return total + (context?.cost ?? 0);
+                          },
+                          0,
+                        );
+                      const remainingBudget = () =>
+                        Math.max(
+                          0,
+                          (currentPlayer()?.treasury ?? 0) - queuedBuyTotal(),
+                        );
                       const canAfford = () =>
-                        Boolean(buy()) &&
-                        (currentPlayer()?.treasury ?? 0) >= (buy()?.cost ?? 0);
+                        Boolean(buy()) && remainingBudget() >= (buy()?.cost ?? 0);
                       const onClick = () => {
                         const ctx = buy();
                         if (!ctx) return;
@@ -238,7 +256,7 @@ export function ColoniesPage() {
                         if (!ctx) return "Nothing to buy";
                         if (isPending()) return "Buy queued · click to cancel";
                         if (!canAfford())
-                          return `Need ${formatInteger(ctx.cost)} BC to rush ${ctx.projectName}`;
+                          return `Need ${formatInteger(ctx.cost)} BC (available after queued buys: ${formatInteger(remainingBudget())} BC)`;
                         return `Pay ${formatInteger(ctx.cost)} BC to rush ${ctx.projectName}`;
                       };
                       return (
