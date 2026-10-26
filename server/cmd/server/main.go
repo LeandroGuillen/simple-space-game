@@ -7,6 +7,7 @@ import (
 	"os"
 
 	gamehandler "ssg/handler"
+	"ssg/version"
 )
 
 func main() {
@@ -19,6 +20,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	log.Printf("Simple Space Game server version %s", version.Version())
 	log.Printf("Starting server on port %s", *port)
 	if err := s.Start(*port); err != nil {
 		fmt.Fprintf(os.Stderr, "Error starting server: %v\n", err)

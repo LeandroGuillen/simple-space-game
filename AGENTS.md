@@ -43,6 +43,22 @@ Recent commits use short, lowercase summaries, for example `building in colonies
 
 Pull requests should include a brief description, commands run, linked issues if applicable, and screenshots or recordings for visible UI changes. Note resource JSON changes because they can affect game balance.
 
+## Version Management
+
+SSG uses semantic versioning (X.Y.Z) with a single source of truth in the root `VERSION` file.
+
+**Bump the version on every change:**
+- New feature → increment middle number (e.g., 0.2.1 → 0.3.0)
+- Bugfix → increment patch number (e.g., 0.2.1 → 0.2.2)
+
+**Process:**
+1. Run `./scripts/bump-version.sh <new-version>` to update all version locations
+2. Commit: `git add -A && git commit -m "bump version to X.Y.Z"`
+3. Tag: `git tag vX.Y.Z`
+4. Push: `git push origin master && git push origin vX.Y.Z`
+
+The version is displayed in the client UI and returned by the server `/status` endpoint.
+
 ## Agent-Specific Instructions
 
 Do not rewrite generated enum string files unless the enum source changes. Treat `server/game/resources/*.json` as gameplay data: keep edits minimal, valid JSON, and covered by loader or behavior tests where practical.

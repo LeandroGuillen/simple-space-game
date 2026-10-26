@@ -4,16 +4,14 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 import solid from "vite-plugin-solid";
 
-const pkg = JSON.parse(
-  readFileSync(
-    fileURLToPath(new URL("./package.json", import.meta.url)),
-    "utf-8",
-  ),
-) as { version: string };
+const version = readFileSync(
+  fileURLToPath(new URL("../VERSION", import.meta.url)),
+  "utf-8",
+).trim();
 
 export default defineConfig({
   define: {
-    "import.meta.env.VITE_APP_VERSION": JSON.stringify(pkg.version),
+    "import.meta.env.VITE_APP_VERSION": JSON.stringify(version),
   },
   plugins: [solid()],
   test: {
