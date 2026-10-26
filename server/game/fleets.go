@@ -480,26 +480,14 @@ func shipsByIndexes(ships []FleetShip, indexes []uint) []FleetShip {
 }
 
 func (g *Game) issueFleetMove(playerID uint, command *FleetMoveCommand) error {
-	fleet, err := g.getFleet(command.FleetID)
+	// Use shared validator
+	fleet, _, shipIdxs, err := g.validateSingleFleetMoveOrder(playerID, command)
 	if err != nil {
 		return err
 	}
-	player, err := g.getPlayer(playerID)
-	if err != nil {
-		return err
-	}
-	if fleet.Owner != playerID {
-		return fmt.Errorf("fleet %d does not belong to player %d", fleet.ID, playerID)
-	}
-
-	shipIdxs, err := normalizeFleetMoveShipIndexes(command, len(fleet.Ships))
-	if err != nil {
-		return err
-	}
-
-	inTransit := fleet.TurnsRemaining > 0 && fleet.DestinationStarID != 0
 
 	// Recall selected ships to the origin star (merge into the orbiting stack).
+	inTransit := fleet.TurnsRemaining > 0 && fleet.DestinationStarID != 0
 	if command.DestinationStarID == fleet.StarID {
 		if !inTransit {
 			return nil
@@ -514,24 +502,7 @@ func (g *Game) issueFleetMove(playerID uint, command *FleetMoveCommand) error {
 		return nil
 	}
 
-	if inTransit && !playerHasTech(player, "Hyperspace Communications") {
-		return fmt.Errorf("fleet %d is already moving", fleet.ID)
-	}
-
-	if command.DestinationStarID == 0 {
-		return fmt.Errorf("invalid fleet destination")
-	}
-
-	if _, err := g.getStar(command.DestinationStarID); err != nil {
-		return err
-	}
-	// Skip fuel validation for Star Gate travel between owned colonies
-	if !g.isStarGateTravel(playerID, fleet.StarID, command.DestinationStarID) {
-		if err := g.validateFleetMoveFuelRange(player, shipsByIndexes(fleet.Ships, shipIdxs), command.DestinationStarID); err != nil {
-			return err
-		}
-	}
-
+	// Handle in-transit fleet movements
 	if inTransit {
 		if len(shipIdxs) == len(fleet.Ships) {
 			return g.beginFleetMovement(fleet, command.DestinationStarID)
@@ -557,6 +528,7 @@ func (g *Game) issueFleetMove(playerID uint, command *FleetMoveCommand) error {
 		return nil
 	}
 
+	// Handle normal fleet movements
 	if len(shipIdxs) == len(fleet.Ships) {
 		return g.beginFleetMovement(fleet, command.DestinationStarID)
 	}
@@ -604,15 +576,16 @@ func (g *Game) issueFleetMoveCommands(playerID uint, commands []*FleetMoveComman
 }
 
 func (g *Game) issueFleetMoveGroup(playerID uint, commands []*FleetMoveCommand) error {
-	fleet, err := g.getFleet(commands[0].FleetID)
+	// Use shared validator
+	fleet, _, batches, err := g.validateFleetMoveGroupOrders(playerID, commands)
 	if err != nil {
 		return err
 	}
-	if fleet.Owner != playerID {
-		return fmt.Errorf("fleet %d does not belong to player %d", fleet.ID, playerID)
-	}
+
+	// Check if in-transit (validator returns nil batches for in-transit case)
 	inTransit := fleet.TurnsRemaining > 0 && fleet.DestinationStarID != 0
 	if inTransit {
+		// Handle each command individually
 		for _, command := range commands {
 			if err := g.issueFleetMove(playerID, command); err != nil {
 				return err
@@ -621,52 +594,24 @@ func (g *Game) issueFleetMoveGroup(playerID uint, commands []*FleetMoveCommand) 
 		return nil
 	}
 
-	type moveBatch struct {
-		destinationStarID uint
-		indexes           []uint
-	}
-	batches := make([]moveBatch, 0, len(commands))
-	selected := make(map[uint]struct{})
-	for _, command := range commands {
-		if command.DestinationStarID == 0 {
-			return fmt.Errorf("invalid fleet destination")
-		}
-		if command.DestinationStarID == fleet.StarID {
-			continue
-		}
-		if _, err := g.getStar(command.DestinationStarID); err != nil {
-			return err
-		}
-		indexes, err := normalizeFleetMoveShipIndexes(command, len(fleet.Ships))
-		if err != nil {
-			return err
-		}
-		for _, index := range indexes {
-			if _, exists := selected[index]; exists {
-				return fmt.Errorf("ship index %d assigned to multiple fleet moves", index)
-			}
-			selected[index] = struct{}{}
-		}
-		batches = append(batches, moveBatch{destinationStarID: command.DestinationStarID, indexes: indexes})
-	}
+	// No batches means all moves were recalls or there's nothing to do
 	if len(batches) == 0 {
 		return nil
 	}
 
+	// Perform the grouped movements (mutation logic)
 	originStarID := fleet.StarID
 	originalShips := append([]FleetShip(nil), fleet.Ships...)
-	player, err := g.getPlayer(playerID)
-	if err != nil {
-		return err
-	}
+
+	// Build selected map from batches
+	selected := make(map[uint]struct{})
 	for _, batch := range batches {
-		// Skip fuel validation for Star Gate travel between owned colonies
-		if !g.isStarGateTravel(playerID, originStarID, batch.destinationStarID) {
-			if err := g.validateFleetMoveFuelRange(player, shipsByIndexes(originalShips, batch.indexes), batch.destinationStarID); err != nil {
-				return err
-			}
+		for _, index := range batch.indexes {
+			selected[index] = struct{}{}
 		}
 	}
+
+	// Update remaining ships in the original fleet
 	remaining := make([]FleetShip, 0, len(originalShips)-len(selected))
 	for i, ship := range originalShips {
 		if _, moving := selected[uint(i)]; !moving {
@@ -675,6 +620,7 @@ func (g *Game) issueFleetMoveGroup(playerID uint, commands []*FleetMoveCommand) 
 	}
 	fleet.Ships = remaining
 
+	// Create child fleets for each batch
 	for _, batch := range batches {
 		ships := make([]FleetShip, 0, len(batch.indexes))
 		for _, index := range batch.indexes {
@@ -776,62 +722,13 @@ func (g *Game) issueInvadeCommands(playerID uint, commands []*InvadeCommand) err
 }
 
 func (g *Game) issueInvadeCommand(playerID uint, command *InvadeCommand) error {
-	// Validate fleet ownership
-	fleet, err := g.getFleet(command.FleetID)
+	// Use shared validator
+	fleet, planet, err := g.validateInvadeOrder(playerID, command)
 	if err != nil {
 		return err
 	}
-	if fleet.Owner != playerID {
-		return fmt.Errorf("fleet %d does not belong to player %d", fleet.ID, playerID)
-	}
-
-	// Validate fleet is at destination (not in transit)
-	if fleet.TurnsRemaining > 0 || fleet.DestinationStarID != 0 {
-		return fmt.Errorf("fleet %d is in transit and cannot invade", fleet.ID)
-	}
-
-	// Validate target planet exists
-	planet, err := g.getPlanet(command.TargetPlanetID)
-	if err != nil {
-		return err
-	}
-
-	// Validate planet is at the same star as fleet
-	if planet.ParentStar != fleet.StarID {
-		return fmt.Errorf("planet %d is not at the same star as fleet %d", planet.ID, fleet.ID)
-	}
-
-	// Validate planet is owned by another player (not empty, not same owner)
-	if planet.Owner == 0 {
-		return fmt.Errorf("cannot invade uncolonized planet %d", planet.ID)
-	}
-	if planet.Owner == playerID {
-		return fmt.Errorf("cannot invade your own planet %d", planet.ID)
-	}
-
-	// Validate fleet has transport ships with the specified indexes
-	if command.ShipIndexes != nil {
-		for _, index := range *command.ShipIndexes {
-			if int(index) >= len(fleet.Ships) {
-				return fmt.Errorf("ship index %d is out of range for fleet %d", index, fleet.ID)
-			}
-			ship := fleet.Ships[index]
-			if ship.Type != "transport" {
-				return fmt.Errorf("ship at index %d is not a transport ship", index)
-			}
-		}
-	} else {
-		// If no specific ships specified, check if fleet has any transport ships
-		hasTransport := false
-		for _, ship := range fleet.Ships {
-			if ship.Type == "transport" {
-				hasTransport = true
-				break
-			}
-		}
-		if !hasTransport {
-			return fmt.Errorf("fleet %d has no transport ships for invasion", fleet.ID)
-		}
+	if fleet == nil || planet == nil {
+		return nil // command was nil
 	}
 
 	// Invasion command is valid - it will be executed during turn resolution

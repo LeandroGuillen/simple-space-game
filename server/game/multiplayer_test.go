@@ -670,3 +670,86 @@ func TestOtherPlayerValidSubmitAdvancesTurnAfterBadMoveRejection(t *testing.T) {
 	// Turn should have advanced
 	assert.Greater(t, g.CurrentTurn, initialTurn, "Turn should have advanced")
 }
+
+func TestFleetCannotMoveAndInvadeInSameTurn(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{
+		PlayerName:  "Player 1",
+		PlayerColor: model.DefaultPlayerColor(),
+		NumStars:    8,
+		Race:        DefaultRace("Human"),
+		NumPlayers:  2,
+	})
+	require.NoError(t, err)
+
+	// Find player 1's home star and create a fleet
+	var p1Star uint
+	for _, star := range g.Galaxy.Stars {
+		for _, planet := range star.Planets {
+			if planet.Owner == 1 {
+				p1Star = star.ID
+				break
+			}
+		}
+		if p1Star != 0 {
+			break
+		}
+	}
+	require.NotZero(t, p1Star)
+
+	// Create a fleet for player 1 with transport ships (unlimited fuel range)
+	p1Fleet := &model.Fleet{
+		ID:     g.nextFleetID(),
+		Owner:  1,
+		StarID: p1Star,
+		Ships: []model.FleetShip{
+			{Type: "transport", Name: "Transport 1", FuelCell: "Thorium", UnlimitedFuelRange: true},
+		},
+	}
+	g.Fleets = append(g.Fleets, p1Fleet)
+	if player, err := g.getPlayer(1); err == nil {
+		player.Fleets = append(player.Fleets, p1Fleet.ID)
+	}
+
+	// Find player 2's home planet as invasion target
+	var p2Planet uint
+	for _, star := range g.Galaxy.Stars {
+		for _, planet := range star.Planets {
+			if planet.Owner == 2 {
+				p2Planet = planet.ID
+				break
+			}
+		}
+		if p2Planet != 0 {
+			break
+		}
+	}
+	require.NotZero(t, p2Planet)
+
+	// Find another star to move to
+	var destStar uint
+	for _, star := range g.Galaxy.Stars {
+		if star.ID != p1Star {
+			destStar = star.ID
+			break
+		}
+	}
+	require.NotZero(t, destStar)
+
+	// Try to submit both a move and an invade for the same fleet
+	_, _, err = g.SubmitTurn(1, model.Commands{
+		FleetMove: []*model.FleetMoveCommand{
+			{FleetID: p1Fleet.ID, DestinationStarID: destStar},
+		},
+		Invade: []*model.InvadeCommand{
+			{FleetID: p1Fleet.ID, TargetPlanetID: p2Planet},
+		},
+	})
+
+	// Should be rejected at submit time
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot invade and move in the same turn")
+	assert.NotContains(t, g.TurnStatus.ReadyPlayerIDs, uint(1))
+}

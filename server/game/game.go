@@ -23,6 +23,11 @@ type TurnStatus struct {
 	RequiredPlayerIDs []uint `json:"required_player_ids"`
 }
 
+type moveBatch struct {
+	destinationStarID uint
+	indexes           []uint
+}
+
 type Game struct {
 	Galaxy                   Galaxy               `json:"galaxy"`
 	Players                  []*Player            `json:"players"`
@@ -197,8 +202,8 @@ func (g *Game) validatePlayerCommands(playerID uint, commands Commands) error {
 		return err
 	}
 
-	// Validate invade commands
-	if err := g.validateInvadeCommands(playerID, commands.Invade); err != nil {
+	// Validate invade commands (pass fleet moves to check for conflicts)
+	if err := g.validateInvadeCommands(playerID, commands.Invade, commands.FleetMove); err != nil {
 		return err
 	}
 
@@ -469,93 +474,166 @@ func advanceStardate(stardate float64) float64 {
 
 // Validation helper functions
 
-func (g *Game) validateSingleFleetMove(playerID uint, command *FleetMoveCommand) error {
+// validateInvadeOrder performs read-only validation of an invade command.
+// Returns the validated fleet and target planet, or an error.
+func (g *Game) validateInvadeOrder(playerID uint, command *InvadeCommand) (*Fleet, *Planet, error) {
+	if command == nil {
+		return nil, nil, nil
+	}
+
+	// Validate fleet ownership
 	fleet, err := g.getFleet(command.FleetID)
 	if err != nil {
-		return err
+		return nil, nil, err
+	}
+	if fleet.Owner != playerID {
+		return nil, nil, fmt.Errorf("fleet %d does not belong to player %d", fleet.ID, playerID)
+	}
+
+	// Validate fleet is not in transit
+	if fleet.TurnsRemaining > 0 || fleet.DestinationStarID != 0 {
+		return nil, nil, fmt.Errorf("fleet %d is in transit and cannot invade", fleet.ID)
+	}
+
+	// Validate target planet exists
+	planet, err := g.getPlanet(command.TargetPlanetID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Validate planet is at the same star as fleet
+	if planet.ParentStar != fleet.StarID {
+		return nil, nil, fmt.Errorf("planet %d is not at the same star as fleet %d", planet.ID, fleet.ID)
+	}
+
+	// Validate planet is owned by another player (not empty, not same owner)
+	if planet.Owner == 0 {
+		return nil, nil, fmt.Errorf("cannot invade uncolonized planet %d", planet.ID)
+	}
+	if planet.Owner == playerID {
+		return nil, nil, fmt.Errorf("cannot invade your own planet %d", planet.ID)
+	}
+
+	// Validate fleet has transport ships with the specified indexes
+	if command.ShipIndexes != nil {
+		for _, index := range *command.ShipIndexes {
+			if int(index) >= len(fleet.Ships) {
+				return nil, nil, fmt.Errorf("ship index %d is out of range for fleet %d", index, fleet.ID)
+			}
+			ship := fleet.Ships[index]
+			if ship.Type != "transport" {
+				return nil, nil, fmt.Errorf("ship at index %d is not a transport ship", index)
+			}
+		}
+	} else {
+		// If no specific ships specified, check if fleet has any transport ships
+		hasTransport := false
+		for _, ship := range fleet.Ships {
+			if ship.Type == "transport" {
+				hasTransport = true
+				break
+			}
+		}
+		if !hasTransport {
+			return nil, nil, fmt.Errorf("fleet %d has no transport ships for invasion", fleet.ID)
+		}
+	}
+
+	return fleet, planet, nil
+}
+
+// validateSingleFleetMoveOrder performs read-only validation of a single fleet move command.
+// Returns the validated fleet, player, ship indexes, and error.
+func (g *Game) validateSingleFleetMoveOrder(playerID uint, command *FleetMoveCommand) (*Fleet, *Player, []uint, error) {
+	fleet, err := g.getFleet(command.FleetID)
+	if err != nil {
+		return nil, nil, nil, err
 	}
 	player, err := g.getPlayer(playerID)
 	if err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 
 	// Validate ship indexes
-	_, err = normalizeFleetMoveShipIndexes(command, len(fleet.Ships))
+	shipIdxs, err := normalizeFleetMoveShipIndexes(command, len(fleet.Ships))
 	if err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 
 	// Destination cannot be 0
 	if command.DestinationStarID == 0 {
-		return fmt.Errorf("invalid fleet destination")
+		return nil, nil, nil, fmt.Errorf("invalid fleet destination")
 	}
 
 	// Destination must exist
 	if _, err := g.getStar(command.DestinationStarID); err != nil {
-		return err
+		return nil, nil, nil, err
+	}
+
+	// Recall to origin is always allowed
+	if command.DestinationStarID == fleet.StarID {
+		return fleet, player, shipIdxs, nil
 	}
 
 	// Check if fleet is already moving
 	inTransit := fleet.TurnsRemaining > 0 && fleet.DestinationStarID != 0
-	
-	// Recall to origin is always allowed
-	if command.DestinationStarID == fleet.StarID {
-		return nil
-	}
 
 	// Cannot reroute without Hyperspace Communications
 	if inTransit && !playerHasTech(player, "Hyperspace Communications") {
-		return fmt.Errorf("fleet %d is already moving", fleet.ID)
+		return nil, nil, nil, fmt.Errorf("fleet %d is already moving", fleet.ID)
 	}
 
 	// Validate fuel range (skip for Star Gate travel)
-	shipIdxs, _ := normalizeFleetMoveShipIndexes(command, len(fleet.Ships))
 	if !g.isStarGateTravel(playerID, fleet.StarID, command.DestinationStarID) {
 		if err := g.validateFleetMoveFuelRange(player, shipsByIndexes(fleet.Ships, shipIdxs), command.DestinationStarID); err != nil {
-			return err
+			return nil, nil, nil, err
 		}
 	}
 
-	return nil
+	return fleet, player, shipIdxs, nil
 }
 
-func (g *Game) validateFleetMoveGroup(playerID uint, commands []*FleetMoveCommand) error {
+// validateFleetMoveGroupOrders performs read-only validation of grouped fleet move commands.
+// Returns the validated fleet, player, and batches of moves, or an error.
+func (g *Game) validateFleetMoveGroupOrders(playerID uint, commands []*FleetMoveCommand) (*Fleet, *Player, []moveBatch, error) {
 	if len(commands) == 0 {
-		return nil
+		return nil, nil, nil, nil
 	}
 
 	fleet, err := g.getFleet(commands[0].FleetID)
 	if err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 	player, err := g.getPlayer(playerID)
 	if err != nil {
-		return err
+		return nil, nil, nil, err
 	}
 
 	inTransit := fleet.TurnsRemaining > 0 && fleet.DestinationStarID != 0
-	
+
 	// If in transit, validate each move individually
 	if inTransit {
 		for _, command := range commands {
-			if err := g.validateSingleFleetMove(playerID, command); err != nil {
-				return err
+			if _, _, _, err := g.validateSingleFleetMoveOrder(playerID, command); err != nil {
+				return nil, nil, nil, err
 			}
 		}
-		return nil
+		return fleet, player, nil, nil
 	}
 
 	// Not in transit: validate grouped moves
+	batches := make([]moveBatch, 0, len(commands))
 	selected := make(map[uint]struct{})
+
 	for _, command := range commands {
 		// Destination cannot be 0
 		if command.DestinationStarID == 0 {
-			return fmt.Errorf("invalid fleet destination")
+			return nil, nil, nil, fmt.Errorf("invalid fleet destination")
 		}
 
 		// Destination must exist
 		if _, err := g.getStar(command.DestinationStarID); err != nil {
-			return err
+			return nil, nil, nil, err
 		}
 
 		// Skip recall to origin
@@ -566,11 +644,11 @@ func (g *Game) validateFleetMoveGroup(playerID uint, commands []*FleetMoveComman
 		// Validate ship indexes and check for duplicates
 		indexes, err := normalizeFleetMoveShipIndexes(command, len(fleet.Ships))
 		if err != nil {
-			return err
+			return nil, nil, nil, err
 		}
 		for _, index := range indexes {
 			if _, exists := selected[index]; exists {
-				return fmt.Errorf("ship index %d assigned to multiple fleet moves", index)
+				return nil, nil, nil, fmt.Errorf("ship index %d assigned to multiple fleet moves", index)
 			}
 			selected[index] = struct{}{}
 		}
@@ -578,12 +656,24 @@ func (g *Game) validateFleetMoveGroup(playerID uint, commands []*FleetMoveComman
 		// Validate fuel range for this destination (skip for Star Gate travel)
 		if !g.isStarGateTravel(playerID, fleet.StarID, command.DestinationStarID) {
 			if err := g.validateFleetMoveFuelRange(player, shipsByIndexes(fleet.Ships, indexes), command.DestinationStarID); err != nil {
-				return err
+				return nil, nil, nil, err
 			}
 		}
+
+		batches = append(batches, moveBatch{destinationStarID: command.DestinationStarID, indexes: indexes})
 	}
 
-	return nil
+	return fleet, player, batches, nil
+}
+
+func (g *Game) validateSingleFleetMove(playerID uint, command *FleetMoveCommand) error {
+	_, _, _, err := g.validateSingleFleetMoveOrder(playerID, command)
+	return err
+}
+
+func (g *Game) validateFleetMoveGroup(playerID uint, commands []*FleetMoveCommand) error {
+	_, _, _, err := g.validateFleetMoveGroupOrders(playerID, commands)
+	return err
 }
 
 func (g *Game) validateFleetMoveCommands(playerID uint, commands []*FleetMoveCommand) error {
@@ -618,66 +708,29 @@ func (g *Game) validateFleetMoveCommands(playerID uint, commands []*FleetMoveCom
 	return nil
 }
 
-func (g *Game) validateInvadeCommands(playerID uint, commands []*InvadeCommand) error {
+func (g *Game) validateInvadeCommands(playerID uint, commands []*InvadeCommand, fleetMoves []*FleetMoveCommand) error {
+	// Build a set of fleet IDs that are being moved this turn
+	movingFleetIDs := make(map[uint]bool)
+	for _, moveCmd := range fleetMoves {
+		if moveCmd != nil && moveCmd.DestinationStarID != 0 {
+			movingFleetIDs[moveCmd.FleetID] = true
+		}
+	}
+
 	for _, command := range commands {
 		if command == nil {
 			continue
 		}
-		fleet, err := g.getFleet(command.FleetID)
+
+		// Check if this fleet is also being moved this turn
+		if movingFleetIDs[command.FleetID] {
+			return fmt.Errorf("fleet %d cannot invade and move in the same turn", command.FleetID)
+		}
+
+		// Use shared validator
+		_, _, err := g.validateInvadeOrder(playerID, command)
 		if err != nil {
 			return err
-		}
-		if fleet.Owner != playerID {
-			return fmt.Errorf("fleet %d does not belong to player %d", fleet.ID, playerID)
-		}
-
-		// Validate fleet is not in transit
-		if fleet.TurnsRemaining > 0 || fleet.DestinationStarID != 0 {
-			return fmt.Errorf("fleet %d is in transit and cannot invade", fleet.ID)
-		}
-
-		// Validate target planet exists
-		planet, err := g.getPlanet(command.TargetPlanetID)
-		if err != nil {
-			return err
-		}
-
-		// Validate planet is at the same star as fleet
-		if planet.ParentStar != fleet.StarID {
-			return fmt.Errorf("planet %d is not at the same star as fleet %d", planet.ID, fleet.ID)
-		}
-
-		// Validate planet is owned by another player (not empty, not same owner)
-		if planet.Owner == 0 {
-			return fmt.Errorf("cannot invade uncolonized planet %d", planet.ID)
-		}
-		if planet.Owner == playerID {
-			return fmt.Errorf("cannot invade your own planet %d", planet.ID)
-		}
-
-		// Validate fleet has transport ships with the specified indexes
-		if command.ShipIndexes != nil {
-			for _, index := range *command.ShipIndexes {
-				if int(index) >= len(fleet.Ships) {
-					return fmt.Errorf("ship index %d is out of range for fleet %d", index, fleet.ID)
-				}
-				ship := fleet.Ships[index]
-				if ship.Type != "transport" {
-					return fmt.Errorf("ship at index %d is not a transport ship", index)
-				}
-			}
-		} else {
-			// If no specific ships specified, check if fleet has any transport ships
-			hasTransport := false
-			for _, ship := range fleet.Ships {
-				if ship.Type == "transport" {
-					hasTransport = true
-					break
-				}
-			}
-			if !hasTransport {
-				return fmt.Errorf("fleet %d has no transport ships for invasion", fleet.ID)
-			}
 		}
 	}
 	return nil
