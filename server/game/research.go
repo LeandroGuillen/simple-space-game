@@ -14,41 +14,58 @@ func Science(p *Planet) int64 {
 	return PlanetScienceProduced(p)
 }
 
-func (g *Game) selectResearch(player *Player, cmd SelectResearchCommand) error {
+// selectResearchPlan holds the read-only resolution of a select-research order
+// so submit-time validation and apply-time mutation share one rule set.
+type selectResearchPlan struct {
+	noop         bool
+	hyperSubject string
+	level        TechLevel
+	unlockAll    bool
+}
+
+// validateSelectResearchOrder performs all read-only checks for selecting research.
+// Both SubmitTurn and selectResearch call this so the rules cannot drift.
+func (g *Game) validateSelectResearchOrder(player *Player, cmd SelectResearchCommand) (selectResearchPlan, error) {
 	if subjectName, ok := parseHyperAdvancedResearch(cmd.TechName); ok {
-		return g.selectHyperAdvancedResearch(player, subjectName)
+		if err := g.validateHyperAdvancedResearchOrder(player, subjectName); err != nil {
+			return selectResearchPlan{}, err
+		}
+		if player.CurrentResearch != nil && player.CurrentResearch.TechName == hyperAdvancedResearchName(subjectName) {
+			return selectResearchPlan{noop: true, hyperSubject: subjectName}, nil
+		}
+		return selectResearchPlan{hyperSubject: subjectName}, nil
 	}
 
 	level, ok := g.findResearchLevelForTech(cmd.TechName)
 	if !ok {
 		level, ok = g.findResearchLevel(cmd.TechName)
 		if !ok {
-			return fmt.Errorf("research breakthrough %q does not exist", cmd.TechName)
+			return selectResearchPlan{}, fmt.Errorf("research breakthrough %q does not exist", cmd.TechName)
 		}
 	}
 	if isResearchLevelComplete(player, level) {
-		return fmt.Errorf("research level %q is already complete", level.Name)
+		return selectResearchPlan{}, fmt.Errorf("research level %q is already complete", level.Name)
 	}
 
 	subject, levelIdx, ok := g.findSubjectAndLevelIndex(level.Name)
 	if !ok {
-		return fmt.Errorf("research level %q does not belong to any subject", level.Name)
+		return selectResearchPlan{}, fmt.Errorf("research level %q does not belong to any subject", level.Name)
 	}
 	if !arePreviousLevelsComplete(player, subject, levelIdx) {
 		if levelIdx > 0 {
-			return fmt.Errorf("research level %q requires %q to be completed first", level.Name, subject.Levels[levelIdx-1].Name)
+			return selectResearchPlan{}, fmt.Errorf("research level %q requires %q to be completed first", level.Name, subject.Levels[levelIdx-1].Name)
 		}
 	}
 
 	unlockAll := researchLevelUnlocksAllTechs(level, player)
 	if tech, ok := g.findTechDefinition(cmd.TechName); ok {
 		if err := g.validateResearchTechForGovernment(player, tech); err != nil {
-			return err
+			return selectResearchPlan{}, err
 		}
 	}
 	if unlockAll {
 		if player.CurrentResearch != nil && player.CurrentResearch.LevelName == level.Name {
-			return nil
+			return selectResearchPlan{noop: true, level: level, unlockAll: true}, nil
 		}
 		for _, techName := range level.AvailableTechs {
 			tech, ok := g.findTechDefinition(techName)
@@ -56,33 +73,67 @@ func (g *Game) selectResearch(player *Player, cmd SelectResearchCommand) error {
 				continue
 			}
 			if err := g.validateResearchTechForGovernment(player, tech); err != nil {
-				return err
+				return selectResearchPlan{}, err
 			}
 		}
+		return selectResearchPlan{level: level, unlockAll: true}, nil
+	}
+
+	if !slices.Contains(level.AvailableTechs, cmd.TechName) {
+		return selectResearchPlan{}, fmt.Errorf("tech %q is not selectable in research level %q", cmd.TechName, level.Name)
+	}
+	if isTechResearched(player, cmd.TechName) {
+		return selectResearchPlan{}, fmt.Errorf("tech %q is already known", cmd.TechName)
+	}
+	if player.CurrentResearch != nil && player.CurrentResearch.TechName == cmd.TechName {
+		return selectResearchPlan{noop: true, level: level}, nil
+	}
+	return selectResearchPlan{level: level}, nil
+}
+
+func (g *Game) validateHyperAdvancedResearchOrder(player *Player, subjectName string) error {
+	subject, ok := g.findResearchSubject(subjectName)
+	if !ok {
+		return fmt.Errorf("hyper advanced subject %q does not exist", subjectName)
+	}
+	if !isResearchSubjectComplete(player, subject) {
+		return fmt.Errorf("hyper advanced research requires completed subject %q", subjectName)
+	}
+	return nil
+}
+
+func (g *Game) selectResearch(player *Player, cmd SelectResearchCommand) error {
+	plan, err := g.validateSelectResearchOrder(player, cmd)
+	if err != nil {
+		return err
+	}
+	if plan.noop {
+		return nil
+	}
+	if plan.hyperSubject != "" {
 		player.CurrentResearch = &ResearchProject{
-			Subject:   level.Name,
-			TechNames: append([]string(nil), level.AvailableTechs...),
-			LevelName: level.Name,
+			Subject:   plan.hyperSubject,
+			TechName:  hyperAdvancedResearchName(plan.hyperSubject),
+			TechNames: []string{},
+			LevelName: g.hyperAdvancedResearchLevelName(player, plan.hyperSubject),
 			Progress:  player.ResearchPoints,
 		}
 		return nil
 	}
-
-	if !slices.Contains(level.AvailableTechs, cmd.TechName) {
-		return fmt.Errorf("tech %q is not selectable in research level %q", cmd.TechName, level.Name)
-	}
-	if isTechResearched(player, cmd.TechName) {
-		return fmt.Errorf("tech %q is already known", cmd.TechName)
-	}
-	if player.CurrentResearch != nil && player.CurrentResearch.TechName == cmd.TechName {
+	if plan.unlockAll {
+		player.CurrentResearch = &ResearchProject{
+			Subject:   plan.level.Name,
+			TechNames: append([]string(nil), plan.level.AvailableTechs...),
+			LevelName: plan.level.Name,
+			Progress:  player.ResearchPoints,
+		}
 		return nil
 	}
-
 	player.CurrentResearch = &ResearchProject{
 		Subject:   cmd.TechName,
 		TechName:  cmd.TechName,
 		TechNames: []string{cmd.TechName},
-		LevelName: level.Name,
+		LevelName: plan.level.Name,
 		Progress:  player.ResearchPoints,
 	}
 	return nil
@@ -287,24 +338,7 @@ func (g *Game) findTechDefinition(techName string) (Tech, bool) {
 }
 
 func (g *Game) selectHyperAdvancedResearch(player *Player, subjectName string) error {
-	subject, ok := g.findResearchSubject(subjectName)
-	if !ok {
-		return fmt.Errorf("hyper advanced subject %q does not exist", subjectName)
-	}
-	if !isResearchSubjectComplete(player, subject) {
-		return fmt.Errorf("hyper advanced research requires completed subject %q", subjectName)
-	}
-	if player.CurrentResearch != nil && player.CurrentResearch.TechName == hyperAdvancedResearchName(subjectName) {
-		return nil
-	}
-	player.CurrentResearch = &ResearchProject{
-		Subject:   subjectName,
-		TechName:  hyperAdvancedResearchName(subjectName),
-		TechNames: []string{},
-		LevelName: g.hyperAdvancedResearchLevelName(player, subjectName),
-		Progress:  player.ResearchPoints,
-	}
-	return nil
+	return g.selectResearch(player, SelectResearchCommand{TechName: hyperAdvancedResearchName(subjectName)})
 }
 
 func (g *Game) hyperAdvancedResearchCost(player *Player, subjectName string) (uint64, bool) {

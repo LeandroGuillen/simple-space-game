@@ -1,6 +1,7 @@
 package game
 
 import (
+	"reflect"
 	"sync"
 	"testing"
 
@@ -752,4 +753,490 @@ func TestFleetCannotMoveAndInvadeInSameTurn(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "cannot invade and move in the same turn")
 	assert.NotContains(t, g.TurnStatus.ReadyPlayerIDs, uint(1))
+}
+
+// Tests for submit-time validation of research, mutation, and colonize orders.
+
+func TestBadSelectResearchUnknownTechRejectedAtSubmit(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{
+		PlayerName:  "Player 1",
+		PlayerColor: model.DefaultPlayerColor(),
+		NumStars:    8,
+		Race:        DefaultRace("Human"),
+		NumPlayers:  2,
+	})
+	require.NoError(t, err)
+
+	home := getPlayerHomeworld(g, 1)
+	require.NotNil(t, home)
+	initialPop := home.Population
+	initialTreasury := g.Players[0].Treasury
+
+	_, _, err = g.SubmitTurn(1, model.Commands{
+		SelectResearch: &model.SelectResearchCommand{TechName: "No Such Tech"},
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "does not exist")
+	assert.NotContains(t, g.TurnStatus.ReadyPlayerIDs, uint(1))
+	assert.Empty(t, g.TurnSubmissions)
+	assert.Equal(t, initialPop, home.Population)
+	assert.Equal(t, initialTreasury, g.Players[0].Treasury)
+
+	_, _, err = g.SubmitTurn(2, model.Commands{})
+	require.NoError(t, err)
+	assert.Contains(t, g.TurnStatus.ReadyPlayerIDs, uint(2))
+}
+
+func TestBadSelectResearchAlreadyCompleteRejectedAtSubmit(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{
+		PlayerName:  "Player 1",
+		PlayerColor: model.DefaultPlayerColor(),
+		NumStars:    8,
+		Race:        DefaultRace("Human"),
+		NumPlayers:  2,
+	})
+	require.NoError(t, err)
+
+	// Completing one tech in a non-force-all level marks the level complete for Humans.
+	g.research(g.Players[0], "Anti-Missile Rockets")
+
+	_, _, err = g.SubmitTurn(1, model.Commands{
+		SelectResearch: &model.SelectResearchCommand{TechName: "Fighter Bays"},
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "already complete")
+	assert.NotContains(t, g.TurnStatus.ReadyPlayerIDs, uint(1))
+}
+
+func TestBadSelectResearchOutOfOrderRejectedAtSubmit(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{
+		PlayerName:  "Player 1",
+		PlayerColor: model.DefaultPlayerColor(),
+		NumStars:    8,
+		Race:        DefaultRace("Human"),
+		NumPlayers:  2,
+	})
+	require.NoError(t, err)
+
+	// Automated Factory is in Advanced Construction; Advanced Engineering must come first.
+	_, _, err = g.SubmitTurn(1, model.Commands{
+		SelectResearch: &model.SelectResearchCommand{TechName: "Automated Factory"},
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "requires")
+	assert.Contains(t, err.Error(), "completed first")
+	assert.NotContains(t, g.TurnStatus.ReadyPlayerIDs, uint(1))
+}
+
+func TestBadMutateRaceNoPointsRejectedAtSubmit(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{
+		PlayerName:  "Player 1",
+		PlayerColor: model.DefaultPlayerColor(),
+		NumStars:    8,
+		Race:        DefaultRace("Human"),
+		NumPlayers:  2,
+	})
+	require.NoError(t, err)
+
+	require.Equal(t, 0, g.Players[0].EvolutionaryMutationPoints)
+
+	_, _, err = g.SubmitTurn(1, model.Commands{
+		MutateRace: &model.MutateRaceCommand{TraitIDs: []string{}},
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "no evolutionary mutation points")
+	assert.NotContains(t, g.TurnStatus.ReadyPlayerIDs, uint(1))
+}
+
+func TestBadMutateRaceAlreadyUsedRejectedAtSubmit(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{
+		PlayerName:  "Player 1",
+		PlayerColor: model.DefaultPlayerColor(),
+		NumStars:    8,
+		Race:        DefaultRace("Human"),
+		NumPlayers:  2,
+	})
+	require.NoError(t, err)
+
+	g.Players[0].EvolutionaryMutationPoints = 4
+	g.Players[0].HasUsedEvolutionaryMutation = true
+
+	_, _, err = g.SubmitTurn(1, model.Commands{
+		MutateRace: &model.MutateRaceCommand{TraitIDs: []string{}},
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "already been used")
+	assert.NotContains(t, g.TurnStatus.ReadyPlayerIDs, uint(1))
+}
+
+func TestBadMutateRaceInvalidTraitsRejectedAtSubmit(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{
+		PlayerName:  "Player 1",
+		PlayerColor: model.DefaultPlayerColor(),
+		NumStars:    8,
+		Race:        DefaultRace("Human"),
+		NumPlayers:  2,
+	})
+	require.NoError(t, err)
+
+	g.Players[0].EvolutionaryMutationPoints = 4
+
+	_, _, err = g.SubmitTurn(1, model.Commands{
+		MutateRace: &model.MutateRaceCommand{TraitIDs: []string{"not-a-real-trait"}},
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid race mutation")
+	assert.NotContains(t, g.TurnStatus.ReadyPlayerIDs, uint(1))
+}
+
+
+func nextTestPlanetID(g *Game) uint {
+	maxID := uint(0)
+	for _, star := range g.Galaxy.Stars {
+		for _, planet := range star.Planets {
+			if planet != nil && planet.ID > maxID {
+				maxID = planet.ID
+			}
+		}
+	}
+	return maxID + 1
+}
+
+func multiplayerColonyShipAtHome(t *testing.T, g *Game, playerID uint) (*model.Fleet, *model.Planet) {
+	t.Helper()
+	home := getPlayerHomeworld(g, playerID)
+	require.NotNil(t, home)
+	fleet := &model.Fleet{
+		ID:     g.nextFleetID(),
+		Owner:  playerID,
+		StarID: home.ParentStar,
+		Ships: []model.FleetShip{
+			{Type: "colony_ship", Name: "Colony Ship"},
+		},
+	}
+	g.Fleets = append(g.Fleets, fleet)
+	if player, err := g.getPlayer(playerID); err == nil {
+		player.Fleets = append(player.Fleets, fleet.ID)
+	}
+	return fleet, home
+}
+
+func findUnownedColonizableInSystem(g *Game, starID, excludePlanetID uint) *model.Planet {
+	star, err := g.getStar(starID)
+	if err != nil {
+		return nil
+	}
+	for _, planet := range star.Planets {
+		if planet == nil || planet.ID == excludePlanetID {
+			continue
+		}
+		if planet.Owner == 0 &&
+			planet.Environment != model.PlanetEnvironmentGasGiant &&
+			planet.Environment != model.PlanetEnvironmentAsteroidBelt {
+			return planet
+		}
+	}
+	return nil
+}
+
+func TestBadColonizeNonexistentPlanetRejectedAtSubmit(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{
+		PlayerName:  "Player 1",
+		PlayerColor: model.DefaultPlayerColor(),
+		NumStars:    8,
+		Race:        DefaultRace("Human"),
+		NumPlayers:  2,
+	})
+	require.NoError(t, err)
+
+	fleet, _ := multiplayerColonyShipAtHome(t, g, 1)
+
+	_, _, err = g.SubmitTurn(1, model.Commands{
+		Colonize: &model.ColonizeCommand{FleetID: fleet.ID, PlanetID: 99999},
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "not found")
+	assert.NotContains(t, g.TurnStatus.ReadyPlayerIDs, uint(1))
+}
+
+func TestBadColonizeOtherSystemRejectedAtSubmit(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{
+		PlayerName:  "Player 1",
+		PlayerColor: model.DefaultPlayerColor(),
+		NumStars:    8,
+		Race:        DefaultRace("Human"),
+		NumPlayers:  2,
+	})
+	require.NoError(t, err)
+
+	fleet, home := multiplayerColonyShipAtHome(t, g, 1)
+	p2Home := getPlayerHomeworld(g, 2)
+	require.NotNil(t, p2Home)
+	require.NotEqual(t, home.ParentStar, p2Home.ParentStar)
+
+	_, _, err = g.SubmitTurn(1, model.Commands{
+		Colonize: &model.ColonizeCommand{FleetID: fleet.ID, PlanetID: p2Home.ID},
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "same system")
+	assert.NotContains(t, g.TurnStatus.ReadyPlayerIDs, uint(1))
+}
+
+func TestBadColonizeOwnedPlanetRejectedAtSubmit(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{
+		PlayerName:  "Player 1",
+		PlayerColor: model.DefaultPlayerColor(),
+		NumStars:    8,
+		Race:        DefaultRace("Human"),
+		NumPlayers:  2,
+	})
+	require.NoError(t, err)
+
+	fleet, home := multiplayerColonyShipAtHome(t, g, 1)
+
+	_, _, err = g.SubmitTurn(1, model.Commands{
+		Colonize: &model.ColonizeCommand{FleetID: fleet.ID, PlanetID: home.ID},
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "already colonized")
+	assert.NotContains(t, g.TurnStatus.ReadyPlayerIDs, uint(1))
+}
+
+func TestBadColonizeGasGiantRejectedAtSubmit(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{
+		PlayerName:  "Player 1",
+		PlayerColor: model.DefaultPlayerColor(),
+		NumStars:    8,
+		Race:        DefaultRace("Human"),
+		NumPlayers:  2,
+	})
+	require.NoError(t, err)
+
+	fleet, home := multiplayerColonyShipAtHome(t, g, 1)
+	star, err := g.getStar(home.ParentStar)
+	require.NoError(t, err)
+
+	gas := &model.Planet{
+		ID:          nextTestPlanetID(g),
+		ParentStar:  home.ParentStar,
+		Environment: model.PlanetEnvironmentGasGiant,
+		Size:        model.PlanetSizeHuge,
+	}
+	star.Planets = append(star.Planets, gas)
+
+	_, _, err = g.SubmitTurn(1, model.Commands{
+		Colonize: &model.ColonizeCommand{FleetID: fleet.ID, PlanetID: gas.ID},
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot colonize this planet type")
+	assert.NotContains(t, g.TurnStatus.ReadyPlayerIDs, uint(1))
+}
+
+func TestBadColonizeAsteroidRejectedAtSubmit(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{
+		PlayerName:  "Player 1",
+		PlayerColor: model.DefaultPlayerColor(),
+		NumStars:    8,
+		Race:        DefaultRace("Human"),
+		NumPlayers:  2,
+	})
+	require.NoError(t, err)
+
+	fleet, home := multiplayerColonyShipAtHome(t, g, 1)
+	star, err := g.getStar(home.ParentStar)
+	require.NoError(t, err)
+
+	belt := &model.Planet{
+		ID:          nextTestPlanetID(g),
+		ParentStar:  home.ParentStar,
+		Environment: model.PlanetEnvironmentAsteroidBelt,
+		Size:        model.PlanetSizeLarge,
+	}
+	star.Planets = append(star.Planets, belt)
+
+	_, _, err = g.SubmitTurn(1, model.Commands{
+		Colonize: &model.ColonizeCommand{FleetID: fleet.ID, PlanetID: belt.ID},
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot colonize this planet type")
+	assert.NotContains(t, g.TurnStatus.ReadyPlayerIDs, uint(1))
+}
+
+func TestBadColonizeFleetNotInOrbitRejectedAtSubmit(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{
+		PlayerName:  "Player 1",
+		PlayerColor: model.DefaultPlayerColor(),
+		NumStars:    8,
+		Race:        DefaultRace("Human"),
+		NumPlayers:  2,
+	})
+	require.NoError(t, err)
+
+	fleet, home := multiplayerColonyShipAtHome(t, g, 1)
+	fleet.DestinationStarID = home.ParentStar + 1
+	fleet.TurnsRemaining = 3
+	fleet.TotalTurns = 3
+
+	target := findUnownedColonizableInSystem(g, home.ParentStar, home.ID)
+	if target == nil {
+		star, err := g.getStar(home.ParentStar)
+		require.NoError(t, err)
+		target = &model.Planet{
+			ID:          nextTestPlanetID(g),
+			ParentStar:  home.ParentStar,
+			Environment: model.PlanetEnvironmentTerran,
+			Size:        model.PlanetSizeMedium,
+		}
+		star.Planets = append(star.Planets, target)
+	}
+
+	_, _, err = g.SubmitTurn(1, model.Commands{
+		Colonize: &model.ColonizeCommand{FleetID: fleet.ID, PlanetID: target.ID},
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "must be in orbit")
+	assert.NotContains(t, g.TurnStatus.ReadyPlayerIDs, uint(1))
+}
+
+func TestOtherPlayerValidSubmitAfterBadResearchRejection(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{
+		PlayerName:  "Player 1",
+		PlayerColor: model.DefaultPlayerColor(),
+		NumStars:    8,
+		Race:        DefaultRace("Human"),
+		NumPlayers:  2,
+	})
+	require.NoError(t, err)
+
+	initialTurn := g.CurrentTurn
+
+	_, _, err = g.SubmitTurn(1, model.Commands{
+		SelectResearch: &model.SelectResearchCommand{TechName: "No Such Tech"},
+	})
+	require.Error(t, err)
+	assert.NotContains(t, g.TurnStatus.ReadyPlayerIDs, uint(1))
+
+	_, advanced, err := g.SubmitTurn(2, model.Commands{})
+	require.NoError(t, err)
+	assert.False(t, advanced)
+
+	_, advanced, err = g.SubmitTurn(1, model.Commands{})
+	require.NoError(t, err)
+	assert.True(t, advanced)
+	assert.Greater(t, g.CurrentTurn, initialTurn)
+}
+
+func TestFleetCannotMoveAndColonizeInSameTurn(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := NewGame(resources, NewGameOptions{
+		PlayerName:  "Player 1",
+		PlayerColor: model.DefaultPlayerColor(),
+		NumStars:    8,
+		Race:        DefaultRace("Human"),
+		NumPlayers:  2,
+	})
+	require.NoError(t, err)
+
+	fleet, home := multiplayerColonyShipAtHome(t, g, 1)
+	fleet.Ships[0].FuelCell = "Thorium"
+	fleet.Ships[0].UnlimitedFuelRange = true
+
+	target := findUnownedColonizableInSystem(g, home.ParentStar, home.ID)
+	if target == nil {
+		star, err := g.getStar(home.ParentStar)
+		require.NoError(t, err)
+		target = &model.Planet{
+			ID:          nextTestPlanetID(g),
+			ParentStar:  home.ParentStar,
+			Environment: model.PlanetEnvironmentTerran,
+			Size:        model.PlanetSizeMedium,
+		}
+		star.Planets = append(star.Planets, target)
+	}
+
+	var destStar uint
+	for _, star := range g.Galaxy.Stars {
+		if star.ID != home.ParentStar {
+			destStar = star.ID
+			break
+		}
+	}
+	require.NotZero(t, destStar)
+
+	_, _, err = g.SubmitTurn(1, model.Commands{
+		FleetMove: []*model.FleetMoveCommand{
+			{FleetID: fleet.ID, DestinationStarID: destStar},
+		},
+		Colonize: &model.ColonizeCommand{FleetID: fleet.ID, PlanetID: target.ID},
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot colonize and move in the same turn")
+	assert.NotContains(t, g.TurnStatus.ReadyPlayerIDs, uint(1))
+}
+
+func TestCommandsFieldsHaveSubmitTimeValidators(t *testing.T) {
+	// Guard: every Commands field must be covered by validatePlayerCommands.
+	// When adding a field to model.Commands, add submit-time validation and list it here.
+	covered := map[string]bool{
+		"Build":                true, // validated via buy-production projection / build apply path
+		"MovePopulation":       true,
+		"TransferPopulation":   true,
+		"SelectResearch":       true,
+		"Colonize":             true,
+		"ColonizeMany":         true,
+		"ArtificialPlanet":     true,
+		"ArtificialPlanetMany": true,
+		"ColonyShip":           true,
+		"FleetMove":            true,
+		"Invade":               true,
+		"BuyProduction":        true,
+		"MutateRace":           true,
+	}
+	rt := reflect.TypeOf(model.Commands{})
+	require.Equal(t, reflect.Struct, rt.Kind())
+	for i := 0; i < rt.NumField(); i++ {
+		name := rt.Field(i).Name
+		assert.True(t, covered[name], "model.Commands.%s has no submit-time validator entry; add validation in validatePlayerCommands and list it here", name)
+	}
 }

@@ -197,6 +197,20 @@ func (g *Game) validatePlayerCommands(playerID uint, commands Commands) error {
 		return err
 	}
 
+	// Research is applied first in applyPlayerTurn; validate against current player state.
+	if commands.SelectResearch != nil {
+		if _, err := g.validateSelectResearchOrder(player, *commands.SelectResearch); err != nil {
+			return err
+		}
+	}
+
+	// Mutation runs after research select; select does not change mutation eligibility.
+	if commands.MutateRace != nil {
+		if _, err := g.validateMutateRaceOrder(player, *commands.MutateRace); err != nil {
+			return err
+		}
+	}
+
 	// Validate fleet move commands
 	if err := g.validateFleetMoveCommands(playerID, commands.FleetMove); err != nil {
 		return err
@@ -219,13 +233,13 @@ func (g *Game) validatePlayerCommands(playerID uint, commands Commands) error {
 		}
 	}
 
-	// Validate colonize commands
+	// Validate colonize commands (fleet moves run before colonize in apply)
 	colonizeCommands := commands.ColonizeMany
 	if commands.Colonize != nil {
 		colonizeCommands = append(colonizeCommands, commands.Colonize)
 	}
 	for _, command := range colonizeCommands {
-		if err := g.validateColonizeCommand(playerID, command); err != nil {
+		if err := g.validateColonizeCommand(playerID, command, commands.FleetMove); err != nil {
 			return err
 		}
 	}
@@ -802,44 +816,97 @@ func (g *Game) validatePrepareColonyShip(playerID uint, fleetID uint) error {
 	return nil
 }
 
-func (g *Game) validateColonizeCommand(playerID uint, command *ColonizeCommand) error {
+// validateColonizePlanetTarget checks that a planet can be colonized (unowned, colonizable type).
+func validateColonizePlanetTarget(target *Planet) error {
+	if target.Owner != 0 {
+		return fmt.Errorf("planet already colonized")
+	}
+	if target.Environment == PlanetEnvironmentGasGiant || target.Environment == PlanetEnvironmentAsteroidBelt {
+		return fmt.Errorf("cannot colonize this planet type")
+	}
+	return nil
+}
+
+// validateColonizeWithShipOrder performs all read-only checks for colonizing with a fleet.
+// Both SubmitTurn and ColonizePlanetWithShip call this so the rules cannot drift.
+// If fleetID is stale/missing, falls back to any orbiting colony ship in the target system
+// (matching apply behavior).
+func (g *Game) validateColonizeWithShipOrder(ownerID, fleetID, targetPlanetID uint) (*Fleet, *Planet, error) {
+	target, err := g.getPlanet(targetPlanetID)
+	if err != nil {
+		return nil, nil, err
+	}
+	fleet, err := g.getFleet(fleetID)
+	if err != nil {
+		fleet = g.findOrbitColonyShipFleet(ownerID, target.ParentStar)
+		if fleet == nil {
+			return nil, nil, fmt.Errorf("no orbiting colony ship in target system")
+		}
+	}
+	if fleet.Owner != ownerID {
+		return nil, nil, fmt.Errorf("fleet %d does not belong to player %d", fleet.ID, ownerID)
+	}
+	if fleet.DestinationStarID != 0 || fleet.TurnsRemaining != 0 {
+		return nil, nil, fmt.Errorf("colony ship must be in orbit")
+	}
+	if !fleetHasColonyShip(fleet) {
+		return nil, nil, fmt.Errorf("fleet has no colony ship")
+	}
+	if target.ParentStar != fleet.StarID {
+		return nil, nil, fmt.Errorf("colony ship can only colonize planets in the same system")
+	}
+	if err := validateColonizePlanetTarget(target); err != nil {
+		return nil, nil, err
+	}
+	return fleet, target, nil
+}
+
+func (g *Game) validateColonizeCommand(playerID uint, command *ColonizeCommand, fleetMoves []*FleetMoveCommand) error {
 	if command == nil {
 		return nil
 	}
 	if command.FleetID != 0 {
-		// Validate colony ship exists and belongs to player
-		// Note: if fleet ID is stale, the actual colonize will fall back to finding
-		// any colony ship in the target system, so we allow that case here too
 		fleet, err := g.getFleet(command.FleetID)
-		if err != nil {
-			// Fleet not found - check if there's a valid target planet and colony ship in its system
-			target, err := g.getPlanet(command.PlanetID)
-			if err != nil {
-				return err
+		if err == nil {
+			// Same-turn move to another star leaves the fleet in transit before colonize runs
+			// (fleet moves are applied before colonize). Reject so submit mirrors apply.
+			// A recall (destination == current star) is allowed: apply lands the fleet first.
+			for _, move := range fleetMoves {
+				if move == nil || move.FleetID != command.FleetID {
+					continue
+				}
+				if move.DestinationStarID != 0 && move.DestinationStarID != fleet.StarID {
+					return fmt.Errorf("fleet %d cannot colonize and move in the same turn", command.FleetID)
+				}
 			}
-			fleet = g.findOrbitColonyShipFleet(playerID, target.ParentStar)
-			if fleet == nil {
-				return fmt.Errorf("no orbiting colony ship in target system")
+			// Same-turn recall of an in-transit fleet lands it before colonize; treat as in orbit.
+			recalling := false
+			if fleet.DestinationStarID != 0 || fleet.TurnsRemaining != 0 {
+				for _, move := range fleetMoves {
+					if move != nil && move.FleetID == command.FleetID && move.DestinationStarID == fleet.StarID {
+						recalling = true
+						break
+					}
+				}
 			}
-			// Found a valid fallback fleet, validation passes
-			return nil
-		}
-		if fleet.Owner != playerID {
-			return fmt.Errorf("fleet %d does not belong to player %d", fleet.ID, playerID)
-		}
-		hasColonyShip := false
-		for _, ship := range fleet.Ships {
-			if ship.Type == "colony_ship" {
-				hasColonyShip = true
-				break
+			if recalling {
+				target, err := g.getPlanet(command.PlanetID)
+				if err != nil {
+					return err
+				}
+				if target.ParentStar != fleet.StarID {
+					return fmt.Errorf("colony ship can only colonize planets in the same system")
+				}
+				if !fleetHasColonyShip(fleet) {
+					return fmt.Errorf("fleet has no colony ship")
+				}
+				return validateColonizePlanetTarget(target)
 			}
 		}
-		if !hasColonyShip {
-			return fmt.Errorf("fleet %d has no colony ship", fleet.ID)
-		}
-		return nil
+		_, _, err = g.validateColonizeWithShipOrder(playerID, command.FleetID, command.PlanetID)
+		return err
 	}
-	// Validate pending colony base exists
+	// Colony-base path: pending base must exist; target checked at apply against the source system.
 	if g.PendingColonyBases == nil {
 		return fmt.Errorf("no pending colony base")
 	}
@@ -847,7 +914,18 @@ func (g *Game) validateColonizeCommand(playerID uint, command *ColonizeCommand) 
 	if len(pending) == 0 {
 		return fmt.Errorf("no pending colony base")
 	}
-	return nil
+	target, err := g.getPlanet(command.PlanetID)
+	if err != nil {
+		return err
+	}
+	source, err := g.getPlanet(pending[len(pending)-1])
+	if err != nil {
+		return err
+	}
+	if target.ParentStar != source.ParentStar {
+		return fmt.Errorf("colony base can only colonize planets in the same system")
+	}
+	return validateColonizePlanetTarget(target)
 }
 
 func (g *Game) validateArtificialPlanetCommand(playerID uint, command *ArtificialPlanetCommand) error {
@@ -1038,11 +1116,8 @@ func (g *Game) ColonizePlanet(ownerID, sourcePlanetID, targetPlanetID uint) erro
 	if target.ParentStar != source.ParentStar {
 		return fmt.Errorf("colony base can only colonize planets in the same system")
 	}
-	if target.Owner != 0 {
-		return fmt.Errorf("planet already colonized")
-	}
-	if target.Environment == PlanetEnvironmentGasGiant || target.Environment == PlanetEnvironmentAsteroidBelt {
-		return fmt.Errorf("cannot colonize this planet type")
+	if err := validateColonizePlanetTarget(target); err != nil {
+		return err
 	}
 
 	target.Owner = ownerID
@@ -1092,10 +1167,6 @@ func (g *Game) ColonizePlanetWithShip(ownerID, fleetID, targetPlanetID uint) err
 	if g.PendingColonyShips == nil {
 		g.PendingColonyShips = make(map[uint][]uint)
 	}
-	target, err := g.getPlanet(targetPlanetID)
-	if err != nil {
-		return err
-	}
 	pending := g.PendingColonyShips[ownerID]
 	found := false
 	nextPending := make([]uint, 0, len(pending))
@@ -1107,25 +1178,9 @@ func (g *Game) ColonizePlanetWithShip(ownerID, fleetID, targetPlanetID uint) err
 		nextPending = append(nextPending, pendingFleetID)
 	}
 
-	fleet, err := g.getFleet(fleetID)
+	fleet, target, err := g.validateColonizeWithShipOrder(ownerID, fleetID, targetPlanetID)
 	if err != nil {
-		fleet = g.findOrbitColonyShipFleet(ownerID, target.ParentStar)
-		if fleet == nil {
-			return fmt.Errorf("no orbiting colony ship in target system")
-		}
-	}
-	if fleet.Owner != ownerID {
-		return fmt.Errorf("fleet %d does not belong to player %d", fleet.ID, ownerID)
-	}
-	if fleet.DestinationStarID != 0 || fleet.TurnsRemaining != 0 {
-		return fmt.Errorf("colony ship must be in orbit")
-	}
-	if !fleetHasColonyShip(fleet) {
-		return fmt.Errorf("fleet has no colony ship")
-	}
-
-	if target.ParentStar != fleet.StarID {
-		return fmt.Errorf("colony ship can only colonize planets in the same system")
+		return err
 	}
 	if err := g.colonizePlanet(ownerID, target); err != nil {
 		return err
@@ -1154,11 +1209,8 @@ func (g *Game) findOrbitColonyShipFleet(ownerID, starID uint) *Fleet {
 }
 
 func (g *Game) colonizePlanet(ownerID uint, target *Planet) error {
-	if target.Owner != 0 {
-		return fmt.Errorf("planet already colonized")
-	}
-	if target.Environment == PlanetEnvironmentGasGiant || target.Environment == PlanetEnvironmentAsteroidBelt {
-		return fmt.Errorf("cannot colonize this planet type")
+	if err := validateColonizePlanetTarget(target); err != nil {
+		return err
 	}
 
 	target.Owner = ownerID

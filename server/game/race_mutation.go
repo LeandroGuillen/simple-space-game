@@ -12,6 +12,30 @@ const (
 	mutationNegativePickLimit = 10 // Same as base
 )
 
+// validateMutateRaceOrder performs all read-only checks for a race mutation.
+// Both SubmitTurn and ApplyRaceMutation call this so the rules cannot drift.
+func (g *Game) validateMutateRaceOrder(player *model.Player, cmd model.MutateRaceCommand) (model.Race, error) {
+	if player.HasUsedEvolutionaryMutation {
+		return model.Race{}, fmt.Errorf("evolutionary mutation has already been used")
+	}
+	if player.EvolutionaryMutationPoints <= 0 {
+		return model.Race{}, fmt.Errorf("no evolutionary mutation points available")
+	}
+
+	// Only trait_ids can change; name and government stay the same.
+	mutationDesign := RaceDesign{
+		Name:       player.Race.Name,
+		Government: player.Race.Government,
+		TraitIDs:   cmd.TraitIDs,
+	}
+	resourceManager := &ResourceManager{Resources: *g.Resources}
+	mutatedRace, err := buildMutationRace(resourceManager, mutationDesign, player.Race)
+	if err != nil {
+		return model.Race{}, fmt.Errorf("invalid race mutation: %w", err)
+	}
+	return mutatedRace, nil
+}
+
 // ApplyRaceMutation validates and applies a race mutation command.
 // The player can only change trait IDs, not the race name or government.
 // The mutation uses 14 pick points (10 base + 4 bonus from Evolutionary Mutation).
@@ -22,42 +46,14 @@ func (g *Game) ApplyRaceMutation(playerID uint, cmd model.MutateRaceCommand) err
 		return err
 	}
 
-	// Check if player has already used their mutation
-	if player.HasUsedEvolutionaryMutation {
-		return fmt.Errorf("evolutionary mutation has already been used")
-	}
-
-	// Check if player has mutation points available
-	if player.EvolutionaryMutationPoints <= 0 {
-		return fmt.Errorf("no evolutionary mutation points available")
-	}
-
-	// Build the mutated race using the existing race as a base
-	// Only trait_ids can change, name and government remain the same
-	mutationDesign := RaceDesign{
-		Name:       player.Race.Name,
-		Government: player.Race.Government,
-		TraitIDs:   cmd.TraitIDs,
-	}
-
-	// Get resource manager from game resources
-	resourceManager := &ResourceManager{Resources: *g.Resources}
-
-	// Validate the mutation using the mutation budget (14 points)
-	mutatedRace, err := buildMutationRace(resourceManager, mutationDesign, player.Race)
+	mutatedRace, err := g.validateMutateRaceOrder(player, cmd)
 	if err != nil {
-		return fmt.Errorf("invalid race mutation: %w", err)
+		return err
 	}
 
-	// Update the player's race with the mutated version
 	player.Race = mutatedRace
-
-	// Mark mutation as used - this is a one-time change
 	player.HasUsedEvolutionaryMutation = true
-
-	// Rehydrate player availability as race traits may have changed
 	g.hydratePlayerAvailability(player)
-
 	return nil
 }
 
