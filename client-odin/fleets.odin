@@ -292,9 +292,15 @@ draw_invasion_reports :: proc(g: Api_Game, cx, cy_in: i32, player_id: int) -> i3
 			rl.DrawText("Invasion Reports", cx, cy, pxi(15), {180, 200, 220, 255})
 			cy += pxi(20)
 		}
-		outcome := r.planet_captured ? "captured" : (r.success ? "won" : "repelled")
-		col := rl.Color{210, 130, 120, 255}
-		if (r.attacker_owner_id == player_id) == r.success do col = {140, 200, 150, 255}
+		outcome := invasion_outcome_label(r)
+		col: rl.Color
+		if r.cancelled {
+			// Neutral/yellowish — no fight happened; avoid win/loss colours.
+			col = {210, 190, 120, 255}
+		} else {
+			col = {210, 130, 120, 255}
+			if (r.attacker_owner_id == player_id) == r.success do col = {140, 200, 150, 255}
+		}
 		atk0 := ground_force_units(r.initial_attacker)
 		def0 := ground_force_units(r.initial_defender)
 		surv := ground_force_units(r.surviving_units)

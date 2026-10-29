@@ -16,6 +16,7 @@ Native Odin client for Simple Space Game — an MVP alternative to `client-solid
 ./ssg-odin endturn [game-id]        # POST /turn with no commands (round-trip test)
 ./ssg-odin ui [game-id]             # full UI; opens the setup/join screen,
                                     # or fast-paths into [game-id] if given
+odin test .                         # @(test) procs (e.g. invasion report labels)
 ```
 
 The UI opens on a **setup screen**: pick a game and a player slot and press

@@ -246,6 +246,9 @@ Api_Invasion_Report :: struct {
 	defender_owner_id: int    `json:"defender_owner_id"`,
 	success:           bool   `json:"success"`,
 	planet_captured:   bool   `json:"planet_captured"`,
+	// Set when the Invade order was cancelled (e.g. invader lost orbit)
+	// before ground combat. Older payloads omit the field → false.
+	cancelled:         bool   `json:"cancelled"`,
 	initial_attacker:  Api_Ground_Force `json:"initial_attacker"`,
 	initial_defender:  Api_Ground_Force `json:"initial_defender"`,
 	surviving_units:   Api_Ground_Force `json:"surviving_units"`,
