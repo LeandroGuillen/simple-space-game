@@ -284,9 +284,11 @@ func findStarByID(snapshot *VisibleGame, starID uint) *model.Star {
 }
 
 // sendIdleScouts moves any stationary fleet (no destination) to the nearest
-// unexplored star. We treat "unexplored" as a star with no Name field in the
-// visible payload (the visibility filter strips the name for unexplored stars).
-// Fleets already queued to invade this turn stay put.
+// unexplored star that is still inside the fleet's fuel range (same rule as
+// game.validateFleetMoveFuelRange / FuelDestinationReachable). We treat
+// "unexplored" as a star with no Name in the visible payload. Fleets already
+// queued to invade this turn stay put. If no reachable unexplored star exists,
+// the fleet stays idle.
 func sendIdleScouts(snapshot *VisibleGame, playerID uint, d *Decision) {
 	if me := findPlayer(snapshot, playerID); me != nil {
 		for _, traitID := range me.Race.TraitIDs {
@@ -301,6 +303,7 @@ func sendIdleScouts(snapshot *VisibleGame, playerID uint, d *Decision) {
 			invading[cmd.FleetID] = true
 		}
 	}
+	supplies := ownedSupplyStarCoords(snapshot, playerID)
 	for _, f := range snapshot.Fleets {
 		if f == nil || f.Owner != playerID {
 			continue
@@ -311,7 +314,7 @@ func sendIdleScouts(snapshot *VisibleGame, playerID uint, d *Decision) {
 		if invading[f.ID] {
 			continue
 		}
-		target := nearestUnexploredStar(snapshot, f.X, f.Y)
+		target := nearestReachableUnexploredStar(snapshot, f, supplies)
 		if target == 0 {
 			continue
 		}
@@ -319,22 +322,51 @@ func sendIdleScouts(snapshot *VisibleGame, playerID uint, d *Decision) {
 			FleetID:           f.ID,
 			DestinationStarID: target,
 		})
-		d.Notes = append(d.Notes, fmt.Sprintf("fleet %d: moving to nearest unexplored star %d", f.ID, target))
+		d.Notes = append(d.Notes, fmt.Sprintf("fleet %d: moving to nearest reachable unexplored star %d", f.ID, target))
 	}
 }
 
-func nearestUnexploredStar(snapshot *VisibleGame, fromX, fromY float64) uint {
+func ownedSupplyStarCoords(snapshot *VisibleGame, playerID uint) [][2]float64 {
+	if snapshot == nil {
+		return nil
+	}
+	var out [][2]float64
+	for _, star := range snapshot.Galaxy.Stars {
+		if star == nil {
+			continue
+		}
+		for _, planet := range star.Planets {
+			if planet != nil && planet.Owner == playerID {
+				out = append(out, [2]float64{float64(star.X), float64(star.Y)})
+				break
+			}
+		}
+	}
+	return out
+}
+
+// nearestReachableUnexploredStar picks the closest unexplored star (by fleet
+// position) that FuelDestinationReachable accepts for this fleet's listed fuel
+// range. Returns 0 when none are reachable or range cannot be determined.
+func nearestReachableUnexploredStar(snapshot *VisibleGame, fleet *model.Fleet, supplies [][2]float64) uint {
+	if snapshot == nil || fleet == nil {
+		return 0
+	}
+	rangeParsecs, unlimited, ok := game.ShipsListedFuelRange(fleet.Ships, visibleFuelCells(snapshot))
+	if !ok {
+		return 0
+	}
 	var bestID uint
 	bestDist := math.MaxFloat64
 	for _, s := range snapshot.Galaxy.Stars {
-		if s == nil {
+		if s == nil || s.Name != "" {
 			continue
 		}
-		if s.Name != "" {
+		if !game.FuelDestinationReachable(float64(s.X), float64(s.Y), supplies, rangeParsecs, unlimited) {
 			continue
 		}
-		dx := float64(s.X) - fromX
-		dy := float64(s.Y) - fromY
+		dx := float64(s.X) - fleet.X
+		dy := float64(s.Y) - fleet.Y
 		d := dx*dx + dy*dy
 		if d < bestDist {
 			bestDist = d
@@ -342,4 +374,11 @@ func nearestUnexploredStar(snapshot *VisibleGame, fromX, fromY float64) uint {
 		}
 	}
 	return bestID
+}
+
+func visibleFuelCells(snapshot *VisibleGame) []model.FuelCell {
+	if snapshot == nil || snapshot.Resources == nil || snapshot.Resources.ShipParts == nil {
+		return nil
+	}
+	return snapshot.Resources.ShipParts.FuelCells
 }

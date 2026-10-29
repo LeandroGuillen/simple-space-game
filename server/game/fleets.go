@@ -225,6 +225,12 @@ func (g *Game) starHasPlayerColony(starID uint, playerID uint) bool {
 }
 
 func distanceParsecs(x1, y1, x2, y2 float64) float64 {
+	return DistanceParsecs(x1, y1, x2, y2)
+}
+
+// DistanceParsecs is the shared map-distance helper used by fuel-range checks
+// (submit validation and AI scouting). 1 parsec = parsecInPixels map units.
+func DistanceParsecs(x1, y1, x2, y2 float64) float64 {
 	dx := x2 - x1
 	dy := y2 - y1
 	return math.Sqrt(dx*dx+dy*dy) / float64(parsecInPixels)
@@ -309,16 +315,12 @@ func (g *Game) findShipDesignForFleetShip(player *Player, ship FleetShip) (ShipD
 }
 
 func (g *Game) fleetShipFuelRange(player *Player, ship FleetShip) (rangeParsecs int64, unlimited bool, ok bool) {
-	if ship.UnlimitedFuelRange {
-		return 0, true, true
+	var cells []FuelCell
+	if g != nil && g.Resources != nil && g.Resources.ShipPartsCollection != nil {
+		cells = g.Resources.FuelCells
 	}
-	if g != nil && g.Resources != nil && g.Resources.ShipPartsCollection != nil && ship.FuelCell != "" {
-		if cell, err := FuelCellFromName(ship.FuelCell, g.Resources.FuelCells); err == nil {
-			return cell.Autonomy, fuelCellUnlimited(cell), true
-		}
-	}
-	if ship.FuelRangeParsecs > 0 {
-		return ship.FuelRangeParsecs, ship.FuelRangeParsecs >= 100, true
+	if rangeParsecs, unlimited, ok = listedShipFuelRange(ship, cells); ok {
+		return rangeParsecs, unlimited, true
 	}
 	if ship.DesignName != "" {
 		if design, found := g.findShipDesignForFleetShip(player, ship); found {
@@ -446,12 +448,87 @@ func (g *Game) destinationInFuelRange(playerID uint, destStarID uint, rangeParse
 	if err != nil {
 		return false
 	}
-	for _, supplyStar := range g.playerOwnedSupplyStars(playerID) {
-		if distanceParsecs(float64(supplyStar.X), float64(supplyStar.Y), float64(destination.X), float64(destination.Y)) <= float64(rangeParsecs) {
+	return FuelDestinationReachable(
+		float64(destination.X), float64(destination.Y),
+		g.playerOwnedSupplyStarCoords(playerID),
+		rangeParsecs, unlimited,
+	)
+}
+
+// FuelDestinationReachable is the single source of truth for "is this star
+// inside fuel range of any owned supply colony?". Used by submit validation
+// and by the AI scout policy against a visible snapshot.
+func FuelDestinationReachable(destX, destY float64, supplyCoords [][2]float64, rangeParsecs int64, unlimited bool) bool {
+	if unlimited {
+		return true
+	}
+	for _, c := range supplyCoords {
+		if DistanceParsecs(c[0], c[1], destX, destY) <= float64(rangeParsecs) {
 			return true
 		}
 	}
 	return false
+}
+
+// ShipsListedFuelRange computes fleet range the same way fleetShipFuelRange
+// does when only listed ship fields (and an optional fuel-cell catalog) are
+// available. Prefer FuelCell autonomy from cells when the ship names a known
+// cell — matching submit-time validateFleetMoveFuelRange — then fall back to
+// FuelRangeParsecs / UnlimitedFuelRange stamps. Used by the AI scout policy.
+func ShipsListedFuelRange(ships []FleetShip, cells []FuelCell) (rangeParsecs int64, unlimited bool, ok bool) {
+	if len(ships) == 0 {
+		return 0, false, false
+	}
+	allUnlimited := true
+	limitedFound := false
+	var minRange int64
+	for _, ship := range ships {
+		shipRange, shipUnlimited, shipOK := listedShipFuelRange(ship, cells)
+		if !shipOK {
+			return 0, false, false
+		}
+		if shipUnlimited {
+			continue
+		}
+		allUnlimited = false
+		if !limitedFound || shipRange < minRange {
+			minRange = shipRange
+			limitedFound = true
+		}
+	}
+	if allUnlimited {
+		return 0, true, true
+	}
+	return minRange, false, true
+}
+
+// listedShipFuelRange mirrors the FuelCell-then-stamp branches of
+// fleetShipFuelRange so AI visible snapshots and submit validation agree.
+func listedShipFuelRange(ship FleetShip, cells []FuelCell) (rangeParsecs int64, unlimited bool, ok bool) {
+	if ship.UnlimitedFuelRange {
+		return 0, true, true
+	}
+	if ship.FuelCell != "" && len(cells) > 0 {
+		if cell, err := FuelCellFromName(ship.FuelCell, cells); err == nil {
+			return cell.Autonomy, fuelCellUnlimited(cell), true
+		}
+	}
+	if ship.FuelRangeParsecs > 0 {
+		return ship.FuelRangeParsecs, ship.FuelRangeParsecs >= 100, true
+	}
+	return 0, false, false
+}
+
+func (g *Game) playerOwnedSupplyStarCoords(playerID uint) [][2]float64 {
+	stars := g.playerOwnedSupplyStars(playerID)
+	out := make([][2]float64, 0, len(stars))
+	for _, star := range stars {
+		if star == nil {
+			continue
+		}
+		out = append(out, [2]float64{float64(star.X), float64(star.Y)})
+	}
+	return out
 }
 
 func (g *Game) validateFleetMoveFuelRange(player *Player, ships []FleetShip, destStarID uint) error {

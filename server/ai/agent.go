@@ -5,8 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"slices"
+	"strings"
 	"sync"
 	"time"
+
+	"ssg/model"
 )
 
 // AgentStatus is the lifecycle state of an agent as reported to the UI.
@@ -267,10 +270,26 @@ func (a *Agent) consume(ctx context.Context, updates <-chan *VisibleGame) {
 	}
 }
 
+const maxSubmitRetries = 5
+
+// TurnSubmitter is the submit surface used by maybeAct so tests can stub
+// rejection/retry without a live server.
+type TurnSubmitter interface {
+	SubmitTurn(ctx context.Context, commands model.Commands) (*TurnResponse, error)
+}
+
 // maybeAct decides and submits if the player is in the waiting set. The check
 // is idempotent: once we've submitted for this turn the server moves us to
 // ready_player_ids and we'll early-return on subsequent updates.
+//
+// If the server rejects the submission (e.g. a fleet move outside fuel range
+// when submit-time validation is on), the agent logs the reason and retries
+// without the offending fleet moves, bounded by maxSubmitRetries.
 func (a *Agent) maybeAct(ctx context.Context, vg *VisibleGame) {
+	a.maybeActWithSubmitter(ctx, vg, a.Client)
+}
+
+func (a *Agent) maybeActWithSubmitter(ctx context.Context, vg *VisibleGame, submitter TurnSubmitter) {
 	if !slices.Contains(vg.TurnStatus.WaitingPlayerIDs, a.Client.PlayerID) {
 		return
 	}
@@ -288,18 +307,43 @@ func (a *Agent) maybeAct(ctx context.Context, vg *VisibleGame) {
 	for _, note := range decision.Notes {
 		a.Log.Append(LogEntry{Kind: EntryDecision, Turn: vg.CurrentTurn, Message: note})
 	}
-	reqJSON, _ := json.Marshal(decision.Commands)
-	resp, err := a.Client.SubmitTurn(ctx, decision.Commands)
-	entry := LogEntry{Kind: EntryCommand, Turn: vg.CurrentTurn, Request: reqJSON}
-	if err != nil {
+	a.submitDecisionWithRetries(ctx, vg, submitter, decision)
+}
+
+func (a *Agent) submitDecisionWithRetries(ctx context.Context, vg *VisibleGame, submitter TurnSubmitter, decision Decision) {
+	commands := decision.Commands
+	for attempt := 0; attempt < maxSubmitRetries; attempt++ {
+		reqJSON, _ := json.Marshal(commands)
+		resp, err := submitter.SubmitTurn(ctx, commands)
+		entry := LogEntry{Kind: EntryCommand, Turn: vg.CurrentTurn, Request: reqJSON}
+		if err == nil {
+			entry.Response = resp.Raw
+			entry.Advanced = resp.Advanced
+			a.Log.Append(entry)
+			return
+		}
 		entry.Error = err.Error()
 		a.Log.Append(entry)
-		a.setError(err)
-		return
+		a.Log.Append(LogEntry{
+			Kind:    EntryError,
+			Turn:    vg.CurrentTurn,
+			Message: fmt.Sprintf("submit rejected (attempt %d/%d): %s", attempt+1, maxSubmitRetries, err.Error()),
+			Error:   err.Error(),
+		})
+
+		next, stripped := stripRejectedFleetMoves(commands, err)
+		if !stripped {
+			a.setError(err)
+			return
+		}
+		a.Log.Append(LogEntry{
+			Kind:    EntryInfo,
+			Turn:    vg.CurrentTurn,
+			Message: "retrying turn without rejected fleet move(s)",
+		})
+		commands = next
 	}
-	entry.Response = resp.Raw
-	entry.Advanced = resp.Advanced
-	a.Log.Append(entry)
+	a.setError(fmt.Errorf("submit failed after %d retries", maxSubmitRetries))
 }
 
 func sleepCtx(ctx context.Context, d time.Duration) bool {
@@ -311,4 +355,22 @@ func sleepCtx(ctx context.Context, d time.Duration) bool {
 	case <-t.C:
 		return true
 	}
+}
+
+// stripRejectedFleetMoves drops fleet-move commands when the server rejected
+// the turn for fuel range (or a similar fleet-move validation error). Returns
+// the adjusted commands and whether anything was stripped. If there are no
+// fleet moves left to drop, stripped is false so the caller stops retrying.
+func stripRejectedFleetMoves(commands model.Commands, err error) (model.Commands, bool) {
+	if err == nil || len(commands.FleetMove) == 0 {
+		return commands, false
+	}
+	msg := strings.ToLower(err.Error())
+	if !strings.Contains(msg, "fuel range") && !strings.Contains(msg, "fleet move") {
+		return commands, false
+	}
+	// Server errors currently omit the fleet id; drop all scout moves for this
+	// retry so a single bad destination cannot wedge the agent forever.
+	commands.FleetMove = nil
+	return commands, true
 }

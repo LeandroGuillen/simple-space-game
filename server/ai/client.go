@@ -40,7 +40,14 @@ type VisibleGame struct {
 }
 
 type VisibleResources struct {
-	TechTree *model.TechTree `json:"tech_tree,omitempty"`
+	TechTree  *model.TechTree   `json:"tech_tree,omitempty"`
+	ShipParts *VisibleShipParts `json:"ship_parts,omitempty"`
+}
+
+// VisibleShipParts carries the fuel-cell catalog the AI needs to match
+// submit-time fuel-range validation (FuelCell autonomy over stamps).
+type VisibleShipParts struct {
+	FuelCells []model.FuelCell `json:"fuel_cells,omitempty"`
 }
 
 type Galaxy struct {

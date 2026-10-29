@@ -110,16 +110,67 @@ func TestSimplePolicyColonizesPendingBase(t *testing.T) {
 func TestSimplePolicyMovesIdleFleetToNearestUnexplored(t *testing.T) {
 	me := &model.Player{ID: 1}
 	// star 1 explored (has Name), star 2 unexplored (no Name), at different distances.
+	// Owned colony at Sol provides the fuel-range supply origin.
+	home := &model.Planet{ID: 1, Owner: 1}
 	stars := []*model.Star{
-		{ID: 1, Name: "Sol", X: 0, Y: 0},
+		{ID: 1, Name: "Sol", X: 0, Y: 0, Planets: []*model.Planet{home}},
 		{ID: 2, X: 5, Y: 0},
 		{ID: 3, X: 50, Y: 0},
 	}
-	fleet := &model.Fleet{ID: 7, Owner: 1, StarID: 1, X: 0, Y: 0}
+	fleet := &model.Fleet{
+		ID: 7, Owner: 1, StarID: 1, X: 0, Y: 0,
+		Ships: []model.FleetShip{{Type: "ship_design", Name: "Scout", FuelRangeParsecs: 4}},
+	}
 	vg := snapshotWith([]*model.Player{me}, stars, []*model.Fleet{fleet}, TurnStatus{WaitingPlayerIDs: []uint{1}})
 	d := SimplePolicy{}.Decide(vg, 1)
 	if len(d.Commands.FleetMove) != 1 || d.Commands.FleetMove[0].DestinationStarID != 2 {
 		t.Fatalf("expected fleet move to star 2, got %+v", d.Commands.FleetMove)
+	}
+}
+
+func TestSimplePolicySkipsUnexploredOutsideFuelRange(t *testing.T) {
+	// Nearest unexplored star (by fleet position) is outside fuel range from
+	// the owned supply colony; a farther unexplored star is reachable.
+	// On da20acf the AI picks the nearest (out of range) star 2.
+	me := &model.Player{ID: 1}
+	home := &model.Planet{ID: 1, Owner: 1}
+	stars := []*model.Star{
+		{ID: 1, Name: "Sol", X: 0, Y: 0, Planets: []*model.Planet{home}},
+		// 520px ≈ 8.7pc from Sol — outside range 4; nearest to the fleet.
+		{ID: 2, X: 520, Y: 0},
+		// 120px = 2pc from Sol — inside range 4; farther from the fleet.
+		{ID: 3, X: 120, Y: 0},
+	}
+	fleet := &model.Fleet{
+		ID: 7, Owner: 1, StarID: 1, X: 500, Y: 0,
+		Ships: []model.FleetShip{{Type: "ship_design", Name: "Scout", FuelRangeParsecs: 4}},
+	}
+	vg := snapshotWith([]*model.Player{me}, stars, []*model.Fleet{fleet}, TurnStatus{WaitingPlayerIDs: []uint{1}})
+	d := SimplePolicy{}.Decide(vg, 1)
+	if len(d.Commands.FleetMove) != 1 {
+		t.Fatalf("expected one fleet move, got %+v", d.Commands.FleetMove)
+	}
+	if d.Commands.FleetMove[0].DestinationStarID != 3 {
+		t.Fatalf("expected reachable star 3, got destination %d (notes=%v)",
+			d.Commands.FleetMove[0].DestinationStarID, d.Notes)
+	}
+}
+
+func TestSimplePolicyStaysIdleWhenNoReachableUnexplored(t *testing.T) {
+	me := &model.Player{ID: 1}
+	home := &model.Planet{ID: 1, Owner: 1}
+	stars := []*model.Star{
+		{ID: 1, Name: "Sol", X: 0, Y: 0, Planets: []*model.Planet{home}},
+		{ID: 2, X: 600, Y: 0}, // 10pc — outside range 4
+	}
+	fleet := &model.Fleet{
+		ID: 7, Owner: 1, StarID: 1, X: 0, Y: 0,
+		Ships: []model.FleetShip{{Type: "ship_design", Name: "Scout", FuelRangeParsecs: 4}},
+	}
+	vg := snapshotWith([]*model.Player{me}, stars, []*model.Fleet{fleet}, TurnStatus{WaitingPlayerIDs: []uint{1}})
+	d := SimplePolicy{}.Decide(vg, 1)
+	if len(d.Commands.FleetMove) != 0 {
+		t.Fatalf("expected no fleet moves when none reachable, got %+v", d.Commands.FleetMove)
 	}
 }
 
@@ -262,5 +313,32 @@ func TestSimplePolicyIssuesInvadeForTransportsAtEnemyPlanet(t *testing.T) {
 	}
 	if len(d.Commands.FleetMove) != 0 {
 		t.Fatalf("invading fleet should not also scout-move, got %+v", d.Commands.FleetMove)
+	}
+}
+
+func TestSimplePolicyUsesFuelCellCatalogOverStamp(t *testing.T) {
+	// Stamp says range 9 but FuelCell Standard (autonomy 2) must win — same as
+	// validateFleetMoveFuelRange / fleetShipFuelRange.
+	me := &model.Player{ID: 1}
+	home := &model.Planet{ID: 1, Owner: 1}
+	stars := []*model.Star{
+		{ID: 1, Name: "Sol", X: 0, Y: 0, Planets: []*model.Planet{home}},
+		{ID: 2, X: 300, Y: 0}, // 5pc — inside stamp 9, outside Standard 2
+		{ID: 3, X: 60, Y: 0},  // 1pc — inside Standard 2
+	}
+	fleet := &model.Fleet{
+		ID: 7, Owner: 1, StarID: 1, X: 0, Y: 0,
+		Ships: []model.FleetShip{{
+			Type: "ship_design", Name: "Scout",
+			FuelCell: "Standard", FuelRangeParsecs: 9,
+		}},
+	}
+	vg := snapshotWith([]*model.Player{me}, stars, []*model.Fleet{fleet}, TurnStatus{WaitingPlayerIDs: []uint{1}})
+	vg.Resources = &VisibleResources{ShipParts: &VisibleShipParts{
+		FuelCells: []model.FuelCell{{Name: "Standard", Autonomy: 2}},
+	}}
+	d := SimplePolicy{}.Decide(vg, 1)
+	if len(d.Commands.FleetMove) != 1 || d.Commands.FleetMove[0].DestinationStarID != 3 {
+		t.Fatalf("expected star 3 (Standard range), got %+v notes=%v", d.Commands.FleetMove, d.Notes)
 	}
 }
