@@ -222,6 +222,113 @@ func TestLoadUploadedSaveAddsGame(t *testing.T) {
 	require.Nil(t, server.getGame(gameState.ID))
 }
 
+func TestLoadUploadedSaveRejectsUnknownCurrentResearchLevel(t *testing.T) {
+	// On 2108d9b this fails by assertion: upload returns 200 despite Bogus Level.
+	gin.SetMode(gin.TestMode)
+	resources, err := game.NewResourceManager()
+	require.NoError(t, err)
+
+	gameState, err := game.NewGame(resources, game.NewGameOptions{
+		PlayerName:  "Uploader",
+		NumStars:    6,
+		PlayerColor: model.DefaultPlayerColor(),
+		Race:        game.DefaultRace("Human"),
+	})
+	require.NoError(t, err)
+	gameState.Players[0].CurrentResearch = &model.ResearchProject{
+		Subject:   "Bogus",
+		TechName:  "Bogus Tech",
+		TechNames: []string{"Bogus Tech"},
+		LevelName: "Bogus Level",
+	}
+
+	snapshot := *gameState
+	snapshot.Resources = nil
+	payload, err := json.Marshal(&snapshot)
+	require.NoError(t, err)
+
+	server := &Server{gameList: make(map[string]*game.Game), ResourceManager: resources}
+	recorder := postUpload(t, server, bytes.NewReader(payload), "application/json")
+	require.Equal(t, http.StatusBadRequest, recorder.Code, recorder.Body.String())
+	require.Contains(t, recorder.Body.String(), "Bogus Level")
+	require.Empty(t, server.gameList)
+}
+
+func TestLoadUploadedSaveRejectsUnknownHyperAdvancedSubject(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	resources, err := game.NewResourceManager()
+	require.NoError(t, err)
+
+	gameState, err := game.NewGame(resources, game.NewGameOptions{
+		PlayerName:  "Uploader",
+		NumStars:    6,
+		PlayerColor: model.DefaultPlayerColor(),
+		Race:        game.DefaultRace("Human"),
+	})
+	require.NoError(t, err)
+	gameState.Players[0].CurrentResearch = &model.ResearchProject{
+		Subject:   "NoSuchSubject",
+		TechName:  "Hyper Advanced NoSuchSubject",
+		LevelName: "Hyper Advanced 1",
+	}
+
+	snapshot := *gameState
+	snapshot.Resources = nil
+	payload, err := json.Marshal(&snapshot)
+	require.NoError(t, err)
+
+	server := &Server{gameList: make(map[string]*game.Game), ResourceManager: resources}
+	recorder := postUpload(t, server, bytes.NewReader(payload), "application/json")
+	require.Equal(t, http.StatusBadRequest, recorder.Code, recorder.Body.String())
+	require.Contains(t, recorder.Body.String(), "hyper advanced subject")
+	require.Empty(t, server.gameList)
+}
+
+func TestLoadUploadedSaveWithValidResearchAdvancesTurn(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	resources, err := game.NewResourceManager()
+	require.NoError(t, err)
+
+	gameState, err := game.NewGame(resources, game.NewGameOptions{
+		PlayerName:  "Uploader",
+		NumStars:    6,
+		PlayerColor: model.DefaultPlayerColor(),
+		Race:        game.DefaultRace("Human"),
+		NumPlayers:  1,
+	})
+	require.NoError(t, err)
+	gameState.Players[0].CurrentResearch = &model.ResearchProject{
+		Subject:   "Electronic Computer",
+		TechName:  "Electronic Computer",
+		TechNames: []string{"Electronic Computer"},
+		LevelName: "Electronics",
+		Progress:  3,
+	}
+	turnBefore := gameState.CurrentTurn
+
+	snapshot := *gameState
+	snapshot.Resources = nil
+	payload, err := json.Marshal(&snapshot)
+	require.NoError(t, err)
+
+	server := &Server{gameList: make(map[string]*game.Game), ResourceManager: resources}
+	recorder := postUpload(t, server, bytes.NewReader(payload), "application/json")
+	require.Equal(t, http.StatusOK, recorder.Code, recorder.Body.String())
+	var response struct {
+		GameID string `json:"gameID"`
+	}
+	require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &response))
+	loaded := server.getGame(response.GameID)
+	require.NotNil(t, loaded)
+	require.NotNil(t, loaded.Players[0].CurrentResearch)
+	require.Equal(t, "Electronics", loaded.Players[0].CurrentResearch.LevelName)
+
+	_, advanced, err := loaded.SubmitTurn(loaded.Players[0].ID, model.Commands{})
+	require.NoError(t, err)
+	require.True(t, advanced)
+	require.Greater(t, loaded.CurrentTurn, turnBefore)
+}
+
 func TestLoadUploadedSaveClearsPendingInvasions(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	resources, err := game.NewResourceManager()

@@ -219,6 +219,92 @@ func TestValidateLoadedGameRejectsInvalidCases(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "current turn")
 	})
+
+	t.Run("unknown current research level", func(t *testing.T) {
+		g := base(t)
+		g.Players[0].CurrentResearch = &model.ResearchProject{
+			Subject:   "Bogus",
+			TechName:  "Bogus Tech",
+			TechNames: []string{"Bogus Tech"},
+			LevelName: "Bogus Level",
+		}
+		err := ValidateLoadedGame(g, resources)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "Bogus Level")
+	})
+
+	t.Run("unknown hyper advanced subject", func(t *testing.T) {
+		g := base(t)
+		g.Players[0].CurrentResearch = &model.ResearchProject{
+			Subject:   "NoSuchSubject",
+			TechName:  "Hyper Advanced NoSuchSubject",
+			LevelName: "Hyper Advanced 1",
+		}
+		err := ValidateLoadedGame(g, resources)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "hyper advanced subject")
+	})
+
+	t.Run("unknown tech in current research", func(t *testing.T) {
+		g := base(t)
+		g.Players[0].CurrentResearch = &model.ResearchProject{
+			Subject:   "Not A Real Tech",
+			TechName:  "Not A Real Tech",
+			TechNames: []string{"Not A Real Tech"},
+			LevelName: "Electronics",
+		}
+		err := ValidateLoadedGame(g, resources)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "not selectable")
+	})
+
+	t.Run("tech_names not in research level", func(t *testing.T) {
+		g := base(t)
+		g.Players[0].CurrentResearch = &model.ResearchProject{
+			Subject:   "Electronics",
+			TechNames: []string{"Automated Factory"},
+			LevelName: "Electronics",
+		}
+		err := ValidateLoadedGame(g, resources)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "not selectable")
+	})
+
+	t.Run("current research level before incomplete earlier level", func(t *testing.T) {
+		g := base(t)
+		subject := g.Resources.TechTree.Subjects[0]
+		require.GreaterOrEqual(t, len(subject.Levels), 2)
+		second := subject.Levels[1]
+		tech := second.AvailableTechs[0]
+		g.Players[0].CurrentResearch = &model.ResearchProject{
+			Subject:   tech,
+			TechName:  tech,
+			TechNames: []string{tech},
+			LevelName: second.Name,
+		}
+		err := ValidateLoadedGame(g, resources)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "requires")
+		require.Contains(t, err.Error(), subject.Levels[0].Name)
+	})
+
+	t.Run("valid in-progress research accepted", func(t *testing.T) {
+		g := base(t)
+		g.Players[0].CurrentResearch = &model.ResearchProject{
+			Subject:   "Electronic Computer",
+			TechName:  "Electronic Computer",
+			TechNames: []string{"Electronic Computer"},
+			LevelName: "Electronics",
+			Progress:  3,
+		}
+		require.NoError(t, ValidateLoadedGame(g, resources))
+	})
+
+	t.Run("nil current research accepted", func(t *testing.T) {
+		g := base(t)
+		g.Players[0].CurrentResearch = nil
+		require.NoError(t, ValidateLoadedGame(g, resources))
+	})
 }
 
 func firstOwnedPlanet(t *testing.T, g *Game) *model.Planet {

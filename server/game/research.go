@@ -160,17 +160,58 @@ func (g *Game) validateResearchTechForGovernment(player *Player, tech Tech) erro
 	return nil
 }
 
+// validateCurrentResearchProject checks that player.CurrentResearch is a
+// project applyResearch can make progress on: known hyper-advanced subject,
+// or known level with prior levels complete and selected techs in that level.
+// Shared by applyResearch and ValidateLoadedGame so the rules cannot drift.
+func (g *Game) validateCurrentResearchProject(player *Player) error {
+	if player == nil || player.CurrentResearch == nil {
+		return nil
+	}
+	proj := player.CurrentResearch
+
+	if subjectName, ok := parseHyperAdvancedResearch(proj.TechName); ok {
+		if _, ok := g.hyperAdvancedResearchCost(player, subjectName); !ok {
+			return fmt.Errorf("hyper advanced subject %q does not exist", subjectName)
+		}
+		return nil
+	}
+
+	level, ok := g.findResearchLevel(proj.LevelName)
+	if !ok {
+		return fmt.Errorf("research level %q does not exist", proj.LevelName)
+	}
+
+	subject, levelIdx, ok := g.findSubjectAndLevelIndex(proj.LevelName)
+	if !ok {
+		return fmt.Errorf("research level %q does not belong to any subject", proj.LevelName)
+	}
+	if !arePreviousLevelsComplete(player, subject, levelIdx) {
+		if levelIdx > 0 {
+			return fmt.Errorf("research level %q requires %q to be completed first", level.Name, subject.Levels[levelIdx-1].Name)
+		}
+	}
+
+	for _, techName := range selectedResearchTechs(proj) {
+		if !slices.Contains(level.AvailableTechs, techName) {
+			return fmt.Errorf("tech %q is not selectable in research level %q", techName, level.Name)
+		}
+	}
+	return nil
+}
+
 func (g *Game) applyResearch(player *Player, generatedResearch uint64) error {
 	player.ResearchPoints += generatedResearch
 	if player.CurrentResearch == nil {
 		return nil
 	}
 
+	if err := g.validateCurrentResearchProject(player); err != nil {
+		return err
+	}
+
 	if subjectName, ok := parseHyperAdvancedResearch(player.CurrentResearch.TechName); ok {
-		cost, ok := g.hyperAdvancedResearchCost(player, subjectName)
-		if !ok {
-			return fmt.Errorf("hyper advanced subject %q does not exist", subjectName)
-		}
+		cost, _ := g.hyperAdvancedResearchCost(player, subjectName)
 		player.CurrentResearch.Progress = player.ResearchPoints
 		if generatedResearch == 0 {
 			return nil
@@ -187,20 +228,7 @@ func (g *Game) applyResearch(player *Player, generatedResearch uint64) error {
 		return nil
 	}
 
-	level, ok := g.findResearchLevel(player.CurrentResearch.LevelName)
-	if !ok {
-		return fmt.Errorf("research level %q does not exist", player.CurrentResearch.LevelName)
-	}
-
-	subject, levelIdx, ok := g.findSubjectAndLevelIndex(player.CurrentResearch.LevelName)
-	if !ok {
-		return fmt.Errorf("research level %q does not belong to any subject", player.CurrentResearch.LevelName)
-	}
-	if !arePreviousLevelsComplete(player, subject, levelIdx) {
-		if levelIdx > 0 {
-			return fmt.Errorf("research level %q requires %q to be completed first", level.Name, subject.Levels[levelIdx-1].Name)
-		}
-	}
+	level, _ := g.findResearchLevel(player.CurrentResearch.LevelName)
 
 	player.CurrentResearch.Progress = player.ResearchPoints
 	if generatedResearch == 0 {

@@ -47,6 +47,9 @@ func ValidateLoadedGame(g *Game, resources *ResourceManager) error {
 		if err := validatePlayerTechs(p, resources); err != nil {
 			return err
 		}
+		if err := validatePlayerCurrentResearch(p, resources); err != nil {
+			return err
+		}
 	}
 
 	starIDs := make(map[uint]struct{}, len(g.Galaxy.Stars))
@@ -253,6 +256,19 @@ func validatePlayerTechs(p *Player, resources *ResourceManager) error {
 		if _, ok := known[name]; !ok {
 			return fmt.Errorf("player %d has unknown tech %q", p.ID, name)
 		}
+	}
+	return nil
+}
+
+func validatePlayerCurrentResearch(p *Player, resources *ResourceManager) error {
+	if p == nil || p.CurrentResearch == nil || resources == nil {
+		return nil
+	}
+	// Lookups live on *Game and read Resources; reuse them so load-time checks
+	// match applyResearch / validateSelectResearchOrder.
+	g := &Game{Resources: &resources.Resources}
+	if err := g.validateCurrentResearchProject(p); err != nil {
+		return fmt.Errorf("player %d: %w", p.ID, err)
 	}
 	return nil
 }
