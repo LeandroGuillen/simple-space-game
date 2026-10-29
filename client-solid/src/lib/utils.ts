@@ -1163,3 +1163,32 @@ export function hasEvolutionaryMutation(player: PlayerViewModel | null | undefin
   if (!player) return false;
   return (player.evolutionaryMutationPoints ?? 0) > 0 && !player.hasUsedEvolutionaryMutation;
 }
+
+/** Population units (floor(pop/1000)) of free housing after current pop and committed inbound. */
+export function destinationTransferRoomLeft(args: {
+  destinationPopulation: number;
+  destinationMaxPopulation: number;
+  inFlightInboundUnits?: number;
+  pendingInboundUnits?: number;
+}): number {
+  const capacityUnits = Math.floor(args.destinationMaxPopulation / 1000);
+  const currentUnits = Math.floor(args.destinationPopulation / 1000);
+  const committed =
+    Math.max(0, args.inFlightInboundUnits ?? 0) + Math.max(0, args.pendingInboundUnits ?? 0);
+  return Math.max(0, capacityUnits - currentUnits - committed);
+}
+
+/** Sum own in-flight transfer units headed to destinationPlanetId. */
+export function inboundInFlightTransferUnits(
+  transfers: { owner: number; destinationPlanetId: number; populationUnits: number }[] | undefined,
+  playerId: number,
+  destinationPlanetId: number,
+): number {
+  if (!transfers?.length) return 0;
+  return transfers
+    .filter(
+      (transfer) =>
+        transfer.owner === playerId && transfer.destinationPlanetId === destinationPlanetId,
+    )
+    .reduce((total, transfer) => total + transfer.populationUnits, 0);
+}

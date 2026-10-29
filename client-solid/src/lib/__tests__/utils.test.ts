@@ -15,6 +15,8 @@ import {
   getPlanetGrossIndustryForWorkers,
   getPlanetProjectedIncome,
   getPlanetProjectedPopulationGrowth,
+  destinationTransferRoomLeft,
+  inboundInFlightTransferUnits,
   isArtificialPlanetTarget,
   fleetSelectionFuelRange,
 } from "../utils";
@@ -589,5 +591,58 @@ describe("getEmpireFoodBalance", () => {
         ],
       }),
     ).toBe(7);
+  });
+});
+
+describe("destinationTransferRoomLeft", () => {
+  it("subtracts current pop, in-flight inbound, and queued pending units", () => {
+    // 12k capacity / 1042 pop → 11 free; 6 in flight + 3 queued → 2 left.
+    expect(
+      destinationTransferRoomLeft({
+        destinationPopulation: 1042,
+        destinationMaxPopulation: 12000,
+        inFlightInboundUnits: 6,
+        pendingInboundUnits: 3,
+      }),
+    ).toBe(2);
+  });
+
+  it("never returns negative room", () => {
+    expect(
+      destinationTransferRoomLeft({
+        destinationPopulation: 1042,
+        destinationMaxPopulation: 12000,
+        inFlightInboundUnits: 11,
+        pendingInboundUnits: 6,
+      }),
+    ).toBe(0);
+  });
+
+  it("treats an exact fill as zero room left", () => {
+    expect(
+      destinationTransferRoomLeft({
+        destinationPopulation: 1042,
+        destinationMaxPopulation: 12000,
+        inFlightInboundUnits: 11,
+        pendingInboundUnits: 0,
+      }),
+    ).toBe(0);
+  });
+});
+
+describe("inboundInFlightTransferUnits", () => {
+  it("counts only the player's own transfers to the destination", () => {
+    expect(
+      inboundInFlightTransferUnits(
+        [
+          { owner: 1, destinationPlanetId: 2, populationUnits: 6 },
+          { owner: 2, destinationPlanetId: 2, populationUnits: 11 },
+          { owner: 1, destinationPlanetId: 3, populationUnits: 4 },
+          { owner: 1, destinationPlanetId: 2, populationUnits: 2 },
+        ],
+        1,
+        2,
+      ),
+    ).toBe(8);
   });
 });

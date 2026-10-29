@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"sort"
 
@@ -121,7 +122,8 @@ func (g *Game) issuePopulationTransferCommand(playerID uint, command *TransferPo
 	hydratePlanetPopulationCapacity(g, destination, player)
 	destinationUnits := uint(destination.Population / 1000)
 	destinationCapacity := uint(destination.MaxPopulation / 1000)
-	if destinationUnits+command.PopulationUnits > destinationCapacity {
+	pendingInbound := g.pendingInboundPopulationUnits(playerID, destination.ID)
+	if destinationUnits+pendingInbound+command.PopulationUnits > destinationCapacity {
 		return fmt.Errorf("population transfer exceeds destination capacity")
 	}
 
@@ -238,10 +240,50 @@ func (g *Game) completePopulationTransfer(transfer PopulationTransfer) {
 	hydratePlanetPopulationCapacity(g, destination, player)
 	beforeUnits := destination.Population / 1000
 	arrivingPopulation := int64(transfer.PopulationUnits) * 1000
-	destination.Population = min(destination.Population+arrivingPopulation, destination.MaxPopulation)
+	room := destination.MaxPopulation - destination.Population
+	if room < 0 {
+		room = 0
+	}
+	landed := arrivingPopulation
+	if landed > room {
+		landed = room
+	}
+	overflow := arrivingPopulation - landed
+	destination.Population += landed
 	afterUnits := destination.Population / 1000
 	if afterUnits > beforeUnits {
 		assignNewPopulation(g, player, destination, afterUnits-beforeUnits)
 	}
 	capAssignedPopulation(destination)
+
+	if overflow <= 0 {
+		return
+	}
+	source, err := g.getPlanet(transfer.SourcePlanetID)
+	if err != nil || source.Owner != transfer.Owner {
+		log.Printf(
+			"population transfer %d: %d population lost (no owned source planet %d to refund)",
+			transfer.ID, overflow, transfer.SourcePlanetID,
+		)
+		return
+	}
+	beforeSourceUnits := source.Population / 1000
+	source.Population += overflow
+	afterSourceUnits := source.Population / 1000
+	if afterSourceUnits > beforeSourceUnits {
+		assignNewPopulation(g, player, source, afterSourceUnits-beforeSourceUnits)
+	}
+	capAssignedPopulation(source)
+}
+
+// pendingInboundPopulationUnits sums PopulationUnits already in flight to destination
+// for the given owner. Earlier same-submit orders are included once issued/appended.
+func (g *Game) pendingInboundPopulationUnits(ownerID, destinationPlanetID uint) uint {
+	var sum uint
+	for _, transfer := range g.PopulationTransfers {
+		if transfer.Owner == ownerID && transfer.DestinationPlanetID == destinationPlanetID {
+			sum += transfer.PopulationUnits
+		}
+	}
+	return sum
 }

@@ -777,9 +777,24 @@ func (g *Game) validateInvadeCommands(playerID uint, commands []*InvadeCommand, 
 }
 
 func (g *Game) validatePopulationTransferCommands(playerID uint, commands []*TransferPopulationCommand) error {
+	player, err := g.getPlayer(playerID)
+	if err != nil {
+		return err
+	}
+	// Simulated commitments from earlier commands in this same submit (no mutation).
+	inboundExtra := map[uint]uint{}
+	outboundExtra := map[uint]uint{}
+	freightersReserved := uint(0)
+
 	for _, command := range commands {
 		if command == nil {
 			continue
+		}
+		if command.PopulationUnits == 0 {
+			return fmt.Errorf("population transfer must move at least 1 population unit")
+		}
+		if command.SourcePlanetID == command.DestinationPlanetID {
+			return fmt.Errorf("population transfer source and destination must differ")
 		}
 		source, err := g.getPlanet(command.SourcePlanetID)
 		if err != nil {
@@ -795,6 +810,29 @@ func (g *Game) validatePopulationTransferCommands(playerID uint, commands []*Tra
 		if dest.Owner != playerID {
 			return fmt.Errorf("destination planet %d does not belong to player %d", command.DestinationPlanetID, playerID)
 		}
+
+		sourceUnits := uint(source.Population/1000) - outboundExtra[source.ID]
+		if sourceUnits <= command.PopulationUnits {
+			return fmt.Errorf("population transfer source must retain at least 1 population unit")
+		}
+
+		hydratePlanetPopulationCapacity(g, dest, player)
+		destinationUnits := uint(dest.Population / 1000)
+		destinationCapacity := uint(dest.MaxPopulation / 1000)
+		pendingInbound := g.pendingInboundPopulationUnits(playerID, dest.ID) + inboundExtra[dest.ID]
+		if destinationUnits+pendingInbound+command.PopulationUnits > destinationCapacity {
+			return fmt.Errorf("population transfer exceeds destination capacity")
+		}
+
+		requiredFreighters := command.PopulationUnits * 5
+		available := g.availableFreighters(playerID)
+		if available < freightersReserved+requiredFreighters {
+			return fmt.Errorf("population transfer needs %d freighters", requiredFreighters)
+		}
+
+		inboundExtra[dest.ID] += command.PopulationUnits
+		outboundExtra[source.ID] += command.PopulationUnits
+		freightersReserved += requiredFreighters
 	}
 	return nil
 }

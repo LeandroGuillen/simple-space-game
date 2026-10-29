@@ -160,9 +160,11 @@ func TestPopulationTransferRejectsInvalidCommands(t *testing.T) {
 func TestPopulationTransferArrivalCapsOverflow(t *testing.T) {
 	g := newPopulationTransferHarness()
 	player := g.Players[0]
+	source := g.Galaxy.Stars[0].Planets[0]
 	destination := g.Galaxy.Stars[0].Planets[1]
 	destination.Size = model.PlanetSizeTiny
 	destination.Population = 3500
+	sourceBefore := source.Population
 	g.PopulationTransfers = []model.PopulationTransfer{{
 		ID:                  1,
 		Owner:               player.ID,
@@ -174,9 +176,199 @@ func TestPopulationTransferArrivalCapsOverflow(t *testing.T) {
 	}}
 	player.FreightersUsed = 5
 
-	require.NoError(t, g.Turn(player.ID, model.Commands{}))
+	// Advance transfers directly so colony growth does not obscure conservation.
+	g.advancePopulationTransfers(map[uint]bool{1: true})
 
 	assert.Equal(t, int64(4000), destination.Population)
+	assert.Equal(t, sourceBefore+500, source.Population, "overflow should refund to source")
+	assert.Equal(t, uint(0), player.FreightersUsed)
+}
+
+func TestPopulationTransferSubmitRejectsSameTurnOverfill(t *testing.T) {
+	g := newPopulationTransferOverfillHarness()
+	player := g.Players[0]
+	source := g.Galaxy.Stars[0].Planets[0]
+	destination := g.Galaxy.Stars[0].Planets[1]
+	sourcePop := source.Population
+	destPop := destination.Population
+	freightersUsed := player.FreightersUsed
+
+	orders := make([]*model.TransferPopulationCommand, 3)
+	for i := range orders {
+		orders[i] = &model.TransferPopulationCommand{
+			SourcePlanetID:      source.ID,
+			DestinationPlanetID: destination.ID,
+			PopulationUnits:     6,
+		}
+	}
+
+	err := g.Turn(player.ID, model.Commands{TransferPopulation: orders})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "destination capacity")
+	assert.Empty(t, g.PopulationTransfers)
+	assert.Equal(t, sourcePop, source.Population)
+	assert.Equal(t, destPop, destination.Population)
+	assert.Equal(t, freightersUsed, player.FreightersUsed)
+}
+
+func TestPopulationTransferSubmitAcceptsExactCapacityFill(t *testing.T) {
+	g := newPopulationTransferOverfillHarness()
+	player := g.Players[0]
+	source := g.Galaxy.Stars[0].Planets[0]
+	destination := g.Galaxy.Stars[0].Planets[1]
+	// Medium Terran capacity = 12 units; dest at 1042 → 1 unit occupied → 11 free.
+	require.NoError(t, g.Turn(player.ID, model.Commands{
+		TransferPopulation: []*model.TransferPopulationCommand{{
+			SourcePlanetID:      source.ID,
+			DestinationPlanetID: destination.ID,
+			PopulationUnits:     11,
+		}},
+	}))
+	require.Len(t, g.PopulationTransfers, 1)
+	assert.Equal(t, uint(11), g.PopulationTransfers[0].PopulationUnits)
+	hydratePlanetPopulationCapacity(g, destination, player)
+	pendingInbound := uint(0)
+	for _, transfer := range g.PopulationTransfers {
+		if transfer.Owner == player.ID && transfer.DestinationPlanetID == destination.ID {
+			pendingInbound += transfer.PopulationUnits
+		}
+	}
+	occupied := uint(destination.Population/1000) + pendingInbound
+	assert.Equal(t, uint(destination.MaxPopulation/1000), occupied, "exact fill should commit all remaining room")
+}
+
+func TestPopulationTransferRejectsOverfillAgainstInFlight(t *testing.T) {
+	g := newPopulationTransferOverfillHarness()
+	player := g.Players[0]
+	source := g.Galaxy.Stars[0].Planets[0]
+	destination := g.Galaxy.Stars[0].Planets[1]
+
+	require.NoError(t, g.Turn(player.ID, model.Commands{
+		TransferPopulation: []*model.TransferPopulationCommand{{
+			SourcePlanetID:      source.ID,
+			DestinationPlanetID: destination.ID,
+			PopulationUnits:     6,
+		}},
+	}))
+	require.Len(t, g.PopulationTransfers, 1)
+
+	sourcePop := source.Population
+	destPop := destination.Population
+	pending := append([]model.PopulationTransfer(nil), g.PopulationTransfers...)
+
+	err := g.Turn(player.ID, model.Commands{
+		TransferPopulation: []*model.TransferPopulationCommand{{
+			SourcePlanetID:      source.ID,
+			DestinationPlanetID: destination.ID,
+			PopulationUnits:     6,
+		}},
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "destination capacity")
+	assert.Equal(t, sourcePop, source.Population)
+	assert.Equal(t, destPop, destination.Population)
+	require.Len(t, g.PopulationTransfers, len(pending))
+	assert.Equal(t, pending[0].PopulationUnits, g.PopulationTransfers[0].PopulationUnits)
+}
+
+func TestPopulationTransferIgnoresOtherPlayerInFlightForCapacity(t *testing.T) {
+	g := newPopulationTransferOverfillHarness()
+	player := g.Players[0]
+	source := g.Galaxy.Stars[0].Planets[0]
+	destination := g.Galaxy.Stars[0].Planets[1]
+	// Rival transfer aimed at the same planet id must not consume our room.
+	// (Owner 2 is not a Players entry so single-player Turn still advances.)
+	g.PopulationTransfers = []model.PopulationTransfer{{
+		ID:                  9,
+		Owner:               2,
+		SourcePlanetID:      99,
+		DestinationPlanetID: destination.ID,
+		PopulationUnits:     11,
+		FreightersReserved:  55,
+		TurnsRemaining:      3,
+	}}
+
+	require.NoError(t, g.Turn(player.ID, model.Commands{
+		TransferPopulation: []*model.TransferPopulationCommand{{
+			SourcePlanetID:      source.ID,
+			DestinationPlanetID: destination.ID,
+			PopulationUnits:     11,
+		}},
+	}))
+	require.Len(t, g.PopulationTransfers, 2)
+	var ours uint
+	for _, transfer := range g.PopulationTransfers {
+		if transfer.Owner == player.ID {
+			ours = transfer.PopulationUnits
+		}
+	}
+	assert.Equal(t, uint(11), ours)
+}
+
+func TestPopulationTransferOverflowRefundsToSource(t *testing.T) {
+	g := newPopulationTransferHarness()
+	player := g.Players[0]
+	source := g.Galaxy.Stars[0].Planets[0]
+	destination := g.Galaxy.Stars[0].Planets[1]
+	destination.Size = model.PlanetSizeTiny
+	destination.Population = 3500
+	inTransit := int64(1000)
+	sourceBefore := source.Population
+	destBefore := destination.Population
+	totalBefore := sourceBefore + destBefore + inTransit
+
+	g.PopulationTransfers = []model.PopulationTransfer{{
+		ID:                  1,
+		Owner:               player.ID,
+		SourcePlanetID:      source.ID,
+		DestinationPlanetID: destination.ID,
+		PopulationUnits:     1,
+		FreightersReserved:  5,
+		TurnsRemaining:      1,
+	}}
+	player.FreightersUsed = 5
+
+	require.NotPanics(t, func() {
+		g.advancePopulationTransfers(map[uint]bool{1: true})
+	})
+
+	assert.Empty(t, g.PopulationTransfers)
+	assert.Equal(t, int64(4000), destination.Population)
+	assert.Equal(t, sourceBefore+500, source.Population)
+	assert.Equal(t, totalBefore, source.Population+destination.Population)
+	assert.Equal(t, uint(0), player.FreightersUsed)
+}
+
+func TestPopulationTransferOverflowLostWhenSourceGone(t *testing.T) {
+	g := newPopulationTransferHarness()
+	player := g.Players[0]
+	source := g.Galaxy.Stars[0].Planets[0]
+	destination := g.Galaxy.Stars[0].Planets[1]
+	destination.Size = model.PlanetSizeTiny
+	destination.Population = 3500
+	source.Owner = 0
+	sourceBefore := source.Population
+	destBefore := destination.Population
+
+	g.PopulationTransfers = []model.PopulationTransfer{{
+		ID:                  1,
+		Owner:               player.ID,
+		SourcePlanetID:      source.ID,
+		DestinationPlanetID: destination.ID,
+		PopulationUnits:     1,
+		FreightersReserved:  5,
+		TurnsRemaining:      1,
+	}}
+	player.FreightersUsed = 5
+
+	require.NotPanics(t, func() {
+		g.advancePopulationTransfers(map[uint]bool{1: true})
+	})
+
+	assert.Empty(t, g.PopulationTransfers)
+	assert.Equal(t, int64(4000), destination.Population)
+	assert.Equal(t, sourceBefore, source.Population, "unowned source must not receive refund")
+	assert.Equal(t, destBefore+500, destination.Population)
 	assert.Equal(t, uint(0), player.FreightersUsed)
 }
 
@@ -259,4 +451,15 @@ func newPopulationTransferHarness() *Game {
 			},
 		}}}},
 	}
+}
+
+// newPopulationTransferOverfillHarness matches the reported overfill scenario:
+// dest ~1,042 / 12,000 capacity (11 units free), large source, many freighters.
+func newPopulationTransferOverfillHarness() *Game {
+	g := newPopulationTransferHarness()
+	g.Players[0].Freighters = 90
+	g.Galaxy.Stars[0].Planets[0].Population = 20000
+	g.Galaxy.Stars[0].Planets[0].Food.Farmers = 20
+	g.Galaxy.Stars[0].Planets[1].Population = 1042
+	return g
 }

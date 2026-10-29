@@ -13,8 +13,10 @@ import {
   findPlayerFleetsAtStar,
   findStar,
   calculateFleetTravelTurnsFromCoordinates,
+  destinationTransferRoomLeft,
   getPlanetProjectedIncome,
   getPlanetProjectedPopulationGrowth,
+  inboundInFlightTransferUnits,
   labelForEnvironment,
   labelForGravity,
   labelForMinerals,
@@ -157,6 +159,25 @@ export function PlanetPage() {
     );
     return Math.max(0, player.freighters - player.freightersUsed - pendingReserved);
   });
+  const destinationRoomLeft = createMemo(() => {
+    const destination = selectedTransferDestination()?.planet;
+    const player = currentPlayer();
+    if (!destination || !player) return 0;
+    const pendingIn = (state.pendingCommands.transferPopulation ?? [])
+      .filter((command) => command.destination_planet_id === destination.id)
+      .reduce((total, command) => total + command.population_units, 0);
+    const inFlightIn = inboundInFlightTransferUnits(
+      state.game?.populationTransfers,
+      player.id,
+      destination.id,
+    );
+    return destinationTransferRoomLeft({
+      destinationPopulation: destination.population,
+      destinationMaxPopulation: destination.maxPopulation,
+      inFlightInboundUnits: inFlightIn,
+      pendingInboundUnits: pendingIn,
+    });
+  });
   const maxTransferUnits = createMemo(() => {
     const current = planet();
     const destination = selectedTransferDestination()?.planet;
@@ -164,14 +185,14 @@ export function PlanetPage() {
     const pendingOut = (state.pendingCommands.transferPopulation ?? [])
       .filter((command) => command.source_planet_id === current.id)
       .reduce((total, command) => total + command.population_units, 0);
-    const pendingIn = (state.pendingCommands.transferPopulation ?? [])
-      .filter((command) => command.destination_planet_id === destination.id)
-      .reduce((total, command) => total + command.population_units, 0);
     const sourceUnits = Math.floor(current.population / 1000);
-    const destinationFree = Math.floor(destination.maxPopulation / 1000) - Math.floor(destination.population / 1000) - pendingIn;
     return Math.max(
       0,
-      Math.min(sourceUnits - 1 - pendingOut, destinationFree, Math.floor(availableTransferFreighters() / 5)),
+      Math.min(
+        sourceUnits - 1 - pendingOut,
+        destinationRoomLeft(),
+        Math.floor(availableTransferFreighters() / 5),
+      ),
     );
   });
   const transferEta = createMemo(() => {
@@ -565,6 +586,10 @@ export function PlanetPage() {
                         <article class="stat-card">
                           <span>Travel time</span>
                           <strong>{transferEta()} turn{transferEta() === 1 ? "" : "s"}</strong>
+                        </article>
+                        <article class="stat-card">
+                          <span>Room left at destination</span>
+                          <strong>{destinationRoomLeft()} unit{destinationRoomLeft() === 1 ? "" : "s"}</strong>
                         </article>
                         <article class="stat-card">
                           <span>Freighters needed / available</span>
