@@ -41,9 +41,9 @@ func ValidateLoadedGame(g *Game, resources *ResourceManager) error {
 		if math.IsNaN(p.Treasury) || math.IsInf(p.Treasury, 0) {
 			return fmt.Errorf("player %d has absurd treasury value", p.ID)
 		}
-		if p.Treasury < 0 {
-			return fmt.Errorf("player %d has negative treasury", p.ID)
-		}
+		// Negative treasury is reachable in normal play (command-point overdraw
+		// and freighter operating costs are subtracted with no floor), so do
+		// not reject it on load — only NaN/Inf are absurd.
 		// TaxRate is unused by turn logic today (no SetTaxRate handler); treat
 		// it as a unit-interval rate matching the field name.
 		if math.IsNaN(p.TaxRate) || math.IsInf(p.TaxRate, 0) || p.TaxRate < 0 || p.TaxRate > 1 {

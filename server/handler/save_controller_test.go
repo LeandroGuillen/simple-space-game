@@ -657,6 +657,72 @@ func TestLoadUploadedSaveRejectsInvalidGames(t *testing.T) {
 	}
 }
 
+func TestLoadUploadedAndScenarioAcceptNegativeTreasury(t *testing.T) {
+	// On e0ef594 this fails by assertion: LoadUploadedSave / LoadScenario
+	// return 400 for games with negative treasury (reachable via CP overdraw).
+	gin.SetMode(gin.TestMode)
+	resources, err := game.NewResourceManager()
+	require.NoError(t, err)
+
+	makeNegativeTreasuryGame := func(t *testing.T) *game.Game {
+		t.Helper()
+		g, err := game.NewGame(resources, game.NewGameOptions{
+			PlayerName:  "Overdrawn",
+			NumStars:    4,
+			PlayerColor: model.DefaultPlayerColor(),
+			Race:        game.DefaultRace("Human"),
+		})
+		require.NoError(t, err)
+		g.Players[0].Treasury = -5
+		return g
+	}
+
+	t.Run("upload", func(t *testing.T) {
+		g := makeNegativeTreasuryGame(t)
+		snapshot := *g
+		snapshot.Resources = nil
+		payload, err := json.Marshal(&snapshot)
+		require.NoError(t, err)
+
+		server := &Server{gameList: make(map[string]*game.Game), ResourceManager: resources}
+		recorder := postUpload(t, server, bytes.NewReader(payload), "application/json")
+		require.Equal(t, http.StatusOK, recorder.Code, recorder.Body.String())
+		var response struct {
+			GameID string `json:"gameID"`
+		}
+		require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &response))
+		require.NotEmpty(t, response.GameID)
+		require.NotNil(t, server.getGame(response.GameID))
+	})
+
+	t.Run("scenario", func(t *testing.T) {
+		dir := t.TempDir()
+		t.Setenv("SSG_SAVES_DIR", dir)
+		scenario := createScenarioFile(t, resources, "neg-treasury")
+		path, err := savePath("neg-treasury")
+		require.NoError(t, err)
+
+		g := makeNegativeTreasuryGame(t)
+		snapshot := *g
+		snapshot.Resources = nil
+		snapshot.ID = scenario.ID
+		rewritten, err := json.Marshal(&snapshot)
+		require.NoError(t, err)
+		require.NoError(t, os.WriteFile(path, rewritten, 0o644))
+
+		server := &Server{gameList: make(map[string]*game.Game), ResourceManager: resources}
+		recorder := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(recorder)
+		ctx.Request = httptest.NewRequest("POST", "/scenarios/neg-treasury/load", nil)
+		ctx.Params = gin.Params{{Key: "name", Value: "neg-treasury"}}
+		ctx.Set("server", server)
+		LoadScenario(ctx)
+
+		require.Equal(t, http.StatusOK, recorder.Code, recorder.Body.String())
+		require.NotNil(t, server.getGame(scenario.ID))
+	})
+}
+
 func TestLoadUploadedSaveRoundTripsFreshExportAndScenarios(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	resources, err := game.NewResourceManager()

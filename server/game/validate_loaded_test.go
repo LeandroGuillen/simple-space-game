@@ -2,6 +2,7 @@ package game
 
 import (
 	"encoding/json"
+	"math"
 	"os"
 	"path/filepath"
 	"testing"
@@ -400,6 +401,78 @@ func TestValidateLoadedGameRejectsInvalidCases(t *testing.T) {
 		planet := firstOwnedPlanet(t, g)
 		planet.CurrentProject = tradeGoodsProject
 		require.NoError(t, ValidateLoadedGame(g, resources))
+	})
+}
+
+func TestValidateLoadedGameAcceptsNegativeTreasury(t *testing.T) {
+	// On e0ef594 this fails by assertion: negative treasury was rejected even
+	// though normal play (command overdraw) drives treasury below zero.
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+
+	t.Run("real turn overdraw then round trip", func(t *testing.T) {
+		g, err := NewGame(resources, NewGameOptions{
+			PlayerName:  "Ada",
+			NumStars:    4,
+			PlayerColor: model.DefaultPlayerColor(),
+			Race:        DefaultRace("Human"),
+		})
+		require.NoError(t, err)
+		player := g.Players[0]
+		for range 20 {
+			g.addShipToOrbitFleet(player.ID, 1, model.FleetShip{
+				Type: "colony_ship",
+				Name: "Colony Ship",
+			})
+		}
+		require.NoError(t, g.Turn(player.ID, model.Commands{}))
+		require.Less(t, player.Treasury, 0.0, "premise: overdraw must drive treasury negative")
+
+		raw, err := json.Marshal(g)
+		require.NoError(t, err)
+		var loaded Game
+		require.NoError(t, json.Unmarshal(raw, &loaded))
+		require.NoError(t, ValidateLoadedGame(&loaded, resources))
+	})
+
+	t.Run("direct negative treasury accepted", func(t *testing.T) {
+		g, err := NewGame(resources, NewGameOptions{
+			PlayerName:  "Ada",
+			NumStars:    4,
+			PlayerColor: model.DefaultPlayerColor(),
+			Race:        DefaultRace("Human"),
+		})
+		require.NoError(t, err)
+		g.Players[0].Treasury = -5
+		require.NoError(t, ValidateLoadedGame(g, resources))
+	})
+
+	t.Run("NaN treasury rejected", func(t *testing.T) {
+		g, err := NewGame(resources, NewGameOptions{
+			PlayerName:  "Ada",
+			NumStars:    4,
+			PlayerColor: model.DefaultPlayerColor(),
+			Race:        DefaultRace("Human"),
+		})
+		require.NoError(t, err)
+		g.Players[0].Treasury = math.NaN()
+		err = ValidateLoadedGame(g, resources)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "absurd treasury")
+	})
+
+	t.Run("Inf treasury rejected", func(t *testing.T) {
+		g, err := NewGame(resources, NewGameOptions{
+			PlayerName:  "Ada",
+			NumStars:    4,
+			PlayerColor: model.DefaultPlayerColor(),
+			Race:        DefaultRace("Human"),
+		})
+		require.NoError(t, err)
+		g.Players[0].Treasury = math.Inf(1)
+		err = ValidateLoadedGame(g, resources)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "absurd treasury")
 	})
 }
 
