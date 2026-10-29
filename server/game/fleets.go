@@ -263,19 +263,7 @@ func bestAvailableFuelCell(player *Player, resources *Resources) (FuelCell, bool
 	if player == nil || resources == nil || resources.ShipPartsCollection == nil {
 		return FuelCell{}, false
 	}
-	var best FuelCell
-	found := false
-	for _, fuelCellName := range player.Available.FuelCells {
-		cell, err := FuelCellFromName(fuelCellName, resources.FuelCells)
-		if err != nil {
-			continue
-		}
-		if !found || fuelCellUnlimited(cell) || (!fuelCellUnlimited(best) && cell.Autonomy > best.Autonomy) {
-			best = cell
-			found = true
-		}
-	}
-	return best, found
+	return bestFuelCellByNames(player.Available.FuelCells, resources.FuelCells)
 }
 
 func bestAvailableDrive(player *Player, resources *Resources) (Drive, bool) {
@@ -298,40 +286,38 @@ func bestAvailableDrive(player *Player, resources *Resources) (Drive, bool) {
 }
 
 func (g *Game) findShipDesignForFleetShip(player *Player, ship FleetShip) (ShipDesign, bool) {
-	if g == nil || g.Resources == nil || player == nil || ship.DesignName == "" {
+	if ship.DesignName == "" {
 		return ShipDesign{}, false
 	}
-	for _, design := range player.ShipDesigns {
-		if design.Name == ship.DesignName {
-			return design, true
-		}
+	var playerDesigns, stock []ShipDesign
+	if player != nil {
+		playerDesigns = player.ShipDesigns
 	}
-	for _, design := range g.Resources.ShipDesigns {
-		if design.Name == ship.DesignName {
-			return design, true
-		}
+	if g != nil && g.Resources != nil && g.Resources.ShipDesignCollection != nil {
+		stock = g.Resources.ShipDesigns
 	}
-	return ShipDesign{}, false
+	return findDesignForFuelRange(ship.DesignName, playerDesigns, stock)
 }
 
 func (g *Game) fleetShipFuelRange(player *Player, ship FleetShip) (rangeParsecs int64, unlimited bool, ok bool) {
-	var cells []FuelCell
-	if g != nil && g.Resources != nil && g.Resources.ShipPartsCollection != nil {
-		cells = g.Resources.FuelCells
-	}
-	if rangeParsecs, unlimited, ok = listedShipFuelRange(ship, cells); ok {
-		return rangeParsecs, unlimited, true
-	}
-	if ship.DesignName != "" {
-		if design, found := g.findShipDesignForFleetShip(player, ship); found {
-			return design.FuelCell.Autonomy, fuelCellUnlimited(design.FuelCell), true
+	return ResolveShipFuelRange(ship, g.fuelRangeLookup(player))
+}
+
+func (g *Game) fuelRangeLookup(player *Player) FuelRangeLookup {
+	lookup := FuelRangeLookup{}
+	if g != nil && g.Resources != nil {
+		if g.Resources.ShipPartsCollection != nil {
+			lookup.FuelCells = g.Resources.FuelCells
 		}
-		return 0, false, false
+		if g.Resources.ShipDesignCollection != nil {
+			lookup.StockDesigns = g.Resources.ShipDesigns
+		}
 	}
-	if cell, found := bestAvailableFuelCell(player, g.Resources); found {
-		return cell.Autonomy, fuelCellUnlimited(cell), true
+	if player != nil {
+		lookup.PlayerDesigns = player.ShipDesigns
+		lookup.AvailableCellNames = player.Available.FuelCells
 	}
-	return 0, false, false
+	return lookup
 }
 
 // FleetShipCombatSpeed returns combat squares per turn for a fleet ship (drive + race bonus).
@@ -470,12 +456,40 @@ func FuelDestinationReachable(destX, destY float64, supplyCoords [][2]float64, r
 	return false
 }
 
-// ShipsListedFuelRange computes fleet range the same way fleetShipFuelRange
-// does when only listed ship fields (and an optional fuel-cell catalog) are
-// available. Prefer FuelCell autonomy from cells when the ship names a known
-// cell — matching submit-time validateFleetMoveFuelRange — then fall back to
-// FuelRangeParsecs / UnlimitedFuelRange stamps. Used by the AI scout policy.
-func ShipsListedFuelRange(ships []FleetShip, cells []FuelCell) (rangeParsecs int64, unlimited bool, ok bool) {
+// FuelRangeLookup carries catalogs needed to resolve a ship's fuel range the
+// same way fleetShipFuelRange / validateFleetMoveFuelRange do: stamps, then
+// player/stock designs by design_name, then the player's best available cell.
+type FuelRangeLookup struct {
+	FuelCells          []FuelCell
+	PlayerDesigns      []ShipDesign
+	StockDesigns       []ShipDesign
+	AvailableCellNames []string
+}
+
+// ResolveShipFuelRange is the single source of truth for one ship's fuel
+// range. Order: UnlimitedFuelRange / FuelCell stamp / FuelRangeParsecs stamp,
+// then design_name → player or stock design fuel cell, then best available
+// fuel cell among AvailableCellNames. Matches Game.fleetShipFuelRange.
+func ResolveShipFuelRange(ship FleetShip, lookup FuelRangeLookup) (rangeParsecs int64, unlimited bool, ok bool) {
+	if rangeParsecs, unlimited, ok = listedShipFuelRange(ship, lookup.FuelCells); ok {
+		return rangeParsecs, unlimited, true
+	}
+	if ship.DesignName != "" {
+		if design, found := findDesignForFuelRange(ship.DesignName, lookup.PlayerDesigns, lookup.StockDesigns); found {
+			return design.FuelCell.Autonomy, fuelCellUnlimited(design.FuelCell), true
+		}
+		return 0, false, false
+	}
+	if cell, found := bestFuelCellByNames(lookup.AvailableCellNames, lookup.FuelCells); found {
+		return cell.Autonomy, fuelCellUnlimited(cell), true
+	}
+	return 0, false, false
+}
+
+// ShipsFuelRange returns the fleet's limiting fuel range (shortest limited
+// ship) using ResolveShipFuelRange for each ship. Used by submit validation
+// (via fleetShipFuelRange) and the AI scout policy.
+func ShipsFuelRange(ships []FleetShip, lookup FuelRangeLookup) (rangeParsecs int64, unlimited bool, ok bool) {
 	if len(ships) == 0 {
 		return 0, false, false
 	}
@@ -483,7 +497,7 @@ func ShipsListedFuelRange(ships []FleetShip, cells []FuelCell) (rangeParsecs int
 	limitedFound := false
 	var minRange int64
 	for _, ship := range ships {
-		shipRange, shipUnlimited, shipOK := listedShipFuelRange(ship, cells)
+		shipRange, shipUnlimited, shipOK := ResolveShipFuelRange(ship, lookup)
 		if !shipOK {
 			return 0, false, false
 		}
@@ -502,8 +516,14 @@ func ShipsListedFuelRange(ships []FleetShip, cells []FuelCell) (rangeParsecs int
 	return minRange, false, true
 }
 
-// listedShipFuelRange mirrors the FuelCell-then-stamp branches of
-// fleetShipFuelRange so AI visible snapshots and submit validation agree.
+// ShipsListedFuelRange is the stamp/catalog-only path (no design / available
+// fallback). Prefer ShipsFuelRange when player designs and available cells are
+// known — that matches submit validation fully.
+func ShipsListedFuelRange(ships []FleetShip, cells []FuelCell) (rangeParsecs int64, unlimited bool, ok bool) {
+	return ShipsFuelRange(ships, FuelRangeLookup{FuelCells: cells})
+}
+
+// listedShipFuelRange is the stamp branch shared by ResolveShipFuelRange.
 func listedShipFuelRange(ship FleetShip, cells []FuelCell) (rangeParsecs int64, unlimited bool, ok bool) {
 	if ship.UnlimitedFuelRange {
 		return 0, true, true
@@ -517,6 +537,39 @@ func listedShipFuelRange(ship FleetShip, cells []FuelCell) (rangeParsecs int64, 
 		return ship.FuelRangeParsecs, ship.FuelRangeParsecs >= 100, true
 	}
 	return 0, false, false
+}
+
+func findDesignForFuelRange(name string, playerDesigns, stockDesigns []ShipDesign) (ShipDesign, bool) {
+	for _, design := range playerDesigns {
+		if design.Name == name {
+			return design, true
+		}
+	}
+	for _, design := range stockDesigns {
+		if design.Name == name {
+			return design, true
+		}
+	}
+	return ShipDesign{}, false
+}
+
+func bestFuelCellByNames(names []string, cells []FuelCell) (FuelCell, bool) {
+	if len(names) == 0 || len(cells) == 0 {
+		return FuelCell{}, false
+	}
+	var best FuelCell
+	found := false
+	for _, fuelCellName := range names {
+		cell, err := FuelCellFromName(fuelCellName, cells)
+		if err != nil {
+			continue
+		}
+		if !found || fuelCellUnlimited(cell) || (!fuelCellUnlimited(best) && cell.Autonomy > best.Autonomy) {
+			best = cell
+			found = true
+		}
+	}
+	return best, found
 }
 
 func (g *Game) playerOwnedSupplyStarCoords(playerID uint) [][2]float64 {

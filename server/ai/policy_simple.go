@@ -314,7 +314,7 @@ func sendIdleScouts(snapshot *VisibleGame, playerID uint, d *Decision) {
 		if invading[f.ID] {
 			continue
 		}
-		target := nearestReachableUnexploredStar(snapshot, f, supplies)
+		target := nearestReachableUnexploredStar(snapshot, playerID, f, supplies)
 		if target == 0 {
 			continue
 		}
@@ -346,13 +346,14 @@ func ownedSupplyStarCoords(snapshot *VisibleGame, playerID uint) [][2]float64 {
 }
 
 // nearestReachableUnexploredStar picks the closest unexplored star (by fleet
-// position) that FuelDestinationReachable accepts for this fleet's listed fuel
-// range. Returns 0 when none are reachable or range cannot be determined.
-func nearestReachableUnexploredStar(snapshot *VisibleGame, fleet *model.Fleet, supplies [][2]float64) uint {
+// position) that FuelDestinationReachable accepts for this fleet's fuel range
+// (same ResolveShipFuelRange chain as submit validation). Returns 0 when none
+// are reachable or range cannot be determined.
+func nearestReachableUnexploredStar(snapshot *VisibleGame, playerID uint, fleet *model.Fleet, supplies [][2]float64) uint {
 	if snapshot == nil || fleet == nil {
 		return 0
 	}
-	rangeParsecs, unlimited, ok := game.ShipsListedFuelRange(fleet.Ships, visibleFuelCells(snapshot))
+	rangeParsecs, unlimited, ok := game.ShipsFuelRange(fleet.Ships, visibleFuelRangeLookup(snapshot, playerID))
 	if !ok {
 		return 0
 	}
@@ -376,9 +377,19 @@ func nearestReachableUnexploredStar(snapshot *VisibleGame, fleet *model.Fleet, s
 	return bestID
 }
 
-func visibleFuelCells(snapshot *VisibleGame) []model.FuelCell {
-	if snapshot == nil || snapshot.Resources == nil || snapshot.Resources.ShipParts == nil {
-		return nil
+func visibleFuelRangeLookup(snapshot *VisibleGame, playerID uint) game.FuelRangeLookup {
+	lookup := game.FuelRangeLookup{}
+	if snapshot != nil && snapshot.Resources != nil {
+		if snapshot.Resources.ShipParts != nil {
+			lookup.FuelCells = snapshot.Resources.ShipParts.FuelCells
+		}
+		if snapshot.Resources.ShipDesignCollection != nil {
+			lookup.StockDesigns = snapshot.Resources.ShipDesignCollection.ShipDesigns
+		}
 	}
-	return snapshot.Resources.ShipParts.FuelCells
+	if me := findPlayer(snapshot, playerID); me != nil {
+		lookup.PlayerDesigns = me.ShipDesigns
+		lookup.AvailableCellNames = me.Available.FuelCells
+	}
+	return lookup
 }

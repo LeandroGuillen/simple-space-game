@@ -342,3 +342,112 @@ func TestSimplePolicyUsesFuelCellCatalogOverStamp(t *testing.T) {
 		t.Fatalf("expected star 3 (Standard range), got %+v notes=%v", d.Commands.FleetMove, d.Notes)
 	}
 }
+
+func TestSimplePolicyScoutsDesignOnlyShipViaPlayerDesign(t *testing.T) {
+	// On 2e1d8aa ShipsListedFuelRange fails (no stamp) and the fleet stays idle.
+	me := &model.Player{
+		ID: 1,
+		ShipDesigns: []model.ShipDesign{{
+			Name:     "Laser Gunship",
+			FuelCell: model.FuelCell{Name: "Standard", Autonomy: 2},
+		}},
+	}
+	home := &model.Planet{ID: 1, Owner: 1}
+	stars := []*model.Star{
+		{ID: 1, Name: "Sol", X: 0, Y: 0, Planets: []*model.Planet{home}},
+		{ID: 2, X: 60, Y: 0}, // 1pc — inside Standard 2
+	}
+	fleet := &model.Fleet{
+		ID: 7, Owner: 1, StarID: 1, X: 0, Y: 0,
+		Ships: []model.FleetShip{{
+			Type: "ship_design", Name: "Dark Blade", DesignName: "Laser Gunship",
+		}},
+	}
+	vg := snapshotWith([]*model.Player{me}, stars, []*model.Fleet{fleet}, TurnStatus{WaitingPlayerIDs: []uint{1}})
+	d := SimplePolicy{}.Decide(vg, 1)
+	if len(d.Commands.FleetMove) != 1 || d.Commands.FleetMove[0].DestinationStarID != 2 {
+		t.Fatalf("expected design-only scout move to star 2, got %+v notes=%v", d.Commands.FleetMove, d.Notes)
+	}
+}
+
+func TestSimplePolicyScoutsTransportViaBestAvailableFuelCell(t *testing.T) {
+	me := &model.Player{
+		ID:        1,
+		Available: model.AvailableTech{FuelCells: []string{"None", "Standard"}},
+	}
+	home := &model.Planet{ID: 1, Owner: 1}
+	stars := []*model.Star{
+		{ID: 1, Name: "Sol", X: 0, Y: 0, Planets: []*model.Planet{home}},
+		{ID: 2, X: 60, Y: 0},
+	}
+	fleet := &model.Fleet{
+		ID: 7, Owner: 1, StarID: 1, X: 0, Y: 0,
+		Ships: []model.FleetShip{{Type: "transport", Name: "Transport"}},
+	}
+	vg := snapshotWith([]*model.Player{me}, stars, []*model.Fleet{fleet}, TurnStatus{WaitingPlayerIDs: []uint{1}})
+	vg.Resources = &VisibleResources{ShipParts: &VisibleShipParts{
+		FuelCells: []model.FuelCell{
+			{Name: "None", Autonomy: 0},
+			{Name: "Standard", Autonomy: 2},
+		},
+	}}
+	d := SimplePolicy{}.Decide(vg, 1)
+	if len(d.Commands.FleetMove) != 1 || d.Commands.FleetMove[0].DestinationStarID != 2 {
+		t.Fatalf("expected transport scout move to star 2, got %+v notes=%v", d.Commands.FleetMove, d.Notes)
+	}
+}
+
+func TestSimplePolicyScoutsColonyShipViaBestAvailableFuelCell(t *testing.T) {
+	me := &model.Player{
+		ID:        1,
+		Available: model.AvailableTech{FuelCells: []string{"Standard"}},
+	}
+	home := &model.Planet{ID: 1, Owner: 1}
+	stars := []*model.Star{
+		{ID: 1, Name: "Sol", X: 0, Y: 0, Planets: []*model.Planet{home}},
+		{ID: 2, X: 60, Y: 0},
+	}
+	fleet := &model.Fleet{
+		ID: 7, Owner: 1, StarID: 1, X: 0, Y: 0,
+		Ships: []model.FleetShip{{Type: "colony_ship", Name: "Colony Ship"}},
+	}
+	vg := snapshotWith([]*model.Player{me}, stars, []*model.Fleet{fleet}, TurnStatus{WaitingPlayerIDs: []uint{1}})
+	vg.Resources = &VisibleResources{ShipParts: &VisibleShipParts{
+		FuelCells: []model.FuelCell{{Name: "Standard", Autonomy: 2}},
+	}}
+	d := SimplePolicy{}.Decide(vg, 1)
+	if len(d.Commands.FleetMove) != 1 || d.Commands.FleetMove[0].DestinationStarID != 2 {
+		t.Fatalf("expected colony-ship scout move to star 2, got %+v notes=%v", d.Commands.FleetMove, d.Notes)
+	}
+}
+
+func TestSimplePolicyMergedScoutUsesShortestRange(t *testing.T) {
+	// Stamped scout (range 4) merged with unstamped Transport (best available = 2)
+	// must use the shortest range (2), still scout, and skip out-of-range targets.
+	me := &model.Player{
+		ID:        1,
+		Available: model.AvailableTech{FuelCells: []string{"Standard"}},
+	}
+	home := &model.Planet{ID: 1, Owner: 1}
+	stars := []*model.Star{
+		{ID: 1, Name: "Sol", X: 0, Y: 0, Planets: []*model.Planet{home}},
+		{ID: 2, X: 300, Y: 0}, // 5pc — outside Standard 2 / inside stamp 4
+		{ID: 3, X: 60, Y: 0},  // 1pc — inside both
+	}
+	fleet := &model.Fleet{
+		ID: 7, Owner: 1, StarID: 1, X: 0, Y: 0,
+		Ships: []model.FleetShip{
+			{Type: "ship_design", Name: "Scout", FuelRangeParsecs: 4},
+			{Type: "transport", Name: "Transport"},
+		},
+	}
+	vg := snapshotWith([]*model.Player{me}, stars, []*model.Fleet{fleet}, TurnStatus{WaitingPlayerIDs: []uint{1}})
+	vg.Resources = &VisibleResources{ShipParts: &VisibleShipParts{
+		FuelCells: []model.FuelCell{{Name: "Standard", Autonomy: 2}},
+	}}
+	d := SimplePolicy{}.Decide(vg, 1)
+	if len(d.Commands.FleetMove) != 1 || d.Commands.FleetMove[0].DestinationStarID != 3 {
+		t.Fatalf("expected merged fleet to scout star 3 (shortest range), got %+v notes=%v",
+			d.Commands.FleetMove, d.Notes)
+	}
+}

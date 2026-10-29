@@ -54,11 +54,13 @@ func TestAIHumanLargeGalaxyFiftyTurnsNoFuelErrors(t *testing.T) {
 	})
 
 	policy := ai.SimplePolicy{}
+	scoutMoves := 0
 	for turn := 0; turn < 50; turn++ {
 		visible, err := g.GetVisibleGameForPlayer(aiPlayer.ID)
 		require.NoError(t, err)
 		vg := visibleGameFromGame(t, visible)
 		decision := policy.Decide(vg, aiPlayer.ID)
+		scoutMoves += len(decision.Commands.FleetMove)
 
 		_, _, err = g.SubmitTurn(aiPlayer.ID, decision.Commands)
 		if err != nil {
@@ -70,11 +72,14 @@ func TestAIHumanLargeGalaxyFiftyTurnsNoFuelErrors(t *testing.T) {
 			t.Fatalf("human submit turn %d failed: %v", turn, err)
 		}
 	}
+	if scoutMoves == 0 {
+		t.Fatalf("expected at least one AI scout move over 50 turns")
+	}
 	elapsed := time.Since(start)
 	if elapsed > 5*time.Second {
 		t.Fatalf("50-turn AI/human huge-galaxy test took %s (want < 5s)", elapsed)
 	}
-	t.Logf("50 turns completed in %s", elapsed)
+	t.Logf("50 turns completed in %s (%d scout moves)", elapsed, scoutMoves)
 }
 
 func TestAIScoutDecisionNeverPicksOutOfRangeOnLiveVisible(t *testing.T) {
