@@ -146,6 +146,10 @@ func LoadScenario(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "scenario file missing game id"})
 		return
 	}
+	if err := game.ValidateLoadedGame(&loaded, s.ResourceManager); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	game.HydrateLoadedGame(&loaded, s.ResourceManager)
 
 	s.putGame(loaded.ID, &loaded)

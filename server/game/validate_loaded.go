@@ -7,8 +7,9 @@ import (
 )
 
 // ValidateLoadedGame checks structural and catalog invariants on a Game decoded
-// from an uploaded save. It does not mutate g and does not depend on HTTP.
-// Callers that load trusted on-disk scenarios may skip this.
+// from an uploaded save or on-disk scenario. It does not mutate g and does not
+// depend on HTTP. Both LoadUploadedSave and LoadScenario call this before
+// HydrateLoadedGame.
 func ValidateLoadedGame(g *Game, resources *ResourceManager) error {
 	if g == nil {
 		return fmt.Errorf("game is nil")

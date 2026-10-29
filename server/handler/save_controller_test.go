@@ -76,6 +76,106 @@ func TestLoadScenarioAddsGame(t *testing.T) {
 	require.NotNil(t, server.getGame(scenario.ID))
 }
 
+func TestLoadScenarioRejectsInvalidGame(t *testing.T) {
+	// On 5d21dc9 this fails by assertion: old LoadScenario returns 200 and
+	// registers the game despite a fleet pointing at a missing star.
+	gin.SetMode(gin.TestMode)
+	dir := t.TempDir()
+	t.Setenv("SSG_SAVES_DIR", dir)
+
+	resources, err := game.NewResourceManager()
+	require.NoError(t, err)
+	scenario := createScenarioFile(t, resources, "bad-fleet-star")
+	path, err := savePath("bad-fleet-star")
+	require.NoError(t, err)
+	raw, err := os.ReadFile(path)
+	require.NoError(t, err)
+	var loaded game.Game
+	require.NoError(t, json.Unmarshal(raw, &loaded))
+	require.NotEmpty(t, loaded.Players)
+	// Ensure a fleet exists, then point it at a star that does not.
+	loaded.Fleets = []*model.Fleet{{
+		ID:     1,
+		Owner:  loaded.Players[0].ID,
+		StarID: 999999,
+		Ships:  []model.FleetShip{{Name: "Scout", Type: "scout"}},
+	}}
+	loaded.Players[0].Fleets = []uint{1}
+	rewritten, err := json.Marshal(&loaded)
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(path, rewritten, 0o644))
+
+	server := &Server{
+		gameList:        make(map[string]*game.Game),
+		ResourceManager: resources,
+	}
+	recorder := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(recorder)
+	ctx.Request = httptest.NewRequest("POST", "/scenarios/bad-fleet-star/load", nil)
+	ctx.Params = gin.Params{{Key: "name", Value: "bad-fleet-star"}}
+	ctx.Set("server", server)
+	LoadScenario(ctx)
+
+	require.Equal(t, http.StatusBadRequest, recorder.Code, recorder.Body.String())
+	var payload struct {
+		Error string `json:"error"`
+	}
+	require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &payload))
+	require.Contains(t, payload.Error, "missing star")
+	require.Nil(t, server.getGame(scenario.ID))
+	require.Empty(t, server.gameList)
+}
+
+func TestLoadScenarioAcceptsShippedScenarios(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	resources, err := game.NewResourceManager()
+	require.NoError(t, err)
+
+	scenarioDir := filepath.Join("..", "data", "scenarios")
+	entries, err := os.ReadDir(scenarioDir)
+	require.NoError(t, err)
+
+	dir := t.TempDir()
+	t.Setenv("SSG_SAVES_DIR", dir)
+	found := 0
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".json") {
+			continue
+		}
+		found++
+		name := strings.TrimSuffix(entry.Name(), ".json")
+		t.Run(name, func(t *testing.T) {
+			data, err := os.ReadFile(filepath.Join(scenarioDir, entry.Name()))
+			require.NoError(t, err)
+			path, err := savePath(name)
+			require.NoError(t, err)
+			require.NoError(t, os.MkdirAll(filepath.Dir(path), 0o755))
+			require.NoError(t, os.WriteFile(path, data, 0o644))
+
+			var header struct {
+				ID string `json:"id"`
+			}
+			require.NoError(t, json.Unmarshal(data, &header))
+			require.NotEmpty(t, header.ID)
+
+			server := &Server{
+				gameList:        make(map[string]*game.Game),
+				ResourceManager: resources,
+			}
+			recorder := httptest.NewRecorder()
+			ctx, _ := gin.CreateTestContext(recorder)
+			ctx.Request = httptest.NewRequest("POST", "/scenarios/"+name+"/load", nil)
+			ctx.Params = gin.Params{{Key: "name", Value: name}}
+			ctx.Set("server", server)
+			LoadScenario(ctx)
+
+			require.Equal(t, http.StatusOK, recorder.Code, recorder.Body.String())
+			require.NotNil(t, server.getGame(header.ID))
+		})
+	}
+	require.GreaterOrEqual(t, found, 3, "expected shipped scenarios under data/scenarios")
+}
+
 func TestLoadUploadedSaveAddsGame(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	dir := t.TempDir()
