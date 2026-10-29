@@ -828,6 +828,7 @@ func assertInvasionReportForcesJSONArrays(t *testing.T, g *Game) {
 	require.NoError(t, err)
 	var decoded struct {
 		InvasionReports []struct {
+			Rounds          json.RawMessage `json:"rounds"`
 			InitialAttacker struct {
 				Marines json.RawMessage `json:"marines"`
 				Armored json.RawMessage `json:"armored"`
@@ -849,6 +850,7 @@ func assertInvasionReportForcesJSONArrays(t *testing.T, g *Game) {
 			name string
 			raw  json.RawMessage
 		}{
+			{"rounds", r.Rounds},
 			{"initial_attacker.marines", r.InitialAttacker.Marines},
 			{"initial_attacker.armored", r.InitialAttacker.Armored},
 			{"initial_defender.marines", r.InitialDefender.Marines},
@@ -860,6 +862,43 @@ func assertInvasionReportForcesJSONArrays(t *testing.T, g *Game) {
 			require.True(t, len(field.raw) > 0 && field.raw[0] == '[', "report[%d].%s = %s", i, field.name, field.raw)
 		}
 	}
+}
+
+func TestCancelledInvasionReportSerializesRoundsAsArray(t *testing.T) {
+	// On b31ecc2 this fails: cancelInvasionOrder leaves Rounds nil, so JSON
+	// has "rounds":null. Build via the real lost-orbit cancel path.
+	SetRandomSeed(7)
+	g := newBattleGame(t)
+	star := contestedStar(g)
+	planet := &Planet{
+		ID: 8910, Name: "Fort", Owner: 2, ParentStar: star.ID,
+		Population: 1000, Marines: 5, Armored: 0,
+	}
+	star.Planets = append(star.Planets, planet)
+
+	defender, err := g.getPlayer(2)
+	require.NoError(t, err)
+	defender.ShipDesigns = append(defender.ShipDesigns, tacticalGunboatDesign(5))
+	invaderFleet := addOrbitFleet(g, 1, star, []FleetShip{{Type: "transport", Name: "Landers"}})
+	addOrbitFleet(g, 2, star, []FleetShip{{Type: "ship_design", Name: "Gunboat", DesignName: "Gunboat"}})
+
+	g.PendingInvasions = []PendingInvasion{{
+		OwnerID: 1, FleetID: invaderFleet.ID, TargetPlanetID: planet.ID,
+	}}
+	_ = g.resolveStarBattles()
+	assert.False(t, g.holdsOrbit(star.ID, 1))
+
+	reports := g.resolveGroundInvasions()
+	require.Len(t, reports, 1)
+	require.True(t, reports[0].Cancelled)
+	require.NotNil(t, reports[0].Rounds)
+	assert.Empty(t, reports[0].Rounds)
+
+	assertInvasionReportForcesJSONArrays(t, g)
+
+	visible, err := g.GetVisibleGameForPlayer(1)
+	require.NoError(t, err)
+	assertInvasionReportForcesJSONArrays(t, visible)
 }
 
 // Test helper functions

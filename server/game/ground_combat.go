@@ -397,6 +397,11 @@ func normalizeInvasionReportForces(report *InvasionReport) {
 	report.InitialAttacker = ensureGroundForceSlices(report.InitialAttacker)
 	report.InitialDefender = ensureGroundForceSlices(report.InitialDefender)
 	report.SurvivingUnits = ensureGroundForceSlices(report.SurvivingUnits)
+	// Cancelled reports never fight, and runGroundBattle can return a nil
+	// slice when no rounds are fought — serialize rounds as [] not null.
+	if report.Rounds == nil {
+		report.Rounds = []GroundBattleRound{}
+	}
 }
 
 // runGroundBattle executes rounds of ground combat until one side is eliminated or max rounds reached

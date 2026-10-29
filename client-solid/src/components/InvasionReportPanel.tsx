@@ -112,17 +112,17 @@ export function InvasionReportPanel(props: InvasionReportPanelProps) {
                   </div>
                 </div>
 
-                <Show when={report.rounds.length > 0}>
+                <Show when={(report.rounds ?? []).length > 0}>
                   <div class="battle-summary">
                     <h5>Battle Summary</h5>
                     <div class="casualty-summary">
-                      Attacker losses: {report.rounds.reduce((sum, r) => sum + r.attacker_losses, 0)} units
+                      Attacker losses: {(report.rounds ?? []).reduce((sum, r) => sum + r.attacker_losses, 0)} units
                     </div>
                     <div class="casualty-summary">
-                      Defender losses: {report.rounds.reduce((sum, r) => sum + r.defender_losses, 0)} units
+                      Defender losses: {(report.rounds ?? []).reduce((sum, r) => sum + r.defender_losses, 0)} units
                     </div>
                     <div class="rounds-fought">
-                      Combat lasted {report.rounds.length} round{report.rounds.length !== 1 ? 's' : ''}
+                      Combat lasted {(report.rounds ?? []).length} round{(report.rounds ?? []).length !== 1 ? 's' : ''}
                     </div>
                   </div>
                 </Show>

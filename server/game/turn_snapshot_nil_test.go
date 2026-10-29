@@ -177,6 +177,38 @@ func TestSnapshotRestoreWithInvasionReportEmptyForceSlices(t *testing.T) {
 	assertFailedAdvanceByteIdentical(t, g)
 }
 
+func TestSnapshotRestoreWithCancelledInvasionReport(t *testing.T) {
+	// Cancelled reports use empty non-nil Rounds; snapshot/restore must keep
+	// them as [] so failed-turn JSON stays byte-identical.
+	SetRandomSeed(7)
+	g := newBattleGame(t)
+	star := contestedStar(g)
+	planet := &Planet{
+		ID: 8911, Name: "Fort", Owner: 2, ParentStar: star.ID,
+		Population: 1000, Marines: 5, Armored: 0,
+	}
+	star.Planets = append(star.Planets, planet)
+
+	defender, err := g.getPlayer(2)
+	require.NoError(t, err)
+	defender.ShipDesigns = append(defender.ShipDesigns, tacticalGunboatDesign(5))
+	invaderFleet := addOrbitFleet(g, 1, star, []FleetShip{{Type: "transport", Name: "Landers"}})
+	addOrbitFleet(g, 2, star, []FleetShip{{Type: "ship_design", Name: "Gunboat", DesignName: "Gunboat"}})
+
+	g.PendingInvasions = []PendingInvasion{{
+		OwnerID: 1, FleetID: invaderFleet.ID, TargetPlanetID: planet.ID,
+	}}
+	_ = g.resolveStarBattles()
+	reports := g.resolveGroundInvasions()
+	require.Len(t, reports, 1)
+	require.True(t, reports[0].Cancelled)
+	require.NotNil(t, reports[0].Rounds)
+	assert.Empty(t, reports[0].Rounds)
+
+	assertSnapshotRestoreByteIdentical(t, g)
+	assertFailedAdvanceByteIdentical(t, g)
+}
+
 func TestCloneSlicePreservesNilAndEmpty(t *testing.T) {
 	var nilSlice []uint
 	empty := []uint{}
