@@ -496,3 +496,45 @@ func TestSelectHomeStarIDsKeepsHomesApartOnLattice(t *testing.T) {
 		}
 	}
 }
+
+func TestSelectHomeStarIDsMatchesStrideAtWebClientCounts(t *testing.T) {
+	// Web-client counts on Medium/Huge/default never needed the farthest-point
+	// fallback on c140298; SelectHomeStarIDs must equal StartingStarIDs there.
+	seeds := []int64{1, 42, 99}
+	cases := []struct {
+		size  string
+		stars uint
+	}{
+		{"medium", 20}, {"medium", 40},
+		{"", 20}, {"", 40},
+		{"huge", 20}, {"huge", 40}, {"huge", 60}, {"huge", 100},
+	}
+	for _, tc := range cases {
+		for _, seed := range seeds {
+			for players := uint(2); players <= 6; players++ {
+				game.SetRandomSeed(seed)
+				g := game.NewGalaxyForSize(tc.stars, tc.size)
+				got := game.SelectHomeStarIDs(g.Stars, players)
+				want := game.StartingStarIDs(players, tc.stars)
+				require.Equal(t, want, got,
+					"size=%q n=%d seed=%d players=%d: SelectHome must match stride when already fine",
+					tc.size, tc.stars, seed, players)
+			}
+		}
+	}
+}
+
+func TestSelectHomeStarIDsFallsBackOnlyWhenStrideTooClose(t *testing.T) {
+	// Stride for n=3, 2 players is [1,3]; place those 60px apart and star 2 far
+	// away so farthest-point can fix it.
+	stars := []*model.Star{
+		{ID: 1, X: 0, Y: 0},
+		{ID: 2, X: 300, Y: 200},
+		{ID: 3, X: 60, Y: 0},
+	}
+	stride := game.StartingStarIDs(2, 3)
+	require.Equal(t, []uint{1, 3}, stride)
+	got := game.SelectHomeStarIDs(stars, 2)
+	require.NotEqual(t, stride, got, "must fall back when stride homes are within 1pc")
+	require.Equal(t, []uint{1, 2}, got)
+}

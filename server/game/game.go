@@ -169,9 +169,9 @@ func NewGame(resources *ResourceManager, options NewGameOptions) (*Game, error) 
 	return g, nil
 }
 
-// StartingStarIDs is the legacy count-only stride over star IDs. Prefer
-// SelectHomeStarIDs once positions are known — stride alone can land homes on
-// adjacent lattice cells when separation is ~1 parsec.
+// StartingStarIDs is the legacy count-only stride over star IDs. This is the
+// default home pick; SelectHomeStarIDs returns these IDs whenever they already
+// keep homes more than one parsec apart (or the map has no room to do better).
 func StartingStarIDs(numPlayers, numStars uint) []uint {
 	if numPlayers == 0 {
 		return []uint{}
@@ -198,49 +198,87 @@ func StartingStarIDs(numPlayers, numStars uint) []uint {
 	return ids
 }
 
-// SelectHomeStarIDs chooses home stars so capitals stay more than one parsec
-// apart whenever the star field allows it. Player 1 keeps the lowest star ID
-// (legacy star 1) for stable single-player / test capitals; remaining homes use
-// greedy farthest-point sampling. Deterministic for a given star-position set
-// (no RNG). Star coordinates for a seed are unchanged; secondary home IDs may
-// differ from the legacy StartingStarIDs stride.
+const homeMinSeparationPixels = float64(parsecInPixels) // more than 1 parsec → dist > 60
+
+type homeCand struct {
+	id   uint
+	x, y float64
+}
+
+// SelectHomeStarIDs returns the legacy StartingStarIDs stride by default so
+// game creation matches pre-farthest-point home IDs whenever that pick is fine.
+// It falls back to greedy farthest-point sampling ONLY when the stride would
+// place two homes within one parsec (≤60px) AND the map has room to avoid it
+// (a farthest-point pick among the stars can keep every pair > 60px).
 func SelectHomeStarIDs(stars []*Star, numPlayers uint) []uint {
 	if numPlayers == 0 {
 		return []uint{}
 	}
-	type cand struct {
-		id   uint
-		x, y float64
-	}
-	cands := make([]cand, 0, len(stars))
+	cands := make([]homeCand, 0, len(stars))
+	byID := make(map[uint]homeCand, len(stars))
 	for _, s := range stars {
 		if s == nil {
 			continue
 		}
-		cands = append(cands, cand{id: s.ID, x: float64(s.X), y: float64(s.Y)})
+		c := homeCand{id: s.ID, x: float64(s.X), y: float64(s.Y)}
+		cands = append(cands, c)
+		byID[s.ID] = c
 	}
 	if len(cands) == 0 {
 		return []uint{}
 	}
-	n := int(numPlayers)
+
+	stride := StartingStarIDs(numPlayers, uint(len(cands)))
+	if !homesWithinOneParsec(stride, byID) {
+		return stride
+	}
+	fallback := farthestPointHomeIDs(cands, int(numPlayers))
+	if uint(len(fallback)) < numPlayers || homesWithinOneParsec(fallback, byID) {
+		// Map has no room to do better; keep the legacy pick.
+		return stride
+	}
+	return fallback
+}
+
+func homesWithinOneParsec(ids []uint, byID map[uint]homeCand) bool {
+	positions := make([]homeCand, 0, len(ids))
+	for _, id := range ids {
+		c, ok := byID[id]
+		if !ok {
+			continue
+		}
+		positions = append(positions, c)
+	}
+	for i := 0; i < len(positions); i++ {
+		for j := i + 1; j < len(positions); j++ {
+			dx := positions[i].x - positions[j].x
+			dy := positions[i].y - positions[j].y
+			if math.Sqrt(dx*dx+dy*dy) <= homeMinSeparationPixels+1e-9 {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func farthestPointHomeIDs(cands []homeCand, n int) []uint {
+	if n <= 0 || len(cands) == 0 {
+		return nil
+	}
 	if n > len(cands) {
 		n = len(cands)
 	}
-
-	// Pin first home to the lowest star ID (normally 1) — matches legacy
-	// StartingStarIDs and keeps player-1 capital on planet 1 for existing tests.
+	// Pin first home to the lowest star ID (legacy stride always starts at 1).
 	first := 0
 	for i := 1; i < len(cands); i++ {
 		if cands[i].id < cands[first].id {
 			first = i
 		}
 	}
-
 	chosenIdx := make([]int, 0, n)
 	chosenIdx = append(chosenIdx, first)
 	used := make([]bool, len(cands))
 	used[first] = true
-
 	for len(chosenIdx) < n {
 		pick := -1
 		pickMin := -1.0
@@ -268,7 +306,6 @@ func SelectHomeStarIDs(stars []*Star, numPlayers uint) []uint {
 		used[pick] = true
 		chosenIdx = append(chosenIdx, pick)
 	}
-
 	ids := make([]uint, len(chosenIdx))
 	for i, ci := range chosenIdx {
 		ids[i] = cands[ci].id
