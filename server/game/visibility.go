@@ -205,7 +205,25 @@ func copyPlayerPrivate(p *model.Player) *model.Player {
 	cp.ExploredStars = append([]uint(nil), p.ExploredStars...)
 	cp.Race = p.Race
 	cp.Race.TraitIDs = append([]string(nil), p.Race.TraitIDs...)
+	cp.Race.Grants = copyGrants(p.Race.Grants)
 	return &cp
+}
+
+func copyGrants(g model.Grants) model.Grants {
+	return model.Grants{
+		Unlocks: model.Unlocks{
+			Buildings:   append([]string(nil), g.Unlocks.Buildings...),
+			HullSizes:   append([]string(nil), g.Unlocks.HullSizes...),
+			Drives:      append([]string(nil), g.Unlocks.Drives...),
+			Armors:      append([]string(nil), g.Unlocks.Armors...),
+			Computers:   append([]string(nil), g.Unlocks.Computers...),
+			FuelCells:   append([]string(nil), g.Unlocks.FuelCells...),
+			Shields:     append([]string(nil), g.Unlocks.Shields...),
+			Beams:       append([]string(nil), g.Unlocks.Beams...),
+			ShipSystems: append([]string(nil), g.Unlocks.ShipSystems...),
+		},
+		Modifiers: append([]model.Modifier(nil), g.Modifiers...),
+	}
 }
 
 // publicPlayerView keeps only identity / diplomacy fields for rivals.

@@ -45,9 +45,9 @@ type Game struct {
 	PendingBattles           []*TacticalBattle    `json:"pending_battles,omitempty"`
 	InvasionReports          []*InvasionReport    `json:"invasion_reports,omitempty"`
 	// PendingInvasions holds Invade orders accepted this turn until
-	// resolveGroundInvasions runs. Turn-ephemeral: cleared on hydrate,
-	// at the start of AdvanceTurn, and on a failed advance. Omitted/empty
-	// in older saves.
+	// resolveGroundInvasions runs. Turn-ephemeral: cleared on hydrate and
+	// at the start of AdvanceTurn; a failed AdvanceTurn restores the
+	// pre-advance queue via snapshot. Omitted/empty in older saves.
 	PendingInvasions []PendingInvasion `json:"pending_invasions,omitempty"`
 	// PostponedInvasions holds Invade orders deferred because a tactical
 	// battle was still pending at the target star. Unlike PendingInvasions,
@@ -480,19 +480,48 @@ func (g *Game) SubmitTurn(playerID uint, commands Commands) (TurnStatus, bool, e
 		submissions[id] = submitted
 	}
 	if err := g.AdvanceTurn(submissions); err != nil {
-		return g.currentTurnStatus(), false, err
+		// AdvanceTurn restores world state (including TurnSubmissions as they
+		// were when the advance began — every player ready). A failed
+		// SubmitTurn must leave the game as it was BEFORE this player's
+		// submission was recorded so they can fix and resubmit; other
+		// players' stored submissions stay.
+		delete(g.TurnSubmissions, playerID)
+		g.TurnStatus = g.calculateTurnStatus()
+		return g.TurnStatus, false, err
 	}
 	return g.TurnStatus, true, nil
 }
 
+// advanceTurnTestHook, when non-nil, is called at named stages inside
+// AdvanceTurn so tests can inject failures. Production keeps it nil (zero cost).
+var advanceTurnTestHook func(stage string) error
+
 func (g *Game) AdvanceTurn(submissions map[uint]Commands) error {
+	// Snapshot-then-restore: on any error the live *Game is rewritten from the
+	// pre-advance deep copy so callers (and external pointers to this Game)
+	// see the prior world. Resources and mu are shared, not cloned.
+	snap := snapshotGameState(g)
+	if err := g.advanceTurnApplying(submissions); err != nil {
+		restoreGameState(g, snap)
+		return err
+	}
+	return nil
+}
+
+func (g *Game) advanceTurnApplying(submissions map[uint]Commands) error {
 	// A pending battle should have been fought via the battle API before any
 	// turn submission, but never let a stale one wedge the game.
 	g.autoResolveLeftoverBattles() // also releases PostponedInvasions via finishTacticalBattle
-	// Drop any leftover PendingInvasions from a prior failed AdvanceTurn (or a
-	// bad save that somehow retained them). Orders for THIS turn are recorded
-	// below during applyPlayerTurn, then consumed by resolveGroundInvasions.
-	// PostponedInvasions are NOT cleared here — they persist with pending battles.
+	if advanceTurnTestHook != nil {
+		if err := advanceTurnTestHook("after_auto_resolve"); err != nil {
+			return err
+		}
+	}
+	// Drop any leftover PendingInvasions from a prior incomplete turn (or a
+	// bad save). Orders for THIS turn are recorded below during applyPlayerTurn,
+	// then consumed by resolveGroundInvasions. PostponedInvasions are NOT
+	// cleared here — they persist with pending battles. On failure the outer
+	// AdvanceTurn restore puts both invasion queues (and battles) back.
 	g.PendingInvasions = nil
 	existingPopulationTransfers := g.populationTransferIDs()
 	playerIDs := g.playerIDs()
@@ -502,12 +531,20 @@ func (g *Game) AdvanceTurn(submissions map[uint]Commands) error {
 			return fmt.Errorf("missing turn submission for player %d", playerID)
 		}
 		if err := g.applyPlayerTurn(playerID, commands); err != nil {
-			// Drop partial invade orders so a failed mid-turn leave no replayable state.
-			g.PendingInvasions = nil
 			return err
+		}
+		if advanceTurnTestHook != nil {
+			if err := advanceTurnTestHook(fmt.Sprintf("after_apply:%d", playerID)); err != nil {
+				return err
+			}
 		}
 	}
 
+	if advanceTurnTestHook != nil {
+		if err := advanceTurnTestHook("before_fleet_movements"); err != nil {
+			return err
+		}
+	}
 	g.advanceFleetMovements()
 	g.resolveStarBattles()
 	g.resolveGroundInvasions()

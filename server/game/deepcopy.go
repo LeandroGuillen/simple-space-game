@@ -86,8 +86,18 @@ func copyInvasionReport(r *model.InvasionReport) *model.InvasionReport {
 func copyTurnStatus(ts TurnStatus) TurnStatus {
 	return TurnStatus{
 		Mode:              ts.Mode,
-		ReadyPlayerIDs:    append([]uint(nil), ts.ReadyPlayerIDs...),
-		WaitingPlayerIDs:  append([]uint(nil), ts.WaitingPlayerIDs...),
-		RequiredPlayerIDs: append([]uint(nil), ts.RequiredPlayerIDs...),
+		ReadyPlayerIDs:    copyUintSlice(ts.ReadyPlayerIDs),
+		WaitingPlayerIDs:  copyUintSlice(ts.WaitingPlayerIDs),
+		RequiredPlayerIDs: copyUintSlice(ts.RequiredPlayerIDs),
 	}
+}
+
+// copyUintSlice preserves nil vs empty so JSON round-trips stay stable.
+func copyUintSlice(src []uint) []uint {
+	if src == nil {
+		return nil
+	}
+	out := make([]uint, len(src))
+	copy(out, src)
+	return out
 }
