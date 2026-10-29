@@ -769,14 +769,16 @@ export function AppShell(props: RouteSectionProps) {
           >
             github
           </a>
-          <button
-            type="button"
-            class="app-debug-link"
-            onClick={() => void enableDebugMode()}
-            disabled={state.debugMode || state.isBusy}
-          >
-            debug mode: {state.debugMode ? "on" : "off"}
-          </button>
+          <Show when={state.serverDebugEnabled}>
+            <button
+              type="button"
+              class="app-debug-link"
+              onClick={() => void enableDebugMode()}
+              disabled={state.debugMode || state.isBusy}
+            >
+              debug mode: {state.debugMode ? "on" : "off"}
+            </button>
+          </Show>
         </div>
       </header>
 

@@ -270,28 +270,6 @@ export class ApiClient {
     return readJson<ApiGame>(response);
   }
 
-  async colonize(gameId: string, planetId: number) {
-    const response = await fetch(`${this.baseUrl}/action/${this.playerId}/colonize/${planetId}`, {
-      method: 'POST',
-      headers: this.headers(gameId),
-      body: JSON.stringify({
-        game_id: gameId,
-      }),
-    });
-    return readJson<{ game: ApiGame }>(response);
-  }
-
-  async exploreStar(gameId: string, starId: number) {
-    const response = await fetch(`${this.baseUrl}/action/${this.playerId}/explore/${starId}`, {
-      method: 'POST',
-      headers: this.headers(gameId),
-      body: JSON.stringify({
-        game_id: gameId,
-      }),
-    });
-    return readJson<{ game: ApiGame }>(response);
-  }
-
   async debugResearchAllTechs(gameId: string) {
     const response = await fetch(`${this.baseUrl}/debug/research-all`, {
       method: 'POST',

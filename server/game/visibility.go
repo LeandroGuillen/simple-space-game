@@ -50,8 +50,9 @@ func (g *Game) getVisibleGameForPlayerLocked(playerID uint) (*Game, error) {
 		ID:          g.ID,
 		CurrentTurn: g.CurrentTurn,
 		CreatedAt:   g.CreatedAt,
+		Debug:       g.Debug,
 		// Resources is an immutable catalog shared across games; safe to share.
-		Resources: g.Resources,
+		Resources:  g.Resources,
 		TurnStatus: copyTurnStatus(g.TurnStatus),
 		// Do not share submission map or mutex with the live game.
 		TurnSubmissions: nil,

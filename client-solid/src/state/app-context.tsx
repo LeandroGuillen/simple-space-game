@@ -12,6 +12,7 @@ import {
   getInitialSetupSelectedServerUrl,
 } from '../lib/setup-session-storage';
 import { isAutobuildProject, isBuildingApplicableToPlanet } from '../lib/construction';
+import { isServerDebugEnabled } from '../lib/server-status';
 import {
   findPlanet,
   getColonyRows,
@@ -67,6 +68,8 @@ type AppState = {
   games: ApiGameListItem[];
   playerColorOptions: PlayerColorOptions;
   game: GameViewModel | null;
+  /** True when GET /status reports the server has /debug/* enabled. */
+  serverDebugEnabled: boolean;
   debugMode: boolean;
   isBusy: boolean;
   error: string;
@@ -113,8 +116,6 @@ type AppContextValue = {
   buyProduction: (planetId: number) => void;
   cancelBuyProduction: (planetId: number) => void;
   enableDebugMode: () => Promise<void>;
-  colonize: (planetId: number) => Promise<void>;
-  exploreStar: (starId: number) => Promise<void>;
   endTurn: () => Promise<void>;
   getBattle: (battleId: number) => Promise<ApiTacticalBattle>;
   sendBattleAction: (battleId: number, action: BattleActionRequest) => Promise<ApiTacticalBattle>;
@@ -184,6 +185,7 @@ export function AppProvider(props: ParentProps) {
       colors: ['#FFFFFF'],
     },
     game: null,
+    serverDebugEnabled: false,
     debugMode: false,
     isBusy: false,
     error: '',
@@ -247,6 +249,8 @@ export function AppProvider(props: ParentProps) {
       },
       games: [],
       game: null,
+      serverDebugEnabled: false,
+      debugMode: false,
       pendingCommands: emptyPendingCommands(),
       pendingColonyBasePlanets: [],
       pendingColonyShipFleets: [],
@@ -280,6 +284,7 @@ export function AppProvider(props: ParentProps) {
       if (!response.ok) {
         throw new Error('Server did not report healthy status.');
       }
+      setState('serverDebugEnabled', isServerDebugEnabled(response));
       const colorOptions = await client.getPlayerColorOptions();
       setState('playerColorOptions', mapPlayerColorOptions(colorOptions));
       setState('session', 'connectionStatus', 'connected');
@@ -287,6 +292,7 @@ export function AppProvider(props: ParentProps) {
       await refreshGames();
     } catch (error) {
       setState('session', 'connectionStatus', 'error');
+      setState('serverDebugEnabled', false);
       setBusy(false, '');
       setState('error', error instanceof Error ? error.message : 'Unable to connect to server.');
       throw error;
@@ -416,6 +422,7 @@ export function AppProvider(props: ParentProps) {
       const rawGame = await client.getGame(gameId);
       const mapped = mapGame(rawGame);
       setState('game', mapped);
+      setState('debugMode', rawGame.debug === true);
       setBusy(false, 'Game state refreshed');
       return mapped;
     } catch (error) {
@@ -736,7 +743,7 @@ export function AppProvider(props: ParentProps) {
   }
 
   async function enableDebugMode() {
-    if (state.debugMode) {
+    if (!state.serverDebugEnabled || state.debugMode) {
       return;
     }
     if (!api() || !state.session.selectedGameId) {
@@ -753,22 +760,6 @@ export function AppProvider(props: ParentProps) {
     } catch (error) {
       setBusy(false, '');
       setState('error', error instanceof Error ? error.message : 'Unable to enable debug mode.');
-      throw error;
-    }
-  }
-
-  async function colonize(planetId: number) {
-    if (!api() || !state.session.selectedGameId) {
-      return;
-    }
-    setBusy(true, 'Dispatching colony ship');
-    clearError();
-    try {
-      await api()!.colonize(state.session.selectedGameId, planetId);
-      setState('info', 'Waiting for server update...');
-    } catch (error) {
-      setBusy(false, '');
-      setState('error', error instanceof Error ? error.message : 'Unable to colonize planet.');
       throw error;
     }
   }
@@ -847,22 +838,6 @@ export function AppProvider(props: ParentProps) {
   async function sendBattleAction(battleId: number, action: BattleActionRequest) {
     const { client, gameId } = requireBattleApi();
     return client.postBattleAction(gameId, battleId, action);
-  }
-
-  async function exploreStar(starId: number) {
-    if (!api() || !state.session.selectedGameId) {
-      return;
-    }
-    setBusy(true, 'Exploring star system');
-    clearError();
-    try {
-      await api()!.exploreStar(state.session.selectedGameId, starId);
-      setState('info', 'Waiting for server update...');
-    } catch (error) {
-      setBusy(false, '');
-      setState('error', error instanceof Error ? error.message : 'Unable to explore star system.');
-      throw error;
-    }
   }
 
   async function saveShipDesign(form: ShipDesignForm, mode: 'create' | 'update') {
@@ -1057,8 +1032,6 @@ export function AppProvider(props: ParentProps) {
     buyProduction,
     cancelBuyProduction,
     enableDebugMode,
-    colonize,
-    exploreStar,
     endTurn,
     getBattle,
     sendBattleAction,

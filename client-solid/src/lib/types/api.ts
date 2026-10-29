@@ -2,6 +2,9 @@ import type { ApiTacticalBattle } from './battle';
 
 export type ApiStatusResponse = {
   ok: boolean;
+  version?: string;
+  /** True when the server registered /debug/* endpoints. */
+  debug?: boolean;
 };
 
 export type ApiGameListItem = {
@@ -12,6 +15,8 @@ export type ApiGameListItem = {
   created_at?: string | null;
   /** ISO-8601 UTC when the last turn completed; omit or null if none yet */
   last_turn_at?: string | null;
+  /** True after a debug research-all mutation on this game. */
+  debug?: boolean;
   players: ApiGameListPlayer[];
 };
 
@@ -508,6 +513,7 @@ export type ApiGame = {
   current_turn: number;
   created_at?: string | null;
   last_turn_at?: string | null;
+  debug?: boolean;
   resources: ApiResources;
   pending_colony_bases?: Record<number, number[]>; // playerID -> planetIDs
   pending_colony_ships?: Record<number, number[]>; // playerID -> fleetIDs

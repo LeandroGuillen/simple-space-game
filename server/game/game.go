@@ -46,7 +46,10 @@ type Game struct {
 	InvasionReports          []*InvasionReport    `json:"invasion_reports,omitempty"`
 	TurnSubmissions          map[uint]Commands    `json:"-"`
 	TurnStatus               TurnStatus           `json:"turn_status"`
-	mu                       *sync.RWMutex        `json:"-"`
+	// Debug is set when a debug-only endpoint mutates the game (e.g. research-all).
+	// Omitted/false in older saves.
+	Debug bool `json:"debug,omitempty"`
+	mu    *sync.RWMutex `json:"-"`
 }
 
 type NewGameOptions struct {

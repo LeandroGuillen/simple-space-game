@@ -87,7 +87,7 @@ Known mechanics as of this profile:
   - Starting workers/farmers/scientists in backend are 3/2/3, but verify frontend mapping because stale fields can display wrong values.
 - Visibility:
   - Unexplored stars expose only id/color/x/y; names and planet details are hidden.
-  - `Explore System` calls `POST /action/:owner/explore/:star` and reveals the star forever for that player.
+  - Exploration happens during turn processing when fleets arrive; there is no public explore HTTP action.
 - Turns:
   - `POST /turn` body includes queued commands, currently mainly `movePopulation`.
   - Population moves apply before output/growth.

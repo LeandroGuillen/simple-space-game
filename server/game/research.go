@@ -254,6 +254,8 @@ func (g *Game) ResearchAllTechs(playerID uint) error {
 		player.HyperAdvanced = map[string]uint64{}
 	}
 	g.hydratePlayerAvailability(player)
+	// Research-all is a debug-only mutation; persist the flag for saves/list.
+	g.Debug = true
 	return nil
 }
 

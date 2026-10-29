@@ -24,6 +24,18 @@ type Server struct {
 	router            *gin.Engine
 	hub               *ws.Hub
 	hubOnce           sync.Once
+	// debug enables /debug/* routes for this server instance only.
+	debug bool
+}
+
+// ServerOptions configures NewServerWithOptions. Zero value matches NewServer().
+type ServerOptions struct {
+	Debug bool
+}
+
+// DebugEnabled reports whether this server registered debug endpoints.
+func (s *Server) DebugEnabled() bool {
+	return s != nil && s.debug
 }
 
 func (s *Server) getGame(id string) *game.Game {
@@ -60,6 +72,10 @@ func AddGameState(s *Server) gin.HandlerFunc {
 }
 
 func NewServer() (*Server, error) {
+	return NewServerWithOptions(ServerOptions{})
+}
+
+func NewServerWithOptions(opts ServerOptions) (*Server, error) {
 	var resourceManager *game.ResourceManager
 	var err error
 	if resourceManager, err = game.NewResourceManager(); err != nil {
@@ -104,6 +120,7 @@ func NewServer() (*Server, error) {
 		ResourceManager:   resourceManager,
 		RaceStore:         raceStore,
 		ShipStore:         shipStore,
+		debug:             opts.Debug,
 	}
 
 	server.rebuildShipDesignCatalog()
@@ -172,10 +189,10 @@ func (s *Server) registerRoutes(r *gin.Engine) {
 
 	r.POST("/colonies", GetColonyList)
 
-	r.POST("/action/:owner/colonize/:planet", ColonizePlanet)
-	r.POST("/action/:owner/explore/:star", ExploreStar)
 	r.PUT("/planets/:planet/autobuild", SetPlanetAutobuild)
-	r.POST("/debug/research-all", DebugResearchAllTechs)
+	if s.debug {
+		r.POST("/debug/research-all", DebugResearchAllTechs)
+	}
 
 	resources := r.Group("/resources")
 	{

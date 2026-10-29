@@ -43,6 +43,7 @@ type GameListResponseItem struct {
 	CurrentTurn float64              `json:"current_turn"`
 	CreatedAt   *time.Time           `json:"created_at,omitempty"`
 	LastTurnAt  *time.Time           `json:"last_turn_at,omitempty"`
+	Debug       bool                 `json:"debug,omitempty"`
 	Players     []GameListPlayerInfo `json:"players"`
 }
 
@@ -176,6 +177,7 @@ func GetGameList(c *gin.Context) {
 			NumStars:    summary.NumStars,
 			CurrentTurn: summary.CurrentTurn,
 			LastTurnAt:  summary.LastTurnAt,
+			Debug:       summary.Debug,
 			Players:     playerInfos,
 		}
 		if !summary.CreatedAt.IsZero() {

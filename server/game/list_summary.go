@@ -18,6 +18,7 @@ type GameListSummary struct {
 	CurrentTurn float64
 	CreatedAt   time.Time
 	LastTurnAt  *time.Time
+	Debug       bool
 	Players     []GameListPlayerSummary
 }
 
@@ -59,6 +60,7 @@ func (g *Game) ListSummary() GameListSummary {
 		NumStars:    len(g.Galaxy.Stars),
 		CurrentTurn: g.CurrentTurn,
 		CreatedAt:   g.CreatedAt,
+		Debug:       g.Debug,
 		Players:     players,
 	}
 	if g.LastTurnAt != nil {
