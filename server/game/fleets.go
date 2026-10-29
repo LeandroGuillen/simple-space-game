@@ -658,7 +658,8 @@ func (g *Game) advanceFleetMovements() {
 		if fleet.TurnsRemaining == 0 {
 			destStarID := fleet.DestinationStarID
 			fleet.StarID = destStarID
-			_ = g.ExploreStar(fleet.Owner, fleet.StarID)
+			// Write lock already held by SubmitTurn → AdvanceTurn.
+			_ = g.exploreStarUnlocked(fleet.Owner, fleet.StarID)
 			if orbit := g.findOrbitFleet(fleet.Owner, destStarID); orbit != nil && orbit.ID != fleet.ID {
 				orbit.Ships = append(orbit.Ships, fleet.Ships...)
 				g.removeFleet(fleet)

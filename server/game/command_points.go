@@ -24,7 +24,9 @@ func shipCommandPointCost(ship FleetShip) int64 {
 }
 
 func (g *Game) playerCommandPointsCapacity(player *Player) int64 {
-	colonies, err := g.GetColonyList(player.ID)
+	// Unlocked: called from HydrateCommandPoints while SubmitTurn holds the
+	// write lock, or while hydrating a private visible-game copy (mu == nil).
+	colonies, err := g.colonyListUnlocked(player.ID)
 	if err != nil {
 		return 0
 	}
@@ -63,25 +65,34 @@ func (g *Game) playerCommandPointsUsed(playerID uint) int64 {
 	return used
 }
 
-// HydrateCommandPoints fills command point fields on every player from the full game state.
+// hydratePlayerCommandPoints fills command point fields on one player from the
+// full game state. It does not take g.mu.
+func (g *Game) hydratePlayerCommandPoints(player *Player) {
+	if g == nil || g.Resources == nil || player == nil {
+		return
+	}
+	capacity := g.playerCommandPointsCapacity(player)
+	used := g.playerCommandPointsUsed(player.ID)
+	player.CommandPointsStartingBonus = startingCommandPointsBonus
+	player.CommandPointsCapacity = capacity
+	player.CommandPointsUsed = used
+	player.CommandPointsRemaining = capacity - used
+	overdrawCP := used - capacity
+	if overdrawCP < 0 {
+		overdrawCP = 0
+	}
+	player.CommandOverdrawBC = overdrawCP * commandPointOverdrawBcPerCp
+}
+
+// HydrateCommandPoints fills command point fields on every player from the full
+// game state. It does not take g.mu: callers must hold the write lock on the
+// live game, or invoke it only on a private deep copy (never mutate live state
+// from a read path such as GetVisibleGameForPlayer).
 func (g *Game) HydrateCommandPoints() {
-	if g == nil || g.Resources == nil {
+	if g == nil {
 		return
 	}
 	for _, player := range g.Players {
-		if player == nil {
-			continue
-		}
-		capacity := g.playerCommandPointsCapacity(player)
-		used := g.playerCommandPointsUsed(player.ID)
-		player.CommandPointsStartingBonus = startingCommandPointsBonus
-		player.CommandPointsCapacity = capacity
-		player.CommandPointsUsed = used
-		player.CommandPointsRemaining = capacity - used
-		overdrawCP := used - capacity
-		if overdrawCP < 0 {
-			overdrawCP = 0
-		}
-		player.CommandOverdrawBC = overdrawCP * commandPointOverdrawBcPerCp
+		g.hydratePlayerCommandPoints(player)
 	}
 }

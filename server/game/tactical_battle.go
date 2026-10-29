@@ -197,15 +197,15 @@ func (g *Game) seekLiveShip(b *TacticalBattle) {
 	}
 }
 
-// GetTacticalBattle finds a pending battle by ID.
+// GetTacticalBattle finds a pending battle by ID and returns a deep copy so
+// the caller cannot mutate live battle state through the response.
 func (g *Game) GetTacticalBattle(battleID uint) (*TacticalBattle, error) {
-	if g.mu != nil {
-		g.mu.Lock()
-		defer g.mu.Unlock()
-	}
+	g.ensureMu()
+	g.mu.RLock()
+	defer g.mu.RUnlock()
 	for _, b := range g.PendingBattles {
 		if b != nil && b.ID == battleID {
-			return b, nil
+			return copyTacticalBattle(b), nil
 		}
 	}
 	return nil, fmt.Errorf("battle %d not found", battleID)
@@ -213,13 +213,12 @@ func (g *Game) GetTacticalBattle(battleID uint) (*TacticalBattle, error) {
 
 // ApplyBattleAction validates and applies one order from playerID for the
 // currently acting ship, then plays AI sides until a human ship is up again
-// or the battle ends. It returns the battle so callers can ship state +
-// events back to the client.
+// or the battle ends. It returns a deep copy of the battle so callers can ship
+// state + events back to the client without sharing live pointers.
 func (g *Game) ApplyBattleAction(battleID, playerID uint, action BattleAction) (*TacticalBattle, error) {
-	if g.mu != nil {
-		g.mu.Lock()
-		defer g.mu.Unlock()
-	}
+	g.ensureMu()
+	g.mu.Lock()
+	defer g.mu.Unlock()
 	var battle *TacticalBattle
 	for _, b := range g.PendingBattles {
 		if b != nil && b.ID == battleID {
@@ -231,27 +230,27 @@ func (g *Game) ApplyBattleAction(battleID, playerID uint, action BattleAction) (
 		return nil, fmt.Errorf("battle %d not found", battleID)
 	}
 	if battle.Status != TacticalBattleActive {
-		return battle, fmt.Errorf("battle %d is finished", battleID)
+		return copyTacticalBattle(battle), fmt.Errorf("battle %d is finished", battleID)
 	}
 	ship := battle.CurrentShip()
 	if ship == nil {
-		return battle, fmt.Errorf("no ship is currently acting")
+		return copyTacticalBattle(battle), fmt.Errorf("no ship is currently acting")
 	}
 	if ship.OwnerID != playerID {
-		return battle, fmt.Errorf("it is not player %d's turn to act", playerID)
+		return copyTacticalBattle(battle), fmt.Errorf("it is not player %d's turn to act", playerID)
 	}
 	if action.ShipID != 0 && action.ShipID != ship.ID {
-		return battle, fmt.Errorf("ship %d is not the acting ship (%d is)", action.ShipID, ship.ID)
+		return copyTacticalBattle(battle), fmt.Errorf("ship %d is not the acting ship (%d is)", action.ShipID, ship.ID)
 	}
 
 	switch action.Type {
 	case "move":
 		if err := g.moveTacticalShip(battle, ship, action.X, action.Y); err != nil {
-			return battle, err
+			return copyTacticalBattle(battle), err
 		}
 	case "fire":
 		if err := g.fireTacticalShip(battle, ship, action.TargetID); err != nil {
-			return battle, err
+			return copyTacticalBattle(battle), err
 		}
 	case "done":
 		g.advanceActivation(battle)
@@ -260,11 +259,11 @@ func (g *Game) ApplyBattleAction(battleID, playerID uint, action BattleAction) (
 	case "auto":
 		g.aiActivate(battle, ship)
 	default:
-		return battle, fmt.Errorf("unknown battle action %q", action.Type)
+		return copyTacticalBattle(battle), fmt.Errorf("unknown battle action %q", action.Type)
 	}
 
 	g.runAIUntilHumanOrEnd(battle)
-	return battle, nil
+	return copyTacticalBattle(battle), nil
 }
 
 func (g *Game) moveTacticalShip(b *TacticalBattle, ship *TacticalShip, x, y int) error {

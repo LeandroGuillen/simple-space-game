@@ -46,7 +46,7 @@ type Game struct {
 	InvasionReports          []*InvasionReport    `json:"invasion_reports,omitempty"`
 	TurnSubmissions          map[uint]Commands    `json:"-"`
 	TurnStatus               TurnStatus           `json:"turn_status"`
-	mu                       *sync.Mutex          `json:"-"`
+	mu                       *sync.RWMutex        `json:"-"`
 }
 
 type NewGameOptions struct {
@@ -124,7 +124,7 @@ func NewGame(resources *ResourceManager, options NewGameOptions) (*Game, error) 
 		PendingColonyShips:       make(map[uint][]uint),
 		PendingArtificialPlanets: make(map[uint][]uint),
 		TurnSubmissions:          make(map[uint]Commands),
-		mu:                       &sync.Mutex{},
+		mu:                       &sync.RWMutex{},
 	}
 	for _, player := range g.Players {
 		g.hydratePlayerAvailability(player)
@@ -137,7 +137,9 @@ func NewGame(resources *ResourceManager, options NewGameOptions) (*Game, error) 
 		if err := g.CreateCapitalPlanetAtStar(player.ID, starID); err != nil {
 			return nil, err
 		}
-		if err := g.ExploreStar(player.ID, starID); err != nil {
+		// Construction is single-threaded; use the unlocked helper so we do not
+		// take g.mu before the game is published to concurrent readers.
+		if err := g.exploreStarUnlocked(player.ID, starID); err != nil {
 			return nil, err
 		}
 	}
@@ -255,8 +257,9 @@ func (g *Game) validatePlayerCommands(playerID uint, commands Commands) error {
 		}
 	}
 
-	// Validate planet commands (buy production, move population)
-	colonyList, err := g.GetColonyList(playerID)
+	// Validate planet commands (buy production, move population).
+	// Write lock already held by SubmitTurn — use unlocked helper.
+	colonyList, err := g.colonyListUnlocked(playerID)
 	if err != nil {
 		return err
 	}
@@ -304,9 +307,7 @@ func (g *Game) validatePlayerCommands(playerID uint, commands Commands) error {
 }
 
 func (g *Game) SubmitTurn(playerID uint, commands Commands) (TurnStatus, bool, error) {
-	if g.mu == nil {
-		g.mu = &sync.Mutex{}
-	}
+	g.ensureMu()
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
@@ -405,8 +406,8 @@ func (g *Game) applyPlayerTurn(playerID uint, commands Commands) error {
 		}
 	}
 
-	// colonies turn processing
-	colonyList, err := g.GetColonyList(playerID)
+	// colonies turn processing (write lock already held by SubmitTurn)
+	colonyList, err := g.colonyListUnlocked(playerID)
 	if err != nil {
 		return err
 	}
@@ -1029,7 +1030,8 @@ func (g *Game) processColonizeCommand(playerID uint, command *ColonizeCommand) e
 	}
 	sourcePlanetID := pending[len(pending)-1]
 	g.PendingColonyBases[playerID] = pending[:len(pending)-1]
-	return g.ColonizePlanet(playerID, sourcePlanetID, command.PlanetID)
+	// Write lock already held by SubmitTurn.
+	return g.colonizePlanetUnlocked(playerID, sourcePlanetID, command.PlanetID)
 }
 
 func (g *Game) CreateCapitalPlanet(ownerID uint) error {
@@ -1097,6 +1099,15 @@ func applyRaceHomeworldTraits(player *Player, planet *Planet) {
 }
 
 func (g *Game) ColonizePlanet(ownerID, sourcePlanetID, targetPlanetID uint) error {
+	g.ensureMu()
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	return g.colonizePlanetUnlocked(ownerID, sourcePlanetID, targetPlanetID)
+}
+
+// colonizePlanetUnlocked applies a colony-base colonization. Caller must hold
+// the write lock (or be single-threaded construction/tests via ColonizePlanet).
+func (g *Game) colonizePlanetUnlocked(ownerID, sourcePlanetID, targetPlanetID uint) error {
 	if _, err := g.getPlayer(ownerID); err != nil {
 		return err
 	}
@@ -1297,8 +1308,18 @@ func removeFirstColonyShip(fleet *Fleet) {
 	}
 }
 
-// GetColonyList returns a list of planets that have a colony owned by given player.
+// GetColonyList returns deep-copied, hydrated planets owned by playerID.
+// Takes the read lock so concurrent turn processing cannot race the listing.
 func (g *Game) GetColonyList(playerID uint) ([]*Planet, error) {
+	g.ensureMu()
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	return g.colonyListCopiesUnlocked(playerID)
+}
+
+// colonyListUnlocked returns live planet pointers and hydrates them in place.
+// Caller must hold the write lock (turn processing) or operate on a private copy.
+func (g *Game) colonyListUnlocked(playerID uint) ([]*Planet, error) {
 	player, err := g.getPlayer(playerID)
 	if err != nil {
 		return nil, err
@@ -1320,7 +1341,36 @@ func (g *Game) GetColonyList(playerID uint) ([]*Planet, error) {
 	return colonyList, nil
 }
 
+// colonyListCopiesUnlocked returns hydrated deep copies. Caller holds RLock
+// on the live game, or g is a private copy with no shared mutex.
+func (g *Game) colonyListCopiesUnlocked(playerID uint) ([]*Planet, error) {
+	player, err := g.getPlayer(playerID)
+	if err != nil {
+		return nil, err
+	}
+
+	colonyList := make([]*Planet, 0)
+	for _, star := range g.Galaxy.Stars {
+		for _, planet := range star.Planets {
+			if planet == nil || planet.Owner != playerID {
+				continue
+			}
+			planetCopy := copyPlanet(planet)
+			hydratePlanetGovernment(g, planetCopy, player)
+			hydratePlanetMorale(g, planetCopy, player)
+			hydratePlanetOutputs(g, planetCopy)
+			hydratePlanetPopulationCapacity(g, planetCopy, player)
+			hydratePlanetIncome(g, planetCopy, GamePlanetIndustryProduced(g, planetCopy))
+			colonyList = append(colonyList, planetCopy)
+		}
+	}
+	return colonyList, nil
+}
+
 func (g *Game) SetPlanetAutobuild(playerID, planetID uint, enabled bool) error {
+	g.ensureMu()
+	g.mu.Lock()
+	defer g.mu.Unlock()
 	planet, err := g.getPlanet(planetID)
 	if err != nil {
 		return err
@@ -1333,18 +1383,23 @@ func (g *Game) SetPlanetAutobuild(playerID, planetID uint, enabled bool) error {
 }
 
 func (g *Game) GetShipDesignsList(playerID uint) ([]*ShipDesign, error) {
-	if player, err := g.getPlayer(playerID); err != nil {
+	g.ensureMu()
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	player, err := g.getPlayer(playerID)
+	if err != nil {
 		return nil, err
-	} else {
-		var shipDesigns []*ShipDesign
-		for _, d := range g.Resources.ShipDesigns {
-			shipDesigns = append(shipDesigns, &d)
-		}
-		for _, d := range player.ShipDesigns {
-			shipDesigns = append(shipDesigns, &d)
-		}
-		return shipDesigns, nil
 	}
+	var shipDesigns []*ShipDesign
+	for _, d := range g.Resources.ShipDesigns {
+		cp := copyShipDesign(d)
+		shipDesigns = append(shipDesigns, &cp)
+	}
+	for _, d := range player.ShipDesigns {
+		cp := copyShipDesign(d)
+		shipDesigns = append(shipDesigns, &cp)
+	}
+	return shipDesigns, nil
 }
 
 func (g *Game) CreateShipDesign(
@@ -1356,6 +1411,10 @@ func (g *Game) CreateShipDesign(
 	armorName,
 	hullSizeName,
 	fuelCellName string) error {
+
+	g.ensureMu()
+	g.mu.Lock()
+	defer g.mu.Unlock()
 
 	parts := g.Resources.ShipPartsCollection
 	player, err := g.getPlayer(playerID)
@@ -1426,6 +1485,10 @@ func (g *Game) UpdateShipDesign(
 	armorName,
 	hullSizeName,
 	fuelCellName string) error {
+
+	g.ensureMu()
+	g.mu.Lock()
+	defer g.mu.Unlock()
 
 	parts := g.Resources.ShipPartsCollection
 

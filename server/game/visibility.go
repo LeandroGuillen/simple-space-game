@@ -4,7 +4,16 @@ import (
 	"ssg/model"
 )
 
+// ExploreStar records that playerID has explored starID. Takes the write lock.
+// Prefer exploreStarUnlocked when the caller already holds g.mu.
 func (g *Game) ExploreStar(playerID, starID uint) error {
+	g.ensureMu()
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	return g.exploreStarUnlocked(playerID, starID)
+}
+
+func (g *Game) exploreStarUnlocked(playerID, starID uint) error {
 	player, err := g.getPlayer(playerID)
 	if err != nil {
 		return err
@@ -19,24 +28,38 @@ func (g *Game) ExploreStar(playerID, starID uint) error {
 	return nil
 }
 
+// GetVisibleGameForPlayer returns a fog-of-war filtered deep copy of the game
+// for playerID. It takes the read lock while copying and never mutates the live
+// Game (command points are hydrated on the copy only).
 func (g *Game) GetVisibleGameForPlayer(playerID uint) (*Game, error) {
+	g.ensureMu()
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	return g.getVisibleGameForPlayerLocked(playerID)
+}
+
+// getVisibleGameForPlayerLocked builds the per-player view. Caller holds RLock
+// (or g is otherwise exclusive). Must not write to the live game.
+func (g *Game) getVisibleGameForPlayerLocked(playerID uint) (*Game, error) {
 	player, err := g.getPlayer(playerID)
 	if err != nil {
 		return nil, err
 	}
 
-	g.HydrateCommandPoints()
-
 	visible := &Game{
 		ID:          g.ID,
 		CurrentTurn: g.CurrentTurn,
 		CreatedAt:   g.CreatedAt,
-		LastTurnAt:  g.LastTurnAt,
-		Resources:   g.Resources,
-		TurnStatus:  g.TurnStatus,
+		// Resources is an immutable catalog shared across games; safe to share.
+		Resources: g.Resources,
+		TurnStatus: copyTurnStatus(g.TurnStatus),
 		// Do not share submission map or mutex with the live game.
 		TurnSubmissions: nil,
 		mu:              nil,
+	}
+	if g.LastTurnAt != nil {
+		t := *g.LastTurnAt
+		visible.LastTurnAt = &t
 	}
 
 	visible.Galaxy = model.Galaxy{
@@ -55,15 +78,15 @@ func (g *Game) GetVisibleGameForPlayer(playerID uint) (*Game, error) {
 			starCopy.Name = star.Name
 			starCopy.Planets = make([]*model.Planet, 0, len(star.Planets))
 			for _, planet := range star.Planets {
-				planetCopy := *planet
+				planetCopy := copyPlanet(planet)
 				if planet.Owner != 0 && planet.Owner == playerID {
-					hydratePlanetGovernment(g, &planetCopy, player)
-					hydratePlanetMorale(g, &planetCopy, player)
-					hydratePlanetOutputs(g, &planetCopy)
-					hydratePlanetPopulationCapacity(g, &planetCopy, player)
-					hydratePlanetIncome(g, &planetCopy, GamePlanetIndustryProduced(g, &planetCopy))
+					hydratePlanetGovernment(g, planetCopy, player)
+					hydratePlanetMorale(g, planetCopy, player)
+					hydratePlanetOutputs(g, planetCopy)
+					hydratePlanetPopulationCapacity(g, planetCopy, player)
+					hydratePlanetIncome(g, planetCopy, GamePlanetIndustryProduced(g, planetCopy))
 				}
-				starCopy.Planets = append(starCopy.Planets, &planetCopy)
+				starCopy.Planets = append(starCopy.Planets, planetCopy)
 			}
 		}
 		visible.Galaxy.Stars = append(visible.Galaxy.Stars, starCopy)
@@ -104,6 +127,15 @@ func (g *Game) GetVisibleGameForPlayer(playerID uint) (*Game, error) {
 	visible.PendingColonyBases = filterPendingMapForPlayer(g.PendingColonyBases, playerID)
 	visible.PendingColonyShips = filterPendingMapForPlayer(g.PendingColonyShips, playerID)
 	visible.PendingArtificialPlanets = filterPendingMapForPlayer(g.PendingArtificialPlanets, playerID)
+
+	// Hydrate command points on the viewing player's copy only — never touch
+	// live player fields, and do not invent CP stats on public rival stubs.
+	for _, p := range visible.Players {
+		if p != nil && p.ID == playerID {
+			visible.hydratePlayerCommandPoints(p)
+			break
+		}
+	}
 
 	return visible, nil
 }
@@ -162,7 +194,12 @@ func copyPlayerPrivate(p *model.Player) *model.Player {
 		ShipSystems: append([]string(nil), p.Available.ShipSystems...),
 	}
 	cp.Fleets = append([]uint(nil), p.Fleets...)
-	cp.ShipDesigns = append([]model.ShipDesign(nil), p.ShipDesigns...)
+	if p.ShipDesigns != nil {
+		cp.ShipDesigns = make([]model.ShipDesign, len(p.ShipDesigns))
+		for i, d := range p.ShipDesigns {
+			cp.ShipDesigns[i] = copyShipDesign(d)
+		}
+	}
 	cp.ExploredStars = append([]uint(nil), p.ExploredStars...)
 	cp.Race = p.Race
 	cp.Race.TraitIDs = append([]string(nil), p.Race.TraitIDs...)
@@ -212,7 +249,7 @@ func filterPendingBattlesForPlayer(battles []*model.TacticalBattle, playerID uin
 		if battle == nil || !tacticalBattleInvolvesPlayer(battle, playerID) {
 			continue
 		}
-		out = append(out, battle)
+		out = append(out, copyTacticalBattle(battle))
 	}
 	if len(out) == 0 {
 		return nil
@@ -243,7 +280,7 @@ func filterBattleReportsForPlayer(reports []*model.BattleReport, playerID uint) 
 		}
 		for _, side := range report.Sides {
 			if side.OwnerID == playerID {
-				out = append(out, report)
+				out = append(out, copyBattleReport(report))
 				break
 			}
 		}
@@ -264,7 +301,7 @@ func filterInvasionReportsForPlayer(reports []*model.InvasionReport, playerID ui
 			continue
 		}
 		if report.AttackerOwnerID == playerID || report.DefenderOwnerID == playerID {
-			out = append(out, report)
+			out = append(out, copyInvasionReport(report))
 		}
 	}
 	if len(out) == 0 {

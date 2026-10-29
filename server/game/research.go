@@ -223,6 +223,9 @@ func (g *Game) research(player *Player, techName string) {
 }
 
 func (g *Game) ResearchAllTechs(playerID uint) error {
+	g.ensureMu()
+	g.mu.Lock()
+	defer g.mu.Unlock()
 	player, err := g.getPlayer(playerID)
 	if err != nil {
 		return err

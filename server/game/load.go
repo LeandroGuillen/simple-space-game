@@ -40,5 +40,5 @@ func HydrateLoadedGame(g *Game, resources *ResourceManager) {
 			g.Players[0].IsHuman = true
 		}
 	}
-	g.mu = &sync.Mutex{}
+	g.mu = &sync.RWMutex{}
 }
