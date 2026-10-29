@@ -159,34 +159,27 @@ func GetGameList(c *gin.Context) {
 
 	var gameList = make([]GameListResponseItem, 0)
 	for gameID, g := range s.listGames() {
-		playerInfos := make([]GameListPlayerInfo, len(g.Players))
-		for i, p := range g.Players {
-			ownedStars := 0
-			for _, star := range g.Galaxy.Stars {
-				for _, planet := range star.Planets {
-					if planet.Owner == p.ID {
-						ownedStars++
-						break // count each star once if it has any owned planet
-					}
-				}
-			}
+		// Snapshot under the game's read lock — do not touch live fields here.
+		summary := g.ListSummary()
+		playerInfos := make([]GameListPlayerInfo, len(summary.Players))
+		for i, p := range summary.Players {
 			playerInfos[i] = GameListPlayerInfo{
 				ID:       p.ID,
 				Name:     p.Name,
-				RaceName: p.Race.Name,
+				RaceName: p.RaceName,
 				Color:    p.Color,
-				NumStars: ownedStars,
+				NumStars: p.NumStars,
 			}
 		}
 		item := GameListResponseItem{
 			GameID:      gameID,
-			NumStars:    len(g.Galaxy.Stars),
-			CurrentTurn: g.CurrentTurn,
-			LastTurnAt:  g.LastTurnAt,
+			NumStars:    summary.NumStars,
+			CurrentTurn: summary.CurrentTurn,
+			LastTurnAt:  summary.LastTurnAt,
 			Players:     playerInfos,
 		}
-		if !g.CreatedAt.IsZero() {
-			c := g.CreatedAt
+		if !summary.CreatedAt.IsZero() {
+			c := summary.CreatedAt
 			item.CreatedAt = &c
 		}
 		gameList = append(gameList, item)

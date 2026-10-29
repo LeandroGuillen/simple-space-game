@@ -1382,6 +1382,18 @@ func (g *Game) SetPlanetAutobuild(playerID, planetID uint, enabled bool) error {
 	return nil
 }
 
+// ShipPartsCollection returns the immutable ship-parts catalog under RLock so
+// handlers that hold a live Game still go through a locked accessor.
+func (g *Game) ShipPartsCollection() *ShipPartsCollection {
+	g.ensureMu()
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	if g.Resources == nil {
+		return nil
+	}
+	return g.Resources.ShipPartsCollection
+}
+
 func (g *Game) GetShipDesignsList(playerID uint) ([]*ShipDesign, error) {
 	g.ensureMu()
 	g.mu.RLock()

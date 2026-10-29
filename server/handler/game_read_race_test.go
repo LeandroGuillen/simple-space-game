@@ -69,3 +69,57 @@ func TestConcurrentSubmitTurnAndHTTPGetGameNoRace(t *testing.T) {
 
 	wg.Wait()
 }
+
+func TestConcurrentSubmitTurnAndHTTPGetGameListNoRace(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	resources, err := game.NewResourceManager()
+	require.NoError(t, err)
+
+	g, err := game.NewGame(resources, game.NewGameOptions{
+		PlayerName:  "Ada",
+		PlayerColor: model.DefaultPlayerColor(),
+		NumStars:    4,
+		Race:        game.DefaultRace("Human"),
+		NumPlayers:  2,
+	})
+	require.NoError(t, err)
+
+	server := &Server{
+		gameList:        map[string]*game.Game{g.ID: g},
+		ResourceManager: resources,
+	}
+
+	const readers = 6
+	const iterations = 30
+	var wg sync.WaitGroup
+
+	for i := 0; i < readers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for n := 0; n < iterations*4; n++ {
+				recorder := httptest.NewRecorder()
+				ctx, _ := gin.CreateTestContext(recorder)
+				ctx.Request = httptest.NewRequest(http.MethodGet, "/games", nil)
+				ctx.Set("server", server)
+				GetGameList(ctx)
+				require.Equal(t, http.StatusOK, recorder.Code)
+			}
+		}()
+	}
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for i := 0; i < iterations; i++ {
+			_, _, err := g.SubmitTurn(1, model.Commands{})
+			require.NoError(t, err)
+			_, advanced, err := g.SubmitTurn(2, model.Commands{})
+			require.NoError(t, err)
+			require.True(t, advanced)
+		}
+	}()
+
+	wg.Wait()
+}

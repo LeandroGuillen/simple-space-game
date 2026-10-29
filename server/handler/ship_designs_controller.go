@@ -131,5 +131,7 @@ func GetShipPartsList(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, g.Resources.ShipPartsCollection)
+	// Resources catalog is immutable after load, but still take the read lock
+	// so every handler that reaches a live Game goes through a locked accessor.
+	c.JSON(http.StatusOK, g.ShipPartsCollection())
 }

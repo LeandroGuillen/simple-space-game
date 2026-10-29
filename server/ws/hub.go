@@ -66,6 +66,7 @@ func (h *Hub) Run() {
 			}
 		case g := <-h.gameUpdates:
 			for client := range h.clients {
+				// ID is immutable after NewGame; GetVisibleGameForPlayer takes RLock.
 				if client.gameID != g.ID {
 					continue
 				}
