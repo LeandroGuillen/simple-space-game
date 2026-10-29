@@ -63,8 +63,15 @@ Decisions made with the user (2026-06-11):
 
 ### Known v1 simplifications (documented, future passes)
 
-- Ground invasions still resolve during AdvanceTurn even if orbit battle is
-  pending (sequencing quirk).
+- ~~Ground invasions still resolve during AdvanceTurn even if orbit battle is
+  pending (sequencing quirk).~~ **Fixed (v0.2.13)**: Invade orders at a star
+  with an active pending tactical battle move to `postponed_invasions` and
+  resolve (or cancel) only after the battle finishes, and only if the invader
+  still `holdsOrbit` (has parked ships; no rival armed ships remain). AI-vs-AI
+  auto-resolve uses the same orbit check in the same turn. Turn-ephemeral
+  `pending_invasions` are unchanged (cleared on hydrate / AdvanceTurn start /
+  failed advance); postponed entries persist with the pending battle and are
+  pruned on hydrate / rejected on upload if the battle/fleet/planet is gone.
 - Odin client cannot fight tactically; its turn submit is rejected while a
   battle is pending — it would need an "auto" call (server supports `auto`).
 - No shields/facing, missiles, boarding, retreat, ship systems damage.
@@ -94,3 +101,4 @@ Decisions made with the user (2026-06-11):
 - 2026-06-11: Plan agreed with user, file created. Implementation starting.
 - 2026-06-11: Server-side complete (8 tests green). Client-side implementation found complete by previous dev. Fixed pre-existing TS build errors (construction.test.ts, GalaxyPage.tsx, MutationPage.tsx). All tests and build green.
 - 2026-06-11: Verified `battledemo` scenario generates correct game state. Battle triggers on turn advance: 3 human Laser Gunships (speed 10, 3×Laser) vs 2 AI Fusion Raiders (speed 8, 2×Fusion) on 14×10 grid. All tasks complete.
+- 2026-10-29 (v0.2.13): Ground invasions wait for orbit. `holdsOrbit` + `postponed_invasions`; release from `finishTacticalBattle`; cancelled InvasionReport on orbit loss.

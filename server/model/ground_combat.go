@@ -46,6 +46,10 @@ type InvasionReport struct {
 	DefenderOwnerID uint                `json:"defender_owner_id"`
 	Success         bool                `json:"success"`
 	PlanetCaptured  bool                `json:"planet_captured"`
+	// Cancelled is set when an Invade order was dropped because the invader
+	// lost orbit control (or was destroyed) before ground combat could run.
+	// Omitted in older saves / successful fights (JSON backwards compatible).
+	Cancelled       bool                `json:"cancelled,omitempty"`
 	Rounds          []GroundBattleRound `json:"rounds"`
 	InitialAttacker GroundForce         `json:"initial_attacker"`
 	InitialDefender GroundForce         `json:"initial_defender"`

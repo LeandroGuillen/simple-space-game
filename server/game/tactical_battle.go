@@ -466,6 +466,9 @@ func (g *Game) finishTacticalBattle(b *TacticalBattle, winnerOwnerID uint, draw 
 	}
 
 	g.removePendingBattle(b.ID)
+	// MoO2: ground invasions wait for the orbital fight. Release any Invade
+	// orders that were postponed for this star now that fleets are reconciled.
+	g.releasePostponedInvasionsAtStar(b.StarID)
 }
 
 // fleetShipFor recovers the original FleetShip a tactical ship came from. The

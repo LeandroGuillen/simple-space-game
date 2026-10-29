@@ -34,6 +34,8 @@ type InvasionReport = {
   defender_owner_id: number;
   success: boolean;
   planet_captured: boolean;
+  /** Set when orbit was lost before ground combat (JSON omitempty). */
+  cancelled?: boolean;
   rounds: GroundBattleRound[];
   initial_attacker: GroundForce;
   initial_defender: GroundForce;
@@ -57,7 +59,7 @@ export function InvasionReportPanel(props: InvasionReportPanelProps) {
             <div class="invasion-report">
               <div class="invasion-report-header">
                 <h4>
-                  {report.success ? "🎯" : "❌"} Invasion of {report.planet_name}
+                  {report.cancelled ? "🚫" : report.success ? "🎯" : "❌"} Invasion of {report.planet_name}
                 </h4>
                 <div class="invasion-participants">
                   <span class="attacker">
@@ -70,12 +72,17 @@ export function InvasionReportPanel(props: InvasionReportPanelProps) {
               </div>
 
               <div class="invasion-outcome">
-                <Show when={report.planet_captured}>
+                <Show when={report.cancelled}>
+                  <div class="invasion-cancelled">
+                    Invasion cancelled — orbit lost before landing
+                  </div>
+                </Show>
+                <Show when={!report.cancelled && report.planet_captured}>
                   <div class="planet-captured">
                     ✅ Planet captured by {getPlayerName(report.attacker_owner_id)}
                   </div>
                 </Show>
-                <Show when={!report.planet_captured}>
+                <Show when={!report.cancelled && !report.planet_captured}>
                   <div class="invasion-failed">
                     ⚔️ Invasion repelled by defenders
                   </div>

@@ -10,9 +10,70 @@ const maxGroundBattleRounds = 20
 // baseHitChance is the baseline chance for ground units to hit each other
 const baseHitChance = 0.7
 
-// resolveGroundInvasions resolves only Invade orders recorded this turn.
-// Transports parked at a star without an order do nothing. Stale orders
-// (fleet gone / moved / target no longer valid) are dropped safely.
+// holdsOrbit reports whether ownerID controls orbit at starID for invasion
+// purposes (MoO2 rule): the owner has at least one ship parked at the star
+// (not in transit), and no other owner still has armed ships there.
+//
+// "Armed" means the ship materializes with at least one beam weapon from its
+// design (colony ships, freighters, and transports are unarmed and do not
+// deny orbit). A draw that leaves rival armed ships in orbit means nobody
+// holds it. The invader being destroyed or driven off also fails the check.
+func (g *Game) holdsOrbit(starID, ownerID uint) bool {
+	if g == nil || starID == 0 || ownerID == 0 {
+		return false
+	}
+	ownerPresent := false
+	for _, fleet := range g.Fleets {
+		if fleet == nil || fleet.StarID != starID {
+			continue
+		}
+		if fleet.DestinationStarID != 0 || fleet.TurnsRemaining != 0 {
+			continue
+		}
+		if len(fleet.Ships) == 0 {
+			continue
+		}
+		if fleet.Owner == ownerID {
+			ownerPresent = true
+			continue
+		}
+		if g.fleetHasArmedShips(fleet) {
+			return false
+		}
+	}
+	return ownerPresent
+}
+
+// fleetHasArmedShips reports whether any ship in the fleet carries beam
+// weapons when materialized for combat.
+func (g *Game) fleetHasArmedShips(fleet *Fleet) bool {
+	if fleet == nil {
+		return false
+	}
+	player, _ := g.getPlayer(fleet.Owner)
+	for _, fs := range fleet.Ships {
+		ship := materializeBattleShip(g, player, fs)
+		if ship != nil && len(ship.Beams) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func (g *Game) hasPendingBattleAtStar(starID uint) bool {
+	for _, b := range g.PendingBattles {
+		if b != nil && b.StarID == starID && b.Status == TacticalBattleActive {
+			return true
+		}
+	}
+	return false
+}
+
+// resolveGroundInvasions resolves Invade orders recorded this turn.
+// Orders at a star with an active pending tactical battle are moved to
+// PostponedInvasions (not fought yet). Otherwise the invader must hold
+// orbit (see holdsOrbit) or the order is cancelled with a report.
+// Transports parked without an order do nothing. Stale orders are dropped.
 func (g *Game) resolveGroundInvasions() []*InvasionReport {
 	if g == nil {
 		return nil
@@ -24,17 +85,126 @@ func (g *Game) resolveGroundInvasions() []*InvasionReport {
 	var reports []*InvasionReport
 	for i := range orders {
 		order := orders[i]
-		report := g.resolvePendingInvasion(order)
+		report := g.tryResolveInvasionOrder(order, true)
 		if report != nil {
+			// Append immediately so nextInvasionReportID stays unique in-batch.
+			g.InvasionReports = append(g.InvasionReports, report)
 			reports = append(reports, report)
 		}
 	}
 
-	if len(reports) > 0 {
-		g.InvasionReports = append(g.InvasionReports, reports...)
+	return reports
+}
+
+// tryResolveInvasionOrder either postpones (when allowPostpone and a battle is
+// pending), cancels (orbit lost), resolves ground combat, or silently drops
+// stale orders. Returns a report when combat ran or the order was cancelled.
+//
+// Stale orders (unknown planet, fleet still exists but never at the target
+// star) are dropped with no report. Orbit loss — invader fleet destroyed, or
+// present but rival armed ships remain — yields a Cancelled InvasionReport.
+func (g *Game) tryResolveInvasionOrder(order PendingInvasion, allowPostpone bool) *InvasionReport {
+	planet, err := g.getPlanet(order.TargetPlanetID)
+	if err != nil || planet == nil {
+		return nil
+	}
+	starID := planet.ParentStar
+
+	if allowPostpone && g.hasPendingBattleAtStar(starID) {
+		// Only keep orders that still validate; garbage does not persist.
+		if _, _, vErr := g.validateInvadeOrder(order.OwnerID, &InvadeCommand{
+			FleetID: order.FleetID, TargetPlanetID: order.TargetPlanetID, ShipIndexes: order.ShipIndexes,
+		}); vErr == nil {
+			g.postponeInvasion(order)
+		}
+		return nil
 	}
 
+	if !g.holdsOrbit(starID, order.OwnerID) {
+		fleet, ferr := g.getFleet(order.FleetID)
+		if ferr != nil {
+			// Fleet gone (destroyed / driven off in the orbital fight).
+			return g.cancelInvasionOrder(order, planet)
+		}
+		if fleet.StarID != starID || fleet.DestinationStarID != 0 || fleet.TurnsRemaining != 0 {
+			// Order never applied at this star — stale, not an orbit loss.
+			return nil
+		}
+		// Fleet is parked here but does not hold orbit (rival armed ships).
+		return g.cancelInvasionOrder(order, planet)
+	}
+
+	return g.resolvePendingInvasion(order)
+}
+
+// postponeInvasion stores an Invade order until the pending tactical battle at
+// its star finishes. Duplicate fleet+planet entries are ignored so a save/
+// load or double call cannot replay the same landing.
+func (g *Game) postponeInvasion(order PendingInvasion) {
+	for _, existing := range g.PostponedInvasions {
+		if existing.FleetID == order.FleetID && existing.TargetPlanetID == order.TargetPlanetID {
+			return
+		}
+	}
+	g.PostponedInvasions = append(g.PostponedInvasions, order)
+}
+
+// releasePostponedInvasionsAtStar runs after a tactical battle at starID ends.
+// Invaders that still hold orbit resolve via resolvePendingInvasion;
+// otherwise the order is cancelled with a report. Orders for other stars are
+// left untouched.
+func (g *Game) releasePostponedInvasionsAtStar(starID uint) []*InvasionReport {
+	if g == nil || len(g.PostponedInvasions) == 0 {
+		return nil
+	}
+
+	kept := make([]PendingInvasion, 0, len(g.PostponedInvasions))
+	var reports []*InvasionReport
+	for _, order := range g.PostponedInvasions {
+		planet, err := g.getPlanet(order.TargetPlanetID)
+		if err != nil || planet == nil {
+			continue
+		}
+		if planet.ParentStar != starID {
+			kept = append(kept, order)
+			continue
+		}
+		// Battle is over; do not re-postpone. Re-validate + holdsOrbit.
+		report := g.tryResolveInvasionOrder(order, false)
+		if report != nil {
+			g.InvasionReports = append(g.InvasionReports, report)
+			reports = append(reports, report)
+		}
+	}
+	g.PostponedInvasions = kept
 	return reports
+}
+
+func (g *Game) cancelInvasionOrder(order PendingInvasion, planet *Planet) *InvasionReport {
+	defenderOwner := uint(0)
+	planetName := ""
+	var x, y float64
+	if planet != nil {
+		defenderOwner = planet.Owner
+		planetName = planet.Name
+		if star, err := g.getStar(planet.ParentStar); err == nil && star != nil {
+			x = float64(star.X)
+			y = float64(star.Y)
+		}
+	}
+	return &InvasionReport{
+		ID:              g.nextInvasionReportID(),
+		Turn:            int64(g.CurrentTurn),
+		PlanetID:        order.TargetPlanetID,
+		PlanetName:      planetName,
+		X:               x,
+		Y:               y,
+		AttackerOwnerID: order.OwnerID,
+		DefenderOwnerID: defenderOwner,
+		Success:         false,
+		PlanetCaptured:  false,
+		Cancelled:       true,
+	}
 }
 
 func (g *Game) resolvePendingInvasion(order PendingInvasion) *InvasionReport {

@@ -45,10 +45,18 @@ type Game struct {
 	PendingBattles           []*TacticalBattle    `json:"pending_battles,omitempty"`
 	InvasionReports          []*InvasionReport    `json:"invasion_reports,omitempty"`
 	// PendingInvasions holds Invade orders accepted this turn until
-	// resolveGroundInvasions runs. Omitted/empty in older saves.
+	// resolveGroundInvasions runs. Turn-ephemeral: cleared on hydrate,
+	// at the start of AdvanceTurn, and on a failed advance. Omitted/empty
+	// in older saves.
 	PendingInvasions []PendingInvasion `json:"pending_invasions,omitempty"`
-	TurnSubmissions  map[uint]Commands `json:"-"`
-	TurnStatus       TurnStatus        `json:"turn_status"`
+	// PostponedInvasions holds Invade orders deferred because a tactical
+	// battle was still pending at the target star. Unlike PendingInvasions,
+	// these persist across saves while a matching pending battle remains
+	// (see HydrateLoadedGame / ValidateLoadedGame). Cleared when the battle
+	// finishes (resolve or cancel). Omitted/empty in older saves.
+	PostponedInvasions []PendingInvasion `json:"postponed_invasions,omitempty"`
+	TurnSubmissions    map[uint]Commands `json:"-"`
+	TurnStatus         TurnStatus        `json:"turn_status"`
 	// Debug is set when a debug-only endpoint mutates the game (e.g. research-all).
 	// Omitted/false in older saves.
 	Debug bool `json:"debug,omitempty"`
@@ -362,10 +370,11 @@ func (g *Game) SubmitTurn(playerID uint, commands Commands) (TurnStatus, bool, e
 func (g *Game) AdvanceTurn(submissions map[uint]Commands) error {
 	// A pending battle should have been fought via the battle API before any
 	// turn submission, but never let a stale one wedge the game.
-	g.autoResolveLeftoverBattles()
+	g.autoResolveLeftoverBattles() // also releases PostponedInvasions via finishTacticalBattle
 	// Drop any leftover PendingInvasions from a prior failed AdvanceTurn (or a
 	// bad save that somehow retained them). Orders for THIS turn are recorded
 	// below during applyPlayerTurn, then consumed by resolveGroundInvasions.
+	// PostponedInvasions are NOT cleared here — they persist with pending battles.
 	g.PendingInvasions = nil
 	existingPopulationTransfers := g.populationTransferIDs()
 	playerIDs := g.playerIDs()

@@ -150,7 +150,63 @@ func ValidateLoadedGame(g *Game, resources *ResourceManager) error {
 		}
 	}
 
+	// Postponed invasions must reference live fleets/planets/owners and a
+	// pending battle at the target star; otherwise reject the upload (Hydrate
+	// would prune them on trusted loads, but uploads must not smuggle orphans).
+	pendingBattleStars := make(map[uint]struct{}, len(g.PendingBattles))
+	for i, b := range g.PendingBattles {
+		if b == nil {
+			return fmt.Errorf("pending battle at index %d is nil", i)
+		}
+		if b.Status == TacticalBattleActive {
+			pendingBattleStars[b.StarID] = struct{}{}
+		}
+	}
+	seenPostponed := make(map[uint]map[uint]bool)
+	for i, order := range g.PostponedInvasions {
+		if _, ok := playerIDs[order.OwnerID]; !ok {
+			return fmt.Errorf("postponed invasion %d references missing player %d", i, order.OwnerID)
+		}
+		if _, ok := fleetIDs[order.FleetID]; !ok {
+			return fmt.Errorf("postponed invasion %d references missing fleet %d", i, order.FleetID)
+		}
+		if _, ok := planetIDs[order.TargetPlanetID]; !ok {
+			return fmt.Errorf("postponed invasion %d references missing planet %d", i, order.TargetPlanetID)
+		}
+		planetStar := postponedInvasionStarID(g, order.TargetPlanetID)
+		if planetStar == 0 {
+			return fmt.Errorf("postponed invasion %d references planet %d with unknown star", i, order.TargetPlanetID)
+		}
+		if _, ok := pendingBattleStars[planetStar]; !ok {
+			return fmt.Errorf("postponed invasion %d has no pending battle at star %d", i, planetStar)
+		}
+		if seenPostponed[order.FleetID] == nil {
+			seenPostponed[order.FleetID] = map[uint]bool{}
+		}
+		if seenPostponed[order.FleetID][order.TargetPlanetID] {
+			return fmt.Errorf("duplicate postponed invasion for fleet %d planet %d", order.FleetID, order.TargetPlanetID)
+		}
+		seenPostponed[order.FleetID][order.TargetPlanetID] = true
+	}
+
 	return nil
+}
+
+func postponedInvasionStarID(g *Game, planetID uint) uint {
+	for _, star := range g.Galaxy.Stars {
+		if star == nil {
+			continue
+		}
+		for _, planet := range star.Planets {
+			if planet != nil && planet.ID == planetID {
+				if planet.ParentStar != 0 {
+					return planet.ParentStar
+				}
+				return star.ID
+			}
+		}
+	}
+	return 0
 }
 
 func findPlayerByID(players []*Player, id uint) *Player {

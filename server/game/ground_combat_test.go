@@ -530,8 +530,7 @@ func TestStaleInvadeOrderDroppedWithoutPanic(t *testing.T) {
 	game, attacker, defenderPlanet := invasionHarness(t)
 	ownerBefore := defenderPlanet.Owner
 	game.PendingInvasions = []PendingInvasion{
-		{OwnerID: attacker.ID, FleetID: 9999, TargetPlanetID: defenderPlanet.ID}, // missing fleet
-		{OwnerID: attacker.ID, FleetID: 1, TargetPlanetID: defenderPlanet.ID},    // fleet not at star
+		{OwnerID: attacker.ID, FleetID: 1, TargetPlanetID: defenderPlanet.ID}, // fleet not at star
 	}
 	game.Fleets = append(game.Fleets, &Fleet{
 		ID:     1,
@@ -542,9 +541,20 @@ func TestStaleInvadeOrderDroppedWithoutPanic(t *testing.T) {
 
 	require.NotPanics(t, func() {
 		reports := game.resolveGroundInvasions()
-		assert.Empty(t, reports)
+		assert.Empty(t, reports, "fleet elsewhere is stale, not an orbit-loss cancel")
 	})
 	assert.Empty(t, game.PendingInvasions)
+	assert.Equal(t, ownerBefore, defenderPlanet.Owner)
+
+	// Missing fleet (destroyed) produces a cancelled report, not a panic.
+	game.PendingInvasions = []PendingInvasion{
+		{OwnerID: attacker.ID, FleetID: 9999, TargetPlanetID: defenderPlanet.ID},
+	}
+	require.NotPanics(t, func() {
+		reports := game.resolveGroundInvasions()
+		require.Len(t, reports, 1)
+		assert.True(t, reports[0].Cancelled)
+	})
 	assert.Equal(t, ownerBefore, defenderPlanet.Owner)
 }
 

@@ -124,6 +124,7 @@ func (g *Game) getVisibleGameForPlayerLocked(playerID uint) (*Game, error) {
 	visible.PendingBattles = filterPendingBattlesForPlayer(g.PendingBattles, playerID)
 	visible.BattleReports = filterBattleReportsForPlayer(g.BattleReports, playerID)
 	visible.InvasionReports = filterInvasionReportsForPlayer(g.InvasionReports, playerID)
+	visible.PostponedInvasions = filterPendingInvasionsForPlayer(g.PostponedInvasions, playerID)
 	visible.PopulationTransfers = filterPopulationTransfersForPlayer(g.PopulationTransfers, playerID)
 	visible.PendingColonyBases = filterPendingMapForPlayer(g.PendingColonyBases, playerID)
 	visible.PendingColonyShips = filterPendingMapForPlayer(g.PendingColonyShips, playerID)
@@ -304,6 +305,28 @@ func filterInvasionReportsForPlayer(reports []*model.InvasionReport, playerID ui
 		if report.AttackerOwnerID == playerID || report.DefenderOwnerID == playerID {
 			out = append(out, copyInvasionReport(report))
 		}
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
+}
+
+func filterPendingInvasionsForPlayer(orders []PendingInvasion, playerID uint) []PendingInvasion {
+	if len(orders) == 0 {
+		return nil
+	}
+	out := make([]PendingInvasion, 0, len(orders))
+	for _, order := range orders {
+		if order.OwnerID != playerID {
+			continue
+		}
+		cp := order
+		if order.ShipIndexes != nil {
+			idx := append([]uint(nil), (*order.ShipIndexes)...)
+			cp.ShipIndexes = &idx
+		}
+		out = append(out, cp)
 	}
 	if len(out) == 0 {
 		return nil
