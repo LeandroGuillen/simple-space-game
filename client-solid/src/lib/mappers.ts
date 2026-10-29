@@ -252,9 +252,10 @@ function mapPlayer(player: ApiPlayer): PlayerViewModel {
       player.race?.Stats?.PopulationGrowth ??
       0,
     raceGrants: mapGrants(player.race?.grants),
-    treasury: player.treasury,
-    taxRate: player.tax_rate,
-    researchPoints: player.research_points,
+    // Rival players omit private empire fields in fog-of-war filtered views.
+    treasury: player.treasury ?? 0,
+    taxRate: player.tax_rate ?? 0,
+    researchPoints: player.research_points ?? 0,
     researchedTechs: player.researched_techs ?? [],
     hyperAdvanced: player.hyper_advanced ?? {},
     available,
@@ -269,8 +270,8 @@ function mapPlayer(player: ApiPlayer): PlayerViewModel {
         }
       : null,
     fleets: player.fleets ?? [],
-    freighters: player.freighters,
-    freightersUsed: player.freighters_used,
+    freighters: player.freighters ?? 0,
+    freightersUsed: player.freighters_used ?? 0,
     shipDesigns:
       player.ship_designs?.map((design) => mapShipDesign(design, false)) ?? [],
     commandPointsCapacity: player.command_points_capacity ?? 0,

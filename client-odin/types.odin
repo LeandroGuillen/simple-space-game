@@ -108,6 +108,8 @@ Api_Fleet_Ship :: struct {
 	name: string `json:"name"`,
 }
 
+// Enemy fleets in a visible game omit destination/order fields; missing JSON
+// keys decode as 0, which means "in orbit / no known destination".
 Api_Fleet :: struct {
 	id:                   int              `json:"id"`,
 	owner:                int              `json:"owner"`,
@@ -137,6 +139,10 @@ Api_Research_Project :: struct {
 	progress:   int    `json:"progress"`,
 }
 
+// Api_Player is the per-player slice of a visible game. For the local player
+// every field is populated; for rivals the server omits private empire fields
+// (treasury, research, techs, explored stars, etc.) and JSON decode leaves
+// them at zero — callers must only read private stats from the local player.
 Api_Player :: struct {
 	id:        int           `json:"id"`,
 	name:      string        `json:"name"`,

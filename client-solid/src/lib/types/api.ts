@@ -403,9 +403,10 @@ export type ApiPlayer = {
   name: string;
   color: string;
   race?: ApiRace;
-  treasury: number;
-  tax_rate: number;
-  research_points: number;
+  /** Omitted for rival players in fog-of-war filtered game views. */
+  treasury?: number;
+  tax_rate?: number;
+  research_points?: number;
   researched_techs?: string[] | null;
   hyper_advanced?: Record<string, number> | null;
   current_research?: ApiResearchProject;
@@ -421,8 +422,8 @@ export type ApiPlayer = {
     ship_systems?: string[] | null;
   };
   fleets?: number[] | null;
-  freighters: number;
-  freighters_used: number;
+  freighters?: number;
+  freighters_used?: number;
   ship_designs?: ApiShipDesign[] | null;
   command_points_capacity?: number;
   command_points_used?: number;

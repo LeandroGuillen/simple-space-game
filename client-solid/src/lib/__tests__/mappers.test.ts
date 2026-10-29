@@ -215,3 +215,74 @@ describe('mapGame', () => {
     expect(game.galaxy.height).toBe(400)
   })
 })
+
+  it('tolerates rival players with private fields omitted', () => {
+    const apiGame: ApiGame = {
+      id: 'game-fog',
+      current_turn: 3500,
+      galaxy: { stars: [] },
+      players: [
+        {
+          id: 1,
+          name: 'Ada',
+          color: '#FFFFFF',
+          race: { id: 0, name: 'Human' },
+          treasury: 24,
+          tax_rate: 0,
+          research_points: 5,
+          researched_techs: ['Automated Factory'],
+          available: { buildings: ['Colony Base'] },
+          fleets: [1],
+          freighters: 2,
+          freighters_used: 1,
+          ship_designs: [],
+        },
+        {
+          id: 2,
+          name: 'Rival',
+          color: '#FF0000',
+          race: { id: 0, name: 'Mrrshan' },
+          // Fog-of-war: private empire fields intentionally omitted.
+        },
+      ],
+      fleets: [
+        {
+          id: 1,
+          owner: 1,
+          star_id: 1,
+          x: 0,
+          y: 0,
+          ships: [{ type: 'ship_design', name: 'Scout' }],
+        },
+        {
+          id: 2,
+          owner: 2,
+          star_id: 1,
+          x: 10,
+          y: 10,
+          // Enemy destination/orders omitted by the server.
+          ships: [{ type: 'ship_design', name: 'Raider' }],
+        },
+      ],
+      resources: {
+        ship_parts: {
+          hull_sizes: [],
+          drives: [],
+          armors: [],
+          computers: [],
+          fuel_cells: [],
+          shields: [],
+        },
+      },
+    }
+
+    const game = mapGame(apiGame)
+    expect(game.players[1]?.name).toBe('Rival')
+    expect(game.players[1]?.treasury).toBe(0)
+    expect(game.players[1]?.researchPoints).toBe(0)
+    expect(game.players[1]?.researchedTechs).toEqual([])
+    expect(game.players[1]?.freighters).toBe(0)
+    expect(game.players[1]?.availableBuildings).toEqual([])
+    expect(game.fleets[1]?.destinationStarId).toBeNull()
+    expect(game.fleets[1]?.turnsRemaining).toBe(0)
+  })
