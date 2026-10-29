@@ -233,22 +233,34 @@ func (g *Game) completePopulationTransfer(transfer PopulationTransfer) {
 	if err != nil {
 		return
 	}
+	cargo := int64(transfer.PopulationUnits) * 1000
+
 	destination, err := g.getPlanet(transfer.DestinationPlanetID)
-	if err != nil || destination.Owner != transfer.Owner {
+	if err != nil || destination == nil || destination.Owner == 0 || destination.Owner != transfer.Owner {
+		why := fmt.Sprintf("destination planet %d unavailable for landing", transfer.DestinationPlanetID)
+		if err != nil || destination == nil {
+			why = fmt.Sprintf("destination planet %d missing", transfer.DestinationPlanetID)
+		} else if destination.Owner == 0 {
+			why = fmt.Sprintf("destination planet %d unowned", transfer.DestinationPlanetID)
+		} else {
+			why = fmt.Sprintf("destination planet %d owned by player %d", transfer.DestinationPlanetID, destination.Owner)
+		}
+		// Destination lost before arrival: send the full cargo home (capacity-aware).
+		g.refundTransferCargoToSource(transfer, player, cargo, why)
 		return
 	}
+
 	hydratePlanetPopulationCapacity(g, destination, player)
 	beforeUnits := destination.Population / 1000
-	arrivingPopulation := int64(transfer.PopulationUnits) * 1000
 	room := destination.MaxPopulation - destination.Population
 	if room < 0 {
 		room = 0
 	}
-	landed := arrivingPopulation
+	landed := cargo
 	if landed > room {
 		landed = room
 	}
-	overflow := arrivingPopulation - landed
+	overflow := cargo - landed
 	destination.Population += landed
 	afterUnits := destination.Population / 1000
 	if afterUnits > beforeUnits {
@@ -256,24 +268,61 @@ func (g *Game) completePopulationTransfer(transfer PopulationTransfer) {
 	}
 	capAssignedPopulation(destination)
 
-	if overflow <= 0 {
+	if overflow > 0 {
+		g.refundTransferCargoToSource(
+			transfer,
+			player,
+			overflow,
+			fmt.Sprintf("destination planet %d at capacity", destination.ID),
+		)
+	}
+}
+
+// refundTransferCargoToSource returns cargo (raw population points) to the
+// transfer's source when the player still owns it. Placement respects the
+// source MaxPopulation: only what fits is added (with the same new-unit
+// assignment / capAssignedPopulation path as a normal landing). Any remainder,
+// or the whole cargo when the source is missing/unowned, is logged as lost.
+// Used for destination overflow and for destination-lost-before-arrival refunds.
+func (g *Game) refundTransferCargoToSource(transfer PopulationTransfer, player *Player, cargo int64, why string) {
+	if cargo <= 0 {
 		return
 	}
 	source, err := g.getPlanet(transfer.SourcePlanetID)
-	if err != nil || source.Owner != transfer.Owner {
+	if err != nil || source == nil || source.Owner != transfer.Owner {
 		log.Printf(
-			"population transfer %d: %d population lost (no owned source planet %d to refund)",
-			transfer.ID, overflow, transfer.SourcePlanetID,
+			"population transfer %d: %d population lost (no owned source planet %d to refund; %s)",
+			transfer.ID, cargo, transfer.SourcePlanetID, why,
 		)
 		return
 	}
-	beforeSourceUnits := source.Population / 1000
-	source.Population += overflow
-	afterSourceUnits := source.Population / 1000
-	if afterSourceUnits > beforeSourceUnits {
-		assignNewPopulation(g, player, source, afterSourceUnits-beforeSourceUnits)
+
+	hydratePlanetPopulationCapacity(g, source, player)
+	room := source.MaxPopulation - source.Population
+	if room < 0 {
+		room = 0
 	}
-	capAssignedPopulation(source)
+	refunded := cargo
+	if refunded > room {
+		refunded = room
+	}
+	lost := cargo - refunded
+
+	if refunded > 0 {
+		beforeUnits := source.Population / 1000
+		source.Population += refunded
+		afterUnits := source.Population / 1000
+		if afterUnits > beforeUnits {
+			assignNewPopulation(g, player, source, afterUnits-beforeUnits)
+		}
+		capAssignedPopulation(source)
+	}
+	if lost > 0 {
+		log.Printf(
+			"population transfer %d: %d population lost (source planet %d at capacity; %s)",
+			transfer.ID, lost, source.ID, why,
+		)
+	}
 }
 
 // pendingInboundPopulationUnits sums PopulationUnits already in flight to destination

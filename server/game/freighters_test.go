@@ -372,6 +372,209 @@ func TestPopulationTransferOverflowLostWhenSourceGone(t *testing.T) {
 	assert.Equal(t, uint(0), player.FreightersUsed)
 }
 
+func TestPopulationTransferRefundsWhenDestinationCaptured(t *testing.T) {
+	// (a) destination captured (owner changed) before arrival -> full cargo refunded.
+	g := newPopulationTransferHarness()
+	player := g.Players[0]
+	source := g.Galaxy.Stars[0].Planets[0]
+	destination := g.Galaxy.Stars[0].Planets[1]
+	cargo := int64(1000)
+	sourceBefore := source.Population
+	destBefore := destination.Population
+	destination.Owner = 2 // captured by rival
+
+	g.PopulationTransfers = []model.PopulationTransfer{{
+		ID: 1, Owner: player.ID,
+		SourcePlanetID: source.ID, DestinationPlanetID: destination.ID,
+		PopulationUnits: 1, FreightersReserved: 5, TurnsRemaining: 1,
+	}}
+	player.FreightersUsed = 5
+
+	require.NotPanics(t, func() {
+		g.advancePopulationTransfers(map[uint]bool{1: true})
+	})
+
+	assert.Empty(t, g.PopulationTransfers)
+	assert.Equal(t, sourceBefore+cargo, source.Population, "full cargo refunded to owned source")
+	assert.Equal(t, destBefore, destination.Population, "captured destination must not receive cargo")
+	assert.Equal(t, uint(0), player.FreightersUsed)
+}
+
+func TestPopulationTransferRefundsWhenDestinationMissing(t *testing.T) {
+	// (b) destination no longer exists -> refund to source.
+	g := newPopulationTransferHarness()
+	player := g.Players[0]
+	source := g.Galaxy.Stars[0].Planets[0]
+	cargo := int64(1000)
+	sourceBefore := source.Population
+	missingDestID := uint(99)
+
+	g.PopulationTransfers = []model.PopulationTransfer{{
+		ID: 1, Owner: player.ID,
+		SourcePlanetID: source.ID, DestinationPlanetID: missingDestID,
+		PopulationUnits: 1, FreightersReserved: 5, TurnsRemaining: 1,
+	}}
+	player.FreightersUsed = 5
+
+	require.NotPanics(t, func() {
+		g.advancePopulationTransfers(map[uint]bool{1: true})
+	})
+
+	assert.Empty(t, g.PopulationTransfers)
+	assert.Equal(t, sourceBefore+cargo, source.Population)
+	assert.Equal(t, uint(0), player.FreightersUsed)
+}
+
+func TestPopulationTransferRefundsWhenDestinationUnowned(t *testing.T) {
+	// (c) destination owner 0 -> refund.
+	g := newPopulationTransferHarness()
+	player := g.Players[0]
+	source := g.Galaxy.Stars[0].Planets[0]
+	destination := g.Galaxy.Stars[0].Planets[1]
+	cargo := int64(1000)
+	sourceBefore := source.Population
+	destBefore := destination.Population
+	destination.Owner = 0
+
+	g.PopulationTransfers = []model.PopulationTransfer{{
+		ID: 1, Owner: player.ID,
+		SourcePlanetID: source.ID, DestinationPlanetID: destination.ID,
+		PopulationUnits: 1, FreightersReserved: 5, TurnsRemaining: 1,
+	}}
+	player.FreightersUsed = 5
+
+	require.NotPanics(t, func() {
+		g.advancePopulationTransfers(map[uint]bool{1: true})
+	})
+
+	assert.Empty(t, g.PopulationTransfers)
+	assert.Equal(t, sourceBefore+cargo, source.Population)
+	assert.Equal(t, destBefore, destination.Population)
+	assert.Equal(t, uint(0), player.FreightersUsed)
+}
+
+func TestPopulationTransferLostWhenSourceAndDestinationGone(t *testing.T) {
+	// (d) source also gone/captured -> no panic, loss only logged, no pop elsewhere.
+	g := newPopulationTransferHarness()
+	player := g.Players[0]
+	source := g.Galaxy.Stars[0].Planets[0]
+	destination := g.Galaxy.Stars[0].Planets[1]
+	sourceBefore := source.Population
+	destBefore := destination.Population
+	source.Owner = 2
+	destination.Owner = 2
+
+	g.PopulationTransfers = []model.PopulationTransfer{{
+		ID: 1, Owner: player.ID,
+		SourcePlanetID: source.ID, DestinationPlanetID: destination.ID,
+		PopulationUnits: 1, FreightersReserved: 5, TurnsRemaining: 1,
+	}}
+	player.FreightersUsed = 5
+
+	require.NotPanics(t, func() {
+		g.advancePopulationTransfers(map[uint]bool{1: true})
+	})
+
+	assert.Empty(t, g.PopulationTransfers)
+	assert.Equal(t, sourceBefore, source.Population)
+	assert.Equal(t, destBefore, destination.Population)
+	assert.Equal(t, uint(0), player.FreightersUsed)
+
+	// Missing source planet id equally safe.
+	g2 := newPopulationTransferHarness()
+	g2.Players[0].FreightersUsed = 5
+	g2.Galaxy.Stars[0].Planets[1].Owner = 0
+	source2Before := g2.Galaxy.Stars[0].Planets[0].Population
+	dest2Before := g2.Galaxy.Stars[0].Planets[1].Population
+	g2.PopulationTransfers = []model.PopulationTransfer{{
+		ID: 2, Owner: 1,
+		SourcePlanetID: 999, DestinationPlanetID: 2,
+		PopulationUnits: 1, FreightersReserved: 5, TurnsRemaining: 1,
+	}}
+	require.NotPanics(t, func() {
+		g2.advancePopulationTransfers(map[uint]bool{2: true})
+	})
+	assert.Equal(t, source2Before, g2.Galaxy.Stars[0].Planets[0].Population)
+	assert.Equal(t, dest2Before, g2.Galaxy.Stars[0].Planets[1].Population)
+}
+
+func TestPopulationTransferRefundRespectsSourceCapacity(t *testing.T) {
+	// (e) source near capacity -> only what fits refunded; remainder lost.
+	// Conservation: refund + lost = cargo.
+	g := newPopulationTransferHarness()
+	player := g.Players[0]
+	source := g.Galaxy.Stars[0].Planets[0]
+	destination := g.Galaxy.Stars[0].Planets[1]
+	// Tiny Terran MaxPop = 4000; leave 500 room for a 1000-cargo refund.
+	source.Size = model.PlanetSizeTiny
+	source.Environment = model.PlanetEnvironmentTerran
+	source.Population = 3500
+	source.Food.Farmers = 3
+	destination.Owner = 2 // force full-cargo refund path
+	cargo := int64(1000)
+	sourceBefore := source.Population
+	destBefore := destination.Population
+
+	g.PopulationTransfers = []model.PopulationTransfer{{
+		ID: 1, Owner: player.ID,
+		SourcePlanetID: source.ID, DestinationPlanetID: destination.ID,
+		PopulationUnits: 1, FreightersReserved: 5, TurnsRemaining: 1,
+	}}
+	player.FreightersUsed = 5
+
+	require.NotPanics(t, func() {
+		g.advancePopulationTransfers(map[uint]bool{1: true})
+	})
+
+	hydratePlanetPopulationCapacity(g, source, player)
+	refunded := source.Population - sourceBefore
+	lost := cargo - refunded
+	assert.Equal(t, int64(500), refunded, "only capacity room should be refunded")
+	assert.Equal(t, int64(500), lost)
+	assert.Equal(t, cargo, refunded+lost, "conservation: refund + lost = cargo")
+	assert.Equal(t, source.MaxPopulation, source.Population)
+	assert.Equal(t, destBefore, destination.Population)
+	assert.Equal(t, uint(0), player.FreightersUsed)
+}
+
+func TestPopulationTransferOverflowRefundRespectsSourceCapacity(t *testing.T) {
+	// (f) overflow path also capacity-caps the source refund.
+	g := newPopulationTransferHarness()
+	player := g.Players[0]
+	source := g.Galaxy.Stars[0].Planets[0]
+	destination := g.Galaxy.Stars[0].Planets[1]
+	destination.Size = model.PlanetSizeTiny
+	destination.Environment = model.PlanetEnvironmentTerran
+	destination.Population = 3500 // Tiny Terran cap 4000 → 500 lands, 500 overflow
+	source.Size = model.PlanetSizeTiny
+	source.Environment = model.PlanetEnvironmentTerran
+	source.Population = 3800 // room 200 under Tiny Terran 4000
+	source.Food.Farmers = 3
+	cargo := int64(1000)
+	sourceBefore := source.Population
+
+	g.PopulationTransfers = []model.PopulationTransfer{{
+		ID: 1, Owner: player.ID,
+		SourcePlanetID: source.ID, DestinationPlanetID: destination.ID,
+		PopulationUnits: 1, FreightersReserved: 5, TurnsRemaining: 1,
+	}}
+	player.FreightersUsed = 5
+
+	require.NotPanics(t, func() {
+		g.advancePopulationTransfers(map[uint]bool{1: true})
+	})
+
+	assert.Equal(t, int64(4000), destination.Population)
+	refunded := source.Population - sourceBefore
+	overflow := int64(500)
+	lost := overflow - refunded
+	assert.Equal(t, int64(200), refunded)
+	assert.Equal(t, int64(300), lost)
+	assert.Equal(t, overflow, refunded+lost)
+	assert.Equal(t, uint(0), player.FreightersUsed)
+	_ = cargo
+}
+
 func newFreighterHarness() *Game {
 	return &Game{
 		Players: []*model.Player{{
