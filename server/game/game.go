@@ -59,7 +59,7 @@ type Game struct {
 	TurnStatus         TurnStatus        `json:"turn_status"`
 	// Debug is set when a debug-only endpoint mutates the game (e.g. research-all).
 	// Omitted/false in older saves.
-	Debug bool `json:"debug,omitempty"`
+	Debug bool          `json:"debug,omitempty"`
 	mu    *sync.RWMutex `json:"-"`
 }
 
@@ -153,7 +153,7 @@ func NewGame(resources *ResourceManager, options NewGameOptions) (*Game, error) 
 	}
 	g.resetTurnStatus()
 
-	startingStars := startingStarIDs(numPlayers, numStars)
+	startingStars := SelectHomeStarIDs(g.Galaxy.Stars, numPlayers)
 	for index, player := range g.Players {
 		starID := startingStars[index]
 		if err := g.CreateCapitalPlanetAtStar(player.ID, starID); err != nil {
@@ -169,7 +169,10 @@ func NewGame(resources *ResourceManager, options NewGameOptions) (*Game, error) 
 	return g, nil
 }
 
-func startingStarIDs(numPlayers, numStars uint) []uint {
+// StartingStarIDs is the legacy count-only stride over star IDs. Prefer
+// SelectHomeStarIDs once positions are known — stride alone can land homes on
+// adjacent lattice cells when separation is ~1 parsec.
+func StartingStarIDs(numPlayers, numStars uint) []uint {
 	if numPlayers == 0 {
 		return []uint{}
 	}
@@ -191,6 +194,84 @@ func startingStarIDs(numPlayers, numStars uint) []uint {
 		}
 		used[starID] = true
 		ids = append(ids, starID)
+	}
+	return ids
+}
+
+// SelectHomeStarIDs chooses home stars so capitals stay more than one parsec
+// apart whenever the star field allows it. Player 1 keeps the lowest star ID
+// (legacy star 1) for stable single-player / test capitals; remaining homes use
+// greedy farthest-point sampling. Deterministic for a given star-position set
+// (no RNG). Star coordinates for a seed are unchanged; secondary home IDs may
+// differ from the legacy StartingStarIDs stride.
+func SelectHomeStarIDs(stars []*Star, numPlayers uint) []uint {
+	if numPlayers == 0 {
+		return []uint{}
+	}
+	type cand struct {
+		id   uint
+		x, y float64
+	}
+	cands := make([]cand, 0, len(stars))
+	for _, s := range stars {
+		if s == nil {
+			continue
+		}
+		cands = append(cands, cand{id: s.ID, x: float64(s.X), y: float64(s.Y)})
+	}
+	if len(cands) == 0 {
+		return []uint{}
+	}
+	n := int(numPlayers)
+	if n > len(cands) {
+		n = len(cands)
+	}
+
+	// Pin first home to the lowest star ID (normally 1) — matches legacy
+	// StartingStarIDs and keeps player-1 capital on planet 1 for existing tests.
+	first := 0
+	for i := 1; i < len(cands); i++ {
+		if cands[i].id < cands[first].id {
+			first = i
+		}
+	}
+
+	chosenIdx := make([]int, 0, n)
+	chosenIdx = append(chosenIdx, first)
+	used := make([]bool, len(cands))
+	used[first] = true
+
+	for len(chosenIdx) < n {
+		pick := -1
+		pickMin := -1.0
+		for i, c := range cands {
+			if used[i] {
+				continue
+			}
+			minD := math.MaxFloat64
+			for _, ci := range chosenIdx {
+				dx := c.x - cands[ci].x
+				dy := c.y - cands[ci].y
+				d := math.Sqrt(dx*dx + dy*dy)
+				if d < minD {
+					minD = d
+				}
+			}
+			if minD > pickMin {
+				pickMin = minD
+				pick = i
+			}
+		}
+		if pick < 0 {
+			break
+		}
+		used[pick] = true
+		chosenIdx = append(chosenIdx, pick)
+	}
+
+	ids := make([]uint, len(chosenIdx))
+	for i, ci := range chosenIdx {
+		ids[i] = cands[ci].id
 	}
 	return ids
 }

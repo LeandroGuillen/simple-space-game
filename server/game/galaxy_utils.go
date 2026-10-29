@@ -21,10 +21,10 @@ const (
 	desiredMinStarSeparation = float64(parsecInPixels)
 	// Random packing is much less dense than a lattice. Above this fraction of
 	// gridCapacity(desiredSep), skip random and place on the lattice up front.
-	// Chosen so web client counts (medium 40, huge 100) stay on random@60px,
-	// while the previously-broken band (tiny 9–12, medium 53–70, huge 170+)
-	// goes straight to lattice.
-	randomSafeCapacityFraction = 0.60
+	// Kept high so counts that reliably succeed at random@60px (medium 43–56,
+	// huge 143–170, tiny 8–12) stay on random; only near-capacity / over-capacity
+	// go straight to lattice. Web client counts (medium 40, huge 100) stay random.
+	randomSafeCapacityFraction = 0.85
 	// Cap random attempts per star; on failure the whole galaxy is re-laid on
 	// a lattice (never the old 1px CRITICAL path).
 	maxRandomStarPlacementTries = 8_000
@@ -192,10 +192,65 @@ func tryRandomStarPosition(star *model.Star, existing []*model.Star, width, heig
 	return false
 }
 
-// placeStarsOnLattice assigns stars to a rectangular lattice. When n fits at
-// the preferred 60px separation, uses a 60px grid (largest preferred spacing).
-// Otherwise uses packingLattice for the largest spacing that still fits.
-// Returns the realized minimum separation.
+type latticeCell struct{ x, y int64 }
+
+func latticeCells(cols, rows int, stepX, stepY, width, height int64, n int) []latticeCell {
+	cells := make([]latticeCell, 0, n)
+	for r := 0; r < rows && len(cells) < n; r++ {
+		for c := 0; c < cols && len(cells) < n; c++ {
+			x := int64(c) * stepX
+			y := int64(r) * stepY
+			if x >= width {
+				x = width - 1
+			}
+			if y >= height {
+				y = height - 1
+			}
+			cells = append(cells, latticeCell{x: x, y: y})
+		}
+	}
+	return cells
+}
+
+func preferredGridCells(width, height int64, sep float64) []latticeCell {
+	step := int64(sep)
+	if step < 1 {
+		step = 1
+	}
+	cols := int(math.Floor(float64(width-1)/sep)) + 1
+	rows := int(math.Floor(float64(height-1)/sep)) + 1
+	return latticeCells(cols, rows, step, step, width, height, cols*rows)
+}
+
+// selectSpreadCells picks n cells from all, spaced through the slice so a
+// partial fill still covers the map instead of only the first rows.
+func selectSpreadCells(all []latticeCell, n int) []latticeCell {
+	if n <= 0 {
+		return nil
+	}
+	if n >= len(all) {
+		out := make([]latticeCell, len(all))
+		copy(out, all)
+		return out
+	}
+	out := make([]latticeCell, n)
+	for i := 0; i < n; i++ {
+		// Evenly spaced indices across the full grid list.
+		idx := int(uint64(i) * uint64(len(all)) / uint64(n))
+		if idx >= len(all) {
+			idx = len(all) - 1
+		}
+		out[i] = all[idx]
+	}
+	return out
+}
+
+// placeStarsOnLattice assigns stars across the WHOLE map. Prefers
+// packingLattice whenever its spacing is >= 60px (even steps over width/height).
+// When packingLattice would squeeze below 60px but a 60px grid still fits n,
+// takes a spatially spread subset of that grid. Otherwise uses packingLattice
+// at the densest fitting spacing. Cells stay in spread order so startingStarIDs
+// (stride by ID) lands homes across the map instead of down one edge.
 func placeStarsOnLattice(stars []*model.Star, width, height int64) float64 {
 	n := uint(len(stars))
 	if n == 0 {
@@ -207,35 +262,29 @@ func placeStarsOnLattice(stars []*model.Star, width, height int64) float64 {
 		return desiredMinStarSeparation
 	}
 
-	var cols, rows int
-	var stepX, stepY int64
+	plCols, plRows, plStepX, plStepY, plSep := packingLattice(width, height, n)
+	var cells []latticeCell
 	var sep float64
 
-	if gridCapacity(width, height, desiredMinStarSeparation) >= n {
+	switch {
+	case plSep+1e-9 >= desiredMinStarSeparation:
+		// Evenly stepped lattice covering the full map at >= 1 parsec.
+		sep = plSep
+		cells = latticeCells(plCols, plRows, plStepX, plStepY, width, height, int(n))
+	case gridCapacity(width, height, desiredMinStarSeparation) >= n:
+		// packingLattice squeezed below 60px, but a 60px grid still fits —
+		// spread a subset of that grid over the map (not row-fill from 0,0).
 		sep = desiredMinStarSeparation
-		stepX = int64(sep)
-		stepY = int64(sep)
-		cols = int(math.Floor(float64(width-1)/sep)) + 1
-		rows = int(math.Floor(float64(height-1)/sep)) + 1
-	} else {
-		cols, rows, stepX, stepY, sep = packingLattice(width, height, n)
+		all := preferredGridCells(width, height, desiredMinStarSeparation)
+		cells = selectSpreadCells(all, int(n))
+	default:
+		sep = plSep
+		cells = latticeCells(plCols, plRows, plStepX, plStepY, width, height, int(n))
 	}
 
-	idx := 0
-	for r := 0; r < rows && idx < int(n); r++ {
-		for c := 0; c < cols && idx < int(n); c++ {
-			x := int64(c) * stepX
-			y := int64(r) * stepY
-			if x >= width {
-				x = width - 1
-			}
-			if y >= height {
-				y = height - 1
-			}
-			stars[idx].X = x
-			stars[idx].Y = y
-			idx++
-		}
+	for i := 0; i < int(n) && i < len(cells); i++ {
+		stars[i].X = cells[i].x
+		stars[i].Y = cells[i].y
 	}
 	return sep
 }
