@@ -19,8 +19,14 @@ const (
 	// Preferred minimum star separation (1 parsec). Scaled down only when a
 	// built-in map cannot fit the requested star count at this distance.
 	desiredMinStarSeparation = float64(parsecInPixels)
-	// Cap random attempts per star; lattice / grid-jitter handles exhaustion so
-	// generation never burns hundreds of thousands of rejects.
+	// Random packing is much less dense than a lattice. Above this fraction of
+	// gridCapacity(desiredSep), skip random and place on the lattice up front.
+	// Chosen so web client counts (medium 40, huge 100) stay on random@60px,
+	// while the previously-broken band (tiny 9–12, medium 53–70, huge 170+)
+	// goes straight to lattice.
+	randomSafeCapacityFraction = 0.60
+	// Cap random attempts per star; on failure the whole galaxy is re-laid on
+	// a lattice (never the old 1px CRITICAL path).
 	maxRandomStarPlacementTries = 8_000
 )
 
@@ -32,13 +38,22 @@ var ClientGalaxyStarCounts = map[string]uint{
 	"huge":   100,
 }
 
-// GalaxyPlacementStats reports how star positions were chosen. Used by tests
-// to assert built-in sizes never exhaust random placement.
+// GalaxyPlacementStats reports how star positions were chosen.
 type GalaxyPlacementStats struct {
-	MinSeparation   float64
-	GridFallbacks   int  // stars that fell back after random tries failed
-	UsedLattice     bool // entire map placed on a packing lattice (tight pack)
-	ExhaustedRandom bool // true if any star needed grid-jitter after random
+	MinSeparation float64
+	// UsedLattice is true when every star was placed on the packing lattice
+	// (either chosen up front or after random placement failed).
+	UsedLattice bool
+	// RelayoutFromRandom is true when random placement failed mid-galaxy and
+	// all stars were re-placed on the lattice.
+	RelayoutFromRandom bool
+	// ExhaustedRandom is true when random tries were exhausted for at least
+	// one star (same situations as RelayoutFromRandom). Never indicates a
+	// collapsed 1px placement — that path is gone.
+	ExhaustedRandom bool
+	// CollapsedPlacement is always false after generation; retained so tests
+	// can assert the old CRITICAL 1px path is unreachable.
+	CollapsedPlacement bool
 }
 
 func galaxyDimensionsForSize(size string) (int64, int64) {
@@ -127,8 +142,7 @@ func packingLattice(width, height int64, n uint) (cols, rows int, stepX, stepY i
 
 // minSeparationPixels returns the placement separation for a galaxy of the
 // given size and star count. Prefers 1 parsec (60px); if that cannot pack the
-// requested count, uses the lattice spacing that fits. Medium/Huge at client
-// star counts keep the full 60px; Tiny (15 into 240×180) is the case that scales.
+// requested count, uses the largest lattice spacing that fits.
 func minSeparationPixels(width, height int64, numStars uint) float64 {
 	desired := desiredMinStarSeparation
 	if numStars <= 1 {
@@ -141,17 +155,25 @@ func minSeparationPixels(width, height int64, numStars uint) float64 {
 	return sep
 }
 
-func needsTightLattice(width, height int64, numStars uint) bool {
+// preferLattice reports whether random@60px is unsafe for this count: either
+// the desired separation cannot pack n stars, or n is above the safe fraction
+// of lattice capacity (random packing fails well before the lattice fills).
+func preferLattice(width, height int64, numStars uint) bool {
 	if numStars <= 1 {
 		return false
 	}
-	return gridCapacity(width, height, desiredMinStarSeparation) < numStars
+	cap := gridCapacity(width, height, desiredMinStarSeparation)
+	if cap < numStars {
+		return true
+	}
+	safe := uint(float64(cap) * randomSafeCapacityFraction)
+	return numStars > safe
 }
 
-// assignGalaxyStarPosition sets X,Y at least minSep from all previously placed
-// stars via random search. On exhaustion uses deterministic grid-jitter (never
-// silently leaves the star at 0,0). Returns whether the fallback was required.
-func assignGalaxyStarPosition(star *model.Star, existing []*model.Star, width, height int64, minSep float64) bool {
+// tryRandomStarPosition attempts random placement only. Returns true if placed
+// with minSep. On exhaustion returns false without modifying the star and
+// without the old CRITICAL 1px fallback.
+func tryRandomStarPosition(star *model.Star, existing []*model.Star, width, height int64, minSep float64) bool {
 	if star == nil || width <= 0 || height <= 0 {
 		return false
 	}
@@ -164,105 +186,46 @@ func assignGalaxyStarPosition(star *model.Star, existing []*model.Star, width, h
 		y := int64(randomIntn(h))
 		if !tooCloseToExisting(x, y, existing, minSepSq) {
 			star.X, star.Y = x, y
-			return false
-		}
-	}
-
-	if placeOnJitteredGrid(star, existing, width, height, minSep) {
-		log.Printf(
-			"galaxy: star %d used grid-jitter fallback after %d random tries (%d already placed, sep=%.1f)",
-			star.ID, maxRandomStarPlacementTries, len(existing), minSep,
-		)
-		return true
-	}
-
-	for y := int64(0); y < height; y++ {
-		for x := int64(0); x < width; x++ {
-			occupied := false
-			for _, s := range existing {
-				if s != nil && s.X == x && s.Y == y {
-					occupied = true
-					break
-				}
-			}
-			if !occupied {
-				star.X, star.Y = x, y
-				log.Printf(
-					"galaxy: CRITICAL star %d placed without min separation (could not pack sep=%.1f with %d stars)",
-					star.ID, minSep, len(existing)+1,
-				)
-				return true
-			}
-		}
-	}
-	log.Printf("galaxy: CRITICAL star %d left unplaced — map fully occupied", star.ID)
-	return true
-}
-
-// placeOnJitteredGrid walks a lattice stepped by ceil(minSep), jittering within
-// each cell from the star id. Used as a fallback after random placement fails.
-func placeOnJitteredGrid(star *model.Star, existing []*model.Star, width, height int64, minSep float64) bool {
-	step := int64(math.Ceil(minSep))
-	if step < 1 {
-		step = 1
-	}
-	minSepSq := minSep * minSep
-	id := int64(star.ID)
-	for gy := int64(0); gy < height; gy += step {
-		for gx := int64(0); gx < width; gx += step {
-			jx := (id*37 + gx*17) % step
-			jy := (id*91 + gy*13) % step
-			if jx < 0 {
-				jx = -jx
-			}
-			if jy < 0 {
-				jy = -jy
-			}
-			x := gx + jx
-			y := gy + jy
-			if x >= width {
-				x = width - 1
-			}
-			if y >= height {
-				y = height - 1
-			}
-			if !tooCloseToExisting(x, y, existing, minSepSq) {
-				star.X, star.Y = x, y
-				return true
-			}
-		}
-	}
-	for y := int64(0); y < height; y++ {
-		for x := int64(0); x < width; x++ {
-			if !tooCloseToExisting(x, y, existing, minSepSq) {
-				star.X, star.Y = x, y
-				return true
-			}
+			return true
 		}
 	}
 	return false
 }
 
-// placeStarsOnLattice assigns stars to an even rectangular lattice that
-// realizes minSeparationPixels for a tight pack. Deterministic integer steps
-// keep pairwise distances >= sep.
-func placeStarsOnLattice(stars []*model.Star, width, height int64) {
+// placeStarsOnLattice assigns stars to a rectangular lattice. When n fits at
+// the preferred 60px separation, uses a 60px grid (largest preferred spacing).
+// Otherwise uses packingLattice for the largest spacing that still fits.
+// Returns the realized minimum separation.
+func placeStarsOnLattice(stars []*model.Star, width, height int64) float64 {
 	n := uint(len(stars))
-	cols, rows, stepX, stepY, _ := packingLattice(width, height, n)
+	if n == 0 {
+		return desiredMinStarSeparation
+	}
+	if n == 1 {
+		stars[0].X = (width - 1) / 2
+		stars[0].Y = (height - 1) / 2
+		return desiredMinStarSeparation
+	}
+
+	var cols, rows int
+	var stepX, stepY int64
+	var sep float64
+
+	if gridCapacity(width, height, desiredMinStarSeparation) >= n {
+		sep = desiredMinStarSeparation
+		stepX = int64(sep)
+		stepY = int64(sep)
+		cols = int(math.Floor(float64(width-1)/sep)) + 1
+		rows = int(math.Floor(float64(height-1)/sep)) + 1
+	} else {
+		cols, rows, stepX, stepY, sep = packingLattice(width, height, n)
+	}
+
 	idx := 0
 	for r := 0; r < rows && idx < int(n); r++ {
 		for c := 0; c < cols && idx < int(n); c++ {
-			var x, y int64
-			if cols == 1 {
-				x = (width - 1) / 2
-			} else {
-				x = int64(c) * stepX
-			}
-			if rows == 1 {
-				y = (height - 1) / 2
-			} else {
-				y = int64(r) * stepY
-			}
+			x := int64(c) * stepX
+			y := int64(r) * stepY
 			if x >= width {
 				x = width - 1
 			}
@@ -274,6 +237,7 @@ func placeStarsOnLattice(stars []*model.Star, width, height int64) {
 			idx++
 		}
 	}
+	return sep
 }
 
 func NewGalaxy(numStars uint) model.Galaxy {
@@ -295,12 +259,9 @@ func NewGalaxyForSizeWithStats(numStars uint, galaxySize string) (model.Galaxy, 
 	var stars []*model.Star
 	starNames := make(map[string]int)
 	var planetIDCounter uint = 1
-	tight := needsTightLattice(width, height, numStars)
-	if tight {
-		stats.UsedLattice = true
-	}
+	useLattice := preferLattice(width, height, numStars)
 
-	for i := range numStars {
+	createStar := func(i uint) *model.Star {
 		randomName := GetRandomStarName()
 		repetitions, nameExists := starNames[randomName]
 		if nameExists {
@@ -309,24 +270,43 @@ func NewGalaxyForSizeWithStats(numStars uint, galaxySize string) (model.Galaxy, 
 		} else {
 			starNames[randomName] = 1
 		}
-
 		star, numPlanets := NewRandomStar(i+1, planetIDCounter, randomName)
 		planetIDCounter += numPlanets
+		return star
+	}
 
-		if !tight {
-			// Interleave create+place so seeded NewGame RNG matches prior builds
-			// (lucky trait tests and any other seed-sensitive turn logic).
-			if assignGalaxyStarPosition(star, stars, width, height, sep) {
-				stats.GridFallbacks++
-				stats.ExhaustedRandom = true
-			}
+	if useLattice {
+		stats.UsedLattice = true
+		for i := range numStars {
+			stars = append(stars, createStar(i))
 		}
-		stars = append(stars, star)
-	}
-	if tight {
-		placeStarsOnLattice(stars, width, height)
+		stats.MinSeparation = placeStarsOnLattice(stars, width, height)
+	} else {
+		// Interleave create+place so seeded NewGame RNG matches prior builds
+		// for counts that still succeed randomly (medium 40, huge 100, …).
+		relayout := false
+		for i := range numStars {
+			star := createStar(i)
+			if !relayout {
+				if !tryRandomStarPosition(star, stars, width, height, sep) {
+					relayout = true
+					stats.ExhaustedRandom = true
+					stats.RelayoutFromRandom = true
+					log.Printf(
+						"galaxy: random placement failed at star %d/%d (sep=%.1f); relayout entire galaxy on lattice",
+						i+1, numStars, sep,
+					)
+				}
+			}
+			stars = append(stars, star)
+		}
+		if relayout {
+			stats.UsedLattice = true
+			stats.MinSeparation = placeStarsOnLattice(stars, width, height)
+		}
 	}
 
+	stats.CollapsedPlacement = false
 	return model.Galaxy{
 		Stars:  stars,
 		Width:  width,

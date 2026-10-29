@@ -106,41 +106,49 @@ func assertValidStarLayout(t *testing.T, galaxySize string, numStars uint, seed 
 	g, stats := game.NewGalaxyForSizeWithStats(numStars, galaxySize)
 	require.Len(t, g.Stars, int(numStars))
 	require.Greater(t, stats.MinSeparation, 0.0)
+	if stats.CollapsedPlacement {
+		t.Fatalf("CRITICAL 1px path must be unreachable (size=%s n=%d seed=%d)", galaxySize, numStars, seed)
+	}
 
-	seen := make(map[[2]int64]bool, len(g.Stars))
+	seen := make(map[[2]int64]struct{}, len(g.Stars))
+	minDist := math.MaxFloat64
+	atOrigin := 0
 	for i, star := range g.Stars {
-		require.NotNil(t, star)
-		assert.GreaterOrEqual(t, star.X, int64(0), "star %d X", i)
-		assert.Less(t, star.X, g.Width, "star %d X", i)
-		assert.GreaterOrEqual(t, star.Y, int64(0), "star %d Y", i)
-		assert.Less(t, star.Y, g.Height, "star %d Y", i)
+		if star == nil {
+			t.Fatalf("nil star at %d", i)
+		}
+		if star.X < 0 || star.X >= g.Width || star.Y < 0 || star.Y >= g.Height {
+			t.Fatalf("star %d out of bounds (%d,%d) size=%s", star.ID, star.X, star.Y, galaxySize)
+		}
 		key := [2]int64{star.X, star.Y}
-		assert.False(t, seen[key], "duplicate position (%d,%d) for star %d", star.X, star.Y, star.ID)
-		seen[key] = true
-
+		if _, ok := seen[key]; ok {
+			t.Fatalf("duplicate position (%d,%d) size=%s n=%d seed=%d", star.X, star.Y, galaxySize, numStars, seed)
+		}
+		seen[key] = struct{}{}
+		if star.X == 0 && star.Y == 0 {
+			atOrigin++
+		}
 		for j := i + 1; j < len(g.Stars); j++ {
 			other := g.Stars[j]
 			dx := float64(star.X - other.X)
 			dy := float64(star.Y - other.Y)
 			dist := math.Sqrt(dx*dx + dy*dy)
-			assert.GreaterOrEqual(t, dist, stats.MinSeparation-1e-9,
-				"size=%s seed=%d pair %d,%d dist %.3f < sep %.3f", galaxySize, seed, star.ID, other.ID, dist, stats.MinSeparation)
+			if dist < minDist {
+				minDist = dist
+			}
 		}
 	}
-
-	// (0,0) is only allowed if a star was legitimately placed there (unique + sep ok).
-	atOrigin := 0
-	for _, star := range g.Stars {
-		if star.X == 0 && star.Y == 0 {
-			atOrigin++
-		}
+	if numStars > 1 && minDist < stats.MinSeparation-1e-9 {
+		t.Fatalf("size=%s seed=%d n=%d minDist %.3f < sep %.3f", galaxySize, seed, numStars, minDist, stats.MinSeparation)
 	}
-	assert.LessOrEqual(t, atOrigin, 1, "at most one star may sit at the legitimate (0,0) cell")
+	if atOrigin > 1 {
+		t.Fatalf("stacked origin stars: %d", atOrigin)
+	}
 	return stats
 }
 
 func TestTinyGalaxyPlacesFifteenDistinctStars(t *testing.T) {
-	// Compiles against e145d6d APIs; fails there by assertion (late stars stack at 0,0).
+	// Compiles against older APIs; fails on pre-lattice code by assertion (stack at 0,0).
 	game.SetRandomSeed(1)
 	g := game.NewGalaxyForSize(15, "tiny")
 	require.Len(t, g.Stars, 15)
@@ -175,12 +183,15 @@ func TestClientGalaxySizesPlaceAllStarsDistinctly(t *testing.T) {
 			t.Run(tc.size+"/"+itoa(seed), func(t *testing.T) {
 				stats := assertValidStarLayout(t, tc.size, tc.stars, seed)
 				assert.False(t, stats.ExhaustedRandom,
-					"built-in size %q with %d stars must not hit random-try fallback (seed %d)", tc.size, tc.stars, seed)
-				assert.Equal(t, 0, stats.GridFallbacks)
+					"client count %q/%d must not exhaust random (seed %d)", tc.size, tc.stars, seed)
+				assert.False(t, stats.RelayoutFromRandom)
+				assert.False(t, stats.CollapsedPlacement)
 				if tc.size == "tiny" {
-					assert.True(t, stats.UsedLattice, "tiny must use lattice packing")
+					assert.True(t, stats.UsedLattice, "tiny 15 must use lattice packing")
+					assert.Less(t, stats.MinSeparation, 60.0)
 				} else {
-					assert.False(t, stats.UsedLattice, "medium/huge keep random placement at full parsec sep")
+					assert.False(t, stats.UsedLattice, "medium/huge client counts keep random@60")
+					assert.InDelta(t, 60.0, stats.MinSeparation, 1e-9)
 				}
 			})
 		}
@@ -188,7 +199,6 @@ func TestClientGalaxySizesPlaceAllStarsDistinctly(t *testing.T) {
 }
 
 func TestTinyGalaxyKeepsMediumHugeFullParsecSeparation(t *testing.T) {
-	// Medium/Huge at client counts keep the full 60px look; Tiny must scale.
 	_, tinyStats := game.NewGalaxyForSizeWithStats(game.ClientGalaxyStarCounts["tiny"], "tiny")
 	_, medStats := game.NewGalaxyForSizeWithStats(game.ClientGalaxyStarCounts["medium"], "medium")
 	_, hugeStats := game.NewGalaxyForSizeWithStats(game.ClientGalaxyStarCounts["huge"], "huge")
@@ -209,16 +219,106 @@ func TestTinyGalaxyGenerationIsFast(t *testing.T) {
 	require.Len(t, g.Stars, 15)
 	assert.False(t, stats.ExhaustedRandom)
 	assert.True(t, stats.UsedLattice)
+	assert.False(t, stats.CollapsedPlacement)
 	assert.Less(t, elapsed, time.Second, "tiny galaxy generation took %s", elapsed)
 }
 
+func TestNearCapacityCountsUseLatticeNotCollapsed(t *testing.T) {
+	// Previously collapsed to ~1px: tiny 11–12, medium 53–70, huge 170–222.
+	cases := []struct {
+		size  string
+		count uint
+	}{
+		{"tiny", 11}, {"tiny", 12},
+		{"medium", 53}, {"medium", 60}, {"medium", 70},
+		{"huge", 170}, {"huge", 200}, {"huge", 222},
+	}
+	for _, tc := range cases {
+		t.Run(tc.size+"/"+uitoa(uint64(tc.count)), func(t *testing.T) {
+			stats := assertValidStarLayout(t, tc.size, tc.count, 1)
+			assert.True(t, stats.UsedLattice, "near-capacity counts must lattice")
+			assert.False(t, stats.CollapsedPlacement)
+			assert.GreaterOrEqual(t, stats.MinSeparation, 20.0,
+				"sep must not collapse (got %.2f for %s/%d)", stats.MinSeparation, tc.size, tc.count)
+			if tc.size != "tiny" || tc.count <= 12 {
+				// Tiny 11–12 fit at 60 on the lattice; medium/huge near-cap also keep 60.
+				if tc.size == "tiny" && tc.count <= 12 {
+					assert.InDelta(t, 60.0, stats.MinSeparation, 1e-9)
+				}
+				if tc.size == "medium" || tc.size == "huge" {
+					assert.InDelta(t, 60.0, stats.MinSeparation, 1e-9)
+				}
+			}
+		})
+	}
+}
+
+func TestGalaxyPlacementSweepAllSizesAndCounts(t *testing.T) {
+	// Two seeds keeps -race under a few seconds while still covering every count.
+	seeds := []int64{1, 42}
+	sizes := []struct {
+		name     string
+		maxStars uint
+	}{
+		{"tiny", 100},
+		{"medium", 100},
+		{"huge", 250},
+		{"", 100}, // default → medium dims
+	}
+
+	start := time.Now()
+	for _, sz := range sizes {
+		w, h := galaxyDims(sz.name)
+		cap60 := latticeCap(w, h, 60)
+		for n := uint(5); n <= sz.maxStars; n++ {
+			for _, seed := range seeds {
+				stats := assertValidStarLayout(t, sz.name, n, seed)
+				if stats.CollapsedPlacement {
+					t.Fatalf("size=%s n=%d seed=%d collapsed", sz.name, n, seed)
+				}
+				if stats.MinSeparation < 8.0 {
+					t.Fatalf("size=%s n=%d seed=%d sep too small: %.2f", sz.name, n, seed, stats.MinSeparation)
+				}
+				if cap60 >= n && math.Abs(stats.MinSeparation-60.0) > 1e-9 {
+					t.Fatalf("size=%s n=%d should keep full parsec sep, got %.2f", sz.name, n, stats.MinSeparation)
+				}
+			}
+		}
+	}
+	elapsed := time.Since(start)
+	if elapsed > 12*time.Second {
+		t.Fatalf("placement sweep took %s", elapsed)
+	}
+	t.Logf("placement sweep completed in %s", elapsed)
+}
+
+func galaxyDims(size string) (int64, int64) {
+	switch size {
+	case "tiny":
+		return 240, 180
+	case "huge":
+		return 1000, 800
+	default:
+		return 600, 400
+	}
+}
+
+func latticeCap(width, height int64, sep float64) uint {
+	cols := int64(math.Floor(float64(width-1)/sep)) + 1
+	rows := int64(math.Floor(float64(height-1)/sep)) + 1
+	return uint(cols * rows)
+}
+
 func itoa(n int64) string {
+	if n < 0 {
+		return "-" + uitoa(uint64(-n))
+	}
+	return uitoa(uint64(n))
+}
+
+func uitoa(n uint64) string {
 	if n == 0 {
 		return "0"
-	}
-	neg := n < 0
-	if neg {
-		n = -n
 	}
 	var buf [32]byte
 	i := len(buf)
@@ -226,10 +326,6 @@ func itoa(n int64) string {
 		i--
 		buf[i] = byte('0' + n%10)
 		n /= 10
-	}
-	if neg {
-		i--
-		buf[i] = '-'
 	}
 	return string(buf[i:])
 }
