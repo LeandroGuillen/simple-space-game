@@ -122,6 +122,75 @@ func TestLoadUploadedSaveAddsGame(t *testing.T) {
 	require.Nil(t, server.getGame(gameState.ID))
 }
 
+func TestLoadUploadedSaveClearsPendingInvasions(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	resources, err := game.NewResourceManager()
+	require.NoError(t, err)
+
+	gameState, err := game.NewGame(resources, game.NewGameOptions{
+		PlayerName:  "Uploader",
+		NumStars:    6,
+		PlayerColor: model.DefaultPlayerColor(),
+		Race:        game.DefaultRace("Human"),
+	})
+	require.NoError(t, err)
+	gameState.PendingInvasions = []game.PendingInvasion{{
+		OwnerID: 1, FleetID: 9, TargetPlanetID: 3,
+	}}
+
+	snapshot := *gameState
+	snapshot.Resources = nil
+	payload, err := json.Marshal(&snapshot)
+	require.NoError(t, err)
+
+	server := &Server{gameList: make(map[string]*game.Game), ResourceManager: resources}
+	recorder := postUpload(t, server, bytes.NewReader(payload), "application/json")
+	require.Equal(t, http.StatusOK, recorder.Code)
+	var response struct {
+		GameID string `json:"gameID"`
+	}
+	require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &response))
+	loaded := server.getGame(response.GameID)
+	require.NotNil(t, loaded)
+	require.Empty(t, loaded.PendingInvasions)
+}
+
+func TestLoadScenarioClearsPendingInvasions(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	dir := t.TempDir()
+	t.Setenv("SSG_SAVES_DIR", dir)
+
+	resources, err := game.NewResourceManager()
+	require.NoError(t, err)
+	instance := createScenarioFile(t, resources, "with-pending-invade")
+	// Inject pending invasions into the on-disk scenario JSON.
+	path, err := savePath("with-pending-invade")
+	require.NoError(t, err)
+	raw, err := os.ReadFile(path)
+	require.NoError(t, err)
+	var encoded map[string]json.RawMessage
+	require.NoError(t, json.Unmarshal(raw, &encoded))
+	pending, err := json.Marshal([]game.PendingInvasion{{OwnerID: 1, FleetID: 3, TargetPlanetID: 2}})
+	require.NoError(t, err)
+	encoded["pending_invasions"] = pending
+	rewritten, err := json.Marshal(encoded)
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(path, rewritten, 0o644))
+
+	server := &Server{gameList: make(map[string]*game.Game), ResourceManager: resources}
+	recorder := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(recorder)
+	ctx.Request = httptest.NewRequest("POST", "/scenarios/with-pending-invade/load", nil)
+	ctx.Params = gin.Params{{Key: "name", Value: "with-pending-invade"}}
+	ctx.Set("server", server)
+	LoadScenario(ctx)
+
+	require.Equal(t, http.StatusOK, recorder.Code)
+	loaded := server.getGame(instance.ID)
+	require.NotNil(t, loaded)
+	require.Empty(t, loaded.PendingInvasions)
+}
+
 func createScenarioFile(t *testing.T, resources *game.ResourceManager, name string) *game.Game {
 	t.Helper()
 	instance, err := game.NewGame(resources, game.NewGameOptions{

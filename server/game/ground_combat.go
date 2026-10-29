@@ -89,17 +89,28 @@ func (g *Game) getTransportMarineCount(ship FleetShip) int64 {
 
 // gatherMarinesFromInvasionOrder builds the attacking force from the named
 // transport ships (or all transports in the fleet when indexes are omitted).
+// Duplicate indexes are ignored so a buggy order cannot multiply one transport.
 func (g *Game) gatherMarinesFromInvasionOrder(fleet *Fleet, shipIndexes *[]uint) GroundForce {
-	force := GroundForce{OwnerID: fleet.Owner}
+	force := GroundForce{}
 	if fleet == nil {
 		return force
 	}
+	force.OwnerID = fleet.Owner
 	if shipIndexes != nil {
+		seen := make(map[uint]bool, len(*shipIndexes))
 		for _, index := range *shipIndexes {
+			if seen[index] {
+				continue
+			}
+			seen[index] = true
 			if int(index) >= len(fleet.Ships) {
 				continue
 			}
-			g.appendTransportMarines(&force, fleet.Ships[index])
+			ship := fleet.Ships[index]
+			if ship.Type != "transport" {
+				continue
+			}
+			g.appendTransportMarines(&force, ship)
 		}
 		return force
 	}

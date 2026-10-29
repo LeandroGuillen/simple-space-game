@@ -732,6 +732,12 @@ func (g *Game) issueInvadeCommand(playerID uint, command *InvadeCommand) error {
 		return nil // command was nil
 	}
 
+	for _, pending := range g.PendingInvasions {
+		if pending.FleetID == fleet.ID {
+			return fmt.Errorf("fleet %d already has an invade order this turn", fleet.ID)
+		}
+	}
+
 	g.PendingInvasions = append(g.PendingInvasions, PendingInvasion{
 		OwnerID:        playerID,
 		FleetID:        fleet.ID,

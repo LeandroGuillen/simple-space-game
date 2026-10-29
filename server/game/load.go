@@ -26,6 +26,8 @@ func HydrateLoadedGame(g *Game, resources *ResourceManager) {
 	if g.PendingArtificialPlanets == nil {
 		g.PendingArtificialPlanets = make(map[uint][]uint)
 	}
+	// Invade orders are turn-ephemeral: never replay them from a loaded/uploaded save.
+	g.PendingInvasions = nil
 	// Saves from before interactive combat never marked a human player;
 	// default to player 1 so loaded games get tactical battles too.
 	if len(g.Players) > 0 {

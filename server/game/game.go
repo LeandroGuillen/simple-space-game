@@ -363,6 +363,10 @@ func (g *Game) AdvanceTurn(submissions map[uint]Commands) error {
 	// A pending battle should have been fought via the battle API before any
 	// turn submission, but never let a stale one wedge the game.
 	g.autoResolveLeftoverBattles()
+	// Drop any leftover PendingInvasions from a prior failed AdvanceTurn (or a
+	// bad save that somehow retained them). Orders for THIS turn are recorded
+	// below during applyPlayerTurn, then consumed by resolveGroundInvasions.
+	g.PendingInvasions = nil
 	existingPopulationTransfers := g.populationTransferIDs()
 	playerIDs := g.playerIDs()
 	for _, playerID := range playerIDs {
@@ -371,6 +375,8 @@ func (g *Game) AdvanceTurn(submissions map[uint]Commands) error {
 			return fmt.Errorf("missing turn submission for player %d", playerID)
 		}
 		if err := g.applyPlayerTurn(playerID, commands); err != nil {
+			// Drop partial invade orders so a failed mid-turn leave no replayable state.
+			g.PendingInvasions = nil
 			return err
 		}
 	}
@@ -565,9 +571,19 @@ func (g *Game) validateInvadeOrder(playerID uint, command *InvadeCommand) (*Flee
 		return nil, nil, fmt.Errorf("cannot invade your own planet %d", planet.ID)
 	}
 
-	// Validate fleet has transport ships with the specified indexes
+	// ShipIndexes semantics:
+	//   nil  → all transport ships in the fleet participate
+	//   non-nil (including empty) → only the named indexes; empty is rejected
 	if command.ShipIndexes != nil {
+		if len(*command.ShipIndexes) == 0 {
+			return nil, nil, fmt.Errorf("invade ship_indexes must name at least one transport")
+		}
+		seen := make(map[uint]bool, len(*command.ShipIndexes))
 		for _, index := range *command.ShipIndexes {
+			if seen[index] {
+				return nil, nil, fmt.Errorf("duplicate ship index %d in invade order for fleet %d", index, fleet.ID)
+			}
+			seen[index] = true
 			if int(index) >= len(fleet.Ships) {
 				return nil, nil, fmt.Errorf("ship index %d is out of range for fleet %d", index, fleet.ID)
 			}
@@ -577,7 +593,6 @@ func (g *Game) validateInvadeOrder(playerID uint, command *InvadeCommand) (*Flee
 			}
 		}
 	} else {
-		// If no specific ships specified, check if fleet has any transport ships
 		hasTransport := false
 		for _, ship := range fleet.Ships {
 			if ship.Type == "transport" {
@@ -768,6 +783,16 @@ func (g *Game) validateInvadeCommands(playerID uint, commands []*InvadeCommand, 
 		}
 	}
 
+	// At most one Invade order per fleet per submit (avoids stale indexes after
+	// removeInvasionTransports shifts the fleet). Also reject fleets that already
+	// have a recorded pending invasion from earlier this AdvanceTurn.
+	seenFleets := make(map[uint]bool)
+	for _, pending := range g.PendingInvasions {
+		if pending.OwnerID == playerID {
+			seenFleets[pending.FleetID] = true
+		}
+	}
+
 	for _, command := range commands {
 		if command == nil {
 			continue
@@ -777,6 +802,11 @@ func (g *Game) validateInvadeCommands(playerID uint, commands []*InvadeCommand, 
 		if movingFleetIDs[command.FleetID] {
 			return fmt.Errorf("fleet %d cannot invade and move in the same turn", command.FleetID)
 		}
+
+		if seenFleets[command.FleetID] {
+			return fmt.Errorf("fleet %d already has an invade order this turn", command.FleetID)
+		}
+		seenFleets[command.FleetID] = true
 
 		// Use shared validator
 		_, _, err := g.validateInvadeOrder(playerID, command)

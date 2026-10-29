@@ -511,17 +511,19 @@ func TestPendingInvasionSaveLoadRoundTrip(t *testing.T) {
 
 	var loaded Game
 	require.NoError(t, json.Unmarshal(data, &loaded))
-	require.Len(t, loaded.PendingInvasions, 1)
-	assert.Equal(t, original[0].OwnerID, loaded.PendingInvasions[0].OwnerID)
+	require.Len(t, loaded.PendingInvasions, 1, "raw JSON may still contain pending_invasions")
 	assert.Equal(t, original[0].FleetID, loaded.PendingInvasions[0].FleetID)
-	assert.Equal(t, original[0].TargetPlanetID, loaded.PendingInvasions[0].TargetPlanetID)
-	require.NotNil(t, loaded.PendingInvasions[0].ShipIndexes)
-	assert.Equal(t, indexes, *loaded.PendingInvasions[0].ShipIndexes)
+
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+	HydrateLoadedGame(&loaded, resources)
+	assert.Empty(t, loaded.PendingInvasions, "hydrate must clear pending invasions from saves")
 
 	// Old saves omit the field.
 	var legacy Game
 	require.NoError(t, json.Unmarshal([]byte(`{"id":"x"}`), &legacy))
-	assert.Nil(t, legacy.PendingInvasions)
+	HydrateLoadedGame(&legacy, resources)
+	assert.Empty(t, legacy.PendingInvasions)
 }
 
 func TestStaleInvadeOrderDroppedWithoutPanic(t *testing.T) {
@@ -570,6 +572,199 @@ func invasionHarness(t *testing.T) (*Game, *Player, *Planet) {
 	}
 	require.NotNil(t, defenderPlanet)
 	return game, attacker, defenderPlanet
+}
+
+func TestInvadeRejectsDuplicateShipIndexes(t *testing.T) {
+	game, attacker, defenderPlanet := invasionHarness(t)
+	fleet := &Fleet{
+		ID:     42,
+		Owner:  attacker.ID,
+		StarID: defenderPlanet.ParentStar,
+		Ships:  []FleetShip{{Name: "Transport", Type: "transport"}},
+	}
+	game.Fleets = append(game.Fleets, fleet)
+	dupes := []uint{0, 0, 0}
+
+	err := game.Turn(attacker.ID, Commands{
+		Invade: []*InvadeCommand{{
+			FleetID:        fleet.ID,
+			TargetPlanetID: defenderPlanet.ID,
+			ShipIndexes:    &dupes,
+		}},
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "duplicate ship index")
+	assert.Empty(t, game.PendingInvasions)
+	assert.Equal(t, uint(2), defenderPlanet.Owner)
+}
+
+func TestGatherMarinesDedupesShipIndexes(t *testing.T) {
+	game := newTestGame(t)
+	fleet := &Fleet{
+		Owner: 1,
+		Ships: []FleetShip{{Name: "Transport", Type: "transport"}},
+	}
+	dupes := []uint{0, 0, 0}
+	force := game.gatherMarinesFromInvasionOrder(fleet, &dupes)
+	assert.Equal(t, 4, len(force.Marines), "duplicate indexes must not multiply marines")
+}
+
+func TestInvadeRejectsMultipleOrdersForSameFleet(t *testing.T) {
+	game, attacker, defenderPlanet := invasionHarness(t)
+	// Second enemy planet at the same star
+	var other *Planet
+	for _, planet := range game.Galaxy.Stars[0].Planets {
+		if planet.ID != defenderPlanet.ID && planet.ParentStar == defenderPlanet.ParentStar {
+			other = planet
+			other.Owner = 2
+			break
+		}
+	}
+	if other == nil {
+		// ensure a second planet on the same star
+		star, err := game.getStar(defenderPlanet.ParentStar)
+		require.NoError(t, err)
+		other = &Planet{ID: 9001, Owner: 2, ParentStar: star.ID, Name: "Other"}
+		star.Planets = append(star.Planets, other)
+	}
+	fleet := &Fleet{
+		ID:     42,
+		Owner:  attacker.ID,
+		StarID: defenderPlanet.ParentStar,
+		Ships: []FleetShip{
+			{Name: "T0", Type: "transport"},
+			{Name: "Escort", Type: "ship_design"},
+			{Name: "T2", Type: "transport"},
+		},
+	}
+	game.Fleets = append(game.Fleets, fleet)
+	idx0 := []uint{0}
+	idx2 := []uint{2}
+
+	err := game.Turn(attacker.ID, Commands{
+		Invade: []*InvadeCommand{
+			{FleetID: fleet.ID, TargetPlanetID: defenderPlanet.ID, ShipIndexes: &idx0},
+			{FleetID: fleet.ID, TargetPlanetID: other.ID, ShipIndexes: &idx2},
+		},
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "already has an invade order")
+	assert.Empty(t, game.PendingInvasions)
+	assert.Equal(t, uint(2), defenderPlanet.Owner)
+	assert.Equal(t, uint(2), other.Owner)
+}
+
+func TestInvadeRejectsEmptyShipIndexes(t *testing.T) {
+	game, attacker, defenderPlanet := invasionHarness(t)
+	fleet := &Fleet{
+		ID:     42,
+		Owner:  attacker.ID,
+		StarID: defenderPlanet.ParentStar,
+		Ships:  []FleetShip{{Name: "Transport", Type: "transport"}},
+	}
+	game.Fleets = append(game.Fleets, fleet)
+	empty := []uint{}
+
+	err := game.Turn(attacker.ID, Commands{
+		Invade: []*InvadeCommand{{
+			FleetID:        fleet.ID,
+			TargetPlanetID: defenderPlanet.ID,
+			ShipIndexes:    &empty,
+		}},
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "at least one transport")
+	assert.Empty(t, game.PendingInvasions)
+}
+
+func TestHydrateLoadedGameClearsPendingInvasions(t *testing.T) {
+	resources, err := NewResourceManager()
+	require.NoError(t, err)
+	g := &Game{
+		PendingInvasions: []PendingInvasion{{OwnerID: 1, FleetID: 9, TargetPlanetID: 3}},
+	}
+	HydrateLoadedGame(g, resources)
+	assert.Empty(t, g.PendingInvasions)
+}
+
+func TestFailedAdvanceTurnClearsPartialPendingInvasions(t *testing.T) {
+	game, attacker, defenderPlanet := invasionHarness(t)
+	fleet := &Fleet{
+		ID:     42,
+		Owner:  attacker.ID,
+		StarID: defenderPlanet.ParentStar,
+		Ships:  []FleetShip{{Name: "Transport", Type: "transport"}},
+	}
+	game.Fleets = append(game.Fleets, fleet)
+
+	err := game.AdvanceTurn(map[uint]Commands{
+		attacker.ID: {
+			Invade: []*InvadeCommand{{
+				FleetID:        fleet.ID,
+				TargetPlanetID: defenderPlanet.ID,
+			}},
+		},
+		2: {
+			SelectResearch: &SelectResearchCommand{TechName: "Totally Fake Breakthrough"},
+		},
+	})
+	require.Error(t, err)
+	assert.Empty(t, game.PendingInvasions, "failed AdvanceTurn must not leave partial invade orders")
+	assert.Equal(t, uint(2), defenderPlanet.Owner, "invasion must not resolve after failed turn")
+}
+
+func TestFailedSubmitTurnLeavesNoPendingInvasions(t *testing.T) {
+	game, attacker, defenderPlanet := invasionHarness(t)
+	fleet := &Fleet{
+		ID:     42,
+		Owner:  attacker.ID,
+		StarID: defenderPlanet.ParentStar,
+		Ships:  []FleetShip{{Name: "Transport", Type: "transport"}},
+	}
+	game.Fleets = append(game.Fleets, fleet)
+	dupes := []uint{0, 0}
+
+	_, advanced, err := game.SubmitTurn(attacker.ID, Commands{
+		Invade: []*InvadeCommand{{
+			FleetID:        fleet.ID,
+			TargetPlanetID: defenderPlanet.ID,
+			ShipIndexes:    &dupes,
+		}},
+	})
+	require.Error(t, err)
+	assert.False(t, advanced)
+	assert.Empty(t, game.PendingInvasions)
+	assert.NotContains(t, game.TurnStatus.ReadyPlayerIDs, attacker.ID)
+}
+
+func TestValidInvadeStillResolvesAfterHardening(t *testing.T) {
+	SetRandomSeed(3)
+	game, attacker, defenderPlanet := invasionHarness(t)
+	defenderPlanet.Marines = 0
+	defenderPlanet.Armored = 0
+	fleet := &Fleet{
+		ID:     42,
+		Owner:  attacker.ID,
+		StarID: defenderPlanet.ParentStar,
+		Ships:  []FleetShip{{Name: "Transport", Type: "transport"}},
+	}
+	game.Fleets = append(game.Fleets, fleet)
+	indexes := []uint{0}
+
+	// Two-player harness: advance both submissions so the invade is issued + resolved.
+	require.NoError(t, game.AdvanceTurn(map[uint]Commands{
+		attacker.ID: {
+			Invade: []*InvadeCommand{{
+				FleetID:        fleet.ID,
+				TargetPlanetID: defenderPlanet.ID,
+				ShipIndexes:    &indexes,
+			}},
+		},
+		2: {},
+	}))
+	assert.Empty(t, game.PendingInvasions)
+	assert.Equal(t, attacker.ID, defenderPlanet.Owner)
+	require.NotEmpty(t, game.InvasionReports)
 }
 
 
