@@ -12,7 +12,6 @@ import (
 
 type Hub struct {
 	clients     map[*Client]bool
-	broadcast   chan gin.H
 	register    chan *Client
 	unregister  chan *Client
 	gameUpdates chan *game.Game
@@ -25,7 +24,6 @@ type ServerGetter interface {
 
 func NewHub(s ServerGetter) *Hub {
 	return &Hub{
-		broadcast:   make(chan gin.H, 10),
 		register:    make(chan *Client, 10),
 		unregister:  make(chan *Client, 10),
 		clients:     make(map[*Client]bool),
@@ -55,15 +53,6 @@ func (h *Hub) Run() {
 				delete(h.clients, client)
 				close(client.send)
 			}
-		case message := <-h.broadcast:
-			for client := range h.clients {
-				select {
-				case client.send <- message:
-				default:
-					close(client.send)
-					delete(h.clients, client)
-				}
-			}
 		case g := <-h.gameUpdates:
 			for client := range h.clients {
 				// ID is immutable after NewGame; GetVisibleGameForPlayer takes RLock.
@@ -77,6 +66,7 @@ func (h *Hub) Run() {
 				select {
 				case client.send <- gin.H{"game_update": visible}:
 				default:
+					// Slow / stuck client: drop rather than stall the hub.
 					close(client.send)
 					delete(h.clients, client)
 				}

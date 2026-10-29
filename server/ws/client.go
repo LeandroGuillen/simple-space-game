@@ -10,6 +10,8 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+const maxClientMessageBytes = 512
+
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
@@ -23,19 +25,25 @@ type Client struct {
 	playerID uint
 }
 
+// read drains the connection so close/control frames are processed. Inbound
+// application messages are discarded — clients must never be able to inject
+// payloads into other connections via the hub.
 func (c *Client) read() {
 	defer func() {
 		c.hub.unregister <- c
 		c.socket.Close()
 	}()
+	c.socket.SetReadLimit(maxClientMessageBytes)
 	for {
-		var data map[string]interface{}
-		err := c.socket.ReadJSON(&data)
-		if err != nil {
-			log.Println("ws read error:", err)
+		if _, _, err := c.socket.ReadMessage(); err != nil {
+			// Close / read-limit / network errors all end the read loop and
+			// unregister the client via the deferred cleanup above.
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
+				log.Println("ws read error:", err)
+			}
 			break
 		}
-		c.hub.broadcast <- data
+		// Discard application payload; never forward to the hub.
 	}
 }
 
@@ -84,7 +92,7 @@ func Handler(hub *Hub, c *gin.Context) {
 	client := &Client{
 		hub:      hub,
 		socket:   socket,
-		send:     make(chan gin.H, 1),
+		send:     make(chan gin.H, 16),
 		gameID:   gameID,
 		playerID: uint(playerID64),
 	}
