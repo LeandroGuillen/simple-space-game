@@ -41,6 +41,14 @@ func ValidateLoadedGame(g *Game, resources *ResourceManager) error {
 		if math.IsNaN(p.Treasury) || math.IsInf(p.Treasury, 0) {
 			return fmt.Errorf("player %d has absurd treasury value", p.ID)
 		}
+		if p.Treasury < 0 {
+			return fmt.Errorf("player %d has negative treasury", p.ID)
+		}
+		// TaxRate is unused by turn logic today (no SetTaxRate handler); treat
+		// it as a unit-interval rate matching the field name.
+		if math.IsNaN(p.TaxRate) || math.IsInf(p.TaxRate, 0) || p.TaxRate < 0 || p.TaxRate > 1 {
+			return fmt.Errorf("player %d has out-of-range tax_rate %v (want 0..1)", p.ID, p.TaxRate)
+		}
 		if err := validatePlayerRace(p, resources); err != nil {
 			return err
 		}
@@ -88,6 +96,13 @@ func ValidateLoadedGame(g *Game, resources *ResourceManager) error {
 				if _, ok := playerIDs[planet.Owner]; !ok {
 					return fmt.Errorf("planet %d references missing player %d", planet.ID, planet.Owner)
 				}
+			}
+			if err := validatePlanetRanges(planet); err != nil {
+				return err
+			}
+			owner := findPlayerByID(g.Players, planet.Owner)
+			if err := validatePlanetBuildings(planet, owner, resources); err != nil {
+				return err
 			}
 		}
 	}
@@ -271,6 +286,117 @@ func validatePlayerCurrentResearch(p *Player, resources *ResourceManager) error 
 		return fmt.Errorf("player %d: %w", p.ID, err)
 	}
 	return nil
+}
+
+// validatePlanetRanges enforces enum and non-negative stock bounds used by the
+// rules (Planet*Max sentinels in model; stocks that planetTurn indexes/adds).
+func validatePlanetRanges(planet *Planet) error {
+	if planet == nil {
+		return nil
+	}
+	id := planet.ID
+	if !validPlanetSize(planet.Size) {
+		return fmt.Errorf("planet %d has out-of-range size %d (want %d..%d)", id, planet.Size, PlanetSizeInvalid+1, PlanetSizeMax-1)
+	}
+	if !validPlanetGravity(planet.Gravity) {
+		return fmt.Errorf("planet %d has out-of-range gravity %d (want %d..%d)", id, planet.Gravity, PlanetGravityInvalid+1, PlanetGravityMax-1)
+	}
+	if !validPlanetEnvironment(planet.Environment) {
+		return fmt.Errorf("planet %d has out-of-range environment %d (want %d..%d)", id, planet.Environment, PlanetEnvironmentInvalid+1, PlanetEnvironmentMax-1)
+	}
+	if !validPlanetMineral(planet.MineralClass) {
+		return fmt.Errorf("planet %d has out-of-range mineral_class %d (want %d..%d)", id, planet.MineralClass, PlanetMineralInvalid+1, PlanetMineralMax-1)
+	}
+	if math.IsNaN(planet.Morale.Bonus) || math.IsInf(planet.Morale.Bonus, 0) {
+		return fmt.Errorf("planet %d has invalid morale bonus", id)
+	}
+	if math.IsNaN(planet.Morale.Multiplier) || math.IsInf(planet.Morale.Multiplier, 0) || planet.Morale.Multiplier < 0 {
+		// moraleMultiplier clamps to >= 0; negative multipliers are never produced.
+		return fmt.Errorf("planet %d has invalid morale multiplier", id)
+	}
+	if planet.Pollution < 0 {
+		return fmt.Errorf("planet %d has negative pollution", id)
+	}
+	if planet.IndustryStack < 0 {
+		return fmt.Errorf("planet %d has negative industry_stack", id)
+	}
+	if planet.BuildBucket < 0 {
+		return fmt.Errorf("planet %d has negative build_bucket", id)
+	}
+	if planet.Marines < 0 {
+		return fmt.Errorf("planet %d has negative marines", id)
+	}
+	if planet.Armored < 0 {
+		return fmt.Errorf("planet %d has negative armor", id)
+	}
+	if planet.TerraformingCount < 0 {
+		return fmt.Errorf("planet %d has negative terraforming_count", id)
+	}
+	if math.IsNaN(planet.GravityMultiplier) || math.IsInf(planet.GravityMultiplier, 0) {
+		return fmt.Errorf("planet %d has invalid gravity_multiplier", id)
+	}
+	return nil
+}
+
+func validPlanetSize(v PlanetSize) bool {
+	return v > PlanetSizeInvalid && v < PlanetSizeMax
+}
+
+func validPlanetGravity(v PlanetGravity) bool {
+	return v > PlanetGravityInvalid && v < PlanetGravityMax
+}
+
+func validPlanetEnvironment(v PlanetEnvironment) bool {
+	return v > PlanetEnvironmentInvalid && v < PlanetEnvironmentMax
+}
+
+func validPlanetMineral(v PlanetMineral) bool {
+	return v > PlanetMineralInvalid && v < PlanetMineralMax
+}
+
+func validatePlanetBuildings(planet *Planet, owner *Player, resources *ResourceManager) error {
+	if planet == nil {
+		return nil
+	}
+	for _, name := range planet.Buildings {
+		if name == "" {
+			continue
+		}
+		if !catalogBuildingKnown(resources, name) {
+			return fmt.Errorf("planet %d has unknown building %q", planet.ID, name)
+		}
+	}
+	for _, name := range planet.BuildQueue {
+		if name == "" {
+			continue
+		}
+		if !planetProjectKnown(name, owner, resources) {
+			return fmt.Errorf("planet %d build_queue has unknown project %q", planet.ID, name)
+		}
+	}
+	if planet.CurrentProject != "" && !planetProjectKnown(planet.CurrentProject, owner, resources) {
+		return fmt.Errorf("planet %d has unknown current_project %q", planet.ID, planet.CurrentProject)
+	}
+	return nil
+}
+
+// planetProjectKnown accepts catalog buildings, Trade Goods / Housing (see
+// isSpecialNonBuildingProject), and known ship designs (production projects).
+func planetProjectKnown(name string, owner *Player, resources *ResourceManager) bool {
+	if isSpecialNonBuildingProject(name) {
+		return true
+	}
+	if catalogBuildingKnown(resources, name) {
+		return true
+	}
+	return shipDesignKnown(owner, resources, name)
+}
+
+func catalogBuildingKnown(resources *ResourceManager, name string) bool {
+	if resources == nil || resources.BuildingCollection == nil {
+		return false
+	}
+	return buildingExists(resources.Buildings, name)
 }
 
 func shipDesignKnown(owner *Player, resources *ResourceManager, name string) bool {

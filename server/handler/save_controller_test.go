@@ -222,6 +222,123 @@ func TestLoadUploadedSaveAddsGame(t *testing.T) {
 	require.Nil(t, server.getGame(gameState.ID))
 }
 
+func TestLoadUploadedAndScenarioRejectOutOfRangeFields(t *testing.T) {
+	// On 2ea7ae1 these fail by assertion: upload/scenario load return 200 for
+	// tax_rate 999, unknown buildings, and out-of-range size/environment.
+	gin.SetMode(gin.TestMode)
+	resources, err := game.NewResourceManager()
+	require.NoError(t, err)
+
+	type corruptFn func(g *game.Game)
+	cases := []struct {
+		name    string
+		corrupt corruptFn
+		want    string
+	}{
+		{
+			name: "tax_rate",
+			corrupt: func(g *game.Game) {
+				g.Players[0].TaxRate = 999
+			},
+			want: "tax_rate",
+		},
+		{
+			name: "unknown_building",
+			corrupt: func(g *game.Game) {
+				for _, star := range g.Galaxy.Stars {
+					for _, p := range star.Planets {
+						if p != nil && p.Owner != 0 {
+							p.Buildings = []string{"NoSuchBuilding"}
+							return
+						}
+					}
+				}
+			},
+			want: "unknown building",
+		},
+		{
+			name: "planet_size",
+			corrupt: func(g *game.Game) {
+				for _, star := range g.Galaxy.Stars {
+					for _, p := range star.Planets {
+						if p != nil && p.Owner != 0 {
+							p.Size = 99
+							return
+						}
+					}
+				}
+			},
+			want: "size",
+		},
+		{
+			name: "planet_environment",
+			corrupt: func(g *game.Game) {
+				for _, star := range g.Galaxy.Stars {
+					for _, p := range star.Planets {
+						if p != nil && p.Owner != 0 {
+							p.Environment = 999
+							return
+						}
+					}
+				}
+			},
+			want: "environment",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run("upload_"+tc.name, func(t *testing.T) {
+			gameState, err := game.NewGame(resources, game.NewGameOptions{
+				PlayerName:  "Uploader",
+				NumStars:    6,
+				PlayerColor: model.DefaultPlayerColor(),
+				Race:        game.DefaultRace("Human"),
+			})
+			require.NoError(t, err)
+			tc.corrupt(gameState)
+			snapshot := *gameState
+			snapshot.Resources = nil
+			payload, err := json.Marshal(&snapshot)
+			require.NoError(t, err)
+
+			server := &Server{gameList: make(map[string]*game.Game), ResourceManager: resources}
+			recorder := postUpload(t, server, bytes.NewReader(payload), "application/json")
+			require.Equal(t, http.StatusBadRequest, recorder.Code, recorder.Body.String())
+			require.Contains(t, recorder.Body.String(), tc.want)
+			require.Empty(t, server.gameList)
+		})
+
+		t.Run("scenario_"+tc.name, func(t *testing.T) {
+			dir := t.TempDir()
+			t.Setenv("SSG_SAVES_DIR", dir)
+			scenario := createScenarioFile(t, resources, "bad-"+tc.name)
+			path, err := savePath("bad-" + tc.name)
+			require.NoError(t, err)
+			raw, err := os.ReadFile(path)
+			require.NoError(t, err)
+			var loaded game.Game
+			require.NoError(t, json.Unmarshal(raw, &loaded))
+			tc.corrupt(&loaded)
+			rewritten, err := json.Marshal(&loaded)
+			require.NoError(t, err)
+			require.NoError(t, os.WriteFile(path, rewritten, 0o644))
+
+			server := &Server{gameList: make(map[string]*game.Game), ResourceManager: resources}
+			recorder := httptest.NewRecorder()
+			ctx, _ := gin.CreateTestContext(recorder)
+			ctx.Request = httptest.NewRequest("POST", "/scenarios/bad-"+tc.name+"/load", nil)
+			ctx.Params = gin.Params{{Key: "name", Value: "bad-" + tc.name}}
+			ctx.Set("server", server)
+			LoadScenario(ctx)
+
+			require.Equal(t, http.StatusBadRequest, recorder.Code, recorder.Body.String())
+			require.Contains(t, recorder.Body.String(), tc.want)
+			require.Nil(t, server.getGame(scenario.ID))
+			require.Empty(t, server.gameList)
+		})
+	}
+}
+
 func TestLoadUploadedSaveRejectsUnknownCurrentResearchLevel(t *testing.T) {
 	// On 2108d9b this fails by assertion: upload returns 200 despite Bogus Level.
 	gin.SetMode(gin.TestMode)

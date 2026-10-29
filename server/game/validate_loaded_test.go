@@ -305,6 +305,102 @@ func TestValidateLoadedGameRejectsInvalidCases(t *testing.T) {
 		g.Players[0].CurrentResearch = nil
 		require.NoError(t, ValidateLoadedGame(g, resources))
 	})
+
+	t.Run("out of range tax rate", func(t *testing.T) {
+		g := base(t)
+		g.Players[0].TaxRate = 999
+		err := ValidateLoadedGame(g, resources)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "tax_rate")
+	})
+
+	t.Run("unknown building on planet", func(t *testing.T) {
+		g := base(t)
+		planet := firstOwnedPlanet(t, g)
+		planet.Buildings = []string{"NoSuchBuilding"}
+		err := ValidateLoadedGame(g, resources)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "unknown building")
+	})
+
+	t.Run("out of range planet size", func(t *testing.T) {
+		g := base(t)
+		planet := firstOwnedPlanet(t, g)
+		planet.Size = 99
+		err := ValidateLoadedGame(g, resources)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "size")
+	})
+
+	t.Run("out of range planet environment", func(t *testing.T) {
+		g := base(t)
+		planet := firstOwnedPlanet(t, g)
+		planet.Environment = 999
+		err := ValidateLoadedGame(g, resources)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "environment")
+	})
+
+	t.Run("out of range planet gravity", func(t *testing.T) {
+		g := base(t)
+		planet := firstOwnedPlanet(t, g)
+		planet.Gravity = model.PlanetGravityMax
+		err := ValidateLoadedGame(g, resources)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "gravity")
+	})
+
+	t.Run("out of range mineral class", func(t *testing.T) {
+		g := base(t)
+		planet := firstOwnedPlanet(t, g)
+		planet.MineralClass = model.PlanetMineralInvalid
+		err := ValidateLoadedGame(g, resources)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "mineral_class")
+	})
+
+	t.Run("negative morale multiplier", func(t *testing.T) {
+		g := base(t)
+		planet := firstOwnedPlanet(t, g)
+		planet.Morale.Multiplier = -1
+		err := ValidateLoadedGame(g, resources)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "morale multiplier")
+	})
+
+	t.Run("negative pollution", func(t *testing.T) {
+		g := base(t)
+		planet := firstOwnedPlanet(t, g)
+		planet.Pollution = -1
+		err := ValidateLoadedGame(g, resources)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "pollution")
+	})
+
+	t.Run("unknown current project", func(t *testing.T) {
+		g := base(t)
+		planet := firstOwnedPlanet(t, g)
+		planet.CurrentProject = "NoSuchProject"
+		err := ValidateLoadedGame(g, resources)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "current_project")
+	})
+
+	t.Run("unknown build queue item", func(t *testing.T) {
+		g := base(t)
+		planet := firstOwnedPlanet(t, g)
+		planet.BuildQueue = []string{"NoSuchQueueItem"}
+		err := ValidateLoadedGame(g, resources)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "build_queue")
+	})
+
+	t.Run("trade goods current project accepted", func(t *testing.T) {
+		g := base(t)
+		planet := firstOwnedPlanet(t, g)
+		planet.CurrentProject = tradeGoodsProject
+		require.NoError(t, ValidateLoadedGame(g, resources))
+	})
 }
 
 func firstOwnedPlanet(t *testing.T, g *Game) *model.Planet {
