@@ -732,7 +732,19 @@ func (g *Game) issueInvadeCommand(playerID uint, command *InvadeCommand) error {
 		return nil // command was nil
 	}
 
-	// Invasion command is valid - it will be executed during turn resolution
-	// The actual invasion logic happens in resolveGroundInvasions() during turn processing
+	g.PendingInvasions = append(g.PendingInvasions, PendingInvasion{
+		OwnerID:        playerID,
+		FleetID:        fleet.ID,
+		TargetPlanetID: planet.ID,
+		ShipIndexes:    copyUintIndexList(command.ShipIndexes),
+	})
 	return nil
+}
+
+func copyUintIndexList(indexes *[]uint) *[]uint {
+	if indexes == nil {
+		return nil
+	}
+	cp := append([]uint(nil), (*indexes)...)
+	return &cp
 }

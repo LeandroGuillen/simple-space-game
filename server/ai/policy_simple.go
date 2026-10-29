@@ -35,6 +35,7 @@ func (SimplePolicy) Decide(snapshot *VisibleGame, playerID uint) Decision {
 	balanceLabor(me, planets, &d)
 	keepBuildQueueWarm(planets, me, &d)
 	resolvePendingColonies(snapshot, playerID, &d)
+	issueInvasionsAtEnemyPlanets(snapshot, playerID, &d)
 	sendIdleScouts(snapshot, playerID, &d)
 
 	return d
@@ -228,9 +229,64 @@ func resolvePendingColonies(snapshot *VisibleGame, playerID uint, d *Decision) {
 	}
 }
 
+// issueInvasionsAtEnemyPlanets restores the prior auto-capture behavior for the
+// AI now that transports no longer invade without an Invade order: any idle
+// fleet with transports at a star with an enemy colony issues Invade.
+func issueInvasionsAtEnemyPlanets(snapshot *VisibleGame, playerID uint, d *Decision) {
+	invading := map[uint]bool{}
+	for _, f := range snapshot.Fleets {
+		if f == nil || f.Owner != playerID || f.DestinationStarID != 0 || f.TurnsRemaining != 0 {
+			continue
+		}
+		var transportIndexes []uint
+		for i, ship := range f.Ships {
+			if ship.Type == "transport" {
+				transportIndexes = append(transportIndexes, uint(i))
+			}
+		}
+		if len(transportIndexes) == 0 {
+			continue
+		}
+		star := findStarByID(snapshot, f.StarID)
+		if star == nil {
+			continue
+		}
+		for _, planet := range star.Planets {
+			if planet == nil || planet.Owner == 0 || planet.Owner == playerID {
+				continue
+			}
+			indexes := append([]uint(nil), transportIndexes...)
+			d.Commands.Invade = append(d.Commands.Invade, &model.InvadeCommand{
+				FleetID:        f.ID,
+				TargetPlanetID: planet.ID,
+				ShipIndexes:    &indexes,
+			})
+			invading[f.ID] = true
+			d.Notes = append(d.Notes, fmt.Sprintf("fleet %d: invading planet %d", f.ID, planet.ID))
+			break
+		}
+	}
+	if len(invading) > 0 {
+		d.Notes = append(d.Notes, fmt.Sprintf("invade: queued %d fleet(s)", len(invading)))
+	}
+}
+
+func findStarByID(snapshot *VisibleGame, starID uint) *model.Star {
+	if snapshot == nil {
+		return nil
+	}
+	for _, star := range snapshot.Galaxy.Stars {
+		if star != nil && star.ID == starID {
+			return star
+		}
+	}
+	return nil
+}
+
 // sendIdleScouts moves any stationary fleet (no destination) to the nearest
 // unexplored star. We treat "unexplored" as a star with no Name field in the
 // visible payload (the visibility filter strips the name for unexplored stars).
+// Fleets already queued to invade this turn stay put.
 func sendIdleScouts(snapshot *VisibleGame, playerID uint, d *Decision) {
 	if me := findPlayer(snapshot, playerID); me != nil {
 		for _, traitID := range me.Race.TraitIDs {
@@ -239,11 +295,20 @@ func sendIdleScouts(snapshot *VisibleGame, playerID uint, d *Decision) {
 			}
 		}
 	}
+	invading := map[uint]bool{}
+	for _, cmd := range d.Commands.Invade {
+		if cmd != nil {
+			invading[cmd.FleetID] = true
+		}
+	}
 	for _, f := range snapshot.Fleets {
 		if f == nil || f.Owner != playerID {
 			continue
 		}
 		if f.DestinationStarID != 0 {
+			continue
+		}
+		if invading[f.ID] {
 			continue
 		}
 		target := nearestUnexploredStar(snapshot, f.X, f.Y)

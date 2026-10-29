@@ -1,6 +1,7 @@
 package game
 
 import (
+	"encoding/json"
 	"testing"
 
 	. "ssg/model"
@@ -329,11 +330,17 @@ func TestFullInvasionScenario(t *testing.T) {
 	}
 
 	game.Fleets = append(game.Fleets, attackingFleet)
+	game.PendingInvasions = []PendingInvasion{{
+		OwnerID:        attacker.ID,
+		FleetID:        attackingFleet.ID,
+		TargetPlanetID: defenderPlanet.ID,
+	}}
 
 	originalMarines := defenderPlanet.Marines
 
 	// Run invasion resolution
 	reports := game.resolveGroundInvasions()
+	assert.Empty(t, game.PendingInvasions, "pending invasions clear after resolution")
 
 	// Should generate at least one invasion report
 	assert.Greater(t, len(reports), 0, "Should generate invasion reports")
@@ -364,6 +371,207 @@ func TestFullInvasionScenario(t *testing.T) {
 	// Invasion system ran without errors - that's the main test
 	t.Logf("Invasion system successfully processed %d invasions", len(reports))
 }
+
+func TestTransportsDoNotAutoCaptureWithoutInvadeOrder(t *testing.T) {
+	game, attacker, defenderPlanet := invasionHarness(t)
+	fleet := &Fleet{
+		ID:     42,
+		Owner:  attacker.ID,
+		StarID: defenderPlanet.ParentStar,
+		Ships: []FleetShip{
+			{Name: "Transport 1", Type: "transport"},
+			{Name: "Transport 2", Type: "transport"},
+		},
+	}
+	game.Fleets = append(game.Fleets, fleet)
+	ownerBefore := defenderPlanet.Owner
+	popBefore := defenderPlanet.Population
+	marinesBefore := defenderPlanet.Marines
+
+	reports := game.resolveGroundInvasions()
+
+	assert.Empty(t, reports)
+	assert.Equal(t, ownerBefore, defenderPlanet.Owner)
+	assert.Equal(t, popBefore, defenderPlanet.Population)
+	assert.Equal(t, marinesBefore, defenderPlanet.Marines)
+	assert.Len(t, fleet.Ships, 2)
+}
+
+func TestInvadeOrderResolvesGroundCombat(t *testing.T) {
+	SetRandomSeed(1)
+	game, attacker, defenderPlanet := invasionHarness(t)
+	defenderPlanet.Marines = 0 // undefended so capture is deterministic
+	defenderPlanet.Armored = 0
+	fleet := &Fleet{
+		ID:     42,
+		Owner:  attacker.ID,
+		StarID: defenderPlanet.ParentStar,
+		Ships:  []FleetShip{{Name: "Transport 1", Type: "transport"}},
+	}
+	game.Fleets = append(game.Fleets, fleet)
+	indexes := []uint{0}
+	require.NoError(t, game.issueInvadeCommand(attacker.ID, &InvadeCommand{
+		FleetID:        fleet.ID,
+		TargetPlanetID: defenderPlanet.ID,
+		ShipIndexes:    &indexes,
+	}))
+	require.Len(t, game.PendingInvasions, 1)
+
+	reports := game.resolveGroundInvasions()
+	require.Len(t, reports, 1)
+	assert.True(t, reports[0].Success)
+	assert.True(t, reports[0].PlanetCaptured)
+	assert.Equal(t, attacker.ID, defenderPlanet.Owner)
+	assert.Empty(t, game.PendingInvasions)
+	require.NotEmpty(t, game.InvasionReports)
+	assert.Equal(t, defenderPlanet.ID, game.InvasionReports[len(game.InvasionReports)-1].PlanetID)
+}
+
+func TestInvadeUncolonizedPlanetRejectedAtSubmit(t *testing.T) {
+	game := newTestGame(t)
+	attacker := game.Players[0]
+	var target *Planet
+	for _, star := range game.Galaxy.Stars {
+		for _, planet := range star.Planets {
+			if planet.Owner == 0 {
+				target = planet
+				break
+			}
+		}
+		if target != nil {
+			break
+		}
+	}
+	require.NotNil(t, target)
+	fleet := &Fleet{
+		ID:     7,
+		Owner:  attacker.ID,
+		StarID: target.ParentStar,
+		Ships:  []FleetShip{{Name: "Transport", Type: "transport"}},
+	}
+	game.Fleets = append(game.Fleets, fleet)
+	ownerBefore := target.Owner
+
+	err := game.Turn(attacker.ID, Commands{
+		Invade: []*InvadeCommand{{
+			FleetID:        fleet.ID,
+			TargetPlanetID: target.ID,
+		}},
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "uncolonized")
+	assert.Empty(t, game.PendingInvasions)
+	assert.Equal(t, ownerBefore, target.Owner)
+	assert.Empty(t, game.InvasionReports)
+}
+
+func TestInvadeShipIndexesLimitParticipatingTransports(t *testing.T) {
+	SetRandomSeed(2)
+	game, attacker, defenderPlanet := invasionHarness(t)
+	defenderPlanet.Marines = 0
+	defenderPlanet.Armored = 0
+	fleet := &Fleet{
+		ID:     42,
+		Owner:  attacker.ID,
+		StarID: defenderPlanet.ParentStar,
+		Ships: []FleetShip{
+			{Name: "Transport A", Type: "transport"},
+			{Name: "Gunboat", Type: "ship_design"},
+			{Name: "Transport B", Type: "transport"},
+		},
+	}
+	game.Fleets = append(game.Fleets, fleet)
+	indexes := []uint{0} // only first transport
+	game.PendingInvasions = []PendingInvasion{{
+		OwnerID:        attacker.ID,
+		FleetID:        fleet.ID,
+		TargetPlanetID: defenderPlanet.ID,
+		ShipIndexes:    &indexes,
+	}}
+
+	reports := game.resolveGroundInvasions()
+	require.Len(t, reports, 1)
+	assert.Equal(t, 4, len(reports[0].InitialAttacker.Marines), "only one transport (4 marines) should fight")
+	require.Len(t, fleet.Ships, 2)
+	assert.Equal(t, "Gunboat", fleet.Ships[0].Name)
+	assert.Equal(t, "Transport B", fleet.Ships[1].Name)
+}
+
+func TestPendingInvasionSaveLoadRoundTrip(t *testing.T) {
+	indexes := []uint{0, 2}
+	original := []PendingInvasion{{
+		OwnerID:        1,
+		FleetID:        9,
+		TargetPlanetID: 3,
+		ShipIndexes:    &indexes,
+	}}
+	g := &Game{PendingInvasions: original}
+	data, err := json.Marshal(g)
+	require.NoError(t, err)
+
+	var loaded Game
+	require.NoError(t, json.Unmarshal(data, &loaded))
+	require.Len(t, loaded.PendingInvasions, 1)
+	assert.Equal(t, original[0].OwnerID, loaded.PendingInvasions[0].OwnerID)
+	assert.Equal(t, original[0].FleetID, loaded.PendingInvasions[0].FleetID)
+	assert.Equal(t, original[0].TargetPlanetID, loaded.PendingInvasions[0].TargetPlanetID)
+	require.NotNil(t, loaded.PendingInvasions[0].ShipIndexes)
+	assert.Equal(t, indexes, *loaded.PendingInvasions[0].ShipIndexes)
+
+	// Old saves omit the field.
+	var legacy Game
+	require.NoError(t, json.Unmarshal([]byte(`{"id":"x"}`), &legacy))
+	assert.Nil(t, legacy.PendingInvasions)
+}
+
+func TestStaleInvadeOrderDroppedWithoutPanic(t *testing.T) {
+	game, attacker, defenderPlanet := invasionHarness(t)
+	ownerBefore := defenderPlanet.Owner
+	game.PendingInvasions = []PendingInvasion{
+		{OwnerID: attacker.ID, FleetID: 9999, TargetPlanetID: defenderPlanet.ID}, // missing fleet
+		{OwnerID: attacker.ID, FleetID: 1, TargetPlanetID: defenderPlanet.ID},    // fleet not at star
+	}
+	game.Fleets = append(game.Fleets, &Fleet{
+		ID:     1,
+		Owner:  attacker.ID,
+		StarID: defenderPlanet.ParentStar + 100, // elsewhere
+		Ships:  []FleetShip{{Type: "transport", Name: "T"}},
+	})
+
+	require.NotPanics(t, func() {
+		reports := game.resolveGroundInvasions()
+		assert.Empty(t, reports)
+	})
+	assert.Empty(t, game.PendingInvasions)
+	assert.Equal(t, ownerBefore, defenderPlanet.Owner)
+}
+
+func invasionHarness(t *testing.T) (*Game, *Player, *Planet) {
+	t.Helper()
+	game := newTestGame(t)
+	attacker := game.Players[0]
+	defender := &Player{ID: 2, Name: "Defender", Race: DefaultRace("Klackon")}
+	game.Players = append(game.Players, defender)
+
+	var defenderPlanet *Planet
+	for _, star := range game.Galaxy.Stars {
+		for _, planet := range star.Planets {
+			if planet.Owner != attacker.ID {
+				defenderPlanet = planet
+				defenderPlanet.Owner = defender.ID
+				defenderPlanet.Population = 2000
+				defenderPlanet.Marines = 2
+				break
+			}
+		}
+		if defenderPlanet != nil {
+			break
+		}
+	}
+	require.NotNil(t, defenderPlanet)
+	return game, attacker, defenderPlanet
+}
+
 
 // Test helper functions
 func newTestGame(t *testing.T) *Game {

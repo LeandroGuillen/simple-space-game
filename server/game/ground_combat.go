@@ -10,83 +10,23 @@ const maxGroundBattleRounds = 20
 // baseHitChance is the baseline chance for ground units to hit each other
 const baseHitChance = 0.7
 
-// resolveGroundInvasions processes all ground invasions at planets where
-// fleets with marines are present at enemy or neutral planets
+// resolveGroundInvasions resolves only Invade orders recorded this turn.
+// Transports parked at a star without an order do nothing. Stale orders
+// (fleet gone / moved / target no longer valid) are dropped safely.
 func (g *Game) resolveGroundInvasions() []*InvasionReport {
 	if g == nil {
 		return nil
 	}
 
+	orders := g.PendingInvasions
+	g.PendingInvasions = nil
+
 	var reports []*InvasionReport
-
-	// Group fleets by planet location
-	fleetsByPlanet := make(map[uint][]*Fleet)
-	for _, fleet := range g.Fleets {
-		if fleet == nil || fleet.DestinationStarID != 0 || fleet.TurnsRemaining != 0 {
-			continue
-		}
-		// Find planets at this star
-		star, err := g.getStar(fleet.StarID)
-		if err != nil {
-			continue
-		}
-		for _, planet := range star.Planets {
-			fleetsByPlanet[planet.ID] = append(fleetsByPlanet[planet.ID], fleet)
-		}
-	}
-
-	// Check each planet for potential invasions
-	for planetID, fleets := range fleetsByPlanet {
-		planet, err := g.getPlanet(planetID)
-		if err != nil {
-			continue
-		}
-
-		// Find attacking fleets (different owner than planet, with marine transports)
-		var attackingFleets []*Fleet
-		for _, fleet := range fleets {
-			if fleet.Owner != planet.Owner && g.fleetHasTransportMarines(fleet) {
-				attackingFleets = append(attackingFleets, fleet)
-			}
-		}
-
-		if len(attackingFleets) == 0 {
-			continue
-		}
-
-		// Process invasion for each attacking player
-		processedAttackers := make(map[uint]bool)
-		for _, attackerFleet := range attackingFleets {
-			if processedAttackers[attackerFleet.Owner] {
-				continue // Already processed this player's invasion this turn
-			}
-			processedAttackers[attackerFleet.Owner] = true
-
-			// Gather all marines from this player's transport ships at this planet
-			attackerForce := g.gatherMarinesFromTransports(attackerFleet.Owner, fleets)
-			if attackerForce.TotalUnits() == 0 {
-				continue
-			}
-
-			// Create defender force from planet
-			defenderForce := g.createPlanetDefenseForce(planet)
-
-			// Resolve the invasion
-			report := g.resolveInvasion(planet, attackerFleet.Owner, attackerForce, defenderForce)
-			if report != nil {
-				reports = append(reports, report)
-
-				// Apply results
-				if report.Success && report.PlanetCaptured {
-					g.capturePlanet(planet, attackerFleet.Owner, &report.SurvivingUnits)
-				} else {
-					// Update planet defenders
-					g.updatePlanetDefenders(planet, &report.SurvivingUnits)
-				}
-
-				// Remove marines from attacking transport ships
-				g.removeMarinesFromTransports(attackerFleet.Owner, fleets, &attackerForce, &report.SurvivingUnits)
-			}
+	for i := range orders {
+		order := orders[i]
+		report := g.resolvePendingInvasion(order)
+		if report != nil {
+			reports = append(reports, report)
 		}
 	}
 
@@ -95,6 +35,37 @@ func (g *Game) resolveGroundInvasions() []*InvasionReport {
 	}
 
 	return reports
+}
+
+func (g *Game) resolvePendingInvasion(order PendingInvasion) *InvasionReport {
+	command := &InvadeCommand{
+		FleetID:        order.FleetID,
+		TargetPlanetID: order.TargetPlanetID,
+		ShipIndexes:    order.ShipIndexes,
+	}
+	fleet, planet, err := g.validateInvadeOrder(order.OwnerID, command)
+	if err != nil || fleet == nil || planet == nil {
+		return nil
+	}
+
+	attackerForce := g.gatherMarinesFromInvasionOrder(fleet, order.ShipIndexes)
+	if attackerForce.TotalUnits() == 0 {
+		return nil
+	}
+
+	defenderForce := g.createPlanetDefenseForce(planet)
+	report := g.resolveInvasion(planet, order.OwnerID, attackerForce, defenderForce)
+	if report == nil {
+		return nil
+	}
+
+	if report.Success && report.PlanetCaptured {
+		g.capturePlanet(planet, order.OwnerID, &report.SurvivingUnits)
+	} else {
+		g.updatePlanetDefenders(planet, &report.SurvivingUnits)
+	}
+	g.removeInvasionTransports(fleet, order.ShipIndexes)
+	return report
 }
 
 // fleetHasTransportMarines checks if a fleet has Transport ships with marines
@@ -116,6 +87,35 @@ func (g *Game) getTransportMarineCount(ship FleetShip) int64 {
 	return 0
 }
 
+// gatherMarinesFromInvasionOrder builds the attacking force from the named
+// transport ships (or all transports in the fleet when indexes are omitted).
+func (g *Game) gatherMarinesFromInvasionOrder(fleet *Fleet, shipIndexes *[]uint) GroundForce {
+	force := GroundForce{OwnerID: fleet.Owner}
+	if fleet == nil {
+		return force
+	}
+	if shipIndexes != nil {
+		for _, index := range *shipIndexes {
+			if int(index) >= len(fleet.Ships) {
+				continue
+			}
+			g.appendTransportMarines(&force, fleet.Ships[index])
+		}
+		return force
+	}
+	for _, ship := range fleet.Ships {
+		g.appendTransportMarines(&force, ship)
+	}
+	return force
+}
+
+func (g *Game) appendTransportMarines(force *GroundForce, ship FleetShip) {
+	marineCount := g.getTransportMarineCount(ship)
+	for i := int64(0); i < marineCount; i++ {
+		force.Marines = append(force.Marines, NewGroundUnit(MarineUnit))
+	}
+}
+
 // gatherMarinesFromTransports creates a ground force from all marines in player's transport ships at a planet
 func (g *Game) gatherMarinesFromTransports(ownerID uint, fleets []*Fleet) GroundForce {
 	force := GroundForce{OwnerID: ownerID}
@@ -125,10 +125,7 @@ func (g *Game) gatherMarinesFromTransports(ownerID uint, fleets []*Fleet) Ground
 			continue
 		}
 		for _, ship := range fleet.Ships {
-			marineCount := g.getTransportMarineCount(ship)
-			for i := int64(0); i < marineCount; i++ {
-				force.Marines = append(force.Marines, NewGroundUnit(MarineUnit))
-			}
+			g.appendTransportMarines(&force, ship)
 		}
 	}
 
@@ -350,19 +347,41 @@ func (g *Game) updatePlanetDefenders(planet *Planet, survivingUnits *GroundForce
 	planet.Armored = livingArmored
 }
 
+func (g *Game) removeInvasionTransports(fleet *Fleet, shipIndexes *[]uint) {
+	if fleet == nil {
+		return
+	}
+	if shipIndexes != nil {
+		remove := make(map[uint]bool, len(*shipIndexes))
+		for _, index := range *shipIndexes {
+			remove[index] = true
+		}
+		remaining := make([]FleetShip, 0, len(fleet.Ships))
+		for i, ship := range fleet.Ships {
+			if remove[uint(i)] {
+				continue
+			}
+			remaining = append(remaining, ship)
+		}
+		fleet.Ships = remaining
+		return
+	}
+	remaining := make([]FleetShip, 0, len(fleet.Ships))
+	for _, ship := range fleet.Ships {
+		if ship.Type == "transport" {
+			continue
+		}
+		remaining = append(remaining, ship)
+	}
+	fleet.Ships = remaining
+}
+
+// removeMarinesFromTransports removes transport ships that deployed their marines.
+// Kept for callers that still pass a fleet list; prefer removeInvasionTransports.
 func (g *Game) removeMarinesFromTransports(ownerID uint, fleets []*Fleet, originalForce, survivingUnits *GroundForce) {
-	// Remove transport ships that deployed their marines
-	// Transport ships are consumed in the invasion (they land and don't return to fleet)
 	for _, fleet := range fleets {
 		if fleet.Owner == ownerID {
-			// Remove transport ships from the fleet
-			remainingShips := []FleetShip{}
-			for _, ship := range fleet.Ships {
-				if ship.Type != "transport" {
-					remainingShips = append(remainingShips, ship)
-				}
-			}
-			fleet.Ships = remainingShips
+			g.removeInvasionTransports(fleet, nil)
 		}
 	}
 }

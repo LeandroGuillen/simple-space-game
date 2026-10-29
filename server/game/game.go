@@ -44,12 +44,23 @@ type Game struct {
 	BattleReports            []*BattleReport      `json:"battle_reports,omitempty"`
 	PendingBattles           []*TacticalBattle    `json:"pending_battles,omitempty"`
 	InvasionReports          []*InvasionReport    `json:"invasion_reports,omitempty"`
-	TurnSubmissions          map[uint]Commands    `json:"-"`
-	TurnStatus               TurnStatus           `json:"turn_status"`
+	// PendingInvasions holds Invade orders accepted this turn until
+	// resolveGroundInvasions runs. Omitted/empty in older saves.
+	PendingInvasions []PendingInvasion `json:"pending_invasions,omitempty"`
+	TurnSubmissions  map[uint]Commands `json:"-"`
+	TurnStatus       TurnStatus        `json:"turn_status"`
 	// Debug is set when a debug-only endpoint mutates the game (e.g. research-all).
 	// Omitted/false in older saves.
 	Debug bool `json:"debug,omitempty"`
 	mu    *sync.RWMutex `json:"-"`
+}
+
+// PendingInvasion is a validated Invade order waiting for ground resolution.
+type PendingInvasion struct {
+	OwnerID        uint    `json:"owner_id"`
+	FleetID        uint    `json:"fleet_id"`
+	TargetPlanetID uint    `json:"target_planet_id"`
+	ShipIndexes    *[]uint `json:"ship_indexes,omitempty"`
 }
 
 type NewGameOptions struct {

@@ -232,3 +232,35 @@ func TestSimplePolicyQueuesAvailableBuilding(t *testing.T) {
 		t.Fatalf("expected build of Automated Factory, got %+v", d.Commands.Build)
 	}
 }
+
+func TestSimplePolicyIssuesInvadeForTransportsAtEnemyPlanet(t *testing.T) {
+	me := &model.Player{ID: 1, Race: model.Race{TraitIDs: []string{"omniscient"}}}
+	enemyPlanet := &model.Planet{ID: 20, Owner: 2, ParentStar: 1, Name: "Target"}
+	star := &model.Star{ID: 1, Name: "Sol", Planets: []*model.Planet{enemyPlanet}}
+	fleet := &model.Fleet{
+		ID:     7,
+		Owner:  1,
+		StarID: 1,
+		X:      0,
+		Y:      0,
+		Ships: []model.FleetShip{
+			{Type: "transport", Name: "T1"},
+			{Type: "ship_design", Name: "Escort"},
+		},
+	}
+	vg := snapshotWith([]*model.Player{me}, []*model.Star{star}, []*model.Fleet{fleet}, TurnStatus{WaitingPlayerIDs: []uint{1}})
+	d := SimplePolicy{}.Decide(vg, 1)
+	if len(d.Commands.Invade) != 1 {
+		t.Fatalf("expected one invade command, got %+v", d.Commands.Invade)
+	}
+	cmd := d.Commands.Invade[0]
+	if cmd.FleetID != 7 || cmd.TargetPlanetID != 20 {
+		t.Fatalf("unexpected invade command %+v", cmd)
+	}
+	if cmd.ShipIndexes == nil || len(*cmd.ShipIndexes) != 1 || (*cmd.ShipIndexes)[0] != 0 {
+		t.Fatalf("expected ship index [0] for the transport, got %+v", cmd.ShipIndexes)
+	}
+	if len(d.Commands.FleetMove) != 0 {
+		t.Fatalf("invading fleet should not also scout-move, got %+v", d.Commands.FleetMove)
+	}
+}
