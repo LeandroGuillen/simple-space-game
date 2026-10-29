@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -17,6 +18,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
+
+// MaxUploadedSaveBytes caps the raw body (or multipart file) accepted by /saves/upload.
+const MaxUploadedSaveBytes = 20 << 20 // 20 MB
 
 type SavedGameInfo struct {
 	Name        string    `json:"name"`
@@ -151,6 +155,12 @@ func LoadScenario(c *gin.Context) {
 func LoadUploadedSave(c *gin.Context) {
 	data, err := readUploadedGameData(c)
 	if err != nil {
+		if isUploadTooLarge(err) {
+			c.JSON(http.StatusRequestEntityTooLarge, gin.H{
+				"error": fmt.Sprintf("uploaded save exceeds %d byte limit", MaxUploadedSaveBytes),
+			})
+			return
+		}
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("cannot read upload: %v", err)})
 		return
 	}
@@ -162,6 +172,10 @@ func LoadUploadedSave(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("cannot decode upload: %v", err)})
 		return
 	}
+	if err := game.ValidateLoadedGame(&loaded, s.ResourceManager); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	loaded.ID = uuid.New().String()
 	game.HydrateLoadedGame(&loaded, s.ResourceManager)
 
@@ -170,13 +184,31 @@ func LoadUploadedSave(c *gin.Context) {
 }
 
 func readUploadedGameData(c *gin.Context) ([]byte, error) {
+	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, MaxUploadedSaveBytes)
 	if file, err := c.FormFile("file"); err == nil {
+		if file.Size > MaxUploadedSaveBytes {
+			return nil, &http.MaxBytesError{Limit: MaxUploadedSaveBytes}
+		}
 		open, err := file.Open()
 		if err != nil {
 			return nil, err
 		}
 		defer open.Close()
-		return io.ReadAll(open)
+		limited := http.MaxBytesReader(c.Writer, open, MaxUploadedSaveBytes)
+		return io.ReadAll(limited)
 	}
 	return io.ReadAll(c.Request.Body)
+}
+
+func isUploadTooLarge(err error) bool {
+	if err == nil {
+		return false
+	}
+	var maxBytesErr *http.MaxBytesError
+	if errors.As(err, &maxBytesErr) {
+		return true
+	}
+	msg := err.Error()
+	return strings.Contains(msg, "http: request body too large") ||
+		strings.Contains(msg, "request body too large")
 }

@@ -3,10 +3,12 @@ package server
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"ssg/game"
@@ -141,4 +143,186 @@ func createScenarioFile(t *testing.T, resources *game.ResourceManager, name stri
 	require.NoError(t, os.MkdirAll(dir, 0o755))
 	require.NoError(t, os.WriteFile(path, data, 0o644))
 	return instance
+}
+
+func postUpload(t *testing.T, server *Server, body io.Reader, contentType string) *httptest.ResponseRecorder {
+	t.Helper()
+	recorder := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(recorder)
+	req := httptest.NewRequest(http.MethodPost, "/saves/upload", body)
+	if contentType != "" {
+		req.Header.Set("Content-Type", contentType)
+	}
+	ctx.Request = req
+	ctx.Set("server", server)
+	LoadUploadedSave(ctx)
+	return recorder
+}
+
+func TestLoadUploadedSaveRejectsOversizedBody(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	resources, err := game.NewResourceManager()
+	require.NoError(t, err)
+	server := &Server{gameList: make(map[string]*game.Game), ResourceManager: resources}
+
+	// Just over the limit; MaxBytesReader must reject before full buffering.
+	payload := bytes.Repeat([]byte("a"), MaxUploadedSaveBytes+1)
+	recorder := postUpload(t, server, bytes.NewReader(payload), "application/json")
+	require.Equal(t, http.StatusRequestEntityTooLarge, recorder.Code)
+	require.Contains(t, recorder.Body.String(), "limit")
+	require.Empty(t, server.gameList)
+}
+
+func TestLoadUploadedSaveRejectsMalformedJSON(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	resources, err := game.NewResourceManager()
+	require.NoError(t, err)
+	server := &Server{gameList: make(map[string]*game.Game), ResourceManager: resources}
+
+	recorder := postUpload(t, server, strings.NewReader("{not-json"), "application/json")
+	require.Equal(t, http.StatusBadRequest, recorder.Code)
+	require.Contains(t, recorder.Body.String(), "cannot decode upload")
+	require.Empty(t, server.gameList)
+}
+
+func TestLoadUploadedSaveRejectsInvalidGames(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	resources, err := game.NewResourceManager()
+	require.NoError(t, err)
+
+	cases := []struct {
+		name   string
+		mutate func(*game.Game)
+		reason string
+	}{
+		{
+			name: "negative population",
+			mutate: func(g *game.Game) {
+				for _, star := range g.Galaxy.Stars {
+					for _, p := range star.Planets {
+						if p != nil && p.Owner != 0 {
+							p.Population = -5
+							return
+						}
+					}
+				}
+			},
+			reason: "negative population",
+		},
+		{
+			name: "unknown tech",
+			mutate: func(g *game.Game) {
+				g.Players[0].ResearchedTechs = append(g.Players[0].ResearchedTechs, "Bogus Tech Name")
+			},
+			reason: "unknown tech",
+		},
+		{
+			name: "duplicate player id",
+			mutate: func(g *game.Game) {
+				dup := *g.Players[0]
+				g.Players = append(g.Players, &dup)
+			},
+			reason: "duplicate player id",
+		},
+		{
+			name: "no players",
+			mutate: func(g *game.Game) {
+				g.Players = nil
+			},
+			reason: "no players",
+		},
+		{
+			name: "negative current turn",
+			mutate: func(g *game.Game) {
+				g.CurrentTurn = -10
+			},
+			reason: "current turn",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			g, err := game.NewGame(resources, game.NewGameOptions{
+				PlayerName:  "Bad",
+				NumStars:    6,
+				PlayerColor: model.DefaultPlayerColor(),
+				Race:        game.DefaultRace("Human"),
+			})
+			require.NoError(t, err)
+			tc.mutate(g)
+			snapshot := *g
+			snapshot.Resources = nil
+			payload, err := json.Marshal(&snapshot)
+			require.NoError(t, err)
+
+			server := &Server{gameList: make(map[string]*game.Game), ResourceManager: resources}
+			recorder := postUpload(t, server, bytes.NewReader(payload), "application/json")
+			require.Equal(t, http.StatusBadRequest, recorder.Code)
+			require.Contains(t, recorder.Body.String(), tc.reason)
+			require.Empty(t, server.gameList)
+		})
+	}
+}
+
+func TestLoadUploadedSaveRoundTripsFreshExportAndScenarios(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	resources, err := game.NewResourceManager()
+	require.NoError(t, err)
+
+	t.Run("fresh export", func(t *testing.T) {
+		g, err := game.NewGame(resources, game.NewGameOptions{
+			PlayerName:  "RoundTrip",
+			NumStars:    6,
+			PlayerColor: model.DefaultPlayerColor(),
+			Race:        game.DefaultRace("Human"),
+		})
+		require.NoError(t, err)
+		snapshot := *g
+		snapshot.Resources = nil
+		payload, err := json.Marshal(&snapshot)
+		require.NoError(t, err)
+
+		server := &Server{gameList: make(map[string]*game.Game), ResourceManager: resources}
+		recorder := postUpload(t, server, bytes.NewReader(payload), "application/json")
+		require.Equal(t, http.StatusOK, recorder.Code)
+		var response struct {
+			GameID string `json:"gameID"`
+		}
+		require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &response))
+		require.NotNil(t, server.getGame(response.GameID))
+	})
+
+	scenarioDir := filepath.Join("..", "data", "scenarios")
+	entries, err := os.ReadDir(scenarioDir)
+	require.NoError(t, err)
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".json") {
+			continue
+		}
+		name := entry.Name()
+		t.Run("scenario "+name, func(t *testing.T) {
+			data, err := os.ReadFile(filepath.Join(scenarioDir, name))
+			require.NoError(t, err)
+			server := &Server{gameList: make(map[string]*game.Game), ResourceManager: resources}
+			recorder := postUpload(t, server, bytes.NewReader(data), "application/json")
+			require.Equal(t, http.StatusOK, recorder.Code, recorder.Body.String())
+			var response struct {
+				GameID string `json:"gameID"`
+			}
+			require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &response))
+			require.NotNil(t, server.getGame(response.GameID))
+		})
+	}
+}
+
+func TestStatusVersionHasNoNewline(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	s, err := NewServer()
+	require.NoError(t, err)
+	body := getStatus(t, s)
+	version, ok := body["version"].(string)
+	require.True(t, ok)
+	require.NotEmpty(t, version)
+	require.Equal(t, strings.TrimSpace(version), version)
+	require.NotContains(t, version, "\n")
 }

@@ -1,11 +1,14 @@
 package version
 
-import _ "embed"
+import (
+	_ "embed"
+	"strings"
+)
 
 //go:embed VERSION
 var versionString string
 
-// Version returns the application version.
+// Version returns the application version with surrounding whitespace trimmed.
 func Version() string {
-	return versionString
+	return strings.TrimSpace(versionString)
 }
