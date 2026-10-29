@@ -476,18 +476,11 @@ func applyGroundDamage(force *GroundForce, damage int64) int {
 // Helper functions
 
 func copyGroundForce(force GroundForce) GroundForce {
-	copy := GroundForce{OwnerID: force.OwnerID}
-	copy.Marines = make([]GroundUnit, len(force.Marines))
-	copy.Armored = make([]GroundUnit, len(force.Armored))
-
-	for i, marine := range force.Marines {
-		copy.Marines[i] = marine
+	return GroundForce{
+		OwnerID: force.OwnerID,
+		Marines: cloneSlice(force.Marines),
+		Armored: cloneSlice(force.Armored),
 	}
-	for i, armored := range force.Armored {
-		copy.Armored[i] = armored
-	}
-
-	return copy
 }
 
 func (g *Game) nextInvasionReportID() uint {

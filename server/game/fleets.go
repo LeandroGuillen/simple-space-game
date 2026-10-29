@@ -881,6 +881,6 @@ func copyUintIndexList(indexes *[]uint) *[]uint {
 	if indexes == nil {
 		return nil
 	}
-	cp := append([]uint(nil), (*indexes)...)
+	cp := cloneSlice(*indexes)
 	return &cp
 }

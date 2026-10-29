@@ -174,37 +174,34 @@ func copyPlayerPrivate(p *model.Player) *model.Player {
 	cp := *p
 	if p.CurrentResearch != nil {
 		research := *p.CurrentResearch
-		research.TechNames = append([]string(nil), p.CurrentResearch.TechNames...)
+		research.TechNames = cloneSlice(p.CurrentResearch.TechNames)
 		cp.CurrentResearch = &research
 	}
-	cp.ResearchedTechs = append([]string(nil), p.ResearchedTechs...)
-	if p.HyperAdvanced != nil {
-		cp.HyperAdvanced = make(map[string]uint64, len(p.HyperAdvanced))
-		for k, v := range p.HyperAdvanced {
-			cp.HyperAdvanced[k] = v
-		}
-	}
+	cp.ResearchedTechs = cloneSlice(p.ResearchedTechs)
+	cp.HyperAdvanced = cloneMap(p.HyperAdvanced)
 	cp.Available = model.AvailableTech{
-		Buildings:   append([]string(nil), p.Available.Buildings...),
-		HullSizes:   append([]string(nil), p.Available.HullSizes...),
-		Drives:      append([]string(nil), p.Available.Drives...),
-		Armors:      append([]string(nil), p.Available.Armors...),
-		Computers:   append([]string(nil), p.Available.Computers...),
-		FuelCells:   append([]string(nil), p.Available.FuelCells...),
-		Shields:     append([]string(nil), p.Available.Shields...),
-		Beams:       append([]string(nil), p.Available.Beams...),
-		ShipSystems: append([]string(nil), p.Available.ShipSystems...),
+		Buildings:   cloneSlice(p.Available.Buildings),
+		HullSizes:   cloneSlice(p.Available.HullSizes),
+		Drives:      cloneSlice(p.Available.Drives),
+		Armors:      cloneSlice(p.Available.Armors),
+		Computers:   cloneSlice(p.Available.Computers),
+		FuelCells:   cloneSlice(p.Available.FuelCells),
+		Shields:     cloneSlice(p.Available.Shields),
+		Beams:       cloneSlice(p.Available.Beams),
+		ShipSystems: cloneSlice(p.Available.ShipSystems),
 	}
-	cp.Fleets = append([]uint(nil), p.Fleets...)
-	if p.ShipDesigns != nil {
+	cp.Fleets = cloneSlice(p.Fleets)
+	if p.ShipDesigns == nil {
+		cp.ShipDesigns = nil
+	} else {
 		cp.ShipDesigns = make([]model.ShipDesign, len(p.ShipDesigns))
 		for i, d := range p.ShipDesigns {
 			cp.ShipDesigns[i] = copyShipDesign(d)
 		}
 	}
-	cp.ExploredStars = append([]uint(nil), p.ExploredStars...)
+	cp.ExploredStars = cloneSlice(p.ExploredStars)
 	cp.Race = p.Race
-	cp.Race.TraitIDs = append([]string(nil), p.Race.TraitIDs...)
+	cp.Race.TraitIDs = cloneSlice(p.Race.TraitIDs)
 	cp.Race.Grants = copyGrants(p.Race.Grants)
 	return &cp
 }
@@ -212,17 +209,17 @@ func copyPlayerPrivate(p *model.Player) *model.Player {
 func copyGrants(g model.Grants) model.Grants {
 	return model.Grants{
 		Unlocks: model.Unlocks{
-			Buildings:   append([]string(nil), g.Unlocks.Buildings...),
-			HullSizes:   append([]string(nil), g.Unlocks.HullSizes...),
-			Drives:      append([]string(nil), g.Unlocks.Drives...),
-			Armors:      append([]string(nil), g.Unlocks.Armors...),
-			Computers:   append([]string(nil), g.Unlocks.Computers...),
-			FuelCells:   append([]string(nil), g.Unlocks.FuelCells...),
-			Shields:     append([]string(nil), g.Unlocks.Shields...),
-			Beams:       append([]string(nil), g.Unlocks.Beams...),
-			ShipSystems: append([]string(nil), g.Unlocks.ShipSystems...),
+			Buildings:   cloneSlice(g.Unlocks.Buildings),
+			HullSizes:   cloneSlice(g.Unlocks.HullSizes),
+			Drives:      cloneSlice(g.Unlocks.Drives),
+			Armors:      cloneSlice(g.Unlocks.Armors),
+			Computers:   cloneSlice(g.Unlocks.Computers),
+			FuelCells:   cloneSlice(g.Unlocks.FuelCells),
+			Shields:     cloneSlice(g.Unlocks.Shields),
+			Beams:       cloneSlice(g.Unlocks.Beams),
+			ShipSystems: cloneSlice(g.Unlocks.ShipSystems),
 		},
-		Modifiers: append([]model.Modifier(nil), g.Modifiers...),
+		Modifiers: cloneSlice(g.Modifiers),
 	}
 }
 
@@ -236,14 +233,14 @@ func publicPlayerView(p *model.Player) *model.Player {
 		Race: model.Race{
 			Name:       p.Race.Name,
 			Government: p.Race.Government,
-			TraitIDs:   append([]string(nil), p.Race.TraitIDs...),
+			TraitIDs:   cloneSlice(p.Race.TraitIDs),
 		},
 	}
 }
 
 func copyFleet(f *model.Fleet) *model.Fleet {
 	cp := *f
-	cp.Ships = append([]model.FleetShip(nil), f.Ships...)
+	cp.Ships = cloneSlice(f.Ships)
 	return &cp
 }
 
@@ -256,7 +253,7 @@ func sanitizeEnemyFleet(f *model.Fleet) *model.Fleet {
 		StarID: f.StarID,
 		X:      f.X,
 		Y:      f.Y,
-		Ships:  append([]model.FleetShip(nil), f.Ships...),
+		Ships:  cloneSlice(f.Ships),
 	}
 }
 
@@ -341,7 +338,7 @@ func filterPendingInvasionsForPlayer(orders []PendingInvasion, playerID uint) []
 		}
 		cp := order
 		if order.ShipIndexes != nil {
-			idx := append([]uint(nil), (*order.ShipIndexes)...)
+			idx := cloneSlice(*order.ShipIndexes)
 			cp.ShipIndexes = &idx
 		}
 		out = append(out, cp)
@@ -373,7 +370,7 @@ func filterPendingMapForPlayer(pending map[uint][]uint, playerID uint) map[uint]
 	if !ok || len(own) == 0 {
 		return map[uint][]uint{}
 	}
-	return map[uint][]uint{playerID: append([]uint(nil), own...)}
+	return map[uint][]uint{playerID: cloneSlice(own)}
 }
 
 func isStarVisibleToPlayer(player *model.Player, starID uint) bool {

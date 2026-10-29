@@ -124,8 +124,11 @@ func copyGalaxy(galaxy model.Galaxy) model.Galaxy {
 	out := model.Galaxy{
 		Width:  galaxy.Width,
 		Height: galaxy.Height,
-		Stars:  make([]*model.Star, len(galaxy.Stars)),
 	}
+	if galaxy.Stars == nil {
+		return out
+	}
+	out.Stars = make([]*model.Star, len(galaxy.Stars))
 	for i, star := range galaxy.Stars {
 		out.Stars[i] = copyStar(star)
 	}
@@ -137,7 +140,9 @@ func copyStar(star *model.Star) *model.Star {
 		return nil
 	}
 	cp := *star
-	if star.Planets != nil {
+	if star.Planets == nil {
+		cp.Planets = nil
+	} else {
 		cp.Planets = make([]*model.Planet, len(star.Planets))
 		for i, planet := range star.Planets {
 			cp.Planets[i] = copyPlanet(planet)
@@ -174,14 +179,8 @@ func copyFleets(fleets []*model.Fleet) []*model.Fleet {
 	return out
 }
 
-// copyPopulationTransfers preserves nil vs empty so JSON stays byte-identical.
 func copyPopulationTransfers(src []model.PopulationTransfer) []model.PopulationTransfer {
-	if src == nil {
-		return nil
-	}
-	out := make([]model.PopulationTransfer, len(src))
-	copy(out, src)
-	return out
+	return cloneSlice(src)
 }
 
 func copyPendingUintMap(src map[uint][]uint) map[uint][]uint {
@@ -190,7 +189,7 @@ func copyPendingUintMap(src map[uint][]uint) map[uint][]uint {
 	}
 	out := make(map[uint][]uint, len(src))
 	for k, v := range src {
-		out[k] = copyUintSlice(v)
+		out[k] = cloneSlice(v)
 	}
 	return out
 }
@@ -264,7 +263,7 @@ func copyCommands(cmds model.Commands) model.Commands {
 				continue
 			}
 			cp := *c
-			cp.BuildQueue = append([]string(nil), c.BuildQueue...)
+			cp.BuildQueue = cloneSlice(c.BuildQueue)
 			out.Build[i] = &cp
 		}
 	}
@@ -358,7 +357,7 @@ func copyCommands(cmds model.Commands) model.Commands {
 	}
 	if cmds.MutateRace != nil {
 		cp := *cmds.MutateRace
-		cp.TraitIDs = append([]string(nil), cmds.MutateRace.TraitIDs...)
+		cp.TraitIDs = cloneSlice(cmds.MutateRace.TraitIDs)
 		out.MutateRace = &cp
 	}
 	return out
