@@ -94,20 +94,20 @@ export function InvasionReportPanel(props: InvasionReportPanelProps) {
                   <div class="force attacker-force">
                     <h5>Attacking Force</h5>
                     <div class="unit-count">
-                      Marines: {report.initial_attacker.marines.length}
+                      Marines: {(report.initial_attacker.marines ?? []).length}
                     </div>
                     <div class="unit-count">
-                      Armored: {report.initial_attacker.armored.length}
+                      Armored: {(report.initial_attacker.armored ?? []).length}
                     </div>
                   </div>
                   
                   <div class="force defender-force">
                     <h5>Defending Force</h5>
                     <div class="unit-count">
-                      Marines: {report.initial_defender.marines.length}
+                      Marines: {(report.initial_defender.marines ?? []).length}
                     </div>
                     <div class="unit-count">
-                      Armored: {report.initial_defender.armored.length}
+                      Armored: {(report.initial_defender.armored ?? []).length}
                     </div>
                   </div>
                 </div>

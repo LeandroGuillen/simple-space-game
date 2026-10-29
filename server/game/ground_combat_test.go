@@ -777,6 +777,90 @@ func TestValidInvadeStillResolvesAfterHardening(t *testing.T) {
 	require.NotEmpty(t, game.InvasionReports)
 }
 
+func TestInvasionReportSerializesEmptyForcesAsArrays(t *testing.T) {
+	// On 12524f8 this fails: armored/marines serialize as null when a force
+	// has no units of that type (append onto a zero GroundForce left nil).
+	SetRandomSeed(11)
+	game, attacker, defenderPlanet := invasionHarness(t)
+	defenderPlanet.Marines = 0
+	defenderPlanet.Armored = 0
+	fleet := &Fleet{
+		ID:     42,
+		Owner:  attacker.ID,
+		StarID: defenderPlanet.ParentStar,
+		Ships:  []FleetShip{{Name: "Transport", Type: "transport"}},
+	}
+	game.Fleets = append(game.Fleets, fleet)
+	indexes := []uint{0}
+
+	require.NoError(t, game.AdvanceTurn(map[uint]Commands{
+		attacker.ID: {
+			Invade: []*InvadeCommand{{
+				FleetID:        fleet.ID,
+				TargetPlanetID: defenderPlanet.ID,
+				ShipIndexes:    &indexes,
+			}},
+		},
+		2: {},
+	}))
+	require.NotEmpty(t, game.InvasionReports)
+	report := game.InvasionReports[len(game.InvasionReports)-1]
+	require.NotNil(t, report.InitialAttacker.Marines)
+	require.NotNil(t, report.InitialAttacker.Armored)
+	require.NotNil(t, report.InitialDefender.Marines)
+	require.NotNil(t, report.InitialDefender.Armored)
+	require.NotNil(t, report.SurvivingUnits.Marines)
+	require.NotNil(t, report.SurvivingUnits.Armored)
+	assert.Empty(t, report.InitialAttacker.Armored)
+	assert.Empty(t, report.InitialDefender.Marines)
+	assert.Empty(t, report.InitialDefender.Armored)
+
+	assertInvasionReportForcesJSONArrays(t, game)
+
+	visible, err := game.GetVisibleGameForPlayer(attacker.ID)
+	require.NoError(t, err)
+	assertInvasionReportForcesJSONArrays(t, visible)
+}
+
+func assertInvasionReportForcesJSONArrays(t *testing.T, g *Game) {
+	t.Helper()
+	raw, err := json.Marshal(g)
+	require.NoError(t, err)
+	var decoded struct {
+		InvasionReports []struct {
+			InitialAttacker struct {
+				Marines json.RawMessage `json:"marines"`
+				Armored json.RawMessage `json:"armored"`
+			} `json:"initial_attacker"`
+			InitialDefender struct {
+				Marines json.RawMessage `json:"marines"`
+				Armored json.RawMessage `json:"armored"`
+			} `json:"initial_defender"`
+			SurvivingUnits struct {
+				Marines json.RawMessage `json:"marines"`
+				Armored json.RawMessage `json:"armored"`
+			} `json:"surviving_units"`
+		} `json:"invasion_reports"`
+	}
+	require.NoError(t, json.Unmarshal(raw, &decoded))
+	require.NotEmpty(t, decoded.InvasionReports)
+	for i, r := range decoded.InvasionReports {
+		for _, field := range []struct {
+			name string
+			raw  json.RawMessage
+		}{
+			{"initial_attacker.marines", r.InitialAttacker.Marines},
+			{"initial_attacker.armored", r.InitialAttacker.Armored},
+			{"initial_defender.marines", r.InitialDefender.Marines},
+			{"initial_defender.armored", r.InitialDefender.Armored},
+			{"surviving_units.marines", r.SurvivingUnits.Marines},
+			{"surviving_units.armored", r.SurvivingUnits.Armored},
+		} {
+			require.NotEqual(t, "null", string(field.raw), "report[%d].%s must be [], not null", i, field.name)
+			require.True(t, len(field.raw) > 0 && field.raw[0] == '[', "report[%d].%s = %s", i, field.name, field.raw)
+		}
+	}
+}
 
 // Test helper functions
 func newTestGame(t *testing.T) *Game {

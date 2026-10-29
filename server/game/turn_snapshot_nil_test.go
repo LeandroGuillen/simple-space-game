@@ -144,6 +144,39 @@ func TestSnapshotRestorePreservesNilEmptyOnBattleDemoAfterBattle(t *testing.T) {
 	assertSnapshotRestoreByteIdentical(t, g)
 }
 
+func TestSnapshotRestoreWithInvasionReportEmptyForceSlices(t *testing.T) {
+	// Report forces use empty non-nil slices; snapshot/restore must keep them
+	// as [] (not collapse to null) so failed-turn JSON stays byte-identical.
+	SetRandomSeed(11)
+	g, attacker, defenderPlanet := invasionHarness(t)
+	defenderPlanet.Marines = 0
+	defenderPlanet.Armored = 0
+	fleet := &Fleet{
+		ID:     42,
+		Owner:  attacker.ID,
+		StarID: defenderPlanet.ParentStar,
+		Ships:  []FleetShip{{Name: "Transport", Type: "transport"}},
+	}
+	g.Fleets = append(g.Fleets, fleet)
+	indexes := []uint{0}
+	require.NoError(t, g.AdvanceTurn(map[uint]Commands{
+		attacker.ID: {
+			Invade: []*InvadeCommand{{
+				FleetID:        fleet.ID,
+				TargetPlanetID: defenderPlanet.ID,
+				ShipIndexes:    &indexes,
+			}},
+		},
+		2: {},
+	}))
+	require.NotEmpty(t, g.InvasionReports)
+	require.NotNil(t, g.InvasionReports[0].InitialDefender.Armored)
+	assert.Empty(t, g.InvasionReports[0].InitialDefender.Armored)
+
+	assertSnapshotRestoreByteIdentical(t, g)
+	assertFailedAdvanceByteIdentical(t, g)
+}
+
 func TestCloneSlicePreservesNilAndEmpty(t *testing.T) {
 	var nilSlice []uint
 	empty := []uint{}

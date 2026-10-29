@@ -192,7 +192,7 @@ func (g *Game) cancelInvasionOrder(order PendingInvasion, planet *Planet) *Invas
 			y = float64(star.Y)
 		}
 	}
-	return &InvasionReport{
+	report := &InvasionReport{
 		ID:              g.nextInvasionReportID(),
 		Turn:            int64(g.CurrentTurn),
 		PlanetID:        order.TargetPlanetID,
@@ -205,6 +205,8 @@ func (g *Game) cancelInvasionOrder(order PendingInvasion, planet *Planet) *Invas
 		PlanetCaptured:  false,
 		Cancelled:       true,
 	}
+	normalizeInvasionReportForces(report)
+	return report
 }
 
 func (g *Game) resolvePendingInvasion(order PendingInvasion) *InvasionReport {
@@ -370,8 +372,31 @@ func (g *Game) resolveInvasion(planet *Planet, attackerOwnerID uint, attackerFor
 	} else if defenderSurvived {
 		report.SurvivingUnits = defenderForce
 	}
+	normalizeInvasionReportForces(report)
 
 	return report
+}
+
+// ensureGroundForceSlices turns nil Marines/Armored into empty non-nil slices so
+// invasion reports serialize as [] rather than null. Snapshot cloneSlice still
+// preserves nil vs empty for restore; this only normalizes forces at report creation.
+func ensureGroundForceSlices(force GroundForce) GroundForce {
+	if force.Marines == nil {
+		force.Marines = []GroundUnit{}
+	}
+	if force.Armored == nil {
+		force.Armored = []GroundUnit{}
+	}
+	return force
+}
+
+func normalizeInvasionReportForces(report *InvasionReport) {
+	if report == nil {
+		return
+	}
+	report.InitialAttacker = ensureGroundForceSlices(report.InitialAttacker)
+	report.InitialDefender = ensureGroundForceSlices(report.InitialDefender)
+	report.SurvivingUnits = ensureGroundForceSlices(report.SurvivingUnits)
 }
 
 // runGroundBattle executes rounds of ground combat until one side is eliminated or max rounds reached
