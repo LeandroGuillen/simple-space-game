@@ -99,3 +99,30 @@ func TestStripRejectedFleetMovesOnlyOnFuelErrors(t *testing.T) {
 		t.Fatalf("nothing to strip when no fleet moves")
 	}
 }
+
+func TestAgentResubmitsWhenDroppedSubmissionReturnsToWaiting(t *testing.T) {
+	a := newAgent("test", &Client{PlayerID: 2}, SimplePolicy{}, NewManager(context.Background(), 0), 0)
+	stub := &stubSubmitter{}
+	vg := &VisibleGame{
+		CurrentTurn: 3500.1,
+		TurnStatus:  TurnStatus{WaitingPlayerIDs: []uint{2}},
+		Players:     []*model.Player{{ID: 2}},
+	}
+	a.maybeActWithSubmitter(context.Background(), vg, stub)
+	if stub.calls != 1 {
+		t.Fatalf("expected initial submission, got %d calls", stub.calls)
+	}
+	vg.TurnStatus = TurnStatus{ReadyPlayerIDs: []uint{2}}
+	a.maybeActWithSubmitter(context.Background(), vg, stub)
+	if stub.calls != 1 {
+		t.Fatalf("ready agent should not submit again, got %d calls", stub.calls)
+	}
+	// Same stardate: readiness, rather than a local submitted-turn marker,
+	// controls resubmission after the server drops stale orders.
+	vg.TurnStatus = TurnStatus{WaitingPlayerIDs: []uint{2}}
+	a.recordSnapshot(vg)
+	a.maybeActWithSubmitter(context.Background(), vg, stub)
+	if stub.calls != 2 {
+		t.Fatalf("expected resubmission after returning to waiting, got %d calls", stub.calls)
+	}
+}

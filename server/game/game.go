@@ -1,6 +1,7 @@
 package game
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"slices"
@@ -446,6 +447,20 @@ func (g *Game) validatePlayerCommands(playerID uint, commands Commands) error {
 	return nil
 }
 
+// TurnSubmissionError identifies the player whose stored orders failed to apply.
+// SubmitTurn drops that submission after AdvanceTurn restores the world.
+type TurnSubmissionError struct {
+	PlayerID   uint
+	PlayerName string
+	Err        error
+}
+
+func (e *TurnSubmissionError) Error() string {
+	return fmt.Sprintf("player %s (ID %d) must resubmit their turn: %v", e.PlayerName, e.PlayerID, e.Err)
+}
+
+func (e *TurnSubmissionError) Unwrap() error { return e.Err }
+
 func (g *Game) SubmitTurn(playerID uint, commands Commands) (TurnStatus, bool, error) {
 	g.ensureMu()
 	g.mu.Lock()
@@ -480,12 +495,15 @@ func (g *Game) SubmitTurn(playerID uint, commands Commands) (TurnStatus, bool, e
 		submissions[id] = submitted
 	}
 	if err := g.AdvanceTurn(submissions); err != nil {
-		// AdvanceTurn restores world state (including TurnSubmissions as they
-		// were when the advance began — every player ready). A failed
-		// SubmitTurn must leave the game as it was BEFORE this player's
-		// submission was recorded so they can fix and resubmit; other
-		// players' stored submissions stay.
-		delete(g.TurnSubmissions, playerID)
+		// AdvanceTurn restored the world and all stored submissions. Drop the
+		// orders that failed, preserving the last submitter's valid orders.
+		// Unattributed failures retain the existing caller-retry behavior.
+		failedPlayerID := playerID
+		var submissionErr *TurnSubmissionError
+		if errors.As(err, &submissionErr) {
+			failedPlayerID = submissionErr.PlayerID
+		}
+		delete(g.TurnSubmissions, failedPlayerID)
 		g.TurnStatus = g.calculateTurnStatus()
 		return g.TurnStatus, false, err
 	}
@@ -531,7 +549,8 @@ func (g *Game) advanceTurnApplying(submissions map[uint]Commands) error {
 			return fmt.Errorf("missing turn submission for player %d", playerID)
 		}
 		if err := g.applyPlayerTurn(playerID, commands); err != nil {
-			return err
+			player, _ := g.getPlayer(playerID) // playerIDs contains existing players
+			return &TurnSubmissionError{PlayerID: playerID, PlayerName: player.Name, Err: err}
 		}
 		if advanceTurnTestHook != nil {
 			if err := advanceTurnTestHook(fmt.Sprintf("after_apply:%d", playerID)); err != nil {

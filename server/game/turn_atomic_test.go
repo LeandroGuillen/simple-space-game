@@ -323,3 +323,58 @@ func BenchmarkAdvanceTurnLargeGalaxy(b *testing.B) {
 		}
 	})
 }
+
+func TestSubmitTurnDropsStaleAIOrdersAfterBattle(t *testing.T) {
+	SetRandomSeed(7)
+	g, star := newTacticalGame(t)
+	armHumanGunboat(t, g, star)
+	fleet := addOrbitFleet(g, 2, star, []FleetShip{{Type: "colony_ship", Name: "Civvie"}})
+	battle := startTacticalBattle(t, g, star)
+	aiName := g.Players[1].Name
+	turn := g.CurrentTurn
+	var destination uint
+	for _, candidate := range g.Galaxy.Stars {
+		for _, planet := range candidate.Planets {
+			if planet.Owner == 2 {
+				destination = candidate.ID
+			}
+		}
+	}
+	require.NotZero(t, destination)
+	require.NotEqual(t, star.ID, destination)
+
+	_, advanced, err := g.SubmitTurn(2, Commands{FleetMove: []*FleetMoveCommand{{FleetID: fleet.ID, DestinationStarID: destination}}})
+	require.NoError(t, err)
+	require.False(t, advanced)
+	for i := 0; i < 200 && battle.Status == TacticalBattleActive; i++ {
+		_, err = g.ApplyBattleAction(battle.ID, 1, BattleAction{Type: "auto"})
+		require.NoError(t, err)
+	}
+	require.Equal(t, TacticalBattleFinished, battle.Status)
+	require.Equal(t, uint(1), battle.WinnerOwnerID)
+	_, err = g.getFleet(fleet.ID)
+	require.Error(t, err)
+
+	// Even a real stale-order failure must restore every world byte.
+	beforeJSON := captureGameJSON(t, g)
+	beforeSubs := cloneTurnSubmissions(g.TurnSubmissions)
+	err = g.AdvanceTurn(map[uint]Commands{1: {}, 2: g.TurnSubmissions[2]})
+	require.Error(t, err)
+	assertGameUnchanged(t, g, beforeJSON, beforeSubs)
+
+	status, advanced, err := g.SubmitTurn(1, Commands{})
+	require.Error(t, err)
+	require.ErrorContains(t, err, aiName)
+	require.ErrorContains(t, err, "2")
+	require.ErrorContains(t, err, "resubmit")
+	require.False(t, advanced)
+	require.NotContains(t, g.TurnSubmissions, uint(2))
+	require.Contains(t, g.TurnSubmissions, uint(1))
+	require.Equal(t, []uint{2}, status.WaitingPlayerIDs)
+	require.Equal(t, turn, g.CurrentTurn)
+
+	_, advanced, err = g.SubmitTurn(2, Commands{})
+	require.NoError(t, err)
+	require.True(t, advanced)
+	require.Greater(t, g.CurrentTurn, turn)
+}

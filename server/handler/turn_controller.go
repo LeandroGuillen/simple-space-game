@@ -1,8 +1,10 @@
 package server
 
 import (
+	"errors"
 	"net/http"
 
+	"ssg/game"
 	"ssg/model"
 
 	"github.com/gin-gonic/gin"
@@ -32,6 +34,12 @@ func Turn(c *gin.Context) {
 
 	turnStatus, advanced, err := g.SubmitTurn(playerID, req.Commands)
 	if err != nil {
+		// The dropped player's AI watches readiness updates to resubmit,
+		// including when another player triggered the failed advance.
+		var submissionErr *game.TurnSubmissionError
+		if errors.As(err, &submissionErr) {
+			s.hub.BroadcastGameUpdate(g)
+		}
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
