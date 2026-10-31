@@ -3,7 +3,7 @@ import { createStore } from 'solid-js/store';
 
 import { ApiClient, parseGameUpdate } from '../lib/api';
 import { mapGame, mapPlayerColorOptions } from '../lib/mappers';
-import type { ApiGameListItem, NewGameOptions } from '../lib/types/api';
+import type { ApiGameListItem, ApiTurnResponse, NewGameOptions } from '../lib/types/api';
 import type { BuildingViewModel, GameViewModel, PlayerColorOptions, ShipDesignForm } from '../lib/types/domain';
 import type { ArtificialPlanetCommand, ColonizeCommand, FleetMoveCommand, InvadeCommand, MovePopulationCommand, PendingCommands, SelectResearchCommand, TransferPopulationCommand, TurnCommands } from '../lib/types/commands';
 import type { ApiTacticalBattle, BattleActionRequest } from '../lib/types/battle';
@@ -56,6 +56,10 @@ function turnReadinessMessage(game: GameViewModel, playerId: number, fallback: s
     return 'All players ready; resolving turn';
   }
   return fallback;
+}
+
+export function submittedTurnMessage(response: ApiTurnResponse, game: GameViewModel, playerId: number) {
+  return response.message || turnReadinessMessage(game, playerId, 'Orders submitted; waiting for other players');
 }
 
 type AppState = {
@@ -783,7 +787,7 @@ export function AppProvider(props: ParentProps) {
         setState('pendingArtificialPlanetSourcePlanets', []);
         setState('showColonizeModal', false);
         setState('showArtificialPlanetModal', false);
-        setBusy(false, turnReadinessMessage(mappedGame, state.session.playerId, 'Orders submitted; waiting for other players'));
+        setBusy(false, submittedTurnMessage(turnResponse, mappedGame, state.session.playerId));
         return;
       }
 

@@ -69,6 +69,7 @@ type TurnStatus struct {
 }
 
 type TurnResponse struct {
+	Message    string          `json:"message,omitempty"`
 	OK         bool            `json:"ok"`
 	Advanced   bool            `json:"advanced"`
 	TurnStatus TurnStatus      `json:"turn_status"`

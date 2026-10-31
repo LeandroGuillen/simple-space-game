@@ -499,6 +499,7 @@ export type ApiTurnStatus = {
 };
 
 export type ApiTurnResponse = {
+  message?: string;
   ok: boolean;
   advanced: boolean;
   turn_status: ApiTurnStatus;

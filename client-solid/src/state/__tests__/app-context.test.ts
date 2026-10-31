@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { toTurnCommands } from "../app-context";
+import { submittedTurnMessage, toTurnCommands } from "../app-context";
+import type { ApiTurnResponse } from "../../lib/types/api";
 import type { PendingCommands } from "../../lib/types/commands";
 import type { GameViewModel } from "../../lib/types/domain";
 
@@ -115,5 +116,24 @@ describe("toTurnCommands", () => {
     expect(commands.fleet_move).toEqual([
       { fleet_id: 9, destination_star_id: 5, ship_indexes: [0] },
     ]);
+  });
+});
+
+
+describe("submittedTurnMessage", () => {
+  const response: ApiTurnResponse = {
+    ok: true,
+    advanced: false,
+    turn_status: { mode: "simultaneous", ready_player_ids: [1], waiting_player_ids: [2], required_player_ids: [1, 2] },
+  };
+
+  it("shows the server message when another player must resubmit", () => {
+    const game = gameWithFleets([]);
+    game.turnStatus = { mode: "simultaneous", readyPlayerIds: [1], waitingPlayerIds: [2], requiredPlayerIds: [1, 2] };
+    expect(submittedTurnMessage({ ...response, message: "B must resubmit" }, game, 1)).toBe("B must resubmit");
+  });
+
+  it("keeps the generic waiting message when no message or readiness is available", () => {
+    expect(submittedTurnMessage(response, gameWithFleets([]), 1)).toBe("Orders submitted; waiting for other players");
   });
 });

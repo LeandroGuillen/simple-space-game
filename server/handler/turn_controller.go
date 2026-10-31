@@ -39,6 +39,15 @@ func Turn(c *gin.Context) {
 		var submissionErr *game.TurnSubmissionError
 		if errors.As(err, &submissionErr) {
 			s.hub.BroadcastGameUpdate(g)
+			if submissionErr.PlayerID != playerID {
+				c.JSON(http.StatusOK, gin.H{
+					"ok":          true,
+					"advanced":    false,
+					"turn_status": turnStatus,
+					"message":     err.Error(),
+				})
+				return
+			}
 		}
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return

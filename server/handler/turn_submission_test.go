@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -49,11 +50,24 @@ func TestTurnBroadcastsDroppedStaleSubmission(t *testing.T) {
 	drainInitialUpdate(t, conn)
 
 	response := submit(1, `{"commands":{}}`)
-	require.Equal(t, http.StatusBadRequest, response.Code, response.Body.String())
+	require.Equal(t, http.StatusOK, response.Code, response.Body.String())
+	var body struct {
+		OK         bool            `json:"ok"`
+		Advanced   bool            `json:"advanced"`
+		Message    string          `json:"message"`
+		TurnStatus game.TurnStatus `json:"turn_status"`
+	}
+	require.NoError(t, json.Unmarshal(response.Body.Bytes(), &body))
+	require.True(t, body.OK)
+	require.False(t, body.Advanced)
+	require.Contains(t, body.Message, g.Players[1].Name)
+	require.Equal(t, g.TurnStatus, body.TurnStatus)
+	require.Contains(t, g.TurnSubmissions, uint(1))
+	require.NotContains(t, g.TurnSubmissions, uint(2))
 	require.Contains(t, response.Body.String(), g.Players[1].Name)
 	require.Contains(t, response.Body.String(), "resubmit")
 	msg, err := readWSJSON(t, conn, 2*time.Second)
-	require.NoError(t, err, "dropped AI must receive a readiness update even on HTTP 400")
+	require.NoError(t, err, "dropped AI must receive a readiness update after accepting the caller’s orders")
 	update := msg["game_update"].(map[string]any)
 	status := update["turn_status"].(map[string]any)
 	require.Equal(t, []any{float64(2)}, status["waiting_player_ids"])
@@ -90,4 +104,43 @@ func TestTurnRejectsInvalidCallerOrders(t *testing.T) {
 	require.NotContains(t, g.TurnSubmissions, uint(1))
 	require.Contains(t, g.TurnSubmissions, uint(2))
 	require.Contains(t, g.TurnStatus.WaitingPlayerIDs, uint(1))
+}
+
+func TestTurnAcceptsCallerOrdersWhenAnotherSubmissionIsStale(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	s, err := NewServer()
+	require.NoError(t, err)
+	g, err := game.NewGame(s.ResourceManager, game.NewGameOptions{
+		PlayerName: "Ada", PlayerColor: model.DefaultPlayerColor(),
+		NumStars: 8, Race: game.DefaultRace("Human"), NumPlayers: 2,
+	})
+	require.NoError(t, err)
+	s.putGame(g.ID, g)
+	g.TurnSubmissions = map[uint]model.Commands{2: {
+		FleetMove: []*model.FleetMoveCommand{{FleetID: 999999, DestinationStarID: 1}},
+	}}
+	recorder := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(recorder)
+	ctx.Request = httptest.NewRequest(http.MethodPost, "/turn", strings.NewReader(`{"commands":{}}`))
+	ctx.Request.Header.Set("Content-Type", "application/json")
+	ctx.Request.Header.Set(GameIDHeader, g.ID)
+	ctx.Request.Header.Set(PlayerIDHeader, "1")
+	ctx.Set("server", s)
+	Turn(ctx)
+
+	require.Equal(t, http.StatusOK, recorder.Code, recorder.Body.String())
+	var body struct {
+		OK         bool            `json:"ok"`
+		Advanced   bool            `json:"advanced"`
+		Message    string          `json:"message"`
+		TurnStatus game.TurnStatus `json:"turn_status"`
+	}
+	require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &body))
+	require.True(t, body.OK)
+	require.False(t, body.Advanced)
+	require.Contains(t, body.Message, g.Players[1].Name)
+	require.Contains(t, body.Message, "resubmit")
+	require.Equal(t, g.TurnStatus, body.TurnStatus)
+	require.Contains(t, g.TurnSubmissions, uint(1))
+	require.NotContains(t, g.TurnSubmissions, uint(2))
 }

@@ -126,3 +126,22 @@ func TestAgentResubmitsWhenDroppedSubmissionReturnsToWaiting(t *testing.T) {
 		t.Fatalf("expected resubmission after returning to waiting, got %d calls", stub.calls)
 	}
 }
+
+func TestAgentAcceptsRetainedSubmissionWithoutRetry(t *testing.T) {
+	a := newAgent("test", &Client{PlayerID: 1}, SimplePolicy{}, NewManager(context.Background(), 0), 0)
+	stub := &stubSubmitter{accepts: []*TurnResponse{{
+		OK: true, Advanced: false, Message: "Player 2 must resubmit: outside fleet fuel range",
+	}}}
+	vg := &VisibleGame{CurrentTurn: 3500.1}
+	a.submitDecisionWithRetries(context.Background(), vg, stub, Decision{Commands: model.Commands{
+		FleetMove: []*model.FleetMoveCommand{{FleetID: 7, DestinationStarID: 99}},
+	}})
+	if stub.calls != 1 {
+		t.Fatalf("accepted orders must not be retried, got %d submissions", stub.calls)
+	}
+	for _, entry := range a.Log.Snapshot() {
+		if entry.Error != "" {
+			t.Fatalf("accepted orders must not be logged as rejected: %+v", entry)
+		}
+	}
+}
