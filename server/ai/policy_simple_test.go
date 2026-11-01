@@ -99,11 +99,12 @@ func TestSimplePolicyColonizesPendingBase(t *testing.T) {
 	vg := &VisibleGame{
 		Players:            []*model.Player{me},
 		PendingColonyBases: map[uint][]uint{1: {42}},
+		Galaxy:             Galaxy{Stars: []*model.Star{{ID: 1, Name: "Sol", Planets: []*model.Planet{{ID: 42, Owner: 1}, {ID: 43, Environment: model.PlanetEnvironmentTerran}}}}},
 		TurnStatus:         TurnStatus{WaitingPlayerIDs: []uint{1}},
 	}
 	d := SimplePolicy{}.Decide(vg, 1)
-	if len(d.Commands.ColonizeMany) != 1 || d.Commands.ColonizeMany[0].PlanetID != 42 {
-		t.Fatalf("expected colonize command for planet 42, got %+v", d.Commands.ColonizeMany)
+	if len(d.Commands.ColonizeMany) != 1 || d.Commands.ColonizeMany[0].PlanetID != 43 {
+		t.Fatalf("expected colonize command for planet 43, got %+v", d.Commands.ColonizeMany)
 	}
 }
 

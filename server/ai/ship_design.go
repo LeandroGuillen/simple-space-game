@@ -84,6 +84,16 @@ func planShipDesign(s *VisibleGame, p *model.Player, planets []*model.Planet, ou
 				return
 			}
 			for _, planet := range planets {
+				planned := false
+				for _, b := range out.Commands.Build {
+					if b.PlanetID == planet.ID {
+						planned = true
+						break
+					}
+				}
+				if planned {
+					continue
+				}
 				if !planet.IsBuilding && (planet.CurrentProject == "" || planet.CurrentProject == "Trade Goods") && len(planet.BuildQueue) == 0 {
 					out.Commands.Build = append(out.Commands.Build, &model.BuildCommand{PlanetID: planet.ID, Building: d.Name})
 					return

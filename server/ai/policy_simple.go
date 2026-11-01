@@ -32,11 +32,12 @@ func (SimplePolicy) Decide(snapshot *VisibleGame, playerID uint) Decision {
 	d.Notes = append(d.Notes, fmt.Sprintf("turn %.0f: %d owned planet(s), %d fleet(s)", snapshot.CurrentTurn, len(planets), len(myFleets(snapshot, playerID))))
 
 	pickResearch(snapshot, me, &d)
-	planShipDesign(snapshot, me, planets, &d)
 	balanceLabor(me, planets, &d)
-	keepBuildQueueWarm(planets, me, &d)
 	resolvePendingColonies(snapshot, playerID, &d)
 	issueInvasionsAtEnemyPlanets(snapshot, playerID, &d)
+	planExpansion(snapshot, me, planets, &d)
+	planShipDesign(snapshot, me, planets, &d)
+	keepBuildQueueWarm(planets, me, &d)
 	sendIdleScouts(snapshot, playerID, &d)
 
 	return d
@@ -51,14 +52,32 @@ func pickResearch(snapshot *VisibleGame, me *model.Player, d *Decision) {
 		return
 	}
 	choice, subject, cost := firstAvailableTech(snapshot.Resources.TechTree, me)
-	if len(me.Available.Beams) == 0 {
+	known := map[string]struct{}{}
+	for _, name := range me.ResearchedTechs {
+		known[name] = struct{}{}
+	}
+	prioritized := false
+	if len(myPlanets(snapshot, me.ID)) < 3 && !techUnlocked(me, "Colony Ship") {
+		for _, candidate := range snapshot.Resources.TechTree.Subjects {
+			if candidate.Name != "Power" {
+				continue
+			}
+			for _, level := range candidate.Levels {
+				if level.Name != "Nuclear Fission" && level.Name != "Cold Fusion" {
+					break
+				}
+				if !levelComplete(level, known, me) {
+					choice, subject, cost = level.Name, candidate.Name, level.Cost
+					prioritized = true
+					break
+				}
+			}
+		}
+	}
+	if !prioritized && len(me.Available.Beams) == 0 {
 		for _, candidate := range snapshot.Resources.TechTree.Subjects {
 			if candidate.Name == "Physics" && len(candidate.Levels) > 0 {
 				level := candidate.Levels[0]
-				known := map[string]struct{}{}
-				for _, name := range me.ResearchedTechs {
-					known[name] = struct{}{}
-				}
 				if !levelComplete(level, known, me) {
 					choice, subject, cost = level.Name, candidate.Name, level.Cost
 				}
@@ -243,11 +262,31 @@ func techUnlocked(me *model.Player, name string) bool {
 }
 
 func resolvePendingColonies(snapshot *VisibleGame, playerID uint, d *Decision) {
-	for _, planetID := range snapshot.PendingColonyBases[playerID] {
-		d.Commands.ColonizeMany = append(d.Commands.ColonizeMany, &model.ColonizeCommand{
-			PlanetID: planetID,
-		})
-		d.Notes = append(d.Notes, fmt.Sprintf("colonizing pending base on planet %d", planetID))
+	pending := snapshot.PendingColonyBases[playerID]
+	if len(pending) > 0 {
+		sourceID := pending[len(pending)-1]
+		for _, star := range snapshot.Galaxy.Stars {
+			if star == nil {
+				continue
+			}
+			found := false
+			for _, p := range star.Planets {
+				if p != nil && p.ID == sourceID && p.Owner == playerID {
+					found = true
+					break
+				}
+			}
+			if !found {
+				continue
+			}
+			for _, p := range star.Planets {
+				if colonizable(p) {
+					d.Commands.ColonizeMany = append(d.Commands.ColonizeMany, &model.ColonizeCommand{PlanetID: p.ID})
+					break
+				}
+			}
+			break
+		}
 	}
 	for _, fleetID := range snapshot.PendingColonyShips[playerID] {
 		d.Commands.ColonyShip = &model.PrepareColonyShipCommand{FleetID: fleetID}
@@ -327,6 +366,11 @@ func sendIdleScouts(snapshot *VisibleGame, playerID uint, d *Decision) {
 	for _, cmd := range d.Commands.Invade {
 		if cmd != nil {
 			busy[cmd.FleetID] = true
+		}
+	}
+	for _, move := range d.Commands.FleetMove {
+		if move != nil {
+			busy[move.FleetID] = true
 		}
 	}
 	if d.Commands.ColonyShip != nil {
