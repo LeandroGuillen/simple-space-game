@@ -16,6 +16,10 @@ Open the Vite URL printed by the client. The game server listens on port **8080*
 
 Scenario files are read from `server/data/scenarios` by default. Set `SSG_SAVES_DIR` to use a different scenario directory, for example `SSG_SAVES_DIR=/path/to/scenarios go run ./cmd/server` from `server/`. See [client-odin/README.md](client-odin/README.md) for the native client.
 
+## Galaxy sizes
+
+The web client creates Tiny, Medium and Huge galaxies with 15, 40 and 100 stars. Tiny's 240×180 map uses a randomized, jittered layout with at least 47 pixels between stars (scaled below the usual 60 pixels per parsec so the map remains readable). Medium and Huge use 60-pixel minimum spacing at their standard star counts.
+
 ## Verify
 
 Run `go vet ./...` and `go test -race ./...` from `server/`, and `npm ci`, `npm test` and `npm run build` from `client-solid/`. GitHub Actions runs these checks on pushes to `master` and pull requests targeting `master`.

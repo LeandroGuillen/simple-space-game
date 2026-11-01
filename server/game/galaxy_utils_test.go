@@ -1,6 +1,7 @@
 package game_test
 
 import (
+	"fmt"
 	"math"
 	"ssg/game"
 	"ssg/model"
@@ -188,7 +189,7 @@ func TestClientGalaxySizesPlaceAllStarsDistinctly(t *testing.T) {
 				assert.False(t, stats.RelayoutFromRandom)
 				assert.False(t, stats.CollapsedPlacement)
 				if tc.size == "tiny" {
-					assert.True(t, stats.UsedLattice, "tiny 15 must use lattice packing")
+					assert.True(t, stats.UsedLattice, "tiny 15 uses a jittered lattice")
 					assert.Less(t, stats.MinSeparation, 60.0)
 				} else {
 					assert.False(t, stats.UsedLattice, "medium/huge client counts keep random@60")
@@ -206,7 +207,7 @@ func TestTinyGalaxyKeepsMediumHugeFullParsecSeparation(t *testing.T) {
 	assert.InDelta(t, 60.0, medStats.MinSeparation, 1e-9)
 	assert.InDelta(t, 60.0, hugeStats.MinSeparation, 1e-9)
 	assert.Less(t, tinyStats.MinSeparation, 60.0, "tiny must scale spacing to fit 15 stars")
-	assert.GreaterOrEqual(t, tinyStats.MinSeparation, 30.0, "tiny spacing should stay meaningful")
+	assert.Equal(t, 47.0, tinyStats.MinSeparation, "tiny uses scaled 47px spacing")
 	assert.True(t, tinyStats.UsedLattice)
 	assert.False(t, medStats.UsedLattice)
 	assert.False(t, hugeStats.UsedLattice)
@@ -537,4 +538,28 @@ func TestSelectHomeStarIDsFallsBackOnlyWhenStrideTooClose(t *testing.T) {
 	got := game.SelectHomeStarIDs(stars, 2)
 	require.NotEqual(t, stride, got, "must fall back when stride homes are within 1pc")
 	require.Equal(t, []uint{1, 2}, got)
+}
+
+func TestTinyGalaxyLayoutAndStartingLocationVaryBySeed(t *testing.T) {
+	layouts := map[string]bool{}
+	homes := map[[2]int64]bool{}
+	for seed := int64(1); seed <= 40; seed++ {
+		assertValidStarLayout(t, "tiny", 15, seed)
+		game.SetRandomSeed(seed)
+		galaxy, stats := game.NewGalaxyForSizeWithStats(15, "tiny")
+		require.Equal(t, 47.0, stats.MinSeparation)
+		var layout string
+		for _, star := range galaxy.Stars {
+			layout += fmt.Sprintf("%d,%d;", star.X, star.Y)
+		}
+		layouts[layout] = true
+		homeID := game.SelectHomeStarIDs(galaxy.Stars, 4)[0]
+		for _, star := range galaxy.Stars {
+			if star.ID == homeID {
+				homes[[2]int64{star.X, star.Y}] = true
+			}
+		}
+	}
+	require.Greater(t, len(layouts), 1)
+	require.Greater(t, len(homes), 1)
 }

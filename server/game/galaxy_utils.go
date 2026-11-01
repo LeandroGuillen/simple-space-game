@@ -289,6 +289,23 @@ func placeStarsOnLattice(stars []*model.Star, width, height int64) float64 {
 	return sep
 }
 
+// jitterTinyLattice varies the 15-star Tiny layout while preserving at least
+// 47px between stars: the 59px lattice spacing loses at most 6px per side.
+// Shuffling the cells also varies the first player's starting location.
+func jitterTinyLattice(stars []*model.Star, width, height int64) {
+	cells := make([]latticeCell, len(stars))
+	for i, star := range stars {
+		cells[i] = latticeCell{
+			x: max(0, min(width-1, star.X+int64(randomIntn(13)-6))),
+			y: max(0, min(height-1, star.Y+int64(randomIntn(13)-6))),
+		}
+	}
+	randomShuffle(len(cells), func(i, j int) { cells[i], cells[j] = cells[j], cells[i] })
+	for i, cell := range cells {
+		stars[i].X, stars[i].Y = cell.x, cell.y
+	}
+}
+
 func NewGalaxy(numStars uint) model.Galaxy {
 	galaxy, _ := NewGalaxyForSizeWithStats(numStars, "")
 	return galaxy
@@ -330,6 +347,10 @@ func NewGalaxyForSizeWithStats(numStars uint, galaxySize string) (model.Galaxy, 
 			stars = append(stars, createStar(i))
 		}
 		stats.MinSeparation = placeStarsOnLattice(stars, width, height)
+		if galaxySize == "tiny" && numStars == 15 {
+			jitterTinyLattice(stars, width, height)
+			stats.MinSeparation = 47
+		}
 	} else {
 		// Interleave create+place so seeded NewGame RNG matches prior builds
 		// for counts that still succeed randomly (medium 40, huge 100, …).
