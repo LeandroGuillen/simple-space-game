@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -861,4 +862,112 @@ func TestStatusVersionHasNoNewline(t *testing.T) {
 	require.NotEmpty(t, version)
 	require.Equal(t, strings.TrimSpace(version), version)
 	require.NotContains(t, version, "\n")
+}
+
+func TestScenarioFileErrorsHidePaths(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	for _, kind := range []string{"directory scenario", "unreadable scenario", "unreadable saves directory", "saves path is file"} {
+		t.Run(kind, func(t *testing.T) {
+			dir := t.TempDir()
+			t.Setenv("SSG_SAVES_DIR", dir)
+			path := filepath.Join(dir, "blocked.json")
+			var underlying error
+			handler := LoadScenario
+			message := "cannot read scenario"
+			switch kind {
+			case "directory scenario":
+				require.NoError(t, os.Mkdir(path, 0o700))
+				_, underlying = os.ReadFile(path)
+			case "unreadable scenario":
+				require.NoError(t, os.WriteFile(path, []byte("{}"), 0o000))
+				t.Cleanup(func() { _ = os.Chmod(path, 0o600) })
+				_, underlying = os.ReadFile(path)
+				if underlying == nil {
+					t.Skip("process can read mode-000 files (e.g. root); permission test is ineffective")
+				}
+				require.True(t, os.IsPermission(underlying))
+			case "unreadable saves directory":
+				require.NoError(t, os.Chmod(dir, 0o000))
+				t.Cleanup(func() { _ = os.Chmod(dir, 0o700) })
+				_, underlying = os.ReadDir(dir)
+				if underlying == nil {
+					t.Skip("process can read mode-000 directories (e.g. root); permission test is ineffective")
+				}
+				require.True(t, os.IsPermission(underlying))
+				handler, message = ListScenarios, "cannot list scenarios"
+			case "saves path is file":
+				require.NoError(t, os.WriteFile(path, nil, 0o600))
+				t.Setenv("SSG_SAVES_DIR", path)
+				_, underlying = os.ReadDir(path)
+				handler, message = ListScenarios, "cannot list scenarios"
+			}
+			require.Error(t, underlying)
+			var logs bytes.Buffer
+			previous := log.Writer()
+			log.SetOutput(&logs)
+			t.Cleanup(func() { log.SetOutput(previous) })
+			recorder := httptest.NewRecorder()
+			ctx, _ := gin.CreateTestContext(recorder)
+			ctx.Params = gin.Params{{Key: "name", Value: "blocked"}}
+			handler(ctx)
+			require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			require.NotContains(t, recorder.Body.String(), dir)
+			require.JSONEq(t, `{"error":"`+message+`"}`, recorder.Body.String())
+			require.Contains(t, logs.String(), underlying.Error())
+		})
+	}
+}
+
+func TestStoreFileErrorsHidePaths(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	resources, err := game.NewResourceManager()
+	require.NoError(t, err)
+	for _, kind := range []string{"races", "ship designs"} {
+		t.Run(kind, func(t *testing.T) {
+			// Renaming a store file over a directory fails even when running as root.
+			path := t.TempDir()
+			server := &Server{
+				ResourceManager:   resources,
+				CustomRaces:       map[string]game.RaceDesign{"custom": {Name: "custom"}},
+				CustomShipDesigns: map[string]model.ShipDesign{"custom": {Name: "custom"}},
+				RaceStore:         game.NewRaceStore(path),
+				ShipStore:         game.NewShipStore(path),
+			}
+			var logs bytes.Buffer
+			previous := log.Writer()
+			log.SetOutput(&logs)
+			t.Cleanup(func() { log.SetOutput(previous) })
+			recorder := httptest.NewRecorder()
+			ctx, _ := gin.CreateTestContext(recorder)
+			ctx.Set("server", server)
+			ctx.Params = gin.Params{{Key: "name", Value: "custom"}}
+			if kind == "races" {
+				DeleteCustomRace(ctx)
+			} else {
+				DeleteCustomShipDesign(ctx)
+			}
+			require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			require.NotContains(t, recorder.Body.String(), path)
+			require.JSONEq(t, `{"error":"cannot save custom `+kind+`"}`, recorder.Body.String())
+			require.Contains(t, logs.String(), path)
+			require.Contains(t, logs.String(), "rename")
+		})
+	}
+}
+
+type failingUploadReader struct{ err error }
+
+func (r failingUploadReader) Read([]byte) (int, error) { return 0, r.err }
+
+func TestUploadReadErrorHidesPath(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "upload")
+	underlying := &os.PathError{Op: "read", Path: path, Err: os.ErrPermission}
+	var logs bytes.Buffer
+	previous := log.Writer()
+	log.SetOutput(&logs)
+	t.Cleanup(func() { log.SetOutput(previous) })
+	recorder := postUpload(t, &Server{}, failingUploadReader{underlying}, "application/json")
+	require.Equal(t, http.StatusBadRequest, recorder.Code)
+	require.JSONEq(t, `{"error":"cannot read upload"}`, recorder.Body.String())
+	require.Contains(t, logs.String(), underlying.Error())
 }

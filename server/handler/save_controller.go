@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -61,7 +62,8 @@ func ListScenarios(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{"scenarios": []SavedGameInfo{}})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		log.Printf("cannot list scenarios: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot list scenarios"})
 		return
 	}
 	saves := make([]SavedGameInfo, 0, len(entries))
@@ -131,7 +133,8 @@ func LoadScenario(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "scenario not found"})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		log.Printf("cannot read scenario: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot read scenario"})
 		return
 	}
 
@@ -165,7 +168,8 @@ func LoadUploadedSave(c *gin.Context) {
 			})
 			return
 		}
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("cannot read upload: %v", err)})
+		log.Printf("cannot read upload: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "cannot read upload"})
 		return
 	}
 

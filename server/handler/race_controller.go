@@ -1,6 +1,7 @@
 package server
 
 import (
+	"log"
 	"net/http"
 	"sort"
 	"strings"
@@ -82,7 +83,8 @@ func SaveCustomRace(c *gin.Context) {
 		server.CustomRaces[design.Name] = design
 		if err := server.persistCustomRaces(); err != nil {
 			delete(server.CustomRaces, design.Name)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			log.Printf("cannot save custom races: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot save custom races"})
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{"custom_race": design})
@@ -110,7 +112,8 @@ func SaveCustomRace(c *gin.Context) {
 		if err := server.persistCustomRaces(); err != nil {
 			delete(server.CustomRaces, design.Name)
 			server.CustomRaces[renameFrom] = backup
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			log.Printf("cannot save custom races: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot save custom races"})
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{"custom_race": design})
@@ -120,7 +123,8 @@ func SaveCustomRace(c *gin.Context) {
 	server.CustomRaces[design.Name] = design
 	if err := server.persistCustomRaces(); err != nil {
 		delete(server.CustomRaces, design.Name)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		log.Printf("cannot save custom races: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot save custom races"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"custom_race": design})
@@ -144,7 +148,8 @@ func DeleteCustomRace(c *gin.Context) {
 	delete(server.CustomRaces, name)
 	if err := server.persistCustomRaces(); err != nil {
 		server.CustomRaces[name] = backup
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		log.Printf("cannot save custom races: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot save custom races"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"ok": true})

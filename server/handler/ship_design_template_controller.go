@@ -1,6 +1,7 @@
 package server
 
 import (
+	"log"
 	"net/http"
 	"sort"
 	"strings"
@@ -130,7 +131,8 @@ func SaveCustomShipDesign(c *gin.Context) {
 		server.CustomShipDesigns[design.Name] = design
 		if err := server.persistCustomShipDesigns(); err != nil {
 			delete(server.CustomShipDesigns, design.Name)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			log.Printf("cannot save custom ship designs: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot save custom ship designs"})
 			return
 		}
 		server.rebuildShipDesignCatalog()
@@ -159,7 +161,8 @@ func SaveCustomShipDesign(c *gin.Context) {
 		if err := server.persistCustomShipDesigns(); err != nil {
 			delete(server.CustomShipDesigns, design.Name)
 			server.CustomShipDesigns[renameFrom] = backup
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			log.Printf("cannot save custom ship designs: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot save custom ship designs"})
 			return
 		}
 		server.rebuildShipDesignCatalog()
@@ -170,7 +173,8 @@ func SaveCustomShipDesign(c *gin.Context) {
 	server.CustomShipDesigns[design.Name] = design
 	if err := server.persistCustomShipDesigns(); err != nil {
 		delete(server.CustomShipDesigns, design.Name)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		log.Printf("cannot save custom ship designs: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot save custom ship designs"})
 		return
 	}
 	server.rebuildShipDesignCatalog()
@@ -195,7 +199,8 @@ func DeleteCustomShipDesign(c *gin.Context) {
 	delete(server.CustomShipDesigns, name)
 	if err := server.persistCustomShipDesigns(); err != nil {
 		server.CustomShipDesigns[name] = backup
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		log.Printf("cannot save custom ship designs: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot save custom ship designs"})
 		return
 	}
 	server.rebuildShipDesignCatalog()
