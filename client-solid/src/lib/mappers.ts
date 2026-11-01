@@ -141,6 +141,7 @@ export function mapGame(apiGame: ApiGame): GameViewModel {
     },
     players,
     invasionReports: apiGame.invasion_reports ?? [],
+    turnEvents: apiGame.turn_events ?? [],
     fleets: (apiGame.fleets ?? []).map(mapFleet),
     populationTransfers: (apiGame.population_transfers ?? []).map(mapPopulationTransfer),
     transferLosses: (apiGame.transfer_losses ?? []).map((notice) => ({

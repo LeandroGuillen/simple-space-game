@@ -35,6 +35,7 @@ type Game struct {
 	Fleets                   []*Fleet             `json:"fleets"`
 	PopulationTransfers      []PopulationTransfer `json:"population_transfers"`
 	TransferLosses           []TransferLossNotice `json:"transfer_losses,omitempty"`
+	TurnEvents               []TurnEvent          `json:"turn_events,omitempty"`
 	ID                       string               `json:"id"`
 	CurrentTurn              float64              `json:"current_turn"`
 	Status                   string               `json:"status,omitempty"`
@@ -595,6 +596,7 @@ func (g *Game) AdvanceTurn(submissions map[uint]Commands) error {
 }
 
 func (g *Game) advanceTurnApplying(submissions map[uint]Commands) error {
+	g.TurnEvents = nil
 	// Notices describe only the most recently resolved turn. The turn snapshot
 	// restores them if resolution fails.
 	g.TransferLosses = nil
@@ -713,6 +715,11 @@ func (g *Game) applyPlayerTurn(playerID uint, commands Commands) error {
 		if err := g.processColonizeCommand(playerID, command); err != nil {
 			return err
 		}
+		if command != nil {
+			if planet, err := g.getPlanet(command.PlanetID); err == nil {
+				g.recordTurnEvent(TurnEvent{Owner: playerID, Kind: "colony", Text: "Colony founded on " + planet.Name, PlanetID: planet.ID, StarID: planet.ParentStar})
+			}
+		}
 	}
 	artificialPlanetCommands := commands.ArtificialPlanetMany
 	if commands.ArtificialPlanet != nil {
@@ -737,8 +744,12 @@ func (g *Game) applyPlayerTurn(playerID uint, commands Commands) error {
 	g.HydrateCommandPoints()
 	player.Treasury -= float64(player.CommandOverdrawBC)
 	totalResearch += int64(luckyTurnResearchBonus(player))
+	research := player.CurrentResearch
 	if err := g.applyResearch(player, uint64(max(totalResearch, 0))); err != nil {
 		return err
+	}
+	if research != nil && player.CurrentResearch == nil {
+		g.recordTurnEvent(TurnEvent{Owner: playerID, Kind: "research", Text: "Research completed: " + research.TechName})
 	}
 	return nil
 }

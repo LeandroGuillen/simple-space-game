@@ -32,6 +32,7 @@ export function GalaxyPage() {
   const [snappedStarId, setSnappedStarId] = createSignal<number | null>(null);
   const [focusPoint, setFocusPoint] = createSignal<{ x: number; y: number } | null>(null);
   let handledFleetQuery = "";
+  let handledStarQuery = "";
 
   const stars = createMemo(() => state.game?.galaxy.stars ?? []);
   const selectedStar = createMemo(() => {
@@ -61,6 +62,16 @@ export function GalaxyPage() {
       setSelectedFleetId(fleet.id);
       setSelectedStarId(fleet.starId);
     }
+  });
+  createEffect(() => {
+    const requested = new URLSearchParams(location.search).get("star");
+    if (!requested || requested === handledStarQuery || !state.game) return;
+    const star = stars().find((item) => String(item.id) === requested);
+    if (!star) return;
+    handledStarQuery = requested;
+    setSelectedStarId(star.id);
+    setSelectedFleetStarId(null);
+    setFocusPoint({ x: star.x, y: star.y });
   });
   const fleetsAtSelectedStar = createMemo(() => {
     const starId = selectedStar()?.id;

@@ -16,6 +16,7 @@ type gameTurnSnapshot struct {
 	Fleets                   []*model.Fleet
 	PopulationTransfers      []model.PopulationTransfer
 	TransferLosses           []model.TransferLossNotice
+	TurnEvents               []model.TurnEvent
 	ID                       string
 	CurrentTurn              float64
 	Status                   string
@@ -45,6 +46,7 @@ var gameTurnSnapshotFieldNames = []string{
 	"Fleets",
 	"PopulationTransfers",
 	"TransferLosses",
+	"TurnEvents",
 	"ID",
 	"CurrentTurn",
 	"Status",
@@ -93,6 +95,7 @@ func snapshotGameState(g *Game) *gameTurnSnapshot {
 	snap.Fleets = copyFleets(g.Fleets)
 	snap.PopulationTransfers = copyPopulationTransfers(g.PopulationTransfers)
 	snap.TransferLosses = cloneSlice(g.TransferLosses)
+	snap.TurnEvents = cloneSlice(g.TurnEvents)
 	snap.PendingColonyBases = copyPendingUintMap(g.PendingColonyBases)
 	snap.PendingColonyShips = copyPendingUintMap(g.PendingColonyShips)
 	snap.PendingArtificialPlanets = copyPendingUintMap(g.PendingArtificialPlanets)
@@ -118,6 +121,7 @@ func restoreGameState(g *Game, snap *gameTurnSnapshot) {
 	g.Fleets = snap.Fleets
 	g.PopulationTransfers = snap.PopulationTransfers
 	g.TransferLosses = snap.TransferLosses
+	g.TurnEvents = snap.TurnEvents
 	g.ID = snap.ID
 	g.CurrentTurn = snap.CurrentTurn
 	g.Status = snap.Status

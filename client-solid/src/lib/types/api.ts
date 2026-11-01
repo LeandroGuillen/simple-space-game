@@ -568,12 +568,15 @@ export type ApiTransferLossNotice = {
   population_lost: number;
 };
 
+export type ApiTurnEvent = { owner: number; kind: string; text: string; planet_id?: number; star_id?: number; fleet_id?: number };
+
 export type ApiGame = {
   galaxy: ApiGalaxy;
   players: ApiPlayer[];
   fleets?: ApiFleet[] | null;
   population_transfers?: ApiPopulationTransfer[] | null;
   transfer_losses?: ApiTransferLossNotice[] | null;
+	turn_events?: ApiTurnEvent[] | null;
   id: string;
   current_turn: number;
   status?: "active" | "finished";

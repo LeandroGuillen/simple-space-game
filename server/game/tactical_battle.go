@@ -452,6 +452,7 @@ func (g *Game) finishTacticalBattle(b *TacticalBattle, winnerOwnerID uint, draw 
 		report.Sides = append(report.Sides, side)
 	}
 	g.BattleReports = append(g.BattleReports, report)
+	g.recordBattleEvent(report)
 
 	for _, fleetID := range fleetIDs {
 		fleet, err := g.getFleet(fleetID)

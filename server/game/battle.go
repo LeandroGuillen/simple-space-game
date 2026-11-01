@@ -53,6 +53,9 @@ func (g *Game) resolveStarBattles() []*BattleReport {
 	}
 	if len(reports) > 0 {
 		g.BattleReports = append(g.BattleReports, reports...)
+		for _, report := range reports {
+			g.recordBattleEvent(report)
+		}
 	}
 	return reports
 }

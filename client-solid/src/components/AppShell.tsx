@@ -407,6 +407,25 @@ export function AppShell(props: RouteSectionProps) {
     );
 
   const showGameChrome = createMemo(() => isGameCommandPath(location.pathname));
+  const [showTurnReport, setShowTurnReport] = createSignal(false);
+  let observedReportGame = "";
+  let observedReportPlayer = 0;
+  let observedReportTurn: number | null = null;
+  let observedReportCount = 0;
+  createEffect(() => {
+    const game = state.game;
+    const playerId = state.session.playerId;
+    if (!game || !playerId) return;
+    const events = (game.turnEvents ?? []).filter((event) => event.owner === playerId);
+    if (observedReportGame !== game.id || observedReportPlayer !== playerId) {
+      observedReportGame = game.id; observedReportPlayer = playerId;
+      observedReportTurn = game.currentTurn; observedReportCount = events.length;
+      setShowTurnReport(false);
+      return;
+    }
+    if (observedReportTurn !== game.currentTurn || events.length > observedReportCount) setShowTurnReport(true);
+    observedReportTurn = game.currentTurn; observedReportCount = events.length;
+  });
   const idleFleetCount = createMemo(() => fleetRoster(state.game, currentPlayer(), state.pendingCommands, state.pendingColonyShipFleets).filter((row) => row.status === "Idle").length);
   const gameOver = createMemo(() => state.game?.status === "finished" || !!currentPlayer()?.eliminated);
 
@@ -793,6 +812,17 @@ export function AppShell(props: RouteSectionProps) {
         fallback={<main class="content content--route">{props.children}</main>}
       >
         <div class="workspace">
+          <Show when={showTurnReport()}>
+            <section class="turn-report panel" role="region" aria-label="Turn report">
+              <div class="turn-report-header"><h2>Turn report</h2><button class="secondary-button" type="button" onClick={() => setShowTurnReport(false)}>Dismiss</button></div>
+              <Show when={(state.game?.turnEvents ?? []).some((event) => event.owner === state.session.playerId)} fallback={<p>No notable events this turn.</p>}>
+                <ul><For each={(state.game?.turnEvents ?? []).filter((event) => event.owner === state.session.playerId)}>{(event) => {
+                  const href = event.kind === "research" ? "/technology" : event.kind === "invasion" ? "/fleets" : event.planet_id && event.star_id ? `/stars/${event.star_id}/planets/${event.planet_id}` : event.star_id ? `/galaxy?star=${event.star_id}` : "/galaxy";
+                  return <li><A href={href} onClick={() => setShowTurnReport(false)}>{event.text}</A></li>;
+                }}</For></ul>
+              </Show>
+            </section>
+          </Show>
           <nav class="campaign-nav panel" aria-label="Campaign">
             <div class="campaign-nav-inner">
               <div class="campaign-nav-list" aria-label="Game commands">

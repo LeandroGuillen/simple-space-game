@@ -89,6 +89,7 @@ func (g *Game) resolveGroundInvasions() []*InvasionReport {
 		if report != nil {
 			// Append immediately so nextInvasionReportID stays unique in-batch.
 			g.InvasionReports = append(g.InvasionReports, report)
+			g.recordInvasionEvent(report)
 			reports = append(reports, report)
 		}
 	}
@@ -173,6 +174,7 @@ func (g *Game) releasePostponedInvasionsAtStar(starID uint) []*InvasionReport {
 		report := g.tryResolveInvasionOrder(order, false)
 		if report != nil {
 			g.InvasionReports = append(g.InvasionReports, report)
+			g.recordInvasionEvent(report)
 			reports = append(reports, report)
 		}
 	}

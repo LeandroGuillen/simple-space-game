@@ -790,6 +790,7 @@ func (g *Game) advanceFleetMovements() {
 		fleet.Y = lerp(fleet.OriginY, float64(destination.Y), progress)
 		if fleet.TurnsRemaining == 0 {
 			destStarID := fleet.DestinationStarID
+			g.recordTurnEvent(TurnEvent{Owner: fleet.Owner, Kind: "arrival", Text: fmt.Sprintf("Fleet %d arrived at %s", fleet.ID, destination.Name), StarID: destStarID, FleetID: fleet.ID})
 			fleet.StarID = destStarID
 			// Write lock already held by SubmitTurn → AdvanceTurn.
 			_ = g.exploreStarUnlocked(fleet.Owner, fleet.StarID)
