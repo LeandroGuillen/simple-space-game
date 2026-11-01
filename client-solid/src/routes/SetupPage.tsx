@@ -66,34 +66,16 @@ const RACE_EDITOR_VALUE = "__race_editor__" as const;
 
 type RaceSelection = `b:${string}` | `c:${string}` | typeof RACE_EDITOR_VALUE;
 
-const difficultyOptions = [
-  { label: "Easy", value: "easy" },
-  { label: "Medium", value: "medium" },
-  { label: "Hard", value: "hard" },
-] satisfies ToggleOption<NewGameOptions["difficulty"]>[];
-
 const galaxySizeOptions = [
   { label: "Tiny", value: "tiny" },
   { label: "Medium", value: "medium" },
   { label: "Huge", value: "huge" },
 ] satisfies ToggleOption<NewGameOptions["galaxy_size"]>[];
 
-const galaxyAgeOptions = [
-  { label: "Organic Rich", value: "organic_rich" },
-  { label: "Average", value: "average" },
-  { label: "Mineral Rich", value: "mineral_rich" },
-] satisfies ToggleOption<NewGameOptions["galaxy_age"]>[];
-
 const playerOptions = Array.from({ length: 8 }, (_, index) => {
   const value = index + 1;
   return { label: String(value), value };
 }) satisfies ToggleOption<number>[];
-
-const techLevelOptions = [
-  { label: "Low", value: "low" },
-  { label: "Average", value: "average" },
-  { label: "Advanced", value: "advanced" },
-] satisfies ToggleOption<NewGameOptions["tech_level"]>[];
 
 const galaxySizeStars: Record<NewGameOptions["galaxy_size"], number> = {
   tiny: 15,
@@ -203,15 +185,9 @@ export function SetupPage() {
   const [showServerForm, setShowServerForm] = createSignal(false);
   const [newServerUrl, setNewServerUrl] = createSignal("http://127.0.0.1:8080");
   const [playerName, setPlayerName] = createSignal("Player");
-  const [difficulty, setDifficulty] =
-    createSignal<NewGameOptions["difficulty"]>("medium");
   const [galaxySize, setGalaxySize] =
     createSignal<NewGameOptions["galaxy_size"]>("medium");
-  const [galaxyAge, setGalaxyAge] =
-    createSignal<NewGameOptions["galaxy_age"]>("average");
   const [players, setPlayers] = createSignal(1);
-  const [techLevel, setTechLevel] =
-    createSignal<NewGameOptions["tech_level"]>("average");
   const [allRaces, setAllRaces] = createSignal<RaceDesign[]>([]);
   const [race, setRace] = createSignal<RaceSelection | null>(null);
   const [customRace, setCustomRace] = createSignal<RaceDesign | null>(null);
@@ -592,11 +568,8 @@ export function SetupPage() {
         player_name: trimmedPlayerName(),
         player_color: playerColor(),
         num_stars: galaxySizeStars[galaxySize()],
-        difficulty: difficulty(),
         galaxy_size: galaxySize(),
-        galaxy_age: galaxyAge(),
         players: players(),
-        tech_level: techLevel(),
         ...raceFields,
       });
       await joinGame(gameId, 1);
@@ -970,34 +943,16 @@ export function SetupPage() {
                   }
                 />
                 <OptionRow
-                  label="Difficulty"
-                  options={difficultyOptions}
-                  selected={difficulty()}
-                  onSelect={setDifficulty}
-                />
-                <OptionRow
                   label="Galaxy Size"
                   options={galaxySizeOptions}
                   selected={galaxySize()}
                   onSelect={setGalaxySize}
                 />
                 <OptionRow
-                  label="Galaxy Age"
-                  options={galaxyAgeOptions}
-                  selected={galaxyAge()}
-                  onSelect={setGalaxyAge}
-                />
-                <OptionRow
                   label="Players"
                   options={playerOptions}
                   selected={players()}
                   onSelect={setPlayers}
-                />
-                <OptionRow
-                  label="Tech Level"
-                  options={techLevelOptions}
-                  selected={techLevel()}
-                  onSelect={setTechLevel}
                 />
 
                 <div class="ng-row">

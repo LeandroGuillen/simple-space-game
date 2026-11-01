@@ -17,7 +17,6 @@ setup_races := [?]string {
 	"gnolams", "klackons", "meklars", "mrrshan", "psilons",
 }
 setup_sizes  := [?]string{"tiny", "medium", "huge"}
-setup_diffs  := [?]string{"easy", "medium", "hard"}
 setup_colors := [?]string{"#007AFF", "#FF3B30", "#34C759", "#FF9500", "#AF52DE", "#FFD60A"}
 
 Setup_State :: struct {
@@ -32,7 +31,6 @@ Setup_State :: struct {
 	name_len:     int,
 	race_idx:     int,
 	size_idx:     int,
-	diff_idx:     int,
 	color_idx:    int,
 	num_stars:    int,
 	num_players:  int,
@@ -44,7 +42,6 @@ setup_init :: proc(s: ^Setup_State, c: ^Api_Client) {
 	s.num_stars = 20
 	s.num_players = 2
 	s.size_idx = 1 // medium
-	s.diff_idx = 1 // medium
 	name := "Commander"
 	copy(s.name_buf[:], name)
 	s.name_len = len(name)
@@ -173,7 +170,6 @@ setup_draw_create :: proc(s: ^Setup_State, c: ^Api_Client) -> (game_id: string, 
 	// Cycling enum rows: left-click = next, right-click = previous.
 	s.race_idx = cycle_row(x, y, label_w, "Race", setup_races[:], s.race_idx);        y += row
 	s.size_idx = cycle_row(x, y, label_w, "Galaxy size", setup_sizes[:], s.size_idx);  y += row
-	s.diff_idx = cycle_row(x, y, label_w, "Difficulty", setup_diffs[:], s.diff_idx);   y += row
 	s.color_idx = cycle_row(x, y, label_w, "Color", setup_colors[:], s.color_idx);     y += row
 
 	// Numeric steppers.
@@ -188,11 +184,8 @@ setup_draw_create :: proc(s: ^Setup_State, c: ^Api_Client) -> (game_id: string, 
 			player_color = setup_colors[s.color_idx],
 			race         = setup_races[s.race_idx],
 			galaxy_size  = setup_sizes[s.size_idx],
-			difficulty   = setup_diffs[s.diff_idx],
 			num_stars    = s.num_stars,
 			players      = s.num_players,
-			galaxy_age   = "average",
-			tech_level   = "average",
 		}
 		if gid, ok := api_create_game(c, req); ok {
 			s.show_create = false

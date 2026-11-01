@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"ssg/game"
 	"ssg/model"
@@ -62,6 +63,9 @@ type GetGalaxyRequest struct {
 func NewGame(c *gin.Context) {
 	var req NewGameRequest
 	_ = c.Bind(&req)
+	if req.Difficulty != "" || req.GalaxyAge != "" || req.TechLevel != "" {
+		log.Printf("new game: difficulty, galaxy_age and tech_level are ignored")
+	}
 
 	rawServer, exists := c.Get("server")
 	if !exists {

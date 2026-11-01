@@ -138,11 +138,11 @@ export type NewGameOptions = {
   player_name: string;
   player_color: string;
   num_stars: number;
-  difficulty: "easy" | "medium" | "hard";
+  difficulty?: "easy" | "medium" | "hard";
   galaxy_size: "tiny" | "medium" | "huge";
-  galaxy_age: "organic_rich" | "average" | "mineral_rich";
+  galaxy_age?: "organic_rich" | "average" | "mineral_rich";
   players: number;
-  tech_level: "low" | "average" | "advanced";
+  tech_level?: "low" | "average" | "advanced";
   /** Built-in slug (e.g. `human`) or `custom` for saved custom races. */
   race: string;
   custom_race_name?: string;
