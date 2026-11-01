@@ -240,6 +240,11 @@
   font-weight: 500;
 }
 
+.invasion-cancelled {
+  background: var(--panel-background);
+  color: var(--text-secondary);
+}
+
 .planet-captured {
   background: var(--success-background);
   color: var(--success-text);

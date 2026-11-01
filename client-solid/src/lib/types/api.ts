@@ -1,3 +1,46 @@
+type GroundBattleRound = {
+  round: number;
+  attacker_losses: number;
+  defender_losses: number;
+  attacker_damage: number;
+  defender_damage: number;
+  attacker_survive: number;
+  defender_survive: number;
+};
+
+type GroundUnit = {
+  type: "marine" | "armored";
+  strength: number;
+  health: number;
+  max_hp: number;
+};
+
+type GroundForce = {
+  owner_id: number;
+  marines: GroundUnit[] | null;
+  armored: GroundUnit[] | null;
+};
+
+export type ApiInvasionReport = {
+  id: number;
+  turn: number;
+  planet_id: number;
+  planet_name: string;
+  x: number;
+  y: number;
+  attacker_owner_id: number;
+  defender_owner_id: number;
+  success: boolean;
+  planet_captured: boolean;
+  /** Set when orbit was lost before ground combat (JSON omitempty). */
+  cancelled?: boolean;
+  rounds: GroundBattleRound[] | null;
+  initial_attacker: GroundForce;
+  initial_defender: GroundForce;
+  surviving_units: GroundForce;
+};
+
+
 import type { ApiTacticalBattle } from './battle';
 
 export type ApiStatusResponse = {
@@ -519,6 +562,7 @@ export type ApiGame = {
   pending_colony_bases?: Record<number, number[]>; // playerID -> planetIDs
   pending_colony_ships?: Record<number, number[]>; // playerID -> fleetIDs
   pending_artificial_planets?: Record<number, number[]>; // playerID -> source planet IDs
+  invasion_reports?: ApiInvasionReport[] | null;
   pending_battles?: ApiTacticalBattle[] | null;
   turn_status?: ApiTurnStatus;
 };

@@ -1,5 +1,6 @@
 import { createMemo, createSignal, Show } from "solid-js";
 
+import { InvasionReportPanel } from "../components/InvasionReportPanel";
 import {
   ShipDesignModal,
   type ShipDesignModalMode,
@@ -118,6 +119,12 @@ export function FleetsPage() {
           </p>
         </div>
       </section>
+
+      <InvasionReportPanel
+        reports={state.game?.invasionReports ?? []}
+        playerId={currentPlayer()?.id ?? 0}
+        playerNames={new Map((state.game?.players ?? []).map((player) => [player.id, player.name]))}
+      />
 
       <ShipDesignModal
         isOpen={modalOpen()}

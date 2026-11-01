@@ -29,10 +29,24 @@ describe("InvasionReportPanel", () => {
     ] as unknown as Parameters<typeof InvasionReportPanel>[0]["reports"];
 
     const view = render(() => (
-      <InvasionReportPanel reports={reports} playerNames={new Map([[1, "A"], [2, "B"]])} />
+      <InvasionReportPanel reports={reports} playerId={1} playerNames={new Map([[1, "A"], [2, "B"]])} />
     ));
     expect(view.getAllByText("Marines: 0").length).toBeGreaterThanOrEqual(2);
     expect(view.getAllByText("Armored: 0").length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("shows only reports involving the current player", () => {
+    const base = { turn: 1, planet_id: 1, x: 0, y: 0, success: false, planet_captured: false, rounds: null,
+      initial_attacker: { owner_id: 1, marines: null, armored: null },
+      initial_defender: { owner_id: 2, marines: null, armored: null },
+      surviving_units: { owner_id: 1, marines: null, armored: null } };
+    const reports = [
+      { ...base, id: 1, planet_name: "Visible", attacker_owner_id: 1, defender_owner_id: 2 },
+      { ...base, id: 2, planet_name: "Hidden", attacker_owner_id: 2, defender_owner_id: 3 },
+    ];
+    const view = render(() => <InvasionReportPanel reports={reports} playerId={1} playerNames={new Map()} />);
+    expect(view.getByText(/Invasion of Visible/)).toBeTruthy();
+    expect(view.queryByText(/Invasion of Hidden/)).toBeNull();
   });
 
   it("tolerates null rounds from cancelled older saves", () => {
@@ -57,7 +71,7 @@ describe("InvasionReportPanel", () => {
     ] as unknown as Parameters<typeof InvasionReportPanel>[0]["reports"];
 
     const view = render(() => (
-      <InvasionReportPanel reports={reports} playerNames={new Map([[1, "A"], [2, "B"]])} />
+      <InvasionReportPanel reports={reports} playerId={1} playerNames={new Map([[1, "A"], [2, "B"]])} />
     ));
     expect(view.getByText(/Invasion cancelled/i)).toBeTruthy();
     expect(view.queryByText(/Battle Summary/i)).toBeNull();

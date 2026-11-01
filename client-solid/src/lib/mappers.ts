@@ -137,6 +137,7 @@ export function mapGame(apiGame: ApiGame): GameViewModel {
       height: apiGame.galaxy.height ?? DEFAULT_GALAXY_HEIGHT,
     },
     players,
+    invasionReports: apiGame.invasion_reports ?? [],
     fleets: (apiGame.fleets ?? []).map(mapFleet),
     populationTransfers: (apiGame.population_transfers ?? []).map(mapPopulationTransfer),
     resources: {

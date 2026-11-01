@@ -1,3 +1,4 @@
+import type { ApiInvasionReport } from "./api";
 import type { ApiTacticalBattle } from "./battle";
 
 export type ShipDesignForm = {
@@ -367,6 +368,7 @@ export type GameViewModel = {
   pendingColonyBases: Record<number, number[]>; // playerID -> planetIDs
   pendingColonyShips: Record<number, number[]>; // playerID -> fleetIDs
   pendingArtificialPlanets: Record<number, number[]>; // playerID -> source planet IDs
+  invasionReports?: ApiInvasionReport[];
   pendingBattles?: ApiTacticalBattle[];
   turnStatus?: TurnStatusViewModel;
 };

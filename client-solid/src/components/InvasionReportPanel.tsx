@@ -1,60 +1,22 @@
 import { For, Show } from "solid-js";
 
-type GroundBattleRound = {
-  round: number;
-  attacker_losses: number;
-  defender_losses: number;
-  attacker_damage: number;
-  defender_damage: number;
-  attacker_survive: number;
-  defender_survive: number;
-};
-
-type GroundUnit = {
-  type: "marine" | "armored";
-  strength: number;
-  health: number;
-  max_hp: number;
-};
-
-type GroundForce = {
-  owner_id: number;
-  marines: GroundUnit[];
-  armored: GroundUnit[];
-};
-
-type InvasionReport = {
-  id: number;
-  turn: number;
-  planet_id: number;
-  planet_name: string;
-  x: number;
-  y: number;
-  attacker_owner_id: number;
-  defender_owner_id: number;
-  success: boolean;
-  planet_captured: boolean;
-  /** Set when orbit was lost before ground combat (JSON omitempty). */
-  cancelled?: boolean;
-  rounds: GroundBattleRound[];
-  initial_attacker: GroundForce;
-  initial_defender: GroundForce;
-  surviving_units: GroundForce;
-};
+import type { ApiInvasionReport } from "../lib/types/api";
 
 type InvasionReportPanelProps = {
-  reports: InvasionReport[];
+  reports: ApiInvasionReport[];
+  playerId: number;
   playerNames: Map<number, string>;
 };
 
 export function InvasionReportPanel(props: InvasionReportPanelProps) {
+  const visibleReports = () => props.reports.filter((report) => report.attacker_owner_id === props.playerId || report.defender_owner_id === props.playerId);
   const getPlayerName = (playerId: number) => props.playerNames.get(playerId) || `Player ${playerId}`;
 
   return (
-    <Show when={props.reports.length > 0}>
+    <Show when={visibleReports().length > 0}>
       <div class="invasion-reports">
         <h3>Invasion Reports</h3>
-        <For each={props.reports}>
+        <For each={visibleReports()}>
           {(report) => (
             <div class="invasion-report">
               <div class="invasion-report-header">
