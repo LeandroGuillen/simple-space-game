@@ -34,6 +34,12 @@ export type ApiInvasionReport = {
   planet_captured: boolean;
   /** Set when orbit was lost before ground combat (JSON omitempty). */
   cancelled?: boolean;
+  capture_effects?: {
+    population_race?: string;
+    unrest_penalty: number;
+    destroyed_buildings: string[] | null;
+    removed_buildings: string[] | null;
+  };
   rounds: GroundBattleRound[] | null;
   initial_attacker: GroundForce;
   initial_defender: GroundForce;

@@ -16,6 +16,8 @@ type Planet struct {
 	Population        int64 `json:"population"`
 	MaxPopulation     int64 `json:"max_population"`
 	LastTurnPopGrowth int64 `json:"last_turn_pop_growth"`
+	// PopulationRace is set on conquest and survives subsequent captures.
+	PopulationRace string `json:"population_race,omitempty"`
 
 	Industry   PlanetIndustryOutput   `json:"industry"`
 	Food       PlanetFoodOutput       `json:"food"`

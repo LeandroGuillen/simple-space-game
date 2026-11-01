@@ -232,7 +232,7 @@ func (g *Game) resolvePendingInvasion(order PendingInvasion) *InvasionReport {
 	}
 
 	if report.Success && report.PlanetCaptured {
-		g.capturePlanet(planet, order.OwnerID, &report.SurvivingUnits)
+		report.CaptureEffects = g.capturePlanet(planet, order.OwnerID, &report.SurvivingUnits)
 	} else {
 		g.updatePlanetDefenders(planet, &report.SurvivingUnits)
 	}
@@ -526,12 +526,55 @@ func (g *Game) nextInvasionReportID() uint {
 	return max + 1
 }
 
-func (g *Game) capturePlanet(planet *Planet, newOwnerID uint, survivingUnits *GroundForce) {
+// Conquest destroys one quarter of ordinary buildings (rounded down, in
+// construction order). The former empire's unique Capitol is always removed.
+// Foreign populations suffer 20% unrest until they are liberated.
+const conquestUnrestPenalty = 0.20
+
+func (g *Game) capturePlanet(planet *Planet, newOwnerID uint, survivingUnits *GroundForce) *CaptureEffects {
+	if planet.PopulationRace == "" && planet.Population > 0 {
+		if oldOwner, err := g.getPlayer(planet.Owner); err == nil && oldOwner != nil {
+			planet.PopulationRace = oldOwner.Race.Name
+		}
+	}
+	effects := &CaptureEffects{PopulationRace: planet.PopulationRace, DestroyedBuildings: []string{}, RemovedBuildings: []string{}}
+	ordinary := 0
+	for _, name := range planet.Buildings {
+		if name != "Capitol" {
+			ordinary++
+		}
+	}
+	destroy := ordinary / 4
+	remaining := make([]string, 0, len(planet.Buildings))
+	for _, name := range planet.Buildings {
+		if name == "Capitol" {
+			effects.RemovedBuildings = append(effects.RemovedBuildings, name)
+			continue
+		}
+		if destroy > 0 {
+			effects.DestroyedBuildings = append(effects.DestroyedBuildings, name)
+			destroy--
+			continue
+		}
+		remaining = append(remaining, name)
+	}
+	planet.Buildings = remaining
 	planet.Owner = newOwnerID
-	// Reset planet marines/armored to surviving attacker units
-	planet.Marines = int64(len(survivingUnits.Marines))
-	planet.Armored = int64(len(survivingUnits.Armored))
-	// TODO: Handle population, buildings, etc. based on game rules
+	g.updatePlanetDefenders(planet, survivingUnits)
+	planet.CurrentProject = ""
+	planet.BuildQueue = nil
+	planet.IndustryStack = 0
+	planet.BuildBucket = 0
+	planet.IsBuilding = false
+	planet.Autobuild = false
+	if player, err := g.getPlayer(newOwnerID); err == nil && player != nil {
+		_ = g.exploreStarUnlocked(newOwnerID, planet.ParentStar)
+		if planet.Population > 0 && planet.PopulationRace != "" && planet.PopulationRace != player.Race.Name && !governmentMoraleNeutral(g, player) {
+			effects.UnrestPenalty = conquestUnrestPenalty
+		}
+		hydratePlanetMorale(g, planet, player)
+	}
+	return effects
 }
 
 func (g *Game) updatePlanetDefenders(planet *Planet, survivingUnits *GroundForce) {

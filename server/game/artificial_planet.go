@@ -133,6 +133,7 @@ func transformArtificialPlanetTarget(target *Planet) {
 	target.Gravity = PlanetGravityNormal
 	target.Owner = 0
 	target.Population = 0
+	target.PopulationRace = ""
 	target.MaxPopulation = 0
 	target.LastTurnPopGrowth = 0
 	target.Food = PlanetFoodOutput{}

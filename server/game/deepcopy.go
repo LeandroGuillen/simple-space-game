@@ -105,6 +105,12 @@ func copyInvasionReport(r *model.InvasionReport) *model.InvasionReport {
 	cp.InitialAttacker = copyGroundForce(r.InitialAttacker)
 	cp.InitialDefender = copyGroundForce(r.InitialDefender)
 	cp.SurvivingUnits = copyGroundForce(r.SurvivingUnits)
+	if r.CaptureEffects != nil {
+		effects := *r.CaptureEffects
+		effects.DestroyedBuildings = cloneSlice(effects.DestroyedBuildings)
+		effects.RemovedBuildings = cloneSlice(effects.RemovedBuildings)
+		cp.CaptureEffects = &effects
+	}
 	return &cp
 }
 

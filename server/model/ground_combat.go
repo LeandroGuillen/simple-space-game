@@ -54,6 +54,14 @@ type InvasionReport struct {
 	InitialAttacker GroundForce         `json:"initial_attacker"`
 	InitialDefender GroundForce         `json:"initial_defender"`
 	SurvivingUnits  GroundForce         `json:"surviving_units"`
+	CaptureEffects  *CaptureEffects     `json:"capture_effects,omitempty"`
+}
+
+type CaptureEffects struct {
+	PopulationRace     string   `json:"population_race,omitempty"`
+	UnrestPenalty      float64  `json:"unrest_penalty"`
+	DestroyedBuildings []string `json:"destroyed_buildings"`
+	RemovedBuildings   []string `json:"removed_buildings"`
 }
 
 // NewGroundUnit creates a new ground unit with default stats

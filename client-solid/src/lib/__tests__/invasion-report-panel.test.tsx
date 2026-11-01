@@ -8,6 +8,23 @@ afterEach(() => {
 });
 
 describe("InvasionReportPanel", () => {
+  it("shows conquest consequences for participants", () => {
+    const report = {
+      id: 1, turn: 2, planet_id: 3, planet_name: "Praar", x: 0, y: 0,
+      attacker_owner_id: 1, defender_owner_id: 2, success: true, planet_captured: true,
+      rounds: [], initial_attacker: { owner_id: 1, marines: [], armored: [] },
+      initial_defender: { owner_id: 2, marines: [], armored: [] },
+      surviving_units: { owner_id: 1, marines: [], armored: [] },
+      capture_effects: { population_race: "Klackon", unrest_penalty: 0.2,
+        destroyed_buildings: ["Automated Factory"], removed_buildings: ["Capitol"] },
+    };
+    const view = render(() => <InvasionReportPanel reports={[report]} playerId={2} playerNames={new Map()} />);
+    expect(view.getByText("Population: Klackon remains on the planet.")).toBeTruthy();
+    expect(view.getByText("Conquest unrest: 20% morale penalty.")).toBeTruthy();
+    expect(view.getByText("Buildings destroyed: Automated Factory.")).toBeTruthy();
+    expect(view.getByText("Former empire buildings removed: Capitol.")).toBeTruthy();
+    expect(view.getByText("Construction project and queue cleared.")).toBeTruthy();
+  });
   it("tolerates nullish marine/armored arrays from older saves", () => {
     const reports = [
       {

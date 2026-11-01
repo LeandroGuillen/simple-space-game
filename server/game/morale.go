@@ -23,6 +23,9 @@ func PlanetMoraleSources(game *Game, p *model.Planet, player *model.Player) []mo
 	if governmentMoraleNeutral(game, player) {
 		return sources
 	}
+	if p.Population > 0 && p.PopulationRace != "" && player != nil && p.PopulationRace != player.Race.Name {
+		sources = append(sources, model.PlanetMoraleSource{Name: "Conquered population", Type: "conquest", Bonus: -conquestUnrestPenalty})
+	}
 	var bonus float64
 	for _, buildingName := range p.Buildings {
 		if building, err := getBuildingFromName(game, buildingName); err == nil {

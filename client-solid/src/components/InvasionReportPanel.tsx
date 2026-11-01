@@ -43,6 +43,15 @@ export function InvasionReportPanel(props: InvasionReportPanelProps) {
                   <div class="planet-captured">
                     ✅ Planet captured by {getPlayerName(report.attacker_owner_id)}
                   </div>
+                  <Show when={report.capture_effects}>
+                    {(effects) => <div class="capture-effects">
+                      <div>Population: {effects().population_race || "Unknown"} remains on the planet.</div>
+                      <div>Conquest unrest: {Math.round(effects().unrest_penalty * 100)}% morale penalty.</div>
+                      <div>Buildings destroyed: {(effects().destroyed_buildings ?? []).join(", ") || "None"}.</div>
+                      <div>Former empire buildings removed: {(effects().removed_buildings ?? []).join(", ") || "None"}.</div>
+                      <div>Construction project and queue cleared.</div>
+                    </div>}
+                  </Show>
                 </Show>
                 <Show when={!report.cancelled && !report.planet_captured}>
                   <div class="invasion-failed">
