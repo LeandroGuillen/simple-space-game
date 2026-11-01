@@ -129,6 +129,11 @@ func (g *Game) getVisibleGameForPlayerLocked(playerID uint) (*Game, error) {
 	visible.InvasionReports = filterInvasionReportsForPlayer(g.InvasionReports, playerID)
 	visible.PostponedInvasions = filterPendingInvasionsForPlayer(g.PostponedInvasions, playerID)
 	visible.PopulationTransfers = filterPopulationTransfersForPlayer(g.PopulationTransfers, playerID)
+	for _, notice := range g.TransferLosses {
+		if notice.Owner == playerID {
+			visible.TransferLosses = append(visible.TransferLosses, notice)
+		}
+	}
 	visible.PendingColonyBases = filterPendingMapForPlayer(g.PendingColonyBases, playerID)
 	visible.PendingColonyShips = filterPendingMapForPlayer(g.PendingColonyShips, playerID)
 	visible.PendingArtificialPlanets = filterPendingMapForPlayer(g.PendingArtificialPlanets, playerID)

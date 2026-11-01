@@ -282,7 +282,7 @@ func (g *Game) completePopulationTransfer(transfer PopulationTransfer) {
 // transfer's source when the player still owns it. Placement respects the
 // source MaxPopulation: only what fits is added (with the same new-unit
 // assignment / capAssignedPopulation path as a normal landing). Any remainder,
-// or the whole cargo when the source is missing/unowned, is logged as lost.
+// or the whole cargo when the source is missing/unowned, is reported as lost.
 // Used for destination overflow and for destination-lost-before-arrival refunds.
 func (g *Game) refundTransferCargoToSource(transfer PopulationTransfer, player *Player, cargo int64, why string) {
 	if cargo <= 0 {
@@ -290,6 +290,7 @@ func (g *Game) refundTransferCargoToSource(transfer PopulationTransfer, player *
 	}
 	source, err := g.getPlanet(transfer.SourcePlanetID)
 	if err != nil || source == nil || source.Owner != transfer.Owner {
+		g.recordTransferLoss(transfer, cargo)
 		log.Printf(
 			"population transfer %d: %d population lost (no owned source planet %d to refund; %s)",
 			transfer.ID, cargo, transfer.SourcePlanetID, why,
@@ -318,11 +319,27 @@ func (g *Game) refundTransferCargoToSource(transfer PopulationTransfer, player *
 		capAssignedPopulation(source)
 	}
 	if lost > 0 {
+		g.recordTransferLoss(transfer, lost)
 		log.Printf(
 			"population transfer %d: %d population lost (source planet %d at capacity; %s)",
 			transfer.ID, lost, source.ID, why,
 		)
 	}
+}
+
+func (g *Game) recordTransferLoss(transfer PopulationTransfer, lost int64) {
+	notice := TransferLossNotice{
+		Owner: transfer.Owner, Turn: g.CurrentTurn, TransferID: transfer.ID,
+		SourcePlanetID: transfer.SourcePlanetID, DestinationPlanetID: transfer.DestinationPlanetID,
+		PopulationLost: lost,
+	}
+	if source, err := g.getPlanet(transfer.SourcePlanetID); err == nil && source != nil {
+		notice.SourcePlanetName = source.Name
+	}
+	if destination, err := g.getPlanet(transfer.DestinationPlanetID); err == nil && destination != nil {
+		notice.DestinationPlanetName = destination.Name
+	}
+	g.TransferLosses = append(g.TransferLosses, notice)
 }
 
 // pendingInboundPopulationUnits sums PopulationUnits already in flight to destination

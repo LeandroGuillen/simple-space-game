@@ -370,6 +370,10 @@ func TestPopulationTransferOverflowLostWhenSourceGone(t *testing.T) {
 	assert.Equal(t, sourceBefore, source.Population, "unowned source must not receive refund")
 	assert.Equal(t, destBefore+500, destination.Population)
 	assert.Equal(t, uint(0), player.FreightersUsed)
+	require.Len(t, g.TransferLosses, 1)
+	assert.Equal(t, int64(500), g.TransferLosses[0].PopulationLost)
+	assert.Equal(t, uint(1), g.TransferLosses[0].Owner)
+	assert.Equal(t, int64(1000), destination.Population-destBefore+g.TransferLosses[0].PopulationLost)
 }
 
 func TestPopulationTransferRefundsWhenDestinationCaptured(t *testing.T) {
@@ -572,7 +576,9 @@ func TestPopulationTransferOverflowRefundRespectsSourceCapacity(t *testing.T) {
 	assert.Equal(t, int64(300), lost)
 	assert.Equal(t, overflow, refunded+lost)
 	assert.Equal(t, uint(0), player.FreightersUsed)
-	_ = cargo
+	require.Len(t, g.TransferLosses, 1)
+	assert.Equal(t, int64(300), g.TransferLosses[0].PopulationLost)
+	assert.Equal(t, cargo, (destination.Population-3500)+refunded+g.TransferLosses[0].PopulationLost)
 }
 
 func newFreighterHarness() *Game {

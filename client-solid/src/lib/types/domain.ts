@@ -358,6 +358,17 @@ export type TechViewModel = {
   grants: GrantsViewModel;
 };
 
+export type TransferLossNotice = {
+  owner: number;
+  turn: number;
+  transferId: number;
+  sourcePlanetId: number;
+  sourcePlanetName: string;
+  destinationPlanetId: number;
+  destinationPlanetName: string;
+  populationLost: number;
+};
+
 export type GameViewModel = {
   id: string;
   status?: "active" | "finished";
@@ -368,6 +379,7 @@ export type GameViewModel = {
   players: PlayerViewModel[];
   fleets: FleetViewModel[];
   populationTransfers?: PopulationTransferViewModel[];
+  transferLosses?: TransferLossNotice[];
   resources: ResourcesViewModel;
   pendingColonyBases: Record<number, number[]>; // playerID -> planetIDs
   pendingColonyShips: Record<number, number[]>; // playerID -> fleetIDs

@@ -56,6 +56,7 @@ import {
 import { useAppContext } from "../state/app-context";
 import { PlanetVisual } from "./PlanetVisual";
 import { GameOver } from "./GameOver";
+import { TransferLossNotices } from "./TransferLossNotices";
 
 const gameNavItems = [
   { href: "/galaxy", label: "Galaxy", shortcutKey: "g" },
@@ -952,6 +953,7 @@ export function AppShell(props: RouteSectionProps) {
             </Show>
 
             <main class="content content--route">
+              <TransferLossNotices notices={state.game?.transferLosses ?? []} playerId={state.session.playerId} />
               <Show when={gameOver() && state.game} fallback={props.children}>
                 {(game) => <GameOver game={game()} playerId={state.session.playerId} />}
               </Show>

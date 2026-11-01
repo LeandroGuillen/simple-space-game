@@ -59,6 +59,7 @@ describe('mapGame', () => {
         ],
       },
       pending_artificial_planets: { 1: [3] },
+      transfer_losses: [{ owner: 1, turn: 3500, transfer_id: 5, source_planet_id: 3, source_planet_name: 'Sol', destination_planet_id: 4, destination_planet_name: 'Vega', population_lost: 500 }],
       population_transfers: [
         {
           id: 9,
@@ -146,6 +147,7 @@ describe('mapGame', () => {
     const game = mapGame(apiGame)
 
     expect(game.id).toBe('game-1')
+    expect(game.transferLosses).toEqual([{ owner: 1, turn: 3500, transferId: 5, sourcePlanetId: 3, sourcePlanetName: 'Sol', destinationPlanetId: 4, destinationPlanetName: 'Vega', populationLost: 500 }])
     expect(game.currentTurn).toBe(3500)
     expect(game.status).toBe('finished')
     expect(game.winnerId).toBe(1)

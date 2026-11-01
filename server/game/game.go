@@ -34,6 +34,7 @@ type Game struct {
 	Players                  []*Player            `json:"players"`
 	Fleets                   []*Fleet             `json:"fleets"`
 	PopulationTransfers      []PopulationTransfer `json:"population_transfers"`
+	TransferLosses           []TransferLossNotice `json:"transfer_losses,omitempty"`
 	ID                       string               `json:"id"`
 	CurrentTurn              float64              `json:"current_turn"`
 	Status                   string               `json:"status,omitempty"`
@@ -586,6 +587,9 @@ func (g *Game) AdvanceTurn(submissions map[uint]Commands) error {
 }
 
 func (g *Game) advanceTurnApplying(submissions map[uint]Commands) error {
+	// Notices describe only the most recently resolved turn. The turn snapshot
+	// restores them if resolution fails.
+	g.TransferLosses = nil
 	// A pending battle should have been fought via the battle API before any
 	// turn submission, but never let a stale one wedge the game.
 	g.autoResolveLeftoverBattles() // also releases PostponedInvasions via finishTacticalBattle

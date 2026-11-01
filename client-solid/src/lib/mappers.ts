@@ -143,6 +143,16 @@ export function mapGame(apiGame: ApiGame): GameViewModel {
     invasionReports: apiGame.invasion_reports ?? [],
     fleets: (apiGame.fleets ?? []).map(mapFleet),
     populationTransfers: (apiGame.population_transfers ?? []).map(mapPopulationTransfer),
+    transferLosses: (apiGame.transfer_losses ?? []).map((notice) => ({
+      owner: notice.owner,
+      turn: notice.turn,
+      transferId: notice.transfer_id,
+      sourcePlanetId: notice.source_planet_id,
+      sourcePlanetName: notice.source_planet_name ?? "",
+      destinationPlanetId: notice.destination_planet_id,
+      destinationPlanetName: notice.destination_planet_name ?? "",
+      populationLost: notice.population_lost,
+    })),
     resources: {
       shipParts: {
         hullSizes: apiGame.resources.ship_parts.hull_sizes.map(mapHullSize),

@@ -550,11 +550,23 @@ export type ApiTurnResponse = {
   turn_status: ApiTurnStatus;
 };
 
+export type ApiTransferLossNotice = {
+  owner: number;
+  turn: number;
+  transfer_id: number;
+  source_planet_id: number;
+  source_planet_name?: string;
+  destination_planet_id: number;
+  destination_planet_name?: string;
+  population_lost: number;
+};
+
 export type ApiGame = {
   galaxy: ApiGalaxy;
   players: ApiPlayer[];
   fleets?: ApiFleet[] | null;
   population_transfers?: ApiPopulationTransfer[] | null;
+  transfer_losses?: ApiTransferLossNotice[] | null;
   id: string;
   current_turn: number;
   status?: "active" | "finished";
