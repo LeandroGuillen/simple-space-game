@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -231,4 +232,34 @@ func TestCopyGroundForcePreservesNilSlices(t *testing.T) {
 	require.NotNil(t, cp.Armored)
 	assert.Empty(t, cp.Marines)
 	assert.Empty(t, cp.Armored)
+}
+
+func TestFailedTurnRestoresAppendOnlyReports(t *testing.T) {
+	g := loadHydratedScenario(t, "battle-demo.json")
+	g.BattleReports = []*BattleReport{{ID: 88, Sides: []BattleSide{{OwnerID: 1}}}}
+	g.InvasionReports = []*InvasionReport{{ID: 99, PlanetName: "Original"}}
+	before := captureGameJSON(t, g)
+	t.Cleanup(func() { advanceTurnTestHook = nil })
+	advanceTurnTestHook = func(stage string) error {
+		if stage == "before_fleet_movements" {
+			g.BattleReports = append(g.BattleReports, &BattleReport{ID: 100})
+			g.InvasionReports = append(g.InvasionReports, &InvasionReport{ID: 101})
+			return errors.New("injected failure after reports")
+		}
+		return nil
+	}
+	require.Error(t, g.AdvanceTurn(emptySubsFor(g)))
+	require.Equal(t, before, captureGameJSON(t, g))
+}
+
+func BenchmarkSnapshotReportHistory(b *testing.B) {
+	for _, n := range []int{0, 10000} {
+		b.Run(fmt.Sprintf("reports_%d", n), func(b *testing.B) {
+			g := &Game{BattleReports: make([]*BattleReport, n), InvasionReports: make([]*InvasionReport, n)}
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				_ = snapshotGameState(g)
+			}
+		})
+	}
 }

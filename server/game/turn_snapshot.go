@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// gameTurnSnapshot is a deep copy of every mutable Game field that AdvanceTurn
+// gameTurnSnapshot captures every mutable Game field that AdvanceTurn
 // (applyPlayerTurn / planetTurn / autoResolveLeftoverBattles / etc.) may change.
 // Resources and mu are intentionally omitted: Resources is a shared immutable
 // catalog; mu must stay the live lock on the same *Game so external holders of
@@ -84,9 +84,11 @@ func snapshotGameState(g *Game) *gameTurnSnapshot {
 	snap.PendingColonyBases = copyPendingUintMap(g.PendingColonyBases)
 	snap.PendingColonyShips = copyPendingUintMap(g.PendingColonyShips)
 	snap.PendingArtificialPlanets = copyPendingUintMap(g.PendingArtificialPlanets)
-	snap.BattleReports = copyBattleReports(g.BattleReports)
+	// Reports are append-only during turns: retain their original slice headers.
+	// Rollback restores their original lengths (and nil-versus-empty shape).
+	snap.BattleReports = g.BattleReports
 	snap.PendingBattles = copyPendingBattles(g.PendingBattles)
-	snap.InvasionReports = copyInvasionReports(g.InvasionReports)
+	snap.InvasionReports = g.InvasionReports
 	snap.PendingInvasions = copyPendingInvasions(g.PendingInvasions)
 	snap.PostponedInvasions = copyPendingInvasions(g.PostponedInvasions)
 	snap.TurnSubmissions = copyTurnSubmissions(g.TurnSubmissions)
