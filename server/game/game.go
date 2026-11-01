@@ -1324,7 +1324,7 @@ func (g *Game) CreateCapitalPlanetAtStar(ownerID, starID uint) error {
 	planet.Environment = PlanetEnvironmentTerran
 	planet.Size = PlanetSizeMedium
 	planet.MineralClass = PlanetMineralAbundant
-	planet.Gravity = PlanetGravityNormal
+	planet.Gravity = preferredGravity(player)
 	applyRaceHomeworldTraits(player, planet)
 
 	// population setup

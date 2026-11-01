@@ -160,3 +160,43 @@ func TestGravityAffectsLaborOutputs(t *testing.T) {
 		})
 	}
 }
+
+func TestCapitalGravityMatchesRace(t *testing.T) {
+	for _, tc := range []struct {
+		name, trait string
+		gravity     model.PlanetGravity
+	}{
+		{"normal", "", model.PlanetGravityNormal},
+		{"low", "low_g_world", model.PlanetGravityLow},
+		{"high", "high_g_world", model.PlanetGravityHigh},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			resources, err := NewResourceManager()
+			if err != nil {
+				t.Fatal(err)
+			}
+			race := DefaultRace("Human")
+			if tc.trait != "" {
+				race.TraitIDs = append(race.TraitIDs, tc.trait)
+			}
+			g, err := NewGame(resources, NewGameOptions{PlayerName: "Ada", NumStars: 4, PlayerColor: model.DefaultPlayerColor(), Race: race})
+			if err != nil {
+				t.Fatal(err)
+			}
+			player := g.Players[0]
+			var capital *model.Planet
+			for _, star := range g.Galaxy.Stars {
+				for _, p := range star.Planets {
+					if p.Owner == player.ID {
+						capital = p
+					}
+				}
+			}
+			if capital == nil {
+				t.Fatal("capital missing")
+			}
+			assert.Equal(t, tc.gravity, capital.Gravity)
+			assert.Equal(t, float64(1), gravityOutputMultiplier(capital, player))
+		})
+	}
+}
