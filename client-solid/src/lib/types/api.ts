@@ -84,6 +84,7 @@ export type ApiGameListPlayer = {
   race_name?: string;
   color: string;
   num_stars: number;
+  controller?: "human" | "server_ai" | "external";
 };
 
 export type RaceTraitId =

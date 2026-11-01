@@ -49,11 +49,12 @@ type GameListResponseItem struct {
 }
 
 type GameListPlayerInfo struct {
-	ID       uint   `json:"id"`
-	Name     string `json:"name"`
-	RaceName string `json:"race_name"`
-	Color    string `json:"color"`
-	NumStars int    `json:"num_stars"`
+	ID         uint   `json:"id"`
+	Name       string `json:"name"`
+	RaceName   string `json:"race_name"`
+	Color      string `json:"color"`
+	NumStars   int    `json:"num_stars"`
+	Controller string `json:"controller,omitempty"`
 }
 
 type GetGalaxyRequest struct {
@@ -173,11 +174,12 @@ func GetGameList(c *gin.Context) {
 		playerInfos := make([]GameListPlayerInfo, len(summary.Players))
 		for i, p := range summary.Players {
 			playerInfos[i] = GameListPlayerInfo{
-				ID:       p.ID,
-				Name:     p.Name,
-				RaceName: p.RaceName,
-				Color:    p.Color,
-				NumStars: p.NumStars,
+				ID:         p.ID,
+				Name:       p.Name,
+				RaceName:   p.RaceName,
+				Color:      p.Color,
+				NumStars:   p.NumStars,
+				Controller: p.Controller,
 			}
 		}
 		item := GameListResponseItem{

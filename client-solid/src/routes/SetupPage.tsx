@@ -849,7 +849,7 @@ export function SetupPage() {
                                         void handleSelect(game.game_id, slotId);
                                       }}
                                     >
-                                      {player.name}
+                                      {player.name} {player.controller === "server_ai" ? "(Server AI)" : player.controller === "external" ? "(External)" : player.controller === "human" ? "(Human)" : ""}
                                       <span class="player-stars">
                                         {player.num_stars}
                                       </span>

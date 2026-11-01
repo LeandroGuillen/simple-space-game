@@ -4,11 +4,12 @@ import "time"
 
 // GameListPlayerSummary is a lock-safe snapshot of one player for the lobby list.
 type GameListPlayerSummary struct {
-	ID       uint
-	Name     string
-	RaceName string
-	Color    string
-	NumStars int
+	ID         uint
+	Name       string
+	RaceName   string
+	Color      string
+	NumStars   int
+	Controller string
 }
 
 // GameListSummary is a lock-safe snapshot of lobby fields for one game.
@@ -47,11 +48,12 @@ func (g *Game) ListSummary() GameListSummary {
 			}
 		}
 		players = append(players, GameListPlayerSummary{
-			ID:       p.ID,
-			Name:     p.Name,
-			RaceName: p.Race.Name,
-			Color:    p.Color,
-			NumStars: ownedStars,
+			ID:         p.ID,
+			Name:       p.Name,
+			RaceName:   p.Race.Name,
+			Color:      p.Color,
+			NumStars:   ownedStars,
+			Controller: p.Controller,
 		})
 	}
 

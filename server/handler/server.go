@@ -26,6 +26,7 @@ type Server struct {
 	router            *gin.Engine
 	hub               *ws.Hub
 	hubOnce           sync.Once
+	turnOrchestration sync.Mutex
 	// debug enables /debug/* routes for this server instance only.
 	debug bool
 }

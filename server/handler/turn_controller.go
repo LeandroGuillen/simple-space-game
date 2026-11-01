@@ -32,6 +32,8 @@ func Turn(c *gin.Context) {
 	if err != nil {
 		return
 	}
+	s.turnOrchestration.Lock()
+	defer s.turnOrchestration.Unlock()
 
 	turnStatus, advanced, err := g.SubmitTurn(playerID, req.Commands)
 	if err != nil {
@@ -52,6 +54,17 @@ func Turn(c *gin.Context) {
 		}
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
+	}
+	// A direct submission to a server-controlled slot transfers it to the
+	// external manager. Internal AI submissions do not pass this handler.
+	g.MarkExternalController(playerID)
+	if !advanced {
+		turnStatus, advanced, err = submitServerAITurns(g, turnStatus)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error(), "turn_status": turnStatus})
+			s.hub.BroadcastGameUpdate(g)
+			return
+		}
 	}
 
 	response := gin.H{"ok": true, "advanced": advanced, "turn_status": turnStatus}

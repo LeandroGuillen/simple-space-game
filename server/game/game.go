@@ -117,6 +117,7 @@ func NewGame(resources *ResourceManager, options NewGameOptions) (*Game, error) 
 	players := make([]*Player, 0, numPlayers)
 	player1 := NewPlayer(firstPlayerID, playerName, playerColor, race)
 	player1.IsHuman = true
+	player1.Controller = "human"
 	players = append(players, player1)
 
 	// Build the pool of colors still available for non-interactive slots by
@@ -134,7 +135,9 @@ func NewGame(resources *ResourceManager, options NewGameOptions) (*Game, error) 
 	}
 	for slot := uint(2); slot <= numPlayers; slot++ {
 		color := remaining[slot-2]
-		players = append(players, NewPlayer(slot, fmt.Sprintf("Player %d", slot), color, DefaultRace("Human")))
+		player := NewPlayer(slot, fmt.Sprintf("Player %d", slot), color, DefaultRace("Human"))
+		player.Controller = "server_ai"
+		players = append(players, player)
 	}
 
 	created := time.Now().UTC()
