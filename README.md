@@ -14,8 +14,8 @@ cd server && go run ./cmd/ai
 
 Open the Vite URL printed by the client. The game server listens on port **8080** by default; the optional AI manager uses **8090**. Change the server port with `go run ./cmd/server -port 8081` and the AI manager address with `go run ./cmd/ai -listen :8091`.
 
-Scenario files are read from the directory selected by `SSG_SAVES_DIR`; see [server/game/saves_path.go](server/game/saves_path.go) for the default search locations. See [client-odin/README.md](client-odin/README.md) for the native client.
+Scenario files are read from `server/data/scenarios` by default. Set `SSG_SAVES_DIR` to use a different scenario directory, for example `SSG_SAVES_DIR=/path/to/scenarios go run ./cmd/server` from `server/`. See [client-odin/README.md](client-odin/README.md) for the native client.
 
 ## Verify
 
-Run `go test ./...` from `server/`, and `npm test` and `npm run build` from `client-solid/`.
+Run `go vet ./...` and `go test -race ./...` from `server/`, and `npm ci`, `npm test` and `npm run build` from `client-solid/`. GitHub Actions runs these checks on pushes to `master` and pull requests targeting `master`.
