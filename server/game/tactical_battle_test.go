@@ -1,6 +1,8 @@
 package game
 
 import (
+	"encoding/json"
+	"fmt"
 	"testing"
 
 	. "ssg/model"
@@ -237,4 +239,38 @@ func TestBattleAutoActionPlaysActivation(t *testing.T) {
 	}
 	assert.Equal(t, TacticalBattleFinished, battle.Status)
 	assert.Equal(t, uint(1), battle.WinnerOwnerID)
+}
+
+func TestTacticalBattleDestroyedSideSerializesEmptySurvivors(t *testing.T) {
+	g, star := newTacticalGame(t)
+	armHumanGunboat(t, g, star)
+	addOrbitFleet(g, 2, star, []FleetShip{{Type: "colony_ship", Name: "Civvie"}})
+	battle := startTacticalBattle(t, g, star)
+	for _, ship := range battle.Ships {
+		if ship.OwnerID == 2 {
+			ship.Destroyed = true
+		}
+	}
+	g.finishTacticalBattle(battle, 1, false)
+	check := func(t *testing.T, reports []*BattleReport) {
+		t.Helper()
+		require.Len(t, reports, 1)
+		var defeated *BattleSide
+		for i := range reports[0].Sides {
+			if reports[0].Sides[i].OwnerID == 2 {
+				defeated = &reports[0].Sides[i]
+			}
+		}
+		require.NotNil(t, defeated)
+		data, err := json.Marshal(defeated)
+		require.NoError(t, err)
+		assert.Contains(t, string(data), `"surviving_ships":[]`)
+		assert.Contains(t, string(data), `"original_ships":[`)
+	}
+	t.Run("stored", func(t *testing.T) { check(t, g.BattleReports) })
+	for _, playerID := range []uint{1, 2} {
+		visible, err := g.GetVisibleGameForPlayer(playerID)
+		require.NoError(t, err)
+		t.Run(fmt.Sprintf("player %d", playerID), func(t *testing.T) { check(t, visible.BattleReports) })
+	}
 }

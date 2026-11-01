@@ -432,7 +432,7 @@ func (g *Game) finishTacticalBattle(b *TacticalBattle, winnerOwnerID uint, draw 
 	sort.Slice(ownerOrder, func(i, j int) bool { return ownerOrder[i] < ownerOrder[j] })
 
 	for _, ownerID := range ownerOrder {
-		side := BattleSide{OwnerID: ownerID}
+		side := BattleSide{OwnerID: ownerID, OriginalShips: []FleetShip{}, SurvivingShips: []FleetShip{}}
 		for _, ts := range byOwner[ownerID] {
 			original := g.fleetShipFor(ts)
 			side.OriginalShips = append(side.OriginalShips, original)
