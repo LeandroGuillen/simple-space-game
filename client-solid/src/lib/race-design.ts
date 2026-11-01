@@ -11,6 +11,16 @@ export type RaceTraitDefinition = {
   populationGrowthPercent?: number;
 };
 
+// These picks have effects that are still awaiting their corresponding systems.
+export const partialRaceTraitDetails: Record<string, string> = {
+  ground_combat: "The 50% damage bonus works in ground combat for both sides.",
+  spying: "Spy bonuses are recorded, but there is no playable espionage system yet.",
+  low_g_world: "Homeworld gravity and planetary output penalties work; the troop penalty is not implemented.",
+  high_g_world: "Homeworld gravity and planetary output penalties work; the extra troop hit is not implemented.",
+  stealthy_ships: "The detection modifier is recorded, but there is no detection system yet.",
+  lucky: "There is a 35% chance per turn of one bonus research point; random events are not implemented.",
+};
+
 export const RACE_PICK_BUDGET = 10;
 export const RACE_NEGATIVE_PICK_LIMIT = 10;
 
@@ -65,7 +75,7 @@ export const raceTraitDefinitions: RaceTraitDefinition[] = [
   { id: "ship_defense", name: "+20% Ship Defense", category: "Ship Defense", pickCost: 3, enabled: true, description: "Ships gain +20% beam defense in combat (MoO2 first level, 3 picks)." },
   { id: "ship_attack", name: "+20% Ship Attack", category: "Ship Attack", pickCost: 3, enabled: true, description: "Ships gain +20% beam attack in combat (MoO2 first level, 3 picks)." },
   { id: "ground_combat", name: "Ground Combat", category: "Ground Combat", pickCost: 5, enabled: true, description: "+50% ground combat strength (marines and invasions when implemented)." },
-  { id: "spying", name: "Spying", category: "Spying", pickCost: 3, enabled: true, description: "+10 spy points per turn and +25% offensive spy effectiveness (espionage when implemented)." },
+  { id: "spying", name: "Spying", category: "Spying", pickCost: 3, enabled: false, description: "Unavailable until espionage is implemented; its modifiers are stored but have no playable effect." },
   { id: "low_g_world", name: "Low-G World", category: "Special Abilities", pickCost: -5, exclusiveGroup: "gravity", enabled: true, description: "Adapted to Low-G worlds (no penalty there); suffers -25% farming/production/research on Normal-G worlds and -50% on High-G. Troops take a 10% penalty in ground combat (when implemented)." },
   { id: "high_g_world", name: "High-G World", category: "Special Abilities", pickCost: 6, exclusiveGroup: "gravity", enabled: true, description: "Adapted to High-G worlds (no penalty there); still -25% farming/production/research on Low-G worlds. Troops take 1 extra hit before dying in ground combat (when implemented)." },
   { id: "aquatic", name: "Aquatic", category: "Special Abilities", pickCost: 5, enabled: true, description: "Double population capacity on Ocean and Swamp worlds; half capacity on other habitable planets." },
@@ -85,7 +95,7 @@ export const raceTraitDefinitions: RaceTraitDefinition[] = [
   { id: "telepathic", name: "Telepathic", category: "Special Abilities", pickCost: 6, enabled: false, description: "Requires diplomacy and conquest rules." },
   { id: "lucky", name: "Lucky", category: "Special Abilities", pickCost: 3, enabled: true, description: "v1: Each turn, 35% chance for +1 bonus research point (10% base + 25% lucky bonus). Full random events planned later." },
   { id: "omniscient", name: "Omniscient", category: "Special Abilities", pickCost: 3, enabled: true, description: "See the entire galaxy map." },
-  { id: "stealthy_ships", name: "Stealthy Ships", category: "Special Abilities", pickCost: 4, enabled: true, description: "Ships are harder to detect (−2 detection range when detection exists)." },
+  { id: "stealthy_ships", name: "Stealthy Ships", category: "Special Abilities", pickCost: 4, enabled: false, description: "Unavailable until ship detection is implemented; its modifier currently has no playable effect." },
   { id: "trans_dimensional", name: "Trans-Dimensional", category: "Special Abilities", pickCost: 5, enabled: true, description: "Ships gain +2 combat speed in battle." },
   { id: "warlord", name: "Warlord", category: "Special Abilities", pickCost: 4, enabled: true, description: "Ships start with veteran crews (+25% attack and defense in combat)." },
 ];

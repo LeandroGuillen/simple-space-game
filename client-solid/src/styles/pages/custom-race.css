@@ -545,6 +545,17 @@
   color: var(--text);
 }
 
+.race-trait-partial {
+  display: inline-block;
+  margin-left: 0.3rem;
+  padding: 0.1rem 0.3rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  color: var(--text-dim);
+  font-size: 0.62rem;
+  font-weight: 400;
+}
+
 .race-trait-description {
   font-size: 0.68rem;
   color: var(--text-dim);

@@ -225,3 +225,13 @@ func testResources(t *testing.T) *ResourceManager {
 	require.NoError(t, err)
 	return resources
 }
+
+func TestUnfinishedPicksCannotBeSelected(t *testing.T) {
+	resources := testResources(t)
+	for _, trait := range []string{"spying", "stealthy_ships"} {
+		t.Run(trait, func(t *testing.T) {
+			_, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Test", TraitIDs: []string{trait}})
+			require.ErrorContains(t, err, "not implemented yet")
+		})
+	}
+}

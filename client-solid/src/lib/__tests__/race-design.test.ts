@@ -10,12 +10,19 @@ import {
   raceRemainingPicks,
   raceSlugForNewGame,
   raceTraitById,
+  partialRaceTraitDetails,
   swapExclusiveRaceTrait,
   validateCustomRaceDesign,
   validatePlayableCustomRaceDesign,
 } from "../race-design";
 
 describe("race design", () => {
+  it("explains each incomplete pick", () => {
+    for (const id of ["ground_combat", "spying", "low_g_world", "high_g_world", "stealthy_ships", "lucky"]) {
+      expect(partialRaceTraitDetails[id]).toBeTruthy();
+    }
+  });
+
   it("calculates remaining and negative picks", () => {
     const traitIds = ["food_plus_1", "production_minus_1"];
 
@@ -73,9 +80,10 @@ describe("race design", () => {
     expect(isRaceTraitId("repulsive")).toBe(false);
   });
 
-  it("treats ground combat and spying as selectable", () => {
+  it("disables unfinished espionage and stealth picks", () => {
     expect(isRaceTraitBlocked(raceTraitById.get("ground_combat")!)).toBe(false);
-    expect(isRaceTraitBlocked(raceTraitById.get("spying")!)).toBe(false);
+    expect(raceTraitById.get("spying")?.enabled).toBe(false);
+    expect(raceTraitById.get("stealthy_ships")?.enabled).toBe(false);
     expect(raceTraitById.get("ground_combat")?.pickCost).toBe(5);
     expect(raceTraitById.get("spying")?.pickCost).toBe(3);
   });

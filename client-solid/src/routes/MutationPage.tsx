@@ -57,9 +57,9 @@ function MutationTraitSection(props: {
                 class="race-trait"
                 classList={{
                   selected: selected(),
-                  disabled: props.readOnly() || !trait.enabled || blocked(),
+                  disabled: props.readOnly() || (!trait.enabled && !selected()) || blocked(),
                 }}
-                disabled={props.readOnly() || !trait.enabled || blocked()}
+                disabled={props.readOnly() || (!trait.enabled && !selected()) || blocked()}
                 aria-pressed={selected()}
                 onClick={() => props.onToggleTrait(trait.id)}
                 title={!trait.enabled ? trait.description : undefined}
@@ -133,12 +133,12 @@ export function MutationPage() {
   const toggleTrait = (id: string) => {
     if (readOnly()) return;
     const trait = raceTraitDefinitions.find((item) => item.id === id);
-    if (!trait || !trait.enabled) return;
+    if (!trait) return;
     if (traitIds().includes(id as RaceTraitId)) {
       setTraitIds((prev) => prev.filter((traitId) => traitId !== id));
       return;
     }
-    if (isRaceTraitBlocked(trait)) return;
+    if (!trait.enabled || isRaceTraitBlocked(trait)) return;
     setTraitIds((prev) => swapExclusiveRaceTrait(trait, prev));
   };
 

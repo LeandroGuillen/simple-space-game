@@ -11,10 +11,6 @@ import (
 func TestBuildCustomRaceSpecialShipTraits(t *testing.T) {
 	resources := testResources(t)
 
-	stealthy, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Ghost", TraitIDs: []string{"stealthy_ships"}})
-	require.NoError(t, err)
-	assert.Equal(t, int64(-2), stealthy.Stats.DetectionModifier)
-
 	trans, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Phase", TraitIDs: []string{"trans_dimensional"}})
 	require.NoError(t, err)
 	assert.Equal(t, int64(2), trans.Stats.CombatSpeedBonus)
@@ -26,8 +22,9 @@ func TestBuildCustomRaceSpecialShipTraits(t *testing.T) {
 }
 
 func TestRaceDetectionModifier(t *testing.T) {
-	g := newGameWithRaceTraits(t, []string{"stealthy_ships"})
-	assert.Equal(t, int64(-2), RaceDetectionModifier(g.Players[0]))
+	def := raceTraitDefinitionsByID()["stealthy_ships"]
+	player := &model.Player{Race: model.Race{TraitIDs: []string{"stealthy_ships"}, Stats: def.Stats}}
+	assert.Equal(t, int64(-2), RaceDetectionModifier(player))
 	assert.Equal(t, int64(0), RaceDetectionModifier(nil))
 }
 

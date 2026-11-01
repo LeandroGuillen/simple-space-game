@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestBuildCustomRaceAcceptsGroundCombatAndSpying(t *testing.T) {
+func TestBuildCustomRaceAcceptsGroundCombat(t *testing.T) {
 	resources := testResources(t)
-	for _, traitID := range []string{"ground_combat", "spying"} {
+	for _, traitID := range []string{"ground_combat"} {
 		race, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Ada", TraitIDs: []string{traitID}})
 		require.NoError(t, err)
 		assert.Contains(t, race.TraitIDs, traitID)
@@ -30,9 +30,8 @@ func TestGroundCombatTraitAppliesModifierAndMultiplier(t *testing.T) {
 }
 
 func TestSpyingTraitAppliesSpyBonusAndOffensiveModifier(t *testing.T) {
-	resources := testResources(t)
-	race, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Spies", TraitIDs: []string{"spying"}})
-	require.NoError(t, err)
+	def := raceTraitDefinitionsByID()["spying"]
+	race := model.Race{TraitIDs: []string{"spying"}, Stats: def.Stats, Grants: def.Grants}
 
 	player := &model.Player{Race: race}
 	assert.Equal(t, int64(10), RaceSpyBonus(player))
@@ -41,9 +40,8 @@ func TestSpyingTraitAppliesSpyBonusAndOffensiveModifier(t *testing.T) {
 }
 
 func TestOffensiveSpyBonusWithoutGovernmentModifier(t *testing.T) {
-	resources := testResources(t)
-	race, err := BuildCustomRace(resources, CustomRaceDesign{Name: "Spies", TraitIDs: []string{"spying"}})
-	require.NoError(t, err)
+	def := raceTraitDefinitionsByID()["spying"]
+	race := model.Race{TraitIDs: []string{"spying"}, Stats: def.Stats, Grants: def.Grants}
 	player := &model.Player{Race: race}
 	assert.Equal(t, 0.25, OffensiveSpyBonus(nil, player))
 }

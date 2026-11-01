@@ -13,6 +13,7 @@ import {
   RACE_EDITOR_MIDDLE_COLUMN,
   RACE_EDITOR_RIGHT_COLUMN,
   raceRemainingPicks,
+  partialRaceTraitDetails,
   raceTraitDefinitions,
   raceTraitGroupsForCategories,
   swapExclusiveRaceTrait,
@@ -177,15 +178,15 @@ function RaceEditorTraitSection(props: {
                 class="race-trait"
                 classList={{
                   selected: selected(),
-                  disabled: props.readOnly() || !trait.enabled || blocked(),
+                  disabled: props.readOnly() || (!trait.enabled && !selected()) || blocked(),
                 }}
-                disabled={props.readOnly() || !trait.enabled || blocked()}
+                disabled={props.readOnly() || (!trait.enabled && !selected()) || blocked()}
                 aria-pressed={selected()}
                 onClick={() => props.onToggleTrait(trait.id)}
                 title={!trait.enabled ? trait.description : undefined}
               >
                 <span class="race-trait-main">
-                  <span class="race-trait-name">{trait.name}</span>
+                  <span class="race-trait-name">{trait.name} <Show when={partialRaceTraitDetails[trait.id]}><span class="race-trait-partial" title={partialRaceTraitDetails[trait.id]}>Partially implemented</span></Show></span>
                   <span class="race-trait-description">{trait.description}</span>
                 </span>
                 <span classList={{ "race-trait-cost": true, negative: trait.pickCost < 0 }}>
@@ -403,13 +404,13 @@ export function RaceEditorPage() {
   const toggleTrait = (id: string) => {
     if (readOnly()) return;
     const trait = raceTraitDefinitions.find((item) => item.id === id);
-    if (!trait || !trait.enabled) return;
+    if (!trait) return;
     if (traitIds().includes(id as RaceTraitId)) {
       setTraitIds((prev) => prev.filter((traitId) => traitId !== id));
       scheduleAutoSave(true);
       return;
     }
-    if (isRaceTraitBlocked(trait)) return;
+    if (!trait.enabled || isRaceTraitBlocked(trait)) return;
     setTraitIds((prev) => swapExclusiveRaceTrait(trait, prev));
     scheduleAutoSave(true);
   };
