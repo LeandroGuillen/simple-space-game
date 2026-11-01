@@ -783,7 +783,7 @@ func TestGameSaveUploadRoundTripPreservesFullState(t *testing.T) {
 	g, err := game.NewGame(server.ResourceManager, game.NewGameOptions{
 		PlayerName:  "RoundTrip",
 		NumStars:    8,
-		NumPlayers:  3,
+		NumPlayers:  1,
 		PlayerColor: model.DefaultPlayerColor(),
 		Race:        game.DefaultRace("Human"),
 	})
@@ -820,6 +820,11 @@ func TestGameSaveUploadRoundTripPreservesFullState(t *testing.T) {
 		t.Helper()
 		recorder := httptest.NewRecorder()
 		req := httptest.NewRequest(method, path, body)
+		if method == http.MethodGet && strings.HasSuffix(path, "/save") {
+			parts := strings.Split(path, "/")
+			req.Header.Set(GameIDHeader, parts[2])
+			req.Header.Set(PlayerIDHeader, "1")
+		}
 		if body != nil {
 			req.Header.Set("Content-Type", "application/json")
 		}
@@ -970,4 +975,37 @@ func TestUploadReadErrorHidesPath(t *testing.T) {
 	require.Equal(t, http.StatusBadRequest, recorder.Code)
 	require.JSONEq(t, `{"error":"cannot read upload"}`, recorder.Body.String())
 	require.Contains(t, logs.String(), underlying.Error())
+}
+
+func TestMultiplayerSaveRejectsRequests(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	server, err := NewServer()
+	require.NoError(t, err)
+	g, err := game.NewGame(server.ResourceManager, game.NewGameOptions{PlayerName: "Ada", NumStars: 8, NumPlayers: 2, PlayerColor: model.DefaultPlayerColor(), Race: game.DefaultRace("Human")})
+	require.NoError(t, err)
+	g.Players[1].Treasury = 4242
+	server.putGame(g.ID, g)
+	for _, tc := range []struct {
+		name, gameID, playerID string
+		status                 int
+	}{
+		{"no headers", "", "", http.StatusBadRequest},
+		{"player one", g.ID, "1", http.StatusForbidden},
+		{"mismatched game", "wrong", "1", http.StatusBadRequest},
+		{"unknown player", g.ID, "999", http.StatusForbidden},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/games/"+g.ID+"/save", nil)
+			if tc.gameID != "" {
+				req.Header.Set(GameIDHeader, tc.gameID)
+			}
+			if tc.playerID != "" {
+				req.Header.Set(PlayerIDHeader, tc.playerID)
+			}
+			out := httptest.NewRecorder()
+			server.Handler().ServeHTTP(out, req)
+			require.Equal(t, tc.status, out.Code, out.Body.String())
+			require.NotContains(t, out.Body.String(), "4242")
+		})
+	}
 }

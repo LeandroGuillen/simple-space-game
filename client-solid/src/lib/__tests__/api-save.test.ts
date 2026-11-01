@@ -22,6 +22,6 @@ describe("ApiClient game saves", () => {
       id: "game-1",
       players: [],
     });
-    expect(fetchMock).toHaveBeenCalledWith("http://example.test/games/game-1/save");
+    expect(fetchMock).toHaveBeenCalledWith("http://example.test/games/game-1/save", { headers: { "content-type": "application/json", "Game-Id": "game-1", "Player-Id": "1" } });
   });
 });

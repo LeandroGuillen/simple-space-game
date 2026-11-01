@@ -2,6 +2,7 @@ package game
 
 import (
 	"encoding/json"
+	"fmt"
 	. "ssg/model"
 	"sync"
 )
@@ -11,6 +12,17 @@ func (g *Game) MarshalSave() ([]byte, error) {
 	g.ensureMu()
 	g.mu.RLock()
 	defer g.mu.RUnlock()
+	return json.Marshal(g)
+}
+
+// MarshalSinglePlayerSave prevents full-state export when multiple players can access the game.
+func (g *Game) MarshalSinglePlayerSave(playerID uint) ([]byte, error) {
+	g.ensureMu()
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	if len(g.Players) != 1 || g.Players[0] == nil || g.Players[0].ID != playerID {
+		return nil, fmt.Errorf("full saves are only available to the sole player of a single-player game")
+	}
 	return json.Marshal(g)
 }
 

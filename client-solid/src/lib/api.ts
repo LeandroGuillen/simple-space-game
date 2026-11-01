@@ -167,7 +167,7 @@ export class ApiClient {
   }
 
   async getGameSave(gameId: string) {
-    const response = await fetch(`${this.baseUrl}/games/${gameId}/save`);
+    const response = await fetch(`${this.baseUrl}/games/${gameId}/save`, { headers: this.headers(gameId) });
     return readJson<ApiGame>(response);
   }
 

@@ -240,15 +240,22 @@ func GetGameSave(c *gin.Context) {
 		return
 	}
 
+	gameID, playerID, err := readHeaders(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if gameID != req.GameID {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "game id mismatch between URI and headers"})
+		return
+	}
 	g, _, err := getGameHandle(c, req.GameID)
 	if err != nil {
 		return
 	}
-
-	// Local single-player saves intentionally include hidden state for every player.
-	data, err := g.MarshalSave()
+	data, err := g.MarshalSinglePlayerSave(playerID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 		return
 	}
 	c.Data(http.StatusOK, "application/json; charset=utf-8", data)
