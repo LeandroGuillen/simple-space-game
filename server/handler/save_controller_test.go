@@ -774,6 +774,83 @@ func TestLoadUploadedSaveRoundTripsFreshExportAndScenarios(t *testing.T) {
 	}
 }
 
+func TestGameSaveUploadRoundTripPreservesFullState(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	server, err := NewServer()
+	require.NoError(t, err)
+
+	g, err := game.NewGame(server.ResourceManager, game.NewGameOptions{
+		PlayerName:  "RoundTrip",
+		NumStars:    8,
+		NumPlayers:  3,
+		PlayerColor: model.DefaultPlayerColor(),
+		Race:        game.DefaultRace("Human"),
+	})
+	require.NoError(t, err)
+
+	for i, player := range g.Players {
+		player.Treasury = 1000.5 + float64(i)*250
+		player.ResearchedTechs = append(player.ResearchedTechs, "Anti-Missile Rockets")
+		var homeStarID uint
+		for _, star := range g.Galaxy.Stars {
+			for _, planet := range star.Planets {
+				if planet.Owner == player.ID {
+					homeStarID = star.ID
+					break
+				}
+			}
+			if homeStarID != 0 {
+				break
+			}
+		}
+		require.NotZero(t, homeStarID)
+		fleetID := uint(i + 1)
+		g.Fleets = append(g.Fleets, &model.Fleet{
+			ID:     fleetID,
+			Owner:  player.ID,
+			StarID: homeStarID,
+			Ships:  []model.FleetShip{{Type: "scout", Name: "Scout"}},
+		})
+		player.Fleets = append(player.Fleets, fleetID)
+	}
+	server.putGame(g.ID, g)
+
+	performRequest := func(method, path string, body io.Reader) *httptest.ResponseRecorder {
+		t.Helper()
+		recorder := httptest.NewRecorder()
+		req := httptest.NewRequest(method, path, body)
+		if body != nil {
+			req.Header.Set("Content-Type", "application/json")
+		}
+		server.Handler().ServeHTTP(recorder, req)
+		return recorder
+	}
+
+	exported := performRequest(http.MethodGet, "/games/"+g.ID+"/save", nil)
+	require.Equal(t, http.StatusOK, exported.Code, exported.Body.String())
+	expected, err := json.Marshal(g)
+	require.NoError(t, err)
+	require.JSONEq(t, string(expected), exported.Body.String())
+
+	uploaded := performRequest(http.MethodPost, "/saves/upload", bytes.NewReader(exported.Body.Bytes()))
+	require.Equal(t, http.StatusOK, uploaded.Code, uploaded.Body.String())
+	var uploadResponse struct {
+		GameID string `json:"gameID"`
+	}
+	require.NoError(t, json.Unmarshal(uploaded.Body.Bytes(), &uploadResponse))
+	require.NotEmpty(t, uploadResponse.GameID)
+	require.NotEqual(t, g.ID, uploadResponse.GameID)
+
+	reexported := performRequest(http.MethodGet, "/games/"+uploadResponse.GameID+"/save", nil)
+	require.Equal(t, http.StatusOK, reexported.Code, reexported.Body.String())
+	var before, after map[string]any
+	require.NoError(t, json.Unmarshal(exported.Body.Bytes(), &before))
+	require.NoError(t, json.Unmarshal(reexported.Body.Bytes(), &after))
+	before["id"] = ""
+	after["id"] = ""
+	require.Equal(t, before, after, "only the newly assigned game ID may change")
+}
+
 func TestStatusVersionHasNoNewline(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	s, err := NewServer()

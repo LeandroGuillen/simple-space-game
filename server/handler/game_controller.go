@@ -232,3 +232,24 @@ func GetGame(c *gin.Context) {
 
 	c.JSON(http.StatusOK, visible)
 }
+
+func GetGameSave(c *gin.Context) {
+	var req GetGalaxyRequest
+	if err := c.BindUri(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	g, _, err := getGameHandle(c, req.GameID)
+	if err != nil {
+		return
+	}
+
+	// Local single-player saves intentionally include hidden state for every player.
+	data, err := g.MarshalSave()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.Data(http.StatusOK, "application/json; charset=utf-8", data)
+}

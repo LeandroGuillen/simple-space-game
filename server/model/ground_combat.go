@@ -36,16 +36,16 @@ type GroundBattleRound struct {
 
 // InvasionReport represents the result of a ground combat invasion
 type InvasionReport struct {
-	ID              uint                `json:"id"`
-	Turn            int64               `json:"turn"`
-	PlanetID        uint                `json:"planet_id"`
-	PlanetName      string              `json:"planet_name"`
-	X               float64             `json:"x"`
-	Y               float64             `json:"y"`
-	AttackerOwnerID uint                `json:"attacker_owner_id"`
-	DefenderOwnerID uint                `json:"defender_owner_id"`
-	Success         bool                `json:"success"`
-	PlanetCaptured  bool                `json:"planet_captured"`
+	ID              uint    `json:"id"`
+	Turn            int64   `json:"turn"`
+	PlanetID        uint    `json:"planet_id"`
+	PlanetName      string  `json:"planet_name"`
+	X               float64 `json:"x"`
+	Y               float64 `json:"y"`
+	AttackerOwnerID uint    `json:"attacker_owner_id"`
+	DefenderOwnerID uint    `json:"defender_owner_id"`
+	Success         bool    `json:"success"`
+	PlanetCaptured  bool    `json:"planet_captured"`
 	// Cancelled is set when an Invade order was dropped because the invader
 	// lost orbit control (or was destroyed) before ground combat could run.
 	// Omitted in older saves / successful fights (JSON backwards compatible).

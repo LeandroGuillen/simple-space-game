@@ -166,6 +166,11 @@ export class ApiClient {
     return readJson<ApiGame>(response);
   }
 
+  async getGameSave(gameId: string) {
+    const response = await fetch(`${this.baseUrl}/games/${gameId}/save`);
+    return readJson<ApiGame>(response);
+  }
+
   async getShipParts(gameId?: string) {
     const response = await fetch(`${this.baseUrl}/resources/shipparts`, {
       headers: gameId ? this.headers(gameId) : this.headers(),

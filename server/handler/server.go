@@ -174,6 +174,7 @@ func (s *Server) registerRoutes(r *gin.Engine) {
 	r.GET("/games", GetGameList)
 	r.GET("/games/player-colors", GetPlayerColors)
 	r.GET("/games/:gameID", GetGame)
+	r.GET("/games/:gameID/save", GetGameSave)
 	r.GET("/scenarios", ListScenarios)
 	r.POST("/scenarios/:name/load", LoadScenario)
 	r.POST("/saves/upload", LoadUploadedSave)

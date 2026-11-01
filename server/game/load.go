@@ -1,9 +1,18 @@
 package game
 
 import (
+	"encoding/json"
 	. "ssg/model"
 	"sync"
 )
+
+// MarshalSave returns the complete serializable game state for a save file.
+func (g *Game) MarshalSave() ([]byte, error) {
+	g.ensureMu()
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	return json.Marshal(g)
+}
 
 // HydrateLoadedGame re-attaches the live resources and reinitializes the
 // non-serialized runtime state on a Game loaded from a save file.

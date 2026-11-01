@@ -439,7 +439,7 @@ export function SetupPage() {
     setDownloadingGameId(gameId);
     setSaveFeedback(null);
     try {
-      const gameState = await client.getGame(gameId);
+      const gameState = await client.getGameSave(gameId);
       const body = JSON.stringify(gameState, null, 2);
       const blob = new Blob([body], { type: "application/json" });
       const url = URL.createObjectURL(blob);

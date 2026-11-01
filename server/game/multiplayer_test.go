@@ -275,7 +275,6 @@ func exploredStarIDs(g *Game) []uint {
 	return ids
 }
 
-
 // Helper to create a fleet for a player in tests
 func createTestFleet(g *Game, ownerID uint, starID uint) *model.Fleet {
 	fleet := &model.Fleet{
@@ -308,7 +307,6 @@ func TestBadFleetMoveToNonexistentStarRejectedAtSubmit(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	
 	// Find player 2's home star
 	var p2Star uint
 	for _, star := range g.Galaxy.Stars {
@@ -401,7 +399,7 @@ func TestBadFleetMoveToStar0RejectedAtSubmit(t *testing.T) {
 
 func TestBadFleetMoveOutOfFuelRangeRejectedAtSubmit(t *testing.T) {
 	g := fuelTestGame(t)
-	
+
 	// Add a second player
 	g.Players = append(g.Players, &model.Player{
 		ID: 2,
@@ -410,7 +408,7 @@ func TestBadFleetMoveOutOfFuelRangeRejectedAtSubmit(t *testing.T) {
 			Drives:    []string{"Nuclear"},
 		},
 	})
-	
+
 	// Give player 2 a fleet at star 1
 	g.Fleets = append(g.Fleets, &model.Fleet{
 		ID:     2,
@@ -486,9 +484,9 @@ func TestBadFleetMoveWithInvalidShipIndexRejectedAtSubmit(t *testing.T) {
 	_, _, err = g.SubmitTurn(2, model.Commands{
 		FleetMove: []*model.FleetMoveCommand{
 			{
-				FleetID:         p2Fleet.ID,
+				FleetID:           p2Fleet.ID,
 				DestinationStarID: p2Star + 1,
-				ShipIndexes:     &badIndexes,
+				ShipIndexes:       &badIndexes,
 			},
 		},
 	})
@@ -583,7 +581,6 @@ func TestBadInvadeCommandRejectedAtSubmit(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	
 	// Find player 2's home star
 	var p2Star uint
 	for _, star := range g.Galaxy.Stars {
@@ -906,7 +903,6 @@ func TestBadMutateRaceInvalidTraitsRejectedAtSubmit(t *testing.T) {
 	assert.Contains(t, err.Error(), "invalid race mutation")
 	assert.NotContains(t, g.TurnStatus.ReadyPlayerIDs, uint(1))
 }
-
 
 func nextTestPlanetID(g *Game) uint {
 	maxID := uint(0)
