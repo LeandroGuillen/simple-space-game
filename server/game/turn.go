@@ -145,11 +145,9 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game, foodRe
 		p.IsBuilding = false
 		p.BuildBucket = 0
 	} else if buildingName != "" {
-		if !Build(p, buildingName, player.Available.Buildings, game) {
-			p.CurrentProject = tradeGoodsProject
-			p.IsBuilding = false
-			p.BuildBucket = 0
-		}
+		// A stale order can become invalid after submission. Keep the current
+		// project and its invested production when the switch cannot be made.
+		Build(p, buildingName, player.Available.Buildings, game)
 	}
 
 	for _, command := range commands.BuyProduction {

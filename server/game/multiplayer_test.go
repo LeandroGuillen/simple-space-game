@@ -1257,3 +1257,41 @@ func TestSubmitFleetMoveRejectsShipWithoutDrive(t *testing.T) {
 		require.NoError(t, err)
 	}
 }
+
+func TestSubmitRejectsUnbuildableOrdersWithoutLosingProgress(t *testing.T) {
+	g := multiPlayerGame(t, 2, 30)
+	p := g.Players[0]
+	p.Available.Buildings = append(p.Available.Buildings, "Automated Factory")
+	colonies, err := g.GetColonyList(p.ID)
+	require.NoError(t, err)
+	require.NotEmpty(t, colonies)
+	planet := colonies[0]
+	require.True(t, Build(planet, "Automated Factory", p.Available.Buildings, g))
+	planet.BuildBucket -= 10
+	progress := currentBuildProgress(planet, g)
+	var other *model.Planet
+	for _, star := range g.Galaxy.Stars {
+		for _, candidate := range star.Planets {
+			if candidate.Owner == 2 {
+				other = candidate
+			}
+		}
+	}
+	require.NotNil(t, other)
+	for _, order := range []*model.BuildCommand{
+		{PlanetID: planet.ID, Building: "Nonexistent Building"},
+		{PlanetID: planet.ID, Building: "AUTOMATED FACTORY"},
+		{PlanetID: planet.ID, BuildQueue: []string{"Nonexistent Building"}},
+		{PlanetID: other.ID, Building: "Trade Goods"},
+	} {
+		_, _, err := g.SubmitTurn(p.ID, model.Commands{Build: []*model.BuildCommand{order}})
+		require.Error(t, err)
+		assert.NotContains(t, g.TurnSubmissions, p.ID)
+		assert.Equal(t, "Automated Factory", planet.CurrentProject)
+		assert.Equal(t, progress, currentBuildProgress(planet, g))
+	}
+	// A stale order reaching the turn processor must also preserve the investment.
+	require.NoError(t, planetTurn(planet, model.Commands{Build: []*model.BuildCommand{{PlanetID: planet.ID, Building: "Nonexistent Building"}}}, p, g))
+	assert.Equal(t, "Automated Factory", planet.CurrentProject)
+	assert.GreaterOrEqual(t, currentBuildProgress(planet, g), progress)
+}

@@ -415,6 +415,40 @@ func (g *Game) validatePlayerCommands(playerID uint, commands Commands) error {
 	if err != nil {
 		return err
 	}
+	seenBuildPlanets := make(map[uint]bool)
+	for _, command := range commands.Build {
+		if command == nil {
+			return fmt.Errorf("invalid build command")
+		}
+		planet, err := g.getPlanet(command.PlanetID)
+		if err != nil {
+			return err
+		}
+		if planet.Owner != playerID {
+			return fmt.Errorf("planet %d is not owned by player", command.PlanetID)
+		}
+		if seenBuildPlanets[planet.ID] {
+			return fmt.Errorf("multiple build orders for planet %d", planet.ID)
+		}
+		seenBuildPlanets[planet.ID] = true
+		if command.Building != "" && !isSpecialNonBuildingProject(command.Building) {
+			projected := *planet
+			if !Build(&projected, command.Building, player.Available.Buildings, g) {
+				return fmt.Errorf("planet %d cannot build %q", planet.ID, command.Building)
+			}
+		}
+		for _, name := range command.BuildQueue {
+			if name == "" || isSpecialNonBuildingProject(name) {
+				return fmt.Errorf("planet %d cannot queue %q", planet.ID, name)
+			}
+			if planet.IsBuilding && planet.CurrentProject == name {
+				continue
+			}
+			if !canBuild(planet, name, player.Available.Buildings, g) {
+				return fmt.Errorf("planet %d cannot queue %q", planet.ID, name)
+			}
+		}
+	}
 	remainingTreasury := player.Treasury
 	totalBuyCost := int64(0)
 	for _, colony := range colonyList {
