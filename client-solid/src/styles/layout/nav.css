@@ -56,6 +56,17 @@
     line-height: 1;
 }
 
+.fleet-idle-badge {
+    min-width: 1.3rem;
+    padding: 0.1rem 0.3rem;
+    border-radius: 1rem;
+    background: var(--accent-soft);
+    color: var(--text);
+    text-align: center;
+    letter-spacing: 0;
+    font-size: 0.68rem;
+}
+
 .campaign-nav-link.active .campaign-nav-link-shortcut {
     color: var(--text);
     border-color: var(--accent);

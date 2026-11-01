@@ -1,4 +1,6 @@
-import { createMemo, createSignal, Show } from "solid-js";
+import { useNavigate } from "@solidjs/router";
+import { createMemo, createSignal, For, Show } from "solid-js";
+import { fleetRoster } from "../lib/fleet-roster";
 
 import { InvasionReportPanel } from "../components/InvasionReportPanel";
 import {
@@ -10,6 +12,10 @@ import { useAppContext } from "../state/app-context";
 
 export function FleetsPage() {
   const { state, currentPlayer } = useAppContext();
+  const navigate = useNavigate();
+  const [idleOnly, setIdleOnly] = createSignal(false);
+  const rows = createMemo(() => fleetRoster(state.game, currentPlayer(), state.pendingCommands, state.pendingColonyShipFleets));
+  const visibleRows = createMemo(() => idleOnly() ? rows().filter((row) => row.status === "Idle") : rows());
 
   const commonDesigns = createMemo(
     () => state.game?.resources.shipDesignCollection.shipDesigns ?? [],
@@ -82,41 +88,21 @@ export function FleetsPage() {
       </section>
 
       <section class="panel">
-        <p class="eyebrow">Fleets</p>
-        <h2>Fleet roster</h2>
+        <div class="fleet-list-header">
+          <div><p class="eyebrow">Fleets</p><h2>Fleet roster</h2></div>
+          <label class="fleet-idle-filter"><input type="checkbox" checked={idleOnly()} onChange={(event) => setIdleOnly(event.currentTarget.checked)} /> Idle only</label>
+        </div>
         <div class="table-frame">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Fleet ID</th>
-                <th>Commander</th>
-              </tr>
-            </thead>
+          <table class="data-table fleet-roster-table">
+            <thead><tr><th>Fleet</th><th>Location</th><th>Destination / ETA</th><th>Ships</th><th>Fuel range</th><th>Status</th></tr></thead>
             <tbody>
-              {currentPlayer()?.fleets.map((fleetId) => (
-                <tr>
-                  <td>{fleetId}</td>
-                  <td>{currentPlayer()?.name}</td>
-                </tr>
-              ))}
-              <Show when={(currentPlayer()?.fleets.length ?? 0) === 0}>
-                <tr>
-                  <td colSpan={2}>
-                    No fleet records available for the current commander.
-                  </td>
-                </tr>
-              </Show>
+              <For each={visibleRows()}>{(row) => <tr onClick={() => navigate(`/galaxy?fleet=${row.fleet.id}`)}>
+                <td><button class="link-button fleet-roster-link" type="button" onClick={(event) => { event.stopPropagation(); navigate(`/galaxy?fleet=${row.fleet.id}`); }}>Fleet {row.fleet.id}</button></td>
+                <td>{row.location}</td><td>{row.destination}</td><td>{row.fleet.ships.length} · {row.ships}</td><td>{row.fuel}</td><td>{row.status}</td>
+              </tr>}</For>
+              <Show when={visibleRows().length === 0}><tr><td colSpan={6}>{idleOnly() ? "No idle fleets." : "No fleets available for the current commander."}</td></tr></Show>
             </tbody>
           </table>
-        </div>
-
-        <div class="fleet-note">
-          <p class="eyebrow">Fleet Manifest</p>
-          <p>
-            The backend currently exposes fleet IDs but not a full fleet object
-            collection. This screen focuses on ship design operations until
-            fleet payloads are expanded.
-          </p>
         </div>
       </section>
 

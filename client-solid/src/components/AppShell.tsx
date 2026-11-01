@@ -15,6 +15,7 @@ import {
 import { Portal } from "solid-js/web";
 
 import { APP_VERSION } from "../lib/app-meta";
+import { fleetRoster } from "../lib/fleet-roster";
 import { recordPlanetReturnCandidate } from "../lib/navigation-history";
 import { researchLevelUnlocksAllTechs } from "../lib/research";
 import { createShortcut, withShortcutHint } from "../lib/shortcuts";
@@ -406,6 +407,7 @@ export function AppShell(props: RouteSectionProps) {
     );
 
   const showGameChrome = createMemo(() => isGameCommandPath(location.pathname));
+  const idleFleetCount = createMemo(() => fleetRoster(state.game, currentPlayer(), state.pendingCommands, state.pendingColonyShipFleets).filter((row) => row.status === "Idle").length);
   const gameOver = createMemo(() => state.game?.status === "finished" || !!currentPlayer()?.eliminated);
 
   const activeCampaignNavHref = createMemo(() =>
@@ -810,6 +812,9 @@ export function AppShell(props: RouteSectionProps) {
                       title={withShortcutHint(item.label, item.shortcutKey)}
                     >
                       {item.label}
+                      <Show when={item.href === "/fleets" && idleFleetCount() > 0}>
+                        <span class="fleet-idle-badge" aria-label={`${idleFleetCount()} idle fleets`}>{idleFleetCount()}</span>
+                      </Show>
                       <span class="campaign-nav-link-shortcut" aria-hidden="true">
                         {item.shortcutKey.toUpperCase()}
                       </span>

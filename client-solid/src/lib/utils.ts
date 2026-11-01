@@ -287,7 +287,9 @@ function shipFuelRange(
     return { rangeParsecs: ship.fuelRangeParsecs, unlimited: ship.fuelRangeParsecs >= 100 };
   }
   if (ship.designName) {
-    return null;
+    const design = [...(player?.shipDesigns ?? []), ...(resources?.shipDesignCollection.shipDesigns ?? [])].find((item) => item.name === ship.designName);
+    if (!design) return null;
+    return { rangeParsecs: design.fuelCell.autonomy, unlimited: isUnlimitedFuel(design.fuelCell.name, design.fuelCell.autonomy) };
   }
   return bestAvailableFuelRange(player, resources);
 }

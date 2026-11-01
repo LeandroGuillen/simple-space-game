@@ -191,6 +191,10 @@
   margin: 0;
 }
 
+.fleet-idle-filter { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-dim); font-size: 0.8rem; }
+.fleet-roster-table tbody tr { cursor: pointer; }
+.fleet-roster-link { padding: 0; white-space: nowrap; }
+
 /* Invasion Reports */
 .invasion-reports {
   margin-top: 1.5rem;

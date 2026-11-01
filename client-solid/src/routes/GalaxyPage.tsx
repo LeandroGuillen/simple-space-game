@@ -1,4 +1,4 @@
-import { A } from "@solidjs/router";
+import { A, useLocation } from "@solidjs/router";
 import { createEffect, createMemo, createSignal, Show } from "solid-js";
 
 import { FleetInspectorPanel } from "../components/FleetInspectorPanel";
@@ -23,12 +23,15 @@ import { useAppContext } from "../state/app-context";
 const populationUnits = (population: number) => Math.floor(population / 1000);
 
 export function GalaxyPage() {
+  const location = useLocation();
   const { state, currentPlayer, addFleetMoveCommand, setInfo } = useAppContext();
   const [selectedStarId, setSelectedStarId] = createSignal<number>();
   const [selectedFleetStarId, setSelectedFleetStarId] = createSignal<number | null>(null);
   const [selectedFleetId, setSelectedFleetId] = createSignal<number | null>(null);
   const [travelMode, setTravelMode] = createSignal<{ fleetId: number; originStarId: number; shipIndexes: number[] } | null>(null);
   const [snappedStarId, setSnappedStarId] = createSignal<number | null>(null);
+  const [focusPoint, setFocusPoint] = createSignal<{ x: number; y: number } | null>(null);
+  let handledFleetQuery = "";
 
   const stars = createMemo(() => state.game?.galaxy.stars ?? []);
   const selectedStar = createMemo(() => {
@@ -46,6 +49,19 @@ export function GalaxyPage() {
     (state.game?.fleets ?? [])
       .filter((fleet) => fleet.ownerId === (currentPlayer()?.id ?? 0)),
   );
+  createEffect(() => {
+    const requested = new URLSearchParams(location.search).get("fleet");
+    if (!requested || requested === handledFleetQuery || !state.game) return;
+    const fleet = ownedFleets().find((item) => String(item.id) === requested);
+    if (!fleet) return;
+    handledFleetQuery = requested;
+    setFocusPoint({ x: fleet.x, y: fleet.y });
+    if (!fleet.destinationStarId && fleet.turnsRemaining <= 0) {
+      setSelectedFleetStarId(fleet.starId);
+      setSelectedFleetId(fleet.id);
+      setSelectedStarId(fleet.starId);
+    }
+  });
   const fleetsAtSelectedStar = createMemo(() => {
     const starId = selectedStar()?.id;
     if (!starId) {
@@ -220,6 +236,7 @@ export function GalaxyPage() {
         <section class="panel map-panel">
           <GalaxyMap
             gameId={state.session.selectedGameId || state.game?.id}
+            focusPoint={focusPoint()}
             stars={stars()}
             width={state.game?.galaxy.width}
             height={state.game?.galaxy.height}

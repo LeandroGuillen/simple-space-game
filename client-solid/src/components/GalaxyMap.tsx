@@ -57,6 +57,7 @@ type GalaxyMapProps = {
   }[];
   onHoverSnappedStar?: (starId: number | null) => void;
   gameId?: string;
+  focusPoint?: { x: number; y: number } | null;
   width?: number;
   height?: number;
 };
@@ -123,13 +124,21 @@ export function GalaxyMap(props: GalaxyMapProps) {
     }
   }
 
-  onMount(loadStoredViewport);
+  onMount(() => {
+    loadStoredViewport();
+    if (props.focusPoint) setViewport((current) => centerViewportOn(current, props.focusPoint!, mapBounds()));
+  });
 
   createEffect(() => {
     props.gameId;
     props.width;
     props.height;
     loadStoredViewport();
+  });
+
+  createEffect(() => {
+    const point = props.focusPoint;
+    if (point) setViewport((current) => centerViewportOn(current, point, mapBounds()));
   });
 
   createEffect(() => {
