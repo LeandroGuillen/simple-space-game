@@ -1,4 +1,4 @@
-import { useNavigate } from "@solidjs/router";
+import { useLocation, useNavigate } from "@solidjs/router";
 import { createMemo, createSignal, For, onCleanup, onMount, Show } from "solid-js";
 import type { Accessor } from "solid-js";
 
@@ -241,6 +241,7 @@ function RaceEditorGovernmentSection(props: {
 
 export function RaceEditorPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { state } = useAppContext();
   const [allRaces, setAllRaces] = createSignal<RaceDesign[]>([]);
   const [listFocus, setListFocus] = createSignal<string | null>(null);
@@ -341,6 +342,14 @@ export function RaceEditorPage() {
     void (async () => {
       await refreshGovernments();
       const races = await refreshAll();
+      const editName = new URLSearchParams(location.search).get("edit");
+      const editRace = races.find((r) => !r.built_in && r.name === editName);
+      if (editRace) {
+        setIsDraft(false);
+        setListFocus(editRace.name);
+        loadFormFromRace(editRace);
+        return;
+      }
       const draft = getCustomRaceDraft();
       if (draft?.name.trim()) {
         setIsDraft(true);

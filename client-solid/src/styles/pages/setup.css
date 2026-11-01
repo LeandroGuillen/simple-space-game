@@ -796,6 +796,58 @@
   border-top: 1px solid var(--rule);
 }
 
+.ng-modal--new-game {
+  width: min(980px, 100%);
+  height: min(700px, calc(100dvh - 2 * var(--dialog-gutter)));
+  overflow: hidden;
+}
+
+.ng-modal--new-game .ng-header { flex: none; }
+.ng-form--preview { flex: 1; min-height: 0; gap: 0; padding: 0; }
+.ng-form-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(250px, 0.8fr);
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1;
+  align-items: start;
+}
+.ng-options { display: flex; flex-direction: column; gap: 14px; }
+.ng-form--preview .ng-footer {
+  flex: none;
+  margin: 0;
+  padding: var(--space-3) var(--space-5);
+}
+.race-preview {
+  min-width: 0;
+  padding: var(--space-4);
+  background: var(--surface-quiet);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  overflow-wrap: anywhere;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+.race-preview h3 { margin: 2px 0 10px; color: var(--text); font-size: 1.1rem; }
+.race-preview h4 { margin: 12px 0 6px; color: var(--text); font-size: 0.75rem; }
+.race-preview-eyebrow { margin: 0; color: var(--text-mute); text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.08em; }
+.race-preview-government { line-height: 1.45; }
+.race-preview-government strong { color: var(--text); }
+.race-preview-groups ul { list-style: none; padding: 0; margin: 0; }
+.race-preview-groups li { margin: 0 0 8px; }
+.race-preview-chip { display: inline-block; color: var(--text); font-weight: 600; }
+.race-preview-partial { margin-left: 6px; color: var(--accent); font-size: 0.68rem; }
+.race-preview-description { display: block; line-height: 1.4; }
+.race-preview-empty { color: var(--text-mute); }
+.race-preview-picks { margin-bottom: 8px; font-weight: 600; color: var(--text); }
+.race-preview-edit { padding: 0; }
+
+@media (max-width: 720px) {
+  .ng-form-body { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* legacy option-row toggles used by ShipDesignModal */
 .option-row {
   display: grid;

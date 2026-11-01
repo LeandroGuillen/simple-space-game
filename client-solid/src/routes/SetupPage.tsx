@@ -6,6 +6,7 @@ import {
   createSignal,
   For,
   onMount,
+  onCleanup,
   Show,
 } from "solid-js";
 import { Portal } from "solid-js/web";
@@ -13,6 +14,7 @@ import { Portal } from "solid-js/web";
 import type {
   ApiGameListItem,
   ApiGameListPlayer,
+  ApiGovernment,
   NewGameOptions,
   RaceDesign,
   RaceTraitId,
@@ -23,7 +25,8 @@ import {
   setCustomRaceDraft,
 } from "../lib/custom-race-storage";
 import { ApiClient } from "../lib/api";
-import { isPlayableCustomRaceDesign, raceSlugForNewGame, newGameRaceFieldsFromEncodedSelection } from "../lib/race-design";
+import { RacePreview } from "../components/RacePreview";
+import { fallbackGovernments, isPlayableCustomRaceDesign, raceSlugForNewGame, newGameRaceFieldsFromEncodedSelection } from "../lib/race-design";
 import {
   getInitialSetupSelectedServerUrl,
   setSessionLastSetupServerUrl,
@@ -127,11 +130,12 @@ function PlusIcon() {
   );
 }
 
-function OptionRow<T extends string | number>(props: {
+export function OptionRow<T extends string | number>(props: {
   label: string;
   options: ToggleOption<T>[];
   selected: T | null;
   onSelect: (value: T) => void;
+  onPreview?: (value: T) => void;
   linkValues?: readonly T[];
   error?: string;
 }) {
@@ -153,6 +157,8 @@ function OptionRow<T extends string | number>(props: {
                 title={option.title}
                 aria-pressed={props.selected === option.value}
                 onClick={() => props.onSelect(option.value)}
+                onFocus={() => props.onPreview?.(option.value)}
+                onMouseEnter={() => props.onPreview?.(option.value)}
               >
                 {option.label}
               </button>
@@ -190,6 +196,8 @@ export function SetupPage() {
     createSignal<NewGameOptions["galaxy_size"]>("medium");
   const [players, setPlayers] = createSignal(1);
   const [allRaces, setAllRaces] = createSignal<RaceDesign[]>([]);
+  const [governments, setGovernments] = createSignal<ApiGovernment[]>(fallbackGovernments);
+  const [previewSelection, setPreviewSelection] = createSignal<RaceSelection | null>(null);
   const [race, setRace] = createSignal<RaceSelection | null>(null);
   const [customRace, setCustomRace] = createSignal<RaceDesign | null>(null);
   const [playerColor, setPlayerColor] = createSignal("");
@@ -243,6 +251,13 @@ export function SetupPage() {
         },
       ] satisfies ToggleOption<RaceSelection>[],
   );
+
+  const previewRace = createMemo(() => {
+    const selection = previewSelection() ?? race();
+    if (!selection || selection === RACE_EDITOR_VALUE) return null;
+    if (selection.startsWith("b:")) return allRaces().find((r) => r.built_in && raceSlugForNewGame(r.name) === selection.slice(2)) ?? null;
+    return allRaces().find((r) => !r.built_in && r.name === selection.slice(2)) ?? (customRace()?.name === selection.slice(2) ? customRace() : null);
+  });
 
   const trimmedPlayerName = createMemo(() => playerName().trim());
   const isFormValid = createMemo(
@@ -333,14 +348,15 @@ export function SetupPage() {
     if (!url || state.session.connectionStatus !== "connected") {
       return;
     }
-    void (async () => {
-      try {
-        const client = new ApiClient(url, state.session.playerId);
-        setAllRaces(await client.getRaces());
-      } catch {
-        // global connection flow handles server errors; custom races are optional on setup
-      }
-    })();
+    const client = new ApiClient(url, state.session.playerId);
+    let active = true;
+    onCleanup(() => { active = false; });
+    void client.getRaces().then((races) => { if (active) setAllRaces(races); }).catch(() => {
+      if (active) setAllRaces([]);
+    });
+    void client.getGovernments().then((items) => { if (active) setGovernments(items.length ? items : fallbackGovernments); }).catch(() => {
+      if (active) setGovernments(fallbackGovernments);
+    });
   });
 
   createEffect(() => {
@@ -361,6 +377,7 @@ export function SetupPage() {
 
   const openModal = () => {
     setValidationAttempted(false);
+    setPreviewSelection(race());
     setIsNewGameModalOpen(true);
   };
 
@@ -617,6 +634,11 @@ export function SetupPage() {
       }
     }
     setRace(nextRace);
+    setPreviewSelection(nextRace);
+  };
+
+  const editPreviewRace = (selected: RaceDesign) => {
+    navigate(`/race-editor?edit=${encodeURIComponent(selected.name)}`);
   };
 
   return (
@@ -889,7 +911,7 @@ export function SetupPage() {
             role="presentation"
           >
             <div
-              class="ng-modal"
+              class="ng-modal ng-modal--new-game"
               role="dialog"
               aria-modal="true"
               aria-labelledby="ng-title"
@@ -911,7 +933,9 @@ export function SetupPage() {
                 </button>
               </header>
 
-              <form class="ng-form" onSubmit={handleCreate}>
+              <form class="ng-form ng-form--preview" onSubmit={handleCreate}>
+                <div class="ng-form-body">
+                <div class="ng-options">
                 <div class="ng-row">
                   <span class="ng-row-label">Commander</span>
                   <div class="ng-row-control">
@@ -940,6 +964,7 @@ export function SetupPage() {
                   options={raceOptions()}
                   selected={race()}
                   onSelect={handleSelectRace}
+                  onPreview={(value) => { if (value !== RACE_EDITOR_VALUE) setPreviewSelection(value); }}
                   linkValues={[RACE_EDITOR_VALUE]}
                   error={
                     validationAttempted() && race() === null
@@ -980,6 +1005,9 @@ export function SetupPage() {
                   </div>
                 </div>
 
+                </div>
+                <RacePreview race={previewRace()} governments={governments()} selected={previewSelection() === race()} onEdit={editPreviewRace} />
+                </div>
                 <footer class="ng-footer">
                   <button
                     class="link-button"
