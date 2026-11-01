@@ -168,7 +168,7 @@ func TestDebugFlagSurvivesSaveLoadRoundTrip(t *testing.T) {
 	LoadScenario(loadC)
 	require.Equal(t, http.StatusOK, loadW.Code)
 
-	loaded := s2.getGame(g.ID)
+	loaded := s2.getGame(scenarioResponseGameID(t, loadW))
 	require.NotNil(t, loaded)
 	assert.True(t, loaded.Debug, "debug flag must survive save/load")
 }

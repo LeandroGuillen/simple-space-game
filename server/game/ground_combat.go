@@ -237,6 +237,9 @@ func (g *Game) resolvePendingInvasion(order PendingInvasion) *InvasionReport {
 		g.updatePlanetDefenders(planet, &report.SurvivingUnits)
 	}
 	g.removeInvasionTransports(fleet, order.ShipIndexes)
+	if len(fleet.Ships) == 0 {
+		g.removeFleet(fleet)
+	}
 	return report
 }
 

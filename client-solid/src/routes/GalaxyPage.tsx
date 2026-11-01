@@ -200,7 +200,7 @@ export function GalaxyPage() {
       return;
     }
     const f = ownedFleets().find((item) => item.id === fleetId);
-    const originStarId = f?.starId ?? selectedFleetStarId();
+    const originStarId = (f?.destinationStarId ? f.originStarId : f?.starId) || selectedFleetStarId();
     if (!originStarId) {
       return;
     }

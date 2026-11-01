@@ -416,3 +416,16 @@ func TestFleetFuelStarGateBlocksTravelToEnemyColony(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "outside fleet fuel range")
 }
+
+func TestTransitFleetHasNoCurrentStarUntilArrival(t *testing.T) {
+	g := fuelTestGame(t)
+	fleet := g.Fleets[0]
+	require.NoError(t, g.issueFleetMove(1, &model.FleetMoveCommand{FleetID: fleet.ID, DestinationStarID: 2}))
+	require.Zero(t, fleet.StarID)
+	require.Equal(t, uint(1), fleet.OriginStarID)
+	for fleet.TurnsRemaining > 0 {
+		g.advanceFleetMovements()
+	}
+	assert.Equal(t, uint(2), fleet.StarID)
+	assert.Zero(t, fleet.OriginStarID)
+}

@@ -168,29 +168,32 @@ func (g *Game) mergeShipsIntoOrbitFleet(ownerID, starID uint, ships []FleetShip)
 	return err
 }
 
+// fleetDepartureStar returns the orbit a moving fleet departed from.
+func fleetDepartureStar(fleet *Fleet) uint {
+	if fleet.DestinationStarID != 0 && fleet.OriginStarID != 0 {
+		return fleet.OriginStarID
+	}
+	return fleet.StarID
+}
+
 func (g *Game) beginFleetMovement(fleet *Fleet, destStarID uint) error {
 	destination, err := g.getStar(destStarID)
 	if err != nil {
 		return err
 	}
+	originStarID := fleetDepartureStar(fleet)
+	turns := uint(1)
+	if !g.isStarGateTravel(fleet.Owner, originStarID, destStarID) {
+		turns, err = g.calculateFleetTravelTurnsForShips(fleet.Owner, fleet.Ships, fleet.X, fleet.Y, float64(destination.X), float64(destination.Y))
+		if err != nil {
+			return err
+		}
+	}
 	fleet.DestinationStarID = destStarID
-	fleet.OriginStarID = fleet.StarID
-	fleet.OriginX = fleet.X
-	fleet.OriginY = fleet.Y
-
-	// Check for Star Gate travel - instant travel between owned colonies
-	if g.isStarGateTravel(fleet.Owner, fleet.StarID, destStarID) {
-		fleet.TotalTurns = 1
-		fleet.TurnsRemaining = 1
-		return nil
-	}
-
-	turns, err := g.calculateFleetTravelTurnsForShips(fleet.Owner, fleet.Ships, fleet.OriginX, fleet.OriginY, float64(destination.X), float64(destination.Y))
-	if err != nil {
-		return err
-	}
-	fleet.TotalTurns = turns
-	fleet.TurnsRemaining = fleet.TotalTurns
+	fleet.OriginStarID = originStarID
+	fleet.OriginX, fleet.OriginY = fleet.X, fleet.Y
+	fleet.StarID = 0
+	fleet.TotalTurns, fleet.TurnsRemaining = turns, turns
 	return nil
 }
 
@@ -618,12 +621,12 @@ func (g *Game) issueFleetMove(playerID uint, command *FleetMoveCommand) error {
 
 	// Recall selected ships to the origin star (merge into the orbiting stack).
 	inTransit := fleet.TurnsRemaining > 0 && fleet.DestinationStarID != 0
-	if command.DestinationStarID == fleet.StarID {
+	if command.DestinationStarID == fleetDepartureStar(fleet) {
 		if !inTransit {
 			return nil
 		}
 		toLand := removeShipsByIndexes(fleet, shipIdxs)
-		if err := g.mergeShipsIntoOrbitFleet(playerID, fleet.StarID, toLand); err != nil {
+		if err := g.mergeShipsIntoOrbitFleet(playerID, fleetDepartureStar(fleet), toLand); err != nil {
 			return err
 		}
 		if len(fleet.Ships) == 0 {
@@ -641,7 +644,7 @@ func (g *Game) issueFleetMove(playerID uint, command *FleetMoveCommand) error {
 		if len(toMove) == 0 {
 			return nil
 		}
-		child, err := g.newFleetAtStar(playerID, fleet.StarID, toMove)
+		child, err := g.newFleetAtStar(playerID, fleetDepartureStar(fleet), toMove)
 		if err != nil {
 			return err
 		}

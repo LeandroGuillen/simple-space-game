@@ -672,7 +672,9 @@ export function SetupPage() {
 
             <Show when={showServerForm()}>
               <form class="server-form" onSubmit={handleAddServer}>
+                <label for="new-server-url">Game server URL (default :8080)</label>
                 <input
+                  id="new-server-url"
                   value={newServerUrl()}
                   onInput={(event) =>
                     setNewServerUrl(event.currentTarget.value)

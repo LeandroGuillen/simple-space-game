@@ -360,6 +360,9 @@ func applyTacticalDamage(target *TacticalShip, damage int64) {
 // battleWait defers the acting ship to the end of the current round. After
 // the rotation TurnIndex already points at the next entry, so seek from there.
 func (g *Game) battleWait(b *TacticalBattle) {
+	if b.TurnIndex == len(b.TurnOrder)-1 {
+		return
+	}
 	id := b.TurnOrder[b.TurnIndex]
 	b.TurnOrder = append(b.TurnOrder[:b.TurnIndex], b.TurnOrder[b.TurnIndex+1:]...)
 	b.TurnOrder = append(b.TurnOrder, id)

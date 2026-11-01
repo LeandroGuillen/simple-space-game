@@ -153,6 +153,7 @@ func LoadScenario(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	loaded.ID = uuid.New().String()
 	game.HydrateLoadedGame(&loaded, s.ResourceManager)
 
 	s.putGame(loaded.ID, &loaded)

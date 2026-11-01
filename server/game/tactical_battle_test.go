@@ -274,3 +274,29 @@ func TestTacticalBattleDestroyedSideSerializesEmptySurvivors(t *testing.T) {
 		t.Run(fmt.Sprintf("player %d", playerID), func(t *testing.T) { check(t, visible.BattleReports) })
 	}
 }
+
+func TestLastShipWaitDoesNotRepeatActivation(t *testing.T) {
+	g, star := newTacticalGame(t)
+	armHumanGunboat(t, g, star)
+	addOrbitFleet(g, 2, star, []FleetShip{{Type: "colony_ship", Name: "Civvie"}})
+	battle := startTacticalBattle(t, g, star)
+	ship := battle.CurrentShip()
+	// Simulate the last activation in the round after other ships have acted.
+	battle.TurnOrder = []uint{ship.ID}
+	battle.TurnIndex = 0
+	initial := len(battle.Events)
+	for i := 0; i < 3; i++ {
+		_, err := g.ApplyBattleAction(battle.ID, 1, BattleAction{Type: "wait"})
+		require.NoError(t, err)
+	}
+	assert.Len(t, battle.Events, initial)
+}
+
+func TestBattleTurnMatchesCompletedTurn(t *testing.T) {
+	g, star := newTacticalGame(t)
+	armHumanGunboat(t, g, star)
+	addOrbitFleet(g, 2, star, []FleetShip{{Type: "colony_ship", Name: "Civvie"}})
+	require.NoError(t, g.AdvanceTurn(emptySubsFor(g)))
+	require.Len(t, g.PendingBattles, 1)
+	assert.Equal(t, g.CurrentTurn, g.PendingBattles[0].GameTurn)
+}

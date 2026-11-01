@@ -1,3 +1,7 @@
+## Local server ports
+
+The Go game server defaults to `http://127.0.0.1:8080`; enter this address in the setup screen. The separate AI manager defaults to port `8090`.
+
 ## Usage
 
 ```bash
@@ -25,7 +29,7 @@ Your app is ready to be deployed!
 
 ## Saved games
 
-Downloaded saves contain the complete state for every player, including AI state hidden by fog of war, because these are local single-player games. The regular game endpoint remains fog-of-war filtered; upload the downloaded JSON to restore the full game.
+Full-state downloads are available for games with one player slot. Downloads for multi-slot games are disabled to protect hidden player state. The regular game endpoint remains fog-of-war filtered; upload the downloaded JSON to restore the full game.
 
 ## Deployment
 

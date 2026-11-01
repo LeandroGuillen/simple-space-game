@@ -609,12 +609,12 @@ func (g *Game) advanceTurnApplying(submissions map[uint]Commands) error {
 			return err
 		}
 	}
+	g.CurrentTurn = advanceStardate(g.CurrentTurn)
 	g.advanceFleetMovements()
 	g.resolveStarBattles()
 	g.resolveGroundInvasions()
 	g.advancePopulationTransfers(existingPopulationTransfers)
 	g.HydrateCommandPoints()
-	g.CurrentTurn = advanceStardate(g.CurrentTurn)
 	now := time.Now().UTC()
 	g.LastTurnAt = &now
 	g.TurnSubmissions = make(map[uint]Commands)
@@ -865,7 +865,7 @@ func (g *Game) validateSingleFleetMoveOrder(playerID uint, command *FleetMoveCom
 	}
 
 	// Recall to origin is always allowed
-	if command.DestinationStarID == fleet.StarID {
+	if command.DestinationStarID == fleetDepartureStar(fleet) {
 		return fleet, player, shipIdxs, nil
 	}
 
@@ -878,7 +878,7 @@ func (g *Game) validateSingleFleetMoveOrder(playerID uint, command *FleetMoveCom
 	}
 
 	// Validate fuel range (skip for Star Gate travel)
-	if !g.isStarGateTravel(playerID, fleet.StarID, command.DestinationStarID) {
+	if !g.isStarGateTravel(playerID, fleetDepartureStar(fleet), command.DestinationStarID) {
 		if err := g.validateFleetMoveFuelRange(player, shipsByIndexes(fleet.Ships, shipIdxs), command.DestinationStarID); err != nil {
 			return nil, nil, nil, err
 		}
@@ -935,7 +935,7 @@ func (g *Game) validateFleetMoveGroupOrders(playerID uint, commands []*FleetMove
 		}
 
 		// Skip recall to origin
-		if command.DestinationStarID == fleet.StarID {
+		if command.DestinationStarID == fleetDepartureStar(fleet) {
 			continue
 		}
 
@@ -952,7 +952,7 @@ func (g *Game) validateFleetMoveGroupOrders(playerID uint, commands []*FleetMove
 		}
 
 		// Validate fuel range for this destination (skip for Star Gate travel)
-		if !g.isStarGateTravel(playerID, fleet.StarID, command.DestinationStarID) {
+		if !g.isStarGateTravel(playerID, fleetDepartureStar(fleet), command.DestinationStarID) {
 			if err := g.validateFleetMoveFuelRange(player, shipsByIndexes(fleet.Ships, indexes), command.DestinationStarID); err != nil {
 				return nil, nil, nil, err
 			}

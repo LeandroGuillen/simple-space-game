@@ -57,7 +57,7 @@ func TestLoadScenarioAddsGame(t *testing.T) {
 
 	resources, err := game.NewResourceManager()
 	require.NoError(t, err)
-	scenario := createScenarioFile(t, resources, "scenario-beta")
+	createScenarioFile(t, resources, "scenario-beta")
 
 	server := &Server{
 		gameList:        make(map[string]*game.Game),
@@ -74,7 +74,7 @@ func TestLoadScenarioAddsGame(t *testing.T) {
 	LoadScenario(ctx)
 
 	require.Equal(t, http.StatusOK, recorder.Code)
-	require.NotNil(t, server.getGame(scenario.ID))
+	require.NotNil(t, server.getGame(scenarioResponseGameID(t, recorder)))
 }
 
 func TestLoadScenarioRejectsInvalidGame(t *testing.T) {
@@ -171,7 +171,7 @@ func TestLoadScenarioAcceptsShippedScenarios(t *testing.T) {
 			LoadScenario(ctx)
 
 			require.Equal(t, http.StatusOK, recorder.Code, recorder.Body.String())
-			require.NotNil(t, server.getGame(header.ID))
+			require.NotNil(t, server.getGame(scenarioResponseGameID(t, recorder)))
 		})
 	}
 	require.GreaterOrEqual(t, found, 3, "expected shipped scenarios under data/scenarios")
@@ -487,7 +487,7 @@ func TestLoadScenarioClearsPendingInvasions(t *testing.T) {
 
 	resources, err := game.NewResourceManager()
 	require.NoError(t, err)
-	instance := createScenarioFile(t, resources, "with-pending-invade")
+	createScenarioFile(t, resources, "with-pending-invade")
 	// Inject pending invasions into the on-disk scenario JSON.
 	path, err := savePath("with-pending-invade")
 	require.NoError(t, err)
@@ -511,7 +511,7 @@ func TestLoadScenarioClearsPendingInvasions(t *testing.T) {
 	LoadScenario(ctx)
 
 	require.Equal(t, http.StatusOK, recorder.Code)
-	loaded := server.getGame(instance.ID)
+	loaded := server.getGame(scenarioResponseGameID(t, recorder))
 	require.NotNil(t, loaded)
 	require.Empty(t, loaded.PendingInvasions)
 }
@@ -720,7 +720,7 @@ func TestLoadUploadedAndScenarioAcceptNegativeTreasury(t *testing.T) {
 		LoadScenario(ctx)
 
 		require.Equal(t, http.StatusOK, recorder.Code, recorder.Body.String())
-		require.NotNil(t, server.getGame(scenario.ID))
+		require.NotNil(t, server.getGame(scenarioResponseGameID(t, recorder)))
 	})
 }
 
@@ -1039,4 +1039,39 @@ func TestUploadRejectsInvalidResearchSelections(t *testing.T) {
 			require.Empty(t, server.gameList)
 		})
 	}
+}
+
+func scenarioResponseGameID(t *testing.T, recorder *httptest.ResponseRecorder) string {
+	t.Helper()
+	var response struct {
+		GameID string `json:"gameID"`
+	}
+	require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &response))
+	require.NotEmpty(t, response.GameID)
+	return response.GameID
+}
+
+func TestLoadingScenarioTwiceKeepsBothGames(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	t.Setenv("SSG_SAVES_DIR", t.TempDir())
+	resources, err := game.NewResourceManager()
+	require.NoError(t, err)
+	createScenarioFile(t, resources, "repeated")
+	s := &Server{gameList: make(map[string]*game.Game), ResourceManager: resources}
+	load := func() string {
+		out := httptest.NewRecorder()
+		ctx, _ := gin.CreateTestContext(out)
+		ctx.Request = httptest.NewRequest(http.MethodPost, "/scenarios/repeated/load", nil)
+		ctx.Params = gin.Params{{Key: "name", Value: "repeated"}}
+		ctx.Set("server", s)
+		LoadScenario(ctx)
+		require.Equal(t, http.StatusOK, out.Code, out.Body.String())
+		return scenarioResponseGameID(t, out)
+	}
+	first := load()
+	s.getGame(first).Players[0].Treasury = 4242
+	second := load()
+	require.NotEqual(t, first, second)
+	require.Equal(t, float64(4242), s.getGame(first).Players[0].Treasury)
+	require.NotNil(t, s.getGame(second))
 }
