@@ -36,6 +36,9 @@ func (SimplePolicy) Decide(snapshot *VisibleGame, playerID uint) Decision {
 	resolvePendingColonies(snapshot, playerID, &d)
 	issueInvasionsAtEnemyPlanets(snapshot, playerID, &d)
 	planExpansion(snapshot, me, planets, &d)
+	planFleetAttacks(snapshot, me, &d)
+	planTransportMoves(snapshot, me, &d)
+	planMilitaryProduction(snapshot, me, planets, &d)
 	planShipDesign(snapshot, me, planets, &d)
 	keepBuildQueueWarm(planets, me, &d)
 	sendIdleScouts(snapshot, playerID, &d)
@@ -312,6 +315,23 @@ func issueInvasionsAtEnemyPlanets(snapshot *VisibleGame, playerID uint, d *Decis
 		if len(transportIndexes) == 0 {
 			continue
 		}
+		// Wait until visible hostile ships are gone before landing.
+		contested := false
+		for _, battle := range snapshot.PendingBattles {
+			if battle != nil && battle.StarID == f.StarID && battle.Status == model.TacticalBattleActive {
+				contested = true
+				break
+			}
+		}
+		for _, other := range snapshot.Fleets {
+			if other != nil && other.Owner != playerID && other.StarID == f.StarID && other.DestinationStarID == 0 && len(other.Ships) > 0 {
+				contested = true
+				break
+			}
+		}
+		if contested {
+			continue
+		}
 		star := findStarByID(snapshot, f.StarID)
 		if star == nil {
 			continue
@@ -408,7 +428,30 @@ func sendIdleScouts(snapshot *VisibleGame, playerID uint, d *Decision) {
 		if busy[f.ID] || hasLocalColonyTarget(snapshot, f) {
 			continue
 		}
-		target := nearestReachableUnexploredStar(snapshot, playerID, f, supplies, reserved)
+		var armed []uint
+		if me := findPlayer(snapshot, playerID); me != nil {
+			for i, ship := range f.Ships {
+				if armedShip(snapshot, me, ship) {
+					armed = append(armed, uint(i))
+				}
+			}
+		}
+		scout := f
+		var indexes *[]uint
+		if len(armed) > 0 {
+			if len(armed) < 2 {
+				continue
+			}
+			selected := []uint{armed[1]}
+			if !mobileCombatShip(snapshot, findPlayer(snapshot, playerID), f.Ships[selected[0]]) {
+				continue
+			}
+			copyFleet := *f
+			copyFleet.Ships = []model.FleetShip{f.Ships[selected[0]]}
+			scout = &copyFleet
+			indexes = &selected
+		}
+		target := nearestReachableUnexploredStar(snapshot, playerID, scout, supplies, reserved)
 		if target == 0 {
 			continue
 		}
@@ -416,6 +459,7 @@ func sendIdleScouts(snapshot *VisibleGame, playerID uint, d *Decision) {
 		d.Commands.FleetMove = append(d.Commands.FleetMove, &model.FleetMoveCommand{
 			FleetID:           f.ID,
 			DestinationStarID: target,
+			ShipIndexes:       indexes,
 		})
 		d.Notes = append(d.Notes, fmt.Sprintf("fleet %d: moving to nearest reachable unexplored star %d", f.ID, target))
 	}

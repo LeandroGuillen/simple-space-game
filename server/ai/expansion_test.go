@@ -27,3 +27,15 @@ func TestExpansionTargetsOnlyVisibleAndFuelReachableStars(t *testing.T) {
 	require.Equal(t, uint(2), expansionTarget(s, 1, f, map[uint]bool{}))
 	require.Zero(t, expansionTarget(s, 1, f, map[uint]bool{2: true}))
 }
+
+func TestExpansionMovesColonyShipWithoutDefenders(t *testing.T) {
+	home := &model.Star{ID: 1, Name: "Home", Planets: []*model.Planet{{ID: 1, Owner: 1}}}
+	target := &model.Star{ID: 2, Name: "Target", X: 60, Planets: []*model.Planet{{ID: 2, Environment: model.PlanetEnvironmentTerran}}}
+	player := &model.Player{ID: 1}
+	fleet := &model.Fleet{ID: 1, Owner: 1, StarID: 1, Ships: []model.FleetShip{{Type: "ship_design", FuelRangeParsecs: 2}, {Type: "colony_ship", FuelRangeParsecs: 2}}}
+	snapshot := &VisibleGame{Players: []*model.Player{player}, Galaxy: Galaxy{Stars: []*model.Star{home, target}}, Fleets: []*model.Fleet{fleet}}
+	decision := Decision{}
+	planExpansion(snapshot, player, home.Planets, &decision)
+	require.Len(t, decision.Commands.FleetMove, 1)
+	require.Equal(t, []uint{1}, *decision.Commands.FleetMove[0].ShipIndexes)
+}

@@ -74,8 +74,19 @@ func planExpansion(s *VisibleGame, me *model.Player, planets []*model.Planet, d 
 		if busy[f.ID] {
 			continue
 		}
-		if target := expansionTarget(s, me.ID, f, reservedStars); target != 0 {
-			d.Commands.FleetMove = append(d.Commands.FleetMove, &model.FleetMoveCommand{FleetID: f.ID, DestinationStarID: target})
+		// Move only colony ships, so an escort or defensive garrison stays put.
+		var selected []uint
+		var colonyShips []model.FleetShip
+		for i, ship := range f.Ships {
+			if ship.Type == "colony_ship" {
+				selected = append(selected, uint(i))
+				colonyShips = append(colonyShips, ship)
+			}
+		}
+		colonyFleet := *f
+		colonyFleet.Ships = colonyShips
+		if target := expansionTarget(s, me.ID, &colonyFleet, reservedStars); target != 0 {
+			d.Commands.FleetMove = append(d.Commands.FleetMove, &model.FleetMoveCommand{FleetID: f.ID, DestinationStarID: target, ShipIndexes: &selected})
 			reservedStars[target] = true
 		}
 	}
