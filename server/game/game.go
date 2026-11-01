@@ -36,6 +36,9 @@ type Game struct {
 	PopulationTransfers      []PopulationTransfer `json:"population_transfers"`
 	ID                       string               `json:"id"`
 	CurrentTurn              float64              `json:"current_turn"`
+	Status                   string               `json:"status,omitempty"`
+	WinnerID                 uint                 `json:"winner_id,omitempty"`
+	TurnsPlayed              uint                 `json:"turns_played,omitempty"`
 	CreatedAt                time.Time            `json:"created_at"`
 	LastTurnAt               *time.Time           `json:"last_turn_at,omitempty"`
 	Resources                *Resources           `json:"resources"`
@@ -141,6 +144,7 @@ func NewGame(resources *ResourceManager, options NewGameOptions) (*Game, error) 
 		PopulationTransfers:      []PopulationTransfer{},
 		ID:                       uuid.New().String(),
 		CurrentTurn:              3500.0,
+		Status:                   "active",
 		CreatedAt:                created,
 		Resources:                &resources.Resources,
 		PendingColonyBases:       make(map[uint][]uint),
@@ -511,8 +515,15 @@ func (g *Game) SubmitTurn(playerID uint, commands Commands) (TurnStatus, bool, e
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
-	if _, err := g.getPlayer(playerID); err != nil {
+	player, err := g.getPlayer(playerID)
+	if err != nil {
 		return g.currentTurnStatus(), false, err
+	}
+	if g.Status == "finished" {
+		return g.currentTurnStatus(), false, fmt.Errorf("game is finished")
+	}
+	if player.Eliminated {
+		return g.currentTurnStatus(), false, fmt.Errorf("player %d has been eliminated", playerID)
 	}
 	for _, battle := range g.PendingBattles {
 		if battle != nil && battle.Status == TacticalBattleActive && battle.IsHumanOwner(playerID) {
@@ -560,6 +571,9 @@ func (g *Game) SubmitTurn(playerID uint, commands Commands) (TurnStatus, bool, e
 var advanceTurnTestHook func(stage string) error
 
 func (g *Game) AdvanceTurn(submissions map[uint]Commands) error {
+	if g.Status == "finished" {
+		return fmt.Errorf("game is finished")
+	}
 	// Snapshot-then-restore: on any error the live *Game is rewritten from the
 	// pre-advance deep copy so callers (and external pointers to this Game)
 	// see the prior world. Resources and mu are shared, not cloned.
@@ -610,11 +624,13 @@ func (g *Game) advanceTurnApplying(submissions map[uint]Commands) error {
 		}
 	}
 	g.CurrentTurn = advanceStardate(g.CurrentTurn)
+	g.TurnsPlayed++
 	g.advanceFleetMovements()
 	g.resolveStarBattles()
 	g.resolveGroundInvasions()
 	g.advancePopulationTransfers(existingPopulationTransfers)
 	g.HydrateCommandPoints()
+	g.evaluateConquest()
 	now := time.Now().UTC()
 	g.LastTurnAt = &now
 	g.TurnSubmissions = make(map[uint]Commands)
@@ -709,9 +725,14 @@ func (g *Game) applyPlayerTurn(playerID uint, commands Commands) error {
 }
 
 func (g *Game) playerIDs() []uint {
+	if g.Status == "finished" {
+		return []uint{}
+	}
 	ids := make([]uint, 0, len(g.Players))
 	for _, player := range g.Players {
-		ids = append(ids, player.ID)
+		if player != nil && !player.Eliminated {
+			ids = append(ids, player.ID)
+		}
 	}
 	sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
 	return ids

@@ -6,6 +6,9 @@ describe('mapGame', () => {
     const apiGame: ApiGame = {
       id: 'game-1',
       current_turn: 3500,
+      status: 'finished',
+      winner_id: 1,
+      turns_played: 12,
       galaxy: {
         width: 990,
         height: 566,
@@ -73,6 +76,7 @@ describe('mapGame', () => {
       players: [
         {
           id: 1,
+          eliminated: true,
           name: 'Ada',
           color: '#FFFFFF',
           race: { id: 0, name: 'Human' },
@@ -143,6 +147,10 @@ describe('mapGame', () => {
 
     expect(game.id).toBe('game-1')
     expect(game.currentTurn).toBe(3500)
+    expect(game.status).toBe('finished')
+    expect(game.winnerId).toBe(1)
+    expect(game.turnsPlayed).toBe(12)
+    expect(game.players[0]?.eliminated).toBe(true)
     expect(game.galaxy.width).toBe(990)
     expect(game.galaxy.height).toBe(566)
     expect(game.players[0]?.raceName).toBe('Human')

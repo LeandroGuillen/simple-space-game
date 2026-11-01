@@ -1,0 +1,15 @@
+.game-over {
+  max-width: 48rem;
+  margin: 2rem auto;
+  padding: 2rem;
+}
+
+.game-over h1 { margin: 0.4rem 0; }
+.game-over-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+.game-over-stats dt { color: var(--text-dim); }
+.game-over-stats dd { margin: 0.25rem 0 0; font-size: 1.2rem; font-weight: 600; }

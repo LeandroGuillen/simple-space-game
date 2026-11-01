@@ -263,6 +263,10 @@ func (g *Game) ApplyBattleAction(battleID, playerID uint, action BattleAction) (
 	}
 
 	g.runAIUntilHumanOrEnd(battle)
+	if battle.Status == TacticalBattleFinished {
+		g.evaluateConquest()
+		g.TurnStatus = g.calculateTurnStatus()
+	}
 	return copyTacticalBattle(battle), nil
 }
 

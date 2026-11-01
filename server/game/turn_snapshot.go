@@ -17,6 +17,9 @@ type gameTurnSnapshot struct {
 	PopulationTransfers      []model.PopulationTransfer
 	ID                       string
 	CurrentTurn              float64
+	Status                   string
+	WinnerID                 uint
+	TurnsPlayed              uint
 	CreatedAt                time.Time
 	LastTurnAt               *time.Time
 	PendingColonyBases       map[uint][]uint
@@ -42,6 +45,9 @@ var gameTurnSnapshotFieldNames = []string{
 	"PopulationTransfers",
 	"ID",
 	"CurrentTurn",
+	"Status",
+	"WinnerID",
+	"TurnsPlayed",
 	"CreatedAt",
 	"LastTurnAt",
 	"PendingColonyBases",
@@ -69,6 +75,9 @@ func snapshotGameState(g *Game) *gameTurnSnapshot {
 	snap := &gameTurnSnapshot{
 		ID:          g.ID,
 		CurrentTurn: g.CurrentTurn,
+		Status:      g.Status,
+		WinnerID:    g.WinnerID,
+		TurnsPlayed: g.TurnsPlayed,
 		CreatedAt:   g.CreatedAt,
 		Debug:       g.Debug,
 		TurnStatus:  copyTurnStatus(g.TurnStatus),
@@ -107,6 +116,9 @@ func restoreGameState(g *Game, snap *gameTurnSnapshot) {
 	g.PopulationTransfers = snap.PopulationTransfers
 	g.ID = snap.ID
 	g.CurrentTurn = snap.CurrentTurn
+	g.Status = snap.Status
+	g.WinnerID = snap.WinnerID
+	g.TurnsPlayed = snap.TurnsPlayed
 	g.CreatedAt = snap.CreatedAt
 	g.LastTurnAt = snap.LastTurnAt
 	g.PendingColonyBases = snap.PendingColonyBases

@@ -49,6 +49,9 @@ func (g *Game) getVisibleGameForPlayerLocked(playerID uint) (*Game, error) {
 	visible := &Game{
 		ID:          g.ID,
 		CurrentTurn: g.CurrentTurn,
+		Status:      g.Status,
+		WinnerID:    g.WinnerID,
+		TurnsPlayed: g.TurnsPlayed,
 		CreatedAt:   g.CreatedAt,
 		Debug:       g.Debug,
 		// Resources is an immutable catalog shared across games; safe to share.
@@ -226,10 +229,11 @@ func copyGrants(g model.Grants) model.Grants {
 // publicPlayerView keeps only identity / diplomacy fields for rivals.
 func publicPlayerView(p *model.Player) *model.Player {
 	return &model.Player{
-		ID:      p.ID,
-		Name:    p.Name,
-		Color:   p.Color,
-		IsHuman: p.IsHuman,
+		ID:         p.ID,
+		Name:       p.Name,
+		Color:      p.Color,
+		IsHuman:    p.IsHuman,
+		Eliminated: p.Eliminated,
 		Race: model.Race{
 			Name:       p.Race.Name,
 			Government: p.Race.Government,

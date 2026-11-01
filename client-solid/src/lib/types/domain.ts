@@ -147,6 +147,7 @@ export type GalaxyViewModel = {
 
 export type PlayerViewModel = {
   id: number;
+  eliminated?: boolean;
   name: string;
   color: string;
   raceName: string;
@@ -359,6 +360,9 @@ export type TechViewModel = {
 
 export type GameViewModel = {
   id: string;
+  status?: "active" | "finished";
+  winnerId?: number;
+  turnsPlayed?: number;
   currentTurn: number;
   galaxy: GalaxyViewModel;
   players: PlayerViewModel[];

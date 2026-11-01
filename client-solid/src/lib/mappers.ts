@@ -123,6 +123,9 @@ export function mapGame(apiGame: ApiGame): GameViewModel {
   return {
     id: apiGame.id,
     currentTurn: apiGame.current_turn,
+    status: apiGame.status ?? "active",
+    winnerId: apiGame.winner_id ?? 0,
+    turnsPlayed: apiGame.turns_played ?? 0,
     galaxy: {
       stars: apiGame.galaxy.stars.map((star) =>
         mapStar(
@@ -243,6 +246,7 @@ function mapPlayer(player: ApiPlayer): PlayerViewModel {
 
   return {
     id: player.id,
+    eliminated: player.eliminated ?? false,
     name: player.name,
     color: player.color,
     raceName: player.race?.name || "Unassigned",

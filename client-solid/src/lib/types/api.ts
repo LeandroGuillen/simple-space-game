@@ -450,6 +450,7 @@ export type ApiPlayer = {
   id: number;
   name: string;
   color: string;
+  eliminated?: boolean;
   race?: ApiRace;
   /** Omitted for rival players in fog-of-war filtered game views. */
   treasury?: number;
@@ -555,6 +556,9 @@ export type ApiGame = {
   population_transfers?: ApiPopulationTransfer[] | null;
   id: string;
   current_turn: number;
+  status?: "active" | "finished";
+  winner_id?: number;
+  turns_played?: number;
   created_at?: string | null;
   last_turn_at?: string | null;
   debug?: boolean;

@@ -7,7 +7,8 @@ type Player struct {
 
 	// IsHuman marks players whose battles pause for interactive tactical
 	// combat instead of instant auto-resolve.
-	IsHuman bool `json:"is_human,omitempty"`
+	IsHuman    bool `json:"is_human,omitempty"`
+	Eliminated bool `json:"eliminated,omitempty"`
 
 	Race `json:"race"`
 

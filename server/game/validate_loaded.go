@@ -61,6 +61,16 @@ func ValidateLoadedGame(g *Game, resources *ResourceManager) error {
 		}
 	}
 
+	if g.Status != "" && g.Status != "active" && g.Status != "finished" {
+		return fmt.Errorf("invalid game status %q", g.Status)
+	}
+	if g.WinnerID != 0 {
+		winner := findPlayerByID(g.Players, g.WinnerID)
+		if g.Status != "finished" || winner == nil || winner.Eliminated {
+			return fmt.Errorf("invalid game winner %d", g.WinnerID)
+		}
+	}
+
 	starIDs := make(map[uint]struct{}, len(g.Galaxy.Stars))
 	planetIDs := make(map[uint]struct{})
 	for i, star := range g.Galaxy.Stars {

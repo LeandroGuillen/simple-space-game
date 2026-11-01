@@ -32,6 +32,9 @@ func HydrateLoadedGame(g *Game, resources *ResourceManager) {
 	if g == nil {
 		return
 	}
+	if g.Status == "" {
+		g.Status = "active"
+	}
 	if resources != nil {
 		g.Resources = &resources.Resources
 	}

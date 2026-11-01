@@ -55,6 +55,7 @@ import {
 } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
 import { PlanetVisual } from "./PlanetVisual";
+import { GameOver } from "./GameOver";
 
 const gameNavItems = [
   { href: "/galaxy", label: "Galaxy", shortcutKey: "g" },
@@ -403,6 +404,7 @@ export function AppShell(props: RouteSectionProps) {
     );
 
   const showGameChrome = createMemo(() => isGameCommandPath(location.pathname));
+  const gameOver = createMemo(() => state.game?.status === "finished" || !!currentPlayer()?.eliminated);
 
   const activeCampaignNavHref = createMemo(() =>
     campaignNavActiveHref(location.pathname),
@@ -683,7 +685,7 @@ export function AppShell(props: RouteSectionProps) {
   }
 
   function handleEndTurn() {
-    if (isCurrentPlayerReady()) {
+    if (isCurrentPlayerReady() || gameOver()) {
       return;
     }
     if (!hasSelectedResearch()) {
@@ -924,7 +926,7 @@ export function AppShell(props: RouteSectionProps) {
                       type="button"
                       class="primary-button game-turn-button"
                       onClick={handleEndTurn}
-                      disabled={state.isBusy || isCurrentPlayerReady()}
+                      disabled={state.isBusy || isCurrentPlayerReady() || gameOver()}
                       aria-busy={state.isBusy}
                       title={withShortcutHint(isCurrentPlayerReady() ? "Waiting for players" : "End Turn", END_TURN_SHORTCUT)}
                     >
@@ -944,7 +946,11 @@ export function AppShell(props: RouteSectionProps) {
               </div>
             </Show>
 
-            <main class="content content--route">{props.children}</main>
+            <main class="content content--route">
+              <Show when={gameOver() && state.game} fallback={props.children}>
+                {(game) => <GameOver game={game()} playerId={state.session.playerId} />}
+              </Show>
+            </main>
           </div>
         </div>
       </Show>
