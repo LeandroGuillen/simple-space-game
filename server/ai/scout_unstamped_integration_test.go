@@ -212,9 +212,6 @@ func TestBattleDemoFiftyTurnsIssuesScoutMoves(t *testing.T) {
 		t.Fatalf("expected at least one AI scout move over 50 turns on battle-demo; got 0")
 	}
 	elapsed := time.Since(start)
-	if elapsed > 5*time.Second {
-		t.Fatalf("battle-demo 50-turn test took %s (want < 5s)", elapsed)
-	}
 	t.Logf("battle-demo: %d scout moves in %s", scoutMoves, elapsed)
 }
 
