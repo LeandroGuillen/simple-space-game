@@ -96,8 +96,12 @@ func NewGame(c *gin.Context) {
 		return
 	}
 	server.putGame(g.ID, g)
-
-	c.JSON(http.StatusOK, gin.H{"ok": true, "gameID": g.ID})
+	response := gin.H{"ok": true, "gameID": g.ID}
+	if err := server.autosave(g); err != nil {
+		log.Printf("initial autosave failed for game %s: %v", g.ID, err)
+		response["warning"] = "Game created, but autosave failed. Use Save now to retry."
+	}
+	c.JSON(http.StatusOK, response)
 }
 
 func raceFromRequest(server *Server, req NewGameRequest) (model.Race, error) {

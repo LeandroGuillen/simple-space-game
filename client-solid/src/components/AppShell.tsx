@@ -374,6 +374,7 @@ export function AppShell(props: RouteSectionProps) {
     currentPlayer,
     enableDebugMode,
     endTurn,
+    saveGameNow,
     selectGame,
     joinGame,
     selectResearch,
@@ -922,6 +923,10 @@ export function AppShell(props: RouteSectionProps) {
                     </div>
                   </div>
                   <div class="turn-actions">
+                    <button type="button" class="secondary-button" onClick={() => void saveGameNow()}
+                      disabled={state.isBusy} title="Save current server state; queued orders are not included">
+                      Save now
+                    </button>
                     <button
                       type="button"
                       class="primary-button game-turn-button"

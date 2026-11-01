@@ -121,6 +121,7 @@ type AppContextValue = {
   cancelBuyProduction: (planetId: number) => void;
   enableDebugMode: () => Promise<void>;
   endTurn: () => Promise<void>;
+  saveGameNow: () => Promise<void>;
   getBattle: (battleId: number) => Promise<ApiTacticalBattle>;
   sendBattleAction: (battleId: number, action: BattleActionRequest) => Promise<ApiTacticalBattle>;
   saveShipDesign: (form: ShipDesignForm, mode: 'create' | 'update') => Promise<void>;
@@ -162,6 +163,7 @@ function readBootstrapSession() {
 const AppContext = createContext<AppContextValue>();
 
 export function AppProvider(props: ParentProps) {
+  const autosaveWarnings = new Map<string, string>();
   const emptyPendingCommands = (): PendingCommands => ({
     build: [],
     movePopulation: [],
@@ -331,12 +333,14 @@ export function AppProvider(props: ParentProps) {
     setBusy(true, 'Creating game');
     clearError();
     try {
-      const gameId = await api()!.createGame(options);
+      const result = await api()!.createGame(options);
+      const gameId = result.gameID;
+      if (result.warning) autosaveWarnings.set(gameId, result.warning);
       setState('session', 'selectedGameId', gameId);
       setState('game', null);
       resetPerGameUiState();
       await refreshGames();
-      setBusy(false, 'Game created');
+      setBusy(false, result.warning || 'Game created');
       return gameId;
     } catch (error) {
       setBusy(false, '');
@@ -428,6 +432,8 @@ export function AppProvider(props: ParentProps) {
       setState('game', mapped);
       setState('debugMode', rawGame.debug === true);
       setBusy(false, 'Game state refreshed');
+      const autosaveWarning = autosaveWarnings.get(gameId);
+      if (autosaveWarning) setState('error', autosaveWarning);
       return mapped;
     } catch (error) {
       setBusy(false, '');
@@ -768,6 +774,24 @@ export function AppProvider(props: ParentProps) {
     }
   }
 
+  async function saveGameNow() {
+    const client = api();
+    const gameId = state.session.selectedGameId;
+    if (!client || !gameId) return;
+    setBusy(true, 'Saving game');
+    clearError();
+    try {
+      await client.saveGameNow(gameId);
+      autosaveWarnings.delete(gameId);
+      setBusy(false, 'Game saved. Queued orders are not included.');
+    } catch (error) {
+      setBusy(false, '');
+      const message = error instanceof Error ? error.message : 'Unable to save game.';
+      autosaveWarnings.set(gameId, message);
+      setState('error', message);
+    }
+  }
+
   async function endTurn() {
     if (!api() || !state.session.selectedGameId) {
       return;
@@ -776,6 +800,8 @@ export function AppProvider(props: ParentProps) {
     clearError();
     try {
       const turnResponse = await api()!.endTurn(state.session.selectedGameId, toTurnCommands(state.pendingCommands, state.game));
+      if (turnResponse.warning) autosaveWarnings.set(state.session.selectedGameId, turnResponse.warning);
+      else if (turnResponse.advanced) autosaveWarnings.delete(state.session.selectedGameId);
       const rawGame = await api()!.getGame(state.session.selectedGameId);
       const mappedGame = mapGame(rawGame);
       setState('pendingCommands', emptyPendingCommands());
@@ -788,6 +814,8 @@ export function AppProvider(props: ParentProps) {
         setState('showColonizeModal', false);
         setState('showArtificialPlanetModal', false);
         setBusy(false, submittedTurnMessage(turnResponse, mappedGame, state.session.playerId));
+        const autosaveWarning = autosaveWarnings.get(state.session.selectedGameId);
+        if (autosaveWarning) setState('error', autosaveWarning);
         return;
       }
 
@@ -817,7 +845,8 @@ export function AppProvider(props: ParentProps) {
         setState('showArtificialPlanetModal', false);
       }
 
-      setBusy(false, completionInfo);
+      setBusy(false, turnResponse.warning || completionInfo);
+      if (turnResponse.warning) setState('error', turnResponse.warning);
     } catch (error) {
       setBusy(false, '');
       setState('error', error instanceof Error ? error.message : 'Unable to complete turn.');
@@ -841,7 +870,14 @@ export function AppProvider(props: ParentProps) {
 
   async function sendBattleAction(battleId: number, action: BattleActionRequest) {
     const { client, gameId } = requireBattleApi();
-    return client.postBattleAction(gameId, battleId, action);
+    const result = await client.postBattleAction(gameId, battleId, action);
+    if (result.warning) {
+      autosaveWarnings.set(gameId, result.warning);
+      setState('error', result.warning);
+    } else if (result.battle.status === 'finished') {
+      autosaveWarnings.delete(gameId);
+    }
+    return result.battle;
   }
 
   async function saveShipDesign(form: ShipDesignForm, mode: 'create' | 'update') {
@@ -1037,6 +1073,7 @@ export function AppProvider(props: ParentProps) {
     cancelBuyProduction,
     enableDebugMode,
     endTurn,
+    saveGameNow,
     getBattle,
     sendBattleAction,
     saveShipDesign,

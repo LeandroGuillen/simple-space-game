@@ -1,6 +1,7 @@
 package server
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -70,8 +71,13 @@ func PostBattleAction(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error(), "battle": battle})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"ok": true, "battle": battle})
+	response := gin.H{"ok": true, "battle": battle}
 	if battle.Status == model.TacticalBattleFinished {
+		if err := s.autosave(g); err != nil {
+			log.Printf("autosave after battle failed for game %s: %v", gameID, err)
+			response["warning"] = "Battle finished, but autosave failed. Use Save now to retry."
+		}
 		s.hub.BroadcastGameUpdate(g)
 	}
+	c.JSON(http.StatusOK, response)
 }

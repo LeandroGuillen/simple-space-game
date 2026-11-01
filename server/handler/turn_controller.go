@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"log"
 	"net/http"
 
 	"ssg/game"
@@ -53,10 +54,13 @@ func Turn(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"ok":          true,
-		"advanced":    advanced,
-		"turn_status": turnStatus,
-	})
+	response := gin.H{"ok": true, "advanced": advanced, "turn_status": turnStatus}
+	if advanced {
+		if err := s.autosave(g); err != nil {
+			log.Printf("autosave failed for game %s: %v", gameID, err)
+			response["warning"] = "Turn completed, but autosave failed. Use Save now to retry."
+		}
+	}
+	c.JSON(http.StatusOK, response)
 	s.hub.BroadcastGameUpdate(g)
 }

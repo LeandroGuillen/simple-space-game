@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"ssg/game"
 	"ssg/model"
 	"ssg/ws"
@@ -16,6 +17,7 @@ import (
 type Server struct {
 	gameList          map[string]*game.Game
 	gameListMu        sync.RWMutex
+	autosaves         *autosaveStore
 	CustomRaces       map[string]game.RaceDesign
 	CustomShipDesigns map[string]model.ShipDesign
 	ResourceManager   *game.ResourceManager
@@ -115,6 +117,7 @@ func NewServerWithOptions(opts ServerOptions) (*Server, error) {
 
 	server := &Server{
 		gameList:          make(map[string]*game.Game),
+		autosaves:         &autosaveStore{dir: filepath.Join(game.SavesDir(), ".autosaves")},
 		CustomRaces:       customMap,
 		CustomShipDesigns: customShipMap,
 		ResourceManager:   resourceManager,
@@ -124,6 +127,13 @@ func NewServerWithOptions(opts ServerOptions) (*Server, error) {
 	}
 
 	server.rebuildShipDesignCatalog()
+	restored, err := server.autosaves.Load(resourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("cannot load autosaves: %w", err)
+	}
+	for _, restoredGame := range restored {
+		server.putGame(restoredGame.ID, restoredGame)
+	}
 
 	server.hub = ws.NewHub(server)
 
@@ -175,6 +185,7 @@ func (s *Server) registerRoutes(r *gin.Engine) {
 	r.GET("/games/player-colors", GetPlayerColors)
 	r.GET("/games/:gameID", GetGame)
 	r.GET("/games/:gameID/save", GetGameSave)
+	r.POST("/games/:gameID/save", SaveGameNow)
 	r.GET("/scenarios", ListScenarios)
 	r.POST("/scenarios/:name/load", LoadScenario)
 	r.POST("/saves/upload", LoadUploadedSave)

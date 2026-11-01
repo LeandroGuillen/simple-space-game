@@ -106,3 +106,10 @@ func (g *Game) prunePostponedInvasions() {
 	}
 	g.PostponedInvasions = kept
 }
+
+// ResetTurnStatusAfterRestart discards readiness because submitted orders are
+// intentionally not serialized in saves.
+func (g *Game) ResetTurnStatusAfterRestart() {
+	g.TurnSubmissions = make(map[uint]Commands)
+	g.resetTurnStatus()
+}

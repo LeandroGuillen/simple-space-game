@@ -24,4 +24,18 @@ describe("ApiClient game saves", () => {
     });
     expect(fetchMock).toHaveBeenCalledWith("http://example.test/games/game-1/save", { headers: { "content-type": "application/json", "Game-Id": "game-1", "Player-Id": "1" } });
   });
+  it("saves server state with game and player headers", async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ ok: true }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const client = new ApiClient("http://example.test", 2);
+    await expect(client.saveGameNow("game-1")).resolves.toEqual({ ok: true });
+    expect(fetchMock).toHaveBeenCalledWith("http://example.test/games/game-1/save", {
+      method: "POST", headers: { "content-type": "application/json", "Game-Id": "game-1", "Player-Id": "2" },
+    });
+  });
+
+  it("surfaces save failures", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ error: "could not save game" }), { status: 500 })));
+    await expect(new ApiClient("http://example.test").saveGameNow("game-1")).rejects.toThrow("could not save game");
+  });
 });

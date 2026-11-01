@@ -176,6 +176,7 @@ export function SetupPage() {
     createGame,
     refreshGames,
     joinGame,
+    setInfo,
   } = useAppContext();
 
   const [servers, setServers] = createSignal<ServerInfo[]>([]);
@@ -457,9 +458,10 @@ export function SetupPage() {
     setLoadingScenarioName(name);
     setScenariosError(null);
     try {
-      await client.loadScenario(name);
+      const result = await client.loadScenario(name);
       closeLoadModal();
       await refreshGames();
+      if (result.warning) setInfo(result.warning);
     } catch (err) {
       setScenariosError(err instanceof Error ? err.message : "Load failed.");
     } finally {
@@ -475,9 +477,10 @@ export function SetupPage() {
     setScenarioUploading(true);
     setScenarioUploadError(null);
     try {
-      await client.loadUploadedSave(file);
+      const result = await client.loadUploadedSave(file);
       closeLoadModal();
       await refreshGames();
+      if (result.warning) setInfo(result.warning);
     } catch (err) {
       setScenarioUploadError(err instanceof Error ? err.message : "Upload failed.");
     } finally {

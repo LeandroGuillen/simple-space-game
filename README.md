@@ -16,6 +16,12 @@ Open the Vite URL printed by the client. The game server listens on port **8080*
 
 Scenario files are read from `server/data/scenarios` by default. Set `SSG_SAVES_DIR` to use a different scenario directory, for example `SSG_SAVES_DIR=/path/to/scenarios go run ./cmd/server` from `server/`. See [client-odin/README.md](client-odin/README.md) for the native client.
 
+## Server saves
+
+The server automatically saves a game when it is created or loaded, after each completed turn, and when a tactical battle finishes. It restores the latest valid snapshot for each game on startup, falling back to older snapshots if the latest is damaged. The five most recent snapshots per game are stored under `SSG_SAVES_DIR/.autosaves` (or `server/data/scenarios/.autosaves` by default). Keep that directory when upgrading or backing up the server.
+
+Use **Save now** in the game to save the current server state. Orders still queued in a client, or submitted by only some players, are not included; after a restart, players must submit those orders again. If a save fails, the turn or battle may already have completed: the client displays a warning and Save now can be used to retry. Download and upload remain available as separate export/import options; full downloads are restricted to one-player-slot games.
+
 ## Winning and elimination
 
 In games with multiple player slots, an empire is eliminated when it has no colonies or colony ships. It no longer submits turns. The last remaining empire wins once it has a colony; simultaneous elimination ends the game without a winner. Outcomes wait for pending tactical battles to resolve. A one-slot game remains open as a sandbox until the player is eliminated. Saves made before turn counting was added count turns from when they are loaded.

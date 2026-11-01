@@ -64,6 +64,7 @@
 
 .turn-actions {
     display: flex;
+    gap: 0.5rem;
     align-items: center;
     padding-left: 20px;
     margin-left: 4px;

@@ -129,8 +129,7 @@ export class ApiClient {
       headers: this.headers(),
       body: JSON.stringify(options),
     });
-    const body = await readJson<{ ok: boolean; gameID: string }>(response);
-    return body.gameID;
+    return readJson<{ ok: boolean; gameID: string; warning?: string }>(response);
   }
 
   async listScenarios() {
@@ -144,8 +143,7 @@ export class ApiClient {
       `${this.baseUrl}/scenarios/${encodeURIComponent(name)}/load`,
       { method: 'POST', headers: this.headers() },
     );
-    const body = await readJson<{ ok: boolean; gameID: string }>(response);
-    return body.gameID;
+    return readJson<{ ok: boolean; gameID: string; warning?: string }>(response);
   }
 
   async loadUploadedSave(file: File) {
@@ -155,8 +153,7 @@ export class ApiClient {
       method: 'POST',
       body: formData,
     });
-    const body = await readJson<{ ok: boolean; gameID: string }>(response);
-    return body.gameID;
+    return readJson<{ ok: boolean; gameID: string; warning?: string }>(response);
   }
 
   async getGame(gameId: string) {
@@ -169,6 +166,11 @@ export class ApiClient {
   async getGameSave(gameId: string) {
     const response = await fetch(`${this.baseUrl}/games/${gameId}/save`, { headers: this.headers(gameId) });
     return readJson<ApiGame>(response);
+  }
+
+  async saveGameNow(gameId: string) {
+    const response = await fetch(`${this.baseUrl}/games/${gameId}/save`, { method: 'POST', headers: this.headers(gameId) });
+    return readJson<{ ok: boolean }>(response);
   }
 
   async getShipParts(gameId?: string) {
@@ -262,8 +264,7 @@ export class ApiClient {
       headers: this.headers(gameId),
       body: JSON.stringify(action),
     });
-    const body = await readJson<{ ok: boolean; battle: ApiTacticalBattle }>(response);
-    return body.battle;
+    return readJson<{ ok: boolean; battle: ApiTacticalBattle; warning?: string }>(response);
   }
 
   async setPlanetAutobuild(gameId: string, planetId: number, enabled: boolean) {

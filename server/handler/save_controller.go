@@ -157,7 +157,12 @@ func LoadScenario(c *gin.Context) {
 	game.HydrateLoadedGame(&loaded, s.ResourceManager)
 
 	s.putGame(loaded.ID, &loaded)
-	c.JSON(http.StatusOK, gin.H{"ok": true, "gameID": loaded.ID})
+	response := gin.H{"ok": true, "gameID": loaded.ID}
+	if err := s.autosave(&loaded); err != nil {
+		log.Printf("initial autosave failed for game %s: %v", loaded.ID, err)
+		response["warning"] = "Game loaded, but autosave failed. Use Save now to retry."
+	}
+	c.JSON(http.StatusOK, response)
 }
 
 func LoadUploadedSave(c *gin.Context) {
@@ -189,7 +194,12 @@ func LoadUploadedSave(c *gin.Context) {
 	game.HydrateLoadedGame(&loaded, s.ResourceManager)
 
 	s.putGame(loaded.ID, &loaded)
-	c.JSON(http.StatusOK, gin.H{"ok": true, "gameID": loaded.ID})
+	response := gin.H{"ok": true, "gameID": loaded.ID}
+	if err := s.autosave(&loaded); err != nil {
+		log.Printf("initial autosave failed for game %s: %v", loaded.ID, err)
+		response["warning"] = "Game loaded, but autosave failed. Use Save now to retry."
+	}
+	c.JSON(http.StatusOK, response)
 }
 
 func readUploadedGameData(c *gin.Context) ([]byte, error) {
@@ -220,4 +230,40 @@ func isUploadTooLarge(err error) bool {
 	msg := err.Error()
 	return strings.Contains(msg, "http: request body too large") ||
 		strings.Contains(msg, "request body too large")
+}
+
+// SaveGameNow persists a full server-side snapshot without returning private state.
+func SaveGameNow(c *gin.Context) {
+	var req GetGalaxyRequest
+	if err := c.BindUri(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	gameID, playerID, err := readHeaders(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if gameID != req.GameID {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "game id mismatch between URI and headers"})
+		return
+	}
+	g, server, err := getGameHandle(c, gameID)
+	if err != nil {
+		return
+	}
+	if _, err := g.GetVisibleGameForPlayer(playerID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if server.autosaves == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "server-side saves unavailable"})
+		return
+	}
+	if err := server.autosave(g); err != nil {
+		log.Printf("manual save failed for game %s: %v", gameID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not save game"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"ok": true})
 }
