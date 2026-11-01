@@ -46,8 +46,14 @@ export function getInitialSetupSelectedServerUrl(): string {
   }
   try {
     const fromLocal = window.localStorage.getItem(LOCAL_STORAGE_SERVER_URL_KEY) ?? "";
-    return fromLocal ? normalizeServerUrl(fromLocal) : "";
+    if (fromLocal) return normalizeServerUrl(fromLocal);
   } catch {
-    return "";
+    // Storage may be unavailable; the serving origin can still be used.
   }
+  return servingServerUrl(window.location, import.meta.env.PROD);
+}
+
+/** In production the Go server serves both the app and its API. */
+export function servingServerUrl(location: Pick<Location, "origin" | "protocol">, production: boolean): string {
+  return production && (location.protocol === "http:" || location.protocol === "https:") ? normalizeServerUrl(location.origin) : "";
 }

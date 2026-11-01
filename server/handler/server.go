@@ -34,6 +34,8 @@ type Server struct {
 // ServerOptions configures NewServerWithOptions. Zero value matches NewServer().
 type ServerOptions struct {
 	Debug bool
+	// WebDir is an optional Vite production build directory.
+	WebDir string
 }
 
 // DebugEnabled reports whether this server registered debug endpoints.
@@ -140,6 +142,11 @@ func NewServerWithOptions(opts ServerOptions) (*Server, error) {
 
 	r.Use(AddGameState(server))
 	server.registerRoutes(r)
+	if opts.WebDir != "" {
+		if err := registerWebClient(r, opts.WebDir); err != nil {
+			return nil, err
+		}
+	}
 
 	server.router = r
 	server.startHub()

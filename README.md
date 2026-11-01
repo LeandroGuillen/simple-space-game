@@ -14,6 +14,22 @@ cd server && go run ./cmd/ai
 
 Open the Vite URL printed by the client. The game server listens on port **8080** by default; the optional AI manager uses **8090**. Change the server port with `go run ./cmd/server -port 8081` and the AI manager address with `go run ./cmd/ai -listen :8091`.
 
+## Serve the web client from the game server
+
+Build the production client once, then point the Go server at its output:
+
+```sh
+cd client-solid
+npm ci
+npm run build
+cd ../server
+go run ./cmd/server -web-dir ../client-solid/dist
+```
+
+Open `http://localhost:8080/`. The client connects to the origin that served it by default; a previously selected server or a manually entered URL can still be used. For a hosted deployment, run the same server and client build on the host and route HTTP and WebSocket requests to it, normally through an HTTPS reverse proxy. `SSG_WEB_DIR` provides the same setting as `-web-dir`; an invalid configured directory prevents startup. Omit it to run the API alone. Keep the built `dist` directory available to the server and rebuild it when the client changes.
+
+**Access control:** the game server currently has no player authentication. Anyone who can reach a hosted server can act as another player, so restrict access to trusted users until authentication is implemented. Browsers also block an HTTPS-hosted client from connecting to an insecure HTTP server; use HTTPS for remote connections.
+
 Scenario files are read from `server/data/scenarios` by default. Set `SSG_SAVES_DIR` to use a different scenario directory, for example `SSG_SAVES_DIR=/path/to/scenarios go run ./cmd/server` from `server/`. See [client-odin/README.md](client-odin/README.md) for the native client.
 
 ## Server saves

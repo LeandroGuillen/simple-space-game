@@ -14,11 +14,12 @@ import (
 func main() {
 	port := flag.String("port", "8080", "server port")
 	debugFlag := flag.Bool("debug", false, "enable /debug/* endpoints (also SSG_DEBUG=1)")
+	webDir := flag.String("web-dir", os.Getenv("SSG_WEB_DIR"), "directory containing the built web client (or SSG_WEB_DIR)")
 	flag.Parse()
 
 	debug := *debugFlag || envTruthy("SSG_DEBUG")
 
-	s, err := gamehandler.NewServerWithOptions(gamehandler.ServerOptions{Debug: debug})
+	s, err := gamehandler.NewServerWithOptions(gamehandler.ServerOptions{Debug: debug, WebDir: *webDir})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "cannot create server: %v\n", err)
 		os.Exit(1)
