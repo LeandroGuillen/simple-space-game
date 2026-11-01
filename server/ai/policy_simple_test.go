@@ -451,3 +451,65 @@ func TestSimplePolicyMergedScoutUsesShortestRange(t *testing.T) {
 			d.Commands.FleetMove, d.Notes)
 	}
 }
+
+func TestScoutsReserveDistinctReachableDestinations(t *testing.T) {
+	me := &model.Player{ID: 1}
+	stars := []*model.Star{
+		{ID: 1, Name: "Sol", Planets: []*model.Planet{{ID: 1, Owner: 1}}},
+		{ID: 2, X: 30}, {ID: 3, X: 90}, {ID: 4, X: 150}, {ID: 5, X: 900},
+	}
+	fleets := []*model.Fleet{
+		{ID: 10, Owner: 1, StarID: 1, Ships: []model.FleetShip{{Name: "A", FuelRangeParsecs: 4}}},
+		{ID: 11, Owner: 1, StarID: 1, Ships: []model.FleetShip{{Name: "B", FuelRangeParsecs: 4}}},
+		{ID: 12, Owner: 1, StarID: 1, Ships: []model.FleetShip{{Name: "C", FuelRangeParsecs: 4}}},
+		{ID: 13, Owner: 1, DestinationStarID: 2, TurnsRemaining: 1, Ships: []model.FleetShip{{Name: "En route", FuelRangeParsecs: 4}}},
+	}
+	vg := snapshotWith([]*model.Player{me}, stars, fleets, TurnStatus{WaitingPlayerIDs: []uint{1}})
+	d := SimplePolicy{}.Decide(vg, 1)
+	if len(d.Commands.FleetMove) != 2 {
+		t.Fatalf("expected two distinct reachable targets, got %+v", d.Commands.FleetMove)
+	}
+	if d.Commands.FleetMove[0].DestinationStarID != 3 || d.Commands.FleetMove[1].DestinationStarID != 4 {
+		t.Fatalf("expected stars 3 and 4, avoiding en-route star 2 and unreachable star 5: %+v", d.Commands.FleetMove)
+	}
+}
+
+func TestScoutKeepsFleetPreparingColonyShipInOrbit(t *testing.T) {
+	me := &model.Player{ID: 1}
+	stars := []*model.Star{{ID: 1, Name: "Sol", Planets: []*model.Planet{{ID: 1, Owner: 1}}}, {ID: 2, X: 30}}
+	fleet := &model.Fleet{ID: 7, Owner: 1, StarID: 1, Ships: []model.FleetShip{{Type: "colony_ship", FuelRangeParsecs: 4}}}
+	vg := snapshotWith([]*model.Player{me}, stars, []*model.Fleet{fleet}, TurnStatus{WaitingPlayerIDs: []uint{1}})
+	vg.PendingColonyShips = map[uint][]uint{1: {7}}
+	d := SimplePolicy{}.Decide(vg, 1)
+	if d.Commands.ColonyShip == nil || d.Commands.ColonyShip.FleetID != 7 {
+		t.Fatal("expected colony ship preparation")
+	}
+	if len(d.Commands.FleetMove) != 0 {
+		t.Fatalf("fleet with a colony order should not move: %+v", d.Commands.FleetMove)
+	}
+}
+
+func TestScoutHoldsColonyShipAtSuitableLocalPlanet(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		env      model.PlanetEnvironment
+		owner    uint
+		wantMove bool
+	}{
+		{"habitable", model.PlanetEnvironmentTerran, 0, false},
+		{"gas giant", model.PlanetEnvironmentGasGiant, 0, true},
+		{"asteroid belt", model.PlanetEnvironmentAsteroidBelt, 0, true},
+		{"occupied", model.PlanetEnvironmentTerran, 1, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			me := &model.Player{ID: 1}
+			stars := []*model.Star{{ID: 1, Name: "Sol", Planets: []*model.Planet{{ID: 1, Owner: 1}, {ID: 2, Owner: tc.owner, Environment: tc.env}}}, {ID: 3, X: 30}}
+			fleet := &model.Fleet{ID: 7, Owner: 1, StarID: 1, Ships: []model.FleetShip{{Type: "colony_ship", FuelRangeParsecs: 4}}}
+			vg := snapshotWith([]*model.Player{me}, stars, []*model.Fleet{fleet}, TurnStatus{WaitingPlayerIDs: []uint{1}})
+			d := SimplePolicy{}.Decide(vg, 1)
+			if got := len(d.Commands.FleetMove) > 0; got != tc.wantMove {
+				t.Fatalf("got move=%v, want %v", got, tc.wantMove)
+			}
+		})
+	}
+}

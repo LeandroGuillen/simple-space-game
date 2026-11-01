@@ -34,6 +34,12 @@ func TestAIUnstampedFleetsScoutAndServerAccepts(t *testing.T) {
 	aiPlayer.ShipDesigns[0].Drive.InterstellarSpeed = 2
 	home := firstOwnedPlanet(t, g, aiPlayer.ID)
 	star := starByID(t, g, home.ParentStar)
+	// This test exercises scouting when no colony target is available locally.
+	for _, planet := range star.Planets {
+		if planet.Owner == 0 {
+			planet.Environment = model.PlanetEnvironmentGasGiant
+		}
+	}
 
 	cases := []struct {
 		name  string
@@ -59,6 +65,8 @@ func TestAIUnstampedFleetsScoutAndServerAccepts(t *testing.T) {
 	for i, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			fleetID := uint(8000 + i)
+			originalFleets := len(g.Fleets)
+			t.Cleanup(func() { g.Fleets = g.Fleets[:originalFleets] })
 			g.Fleets = append(g.Fleets, &model.Fleet{
 				ID: fleetID, Owner: aiPlayer.ID, StarID: star.ID,
 				X: float64(star.X), Y: float64(star.Y),

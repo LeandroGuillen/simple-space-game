@@ -150,3 +150,24 @@ func visibleGameFromGame(t *testing.T, g *game.Game) *ai.VisibleGame {
 	vg.Raw = raw
 	return &vg
 }
+
+func TestMultipleScoutOrdersAreDistinctAndAccepted(t *testing.T) {
+	resources, err := game.NewResourceManager()
+	require.NoError(t, err)
+	g, err := game.NewGame(resources, game.NewGameOptions{PlayerName: "Human", PlayerColor: model.DefaultPlayerColor(), NumStars: 40, GalaxySize: "medium", Race: game.DefaultRace("Human"), NumPlayers: 2})
+	require.NoError(t, err)
+	aiPlayer := g.Players[1]
+	home := firstOwnedPlanet(t, g, aiPlayer.ID)
+	star := starByID(t, g, home.ParentStar)
+	g.Galaxy.Stars = append(g.Galaxy.Stars, &model.Star{ID: 90001, X: star.X + 60, Y: star.Y}, &model.Star{ID: 90002, X: star.X - 60, Y: star.Y})
+	for _, id := range []uint{90011, 90012} {
+		g.Fleets = append(g.Fleets, &model.Fleet{ID: id, Owner: aiPlayer.ID, StarID: star.ID, X: float64(star.X), Y: float64(star.Y), Ships: []model.FleetShip{{Name: "Scout", Type: "ship_design", FuelRangeParsecs: 4, InterstellarSpeed: 2}}})
+	}
+	visible, err := g.GetVisibleGameForPlayer(aiPlayer.ID)
+	require.NoError(t, err)
+	decision := ai.SimplePolicy{}.Decide(visibleGameFromGame(t, visible), aiPlayer.ID)
+	require.Len(t, decision.Commands.FleetMove, 2)
+	require.NotEqual(t, decision.Commands.FleetMove[0].DestinationStarID, decision.Commands.FleetMove[1].DestinationStarID)
+	_, _, err = g.SubmitTurn(aiPlayer.ID, model.Commands{FleetMove: decision.Commands.FleetMove})
+	require.NoError(t, err)
+}
