@@ -392,10 +392,21 @@ func (g *Game) validatePlayerCommands(playerID uint, commands Commands) error {
 	if commands.ArtificialPlanet != nil {
 		artificialPlanetCommands = append(artificialPlanetCommands, commands.ArtificialPlanet)
 	}
+	pendingArtificial := append([]uint(nil), g.PendingArtificialPlanets[playerID]...)
+	usedArtificialTargets := make(map[uint]bool)
 	for _, command := range artificialPlanetCommands {
-		if err := g.validateArtificialPlanetCommand(playerID, command); err != nil {
+		if command == nil {
+			continue
+		}
+		index, target, err := g.artificialPlanetChoice(playerID, command, pendingArtificial)
+		if err != nil {
 			return err
 		}
+		if usedArtificialTargets[target.ID] {
+			return fmt.Errorf("invalid artificial planet target")
+		}
+		usedArtificialTargets[target.ID] = true
+		pendingArtificial = append(pendingArtificial[:index], pendingArtificial[index+1:]...)
 	}
 
 	// Validate planet commands (buy production, move population).
@@ -1192,20 +1203,6 @@ func (g *Game) validateColonizeCommand(playerID uint, command *ColonizeCommand, 
 		return fmt.Errorf("colony base can only colonize planets in the same system")
 	}
 	return validateColonizePlanetTarget(target)
-}
-
-func (g *Game) validateArtificialPlanetCommand(playerID uint, command *ArtificialPlanetCommand) error {
-	if command == nil {
-		return nil
-	}
-	if g.PendingArtificialPlanets == nil {
-		return fmt.Errorf("no pending artificial planet construction")
-	}
-	pending := g.PendingArtificialPlanets[playerID]
-	if len(pending) == 0 {
-		return fmt.Errorf("no pending artificial planet construction")
-	}
-	return nil
 }
 
 func quoteBuyProduction(p *Planet, game *Game) (effectiveCost, remaining, cost int64, err error) {

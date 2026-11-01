@@ -196,3 +196,56 @@ func newArtificialPlanetGame(t *testing.T, targetEnvironment model.PlanetEnviron
 	}
 	return g, source, target
 }
+
+func TestSubmitArtificialPlanetRejectsInvalidOrders(t *testing.T) {
+	for _, tc := range []struct {
+		name         string
+		makeCommands func(*model.Planet, *model.Planet, *model.Planet) model.Commands
+	}{
+		{"owned target", func(s, target, other *model.Planet) model.Commands {
+			return model.Commands{ArtificialPlanet: &model.ArtificialPlanetCommand{SourcePlanetID: s.ID, TargetPlanetID: s.ID}}
+		}},
+		{"other system", func(s, target, other *model.Planet) model.Commands {
+			return model.Commands{ArtificialPlanet: &model.ArtificialPlanetCommand{SourcePlanetID: s.ID, TargetPlanetID: other.ID}}
+		}},
+		{"unknown target", func(s, target, other *model.Planet) model.Commands {
+			return model.Commands{ArtificialPlanet: &model.ArtificialPlanetCommand{SourcePlanetID: s.ID, TargetPlanetID: 987654}}
+		}},
+		{"unknown source", func(s, target, other *model.Planet) model.Commands {
+			return model.Commands{ArtificialPlanet: &model.ArtificialPlanetCommand{SourcePlanetID: 987654, TargetPlanetID: target.ID}}
+		}},
+		{"reused source", func(s, target, other *model.Planet) model.Commands {
+			return model.Commands{ArtificialPlanetMany: []*model.ArtificialPlanetCommand{{SourcePlanetID: s.ID, TargetPlanetID: target.ID}, {SourcePlanetID: s.ID, TargetPlanetID: target.ID}}}
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			g := multiPlayerGame(t, 2, 30)
+			var source *model.Planet
+			for _, star := range g.Galaxy.Stars {
+				for _, p := range star.Planets {
+					if p.Owner == 1 {
+						source = p
+					}
+				}
+			}
+			require.NotNil(t, source)
+			star, err := g.getStar(source.ParentStar)
+			require.NoError(t, err)
+			target := &model.Planet{ID: 987650, ParentStar: star.ID, Environment: model.PlanetEnvironmentGasGiant}
+			star.Planets = append(star.Planets, target)
+			otherStar := g.Galaxy.Stars[0]
+			if otherStar.ID == star.ID {
+				otherStar = g.Galaxy.Stars[1]
+			}
+			other := &model.Planet{ID: 987651, ParentStar: otherStar.ID, Environment: model.PlanetEnvironmentGasGiant}
+			otherStar.Planets = append(otherStar.Planets, other)
+			g.PendingArtificialPlanets[1] = []uint{source.ID}
+			_, _, err = g.SubmitTurn(1, tc.makeCommands(source, target, other))
+			require.Error(t, err)
+			assert.NotContains(t, g.TurnSubmissions, uint(1))
+			assert.Equal(t, []uint{source.ID}, g.PendingArtificialPlanets[1])
+			_, _, err = g.SubmitTurn(2, model.Commands{})
+			require.NoError(t, err)
+		})
+	}
+}

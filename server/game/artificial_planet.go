@@ -56,20 +56,14 @@ func canBuildArtificialPlanetProject(p *Planet, availableBuildings []string, gam
 	return known && game.hasArtificialPlanetTargetsInStar(p.ParentStar)
 }
 
-func (g *Game) processArtificialPlanetCommand(playerID uint, command *ArtificialPlanetCommand) error {
-	if command == nil {
-		return nil
-	}
-	if g.PendingArtificialPlanets == nil {
-		g.PendingArtificialPlanets = make(map[uint][]uint)
-	}
-	pending := g.PendingArtificialPlanets[playerID]
+// artificialPlanetChoice validates against the supplied pending sources without mutating the game.
+func (g *Game) artificialPlanetChoice(playerID uint, command *ArtificialPlanetCommand, pending []uint) (int, *Planet, error) {
 	if len(pending) == 0 {
-		return fmt.Errorf("no pending artificial planet construction")
+		return -1, nil, fmt.Errorf("no pending artificial planet construction")
 	}
 	target, err := g.getPlanet(command.TargetPlanetID)
 	if err != nil {
-		return err
+		return -1, nil, err
 	}
 
 	sourceIndex := -1
@@ -81,7 +75,7 @@ func (g *Game) processArtificialPlanetCommand(playerID uint, command *Artificial
 			}
 		}
 		if sourceIndex < 0 {
-			return fmt.Errorf("source planet has no pending artificial planet construction")
+			return -1, nil, fmt.Errorf("source planet has no pending artificial planet construction")
 		}
 	} else {
 		for i := len(pending) - 1; i >= 0; i-- {
@@ -92,24 +86,36 @@ func (g *Game) processArtificialPlanetCommand(playerID uint, command *Artificial
 			}
 		}
 		if sourceIndex < 0 {
-			return fmt.Errorf("no pending artificial planet construction in target system")
+			return -1, nil, fmt.Errorf("no pending artificial planet construction in target system")
 		}
 	}
 
 	source, err := g.getPlanet(pending[sourceIndex])
 	if err != nil {
-		return err
+		return -1, nil, err
 	}
 	if source.Owner != playerID {
-		return fmt.Errorf("source planet is not owned by player")
+		return -1, nil, fmt.Errorf("source planet is not owned by player")
 	}
 	if target.ParentStar != source.ParentStar {
-		return fmt.Errorf("artificial planet target must be in the same system")
+		return -1, nil, fmt.Errorf("artificial planet target must be in the same system")
 	}
 	if !isArtificialPlanetTarget(target) {
-		return fmt.Errorf("invalid artificial planet target")
+		return -1, nil, fmt.Errorf("invalid artificial planet target")
 	}
 
+	return sourceIndex, target, nil
+}
+
+func (g *Game) processArtificialPlanetCommand(playerID uint, command *ArtificialPlanetCommand) error {
+	if command == nil {
+		return nil
+	}
+	pending := g.PendingArtificialPlanets[playerID]
+	sourceIndex, target, err := g.artificialPlanetChoice(playerID, command, pending)
+	if err != nil {
+		return err
+	}
 	g.PendingArtificialPlanets[playerID] = append(pending[:sourceIndex], pending[sourceIndex+1:]...)
 	transformArtificialPlanetTarget(target)
 	return nil
