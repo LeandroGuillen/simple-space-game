@@ -366,7 +366,7 @@ func stripRejectedFleetMoves(commands model.Commands, err error) (model.Commands
 		return commands, false
 	}
 	msg := strings.ToLower(err.Error())
-	if !strings.Contains(msg, "fuel range") && !strings.Contains(msg, "fleet move") {
+	if !strings.Contains(msg, "fuel range") && !strings.Contains(msg, "fleet move") && !strings.Contains(msg, "interstellar drive") && !strings.Contains(msg, "drive speed for ship") {
 		return commands, false
 	}
 	// Server errors currently omit the fleet id; drop all scout moves for this

@@ -1236,3 +1236,24 @@ func TestCommandsFieldsHaveSubmitTimeValidators(t *testing.T) {
 		assert.True(t, covered[name], "model.Commands.%s has no submit-time validator entry; add validation in validatePlayerCommands and list it here", name)
 	}
 }
+
+func TestSubmitFleetMoveRejectsShipWithoutDrive(t *testing.T) {
+	for _, grouped := range []bool{false, true} {
+		g := multiPlayerGame(t, 2, 30)
+		origin := g.Galaxy.Stars[0]
+		dest := g.Galaxy.Stars[1]
+		fleet := createTestFleet(g, 1, origin.ID)
+		fleet.Ships = []model.FleetShip{{Type: "ship_design", Name: "Immobile", Drive: "None", UnlimitedFuelRange: true}, {Type: "ship_design", Name: "Mobile", InterstellarSpeed: 2, UnlimitedFuelRange: true}}
+		moves := []*model.FleetMoveCommand{{FleetID: fleet.ID, DestinationStarID: dest.ID}}
+		if grouped {
+			indexes1, indexes2 := []uint{0}, []uint{1}
+			moves[0].ShipIndexes = &indexes1
+			moves = append(moves, &model.FleetMoveCommand{FleetID: fleet.ID, DestinationStarID: dest.ID, ShipIndexes: &indexes2})
+		}
+		_, _, err := g.SubmitTurn(1, model.Commands{FleetMove: moves})
+		require.ErrorContains(t, err, "no interstellar drive")
+		assert.NotContains(t, g.TurnSubmissions, uint(1))
+		_, _, err = g.SubmitTurn(2, model.Commands{})
+		require.NoError(t, err)
+	}
+}

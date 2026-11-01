@@ -31,6 +31,7 @@ func TestAIUnstampedFleetsScoutAndServerAccepts(t *testing.T) {
 	require.NoError(t, err)
 	aiPlayer := g.Players[1]
 	ensurePlayerHasStandardFuel(t, aiPlayer)
+	aiPlayer.ShipDesigns[0].Drive.InterstellarSpeed = 2
 	home := firstOwnedPlanet(t, g, aiPlayer.ID)
 	star := starByID(t, g, home.ParentStar)
 

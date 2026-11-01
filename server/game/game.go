@@ -848,6 +848,10 @@ func (g *Game) validateSingleFleetMoveOrder(playerID uint, command *FleetMoveCom
 		if err := g.validateFleetMoveFuelRange(player, shipsByIndexes(fleet.Ships, shipIdxs), command.DestinationStarID); err != nil {
 			return nil, nil, nil, err
 		}
+		destination, _ := g.getStar(command.DestinationStarID)
+		if _, err := g.calculateFleetTravelTurnsForShips(playerID, shipsByIndexes(fleet.Ships, shipIdxs), fleet.X, fleet.Y, float64(destination.X), float64(destination.Y)); err != nil {
+			return nil, nil, nil, err
+		}
 	}
 
 	return fleet, player, shipIdxs, nil
@@ -916,6 +920,10 @@ func (g *Game) validateFleetMoveGroupOrders(playerID uint, commands []*FleetMove
 		// Validate fuel range for this destination (skip for Star Gate travel)
 		if !g.isStarGateTravel(playerID, fleet.StarID, command.DestinationStarID) {
 			if err := g.validateFleetMoveFuelRange(player, shipsByIndexes(fleet.Ships, indexes), command.DestinationStarID); err != nil {
+				return nil, nil, nil, err
+			}
+			destination, _ := g.getStar(command.DestinationStarID)
+			if _, err := g.calculateFleetTravelTurnsForShips(playerID, shipsByIndexes(fleet.Ships, indexes), fleet.X, fleet.Y, float64(destination.X), float64(destination.Y)); err != nil {
 				return nil, nil, nil, err
 			}
 		}
