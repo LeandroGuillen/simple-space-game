@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	"math"
+	"slices"
 	. "ssg/model"
 )
 
@@ -284,6 +285,23 @@ func validatePlayerCurrentResearch(p *Player, resources *ResourceManager) error 
 	g := &Game{Resources: &resources.Resources}
 	if err := g.validateCurrentResearchProject(p); err != nil {
 		return fmt.Errorf("player %d: %w", p.ID, err)
+	}
+	proj := p.CurrentResearch
+	if subjectName, ok := parseHyperAdvancedResearch(proj.TechName); ok {
+		if err := g.validateHyperAdvancedResearchOrder(p, subjectName); err != nil {
+			return fmt.Errorf("player %d: %w", p.ID, err)
+		}
+		return nil
+	}
+	level, _ := g.findResearchLevel(proj.LevelName)
+	if isResearchLevelComplete(p, level) {
+		return fmt.Errorf("player %d: research level %q is already complete", p.ID, level.Name)
+	}
+	if len(selectedResearchTechs(proj)) == 0 {
+		return fmt.Errorf("player %d: research project has no selected techs", p.ID)
+	}
+	if proj.TechName != "" && len(proj.TechNames) > 0 && !slices.Contains(proj.TechNames, proj.TechName) {
+		return fmt.Errorf("player %d: research tech %q is not in selected techs", p.ID, proj.TechName)
 	}
 	return nil
 }

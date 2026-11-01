@@ -1009,3 +1009,34 @@ func TestMultiplayerSaveRejectsRequests(t *testing.T) {
 		})
 	}
 }
+
+func TestUploadRejectsInvalidResearchSelections(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	cases := []struct {
+		name    string
+		project model.ResearchProject
+		known   []string
+	}{
+		{"incomplete hyper", model.ResearchProject{TechName: "Hyper Advanced Computers"}, nil},
+		{"completed level", model.ResearchProject{LevelName: "Electronics", TechName: "Electronic Computer"}, []string{"Electronic Computer"}},
+		{"empty selection", model.ResearchProject{LevelName: "Electronics"}, nil},
+		{"inconsistent selection", model.ResearchProject{LevelName: "Electronics", TechName: "Bogus", TechNames: []string{"Electronic Computer"}}, nil},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			resources, err := game.NewResourceManager()
+			require.NoError(t, err)
+			g, err := game.NewGame(resources, game.NewGameOptions{PlayerName: "Ada", NumStars: 6, PlayerColor: model.DefaultPlayerColor(), Race: game.DefaultRace("Human")})
+			require.NoError(t, err)
+			g.Players[0].CurrentResearch = &tc.project
+			g.Players[0].ResearchedTechs = append(g.Players[0].ResearchedTechs, tc.known...)
+			payload, err := json.Marshal(g)
+			require.NoError(t, err)
+			server := &Server{gameList: make(map[string]*game.Game), ResourceManager: resources}
+			out := postUpload(t, server, bytes.NewReader(payload), "application/json")
+			require.Equal(t, http.StatusBadRequest, out.Code, out.Body.String())
+			require.Contains(t, out.Body.String(), "player 1")
+			require.Empty(t, server.gameList)
+		})
+	}
+}
