@@ -39,6 +39,8 @@ Frontend tests use Vitest. Place tests in `__tests__` directories or use `*.test
 
 ## Commit & Pull Request Guidelines
 
+The `origin` remote is `git@github.com:LeandroGuillen/simple-space-game.git`. The `bitbucket` remote is a historical reference; do not push to it.
+
 Recent commits use short, lowercase summaries, for example `building in colonies` and `food surplus UI`. Keep the first line focused on behavior changed.
 
 Pull requests should include a brief description, commands run, linked issues if applicable, and screenshots or recordings for visible UI changes. Note resource JSON changes because they can affect game balance.
