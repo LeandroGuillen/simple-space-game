@@ -356,6 +356,11 @@ func (g *Game) validatePlayerCommands(playerID uint, commands Commands) error {
 	}
 
 	// Mutation runs after research select; select does not change mutation eligibility.
+	if commands.DesignShip != nil {
+		if _, err := g.shipDesignFromOrder(player, commands.DesignShip); err != nil {
+			return err
+		}
+	}
 	if commands.MutateRace != nil {
 		if _, err := g.validateMutateRaceOrder(player, *commands.MutateRace); err != nil {
 			return err
@@ -661,6 +666,13 @@ func (g *Game) applyPlayerTurn(playerID uint, commands Commands) error {
 		if err := g.ApplyRaceMutation(playerID, *commands.MutateRace); err != nil {
 			return err
 		}
+	}
+	if commands.DesignShip != nil {
+		design, err := g.shipDesignFromOrder(player, commands.DesignShip)
+		if err != nil {
+			return err
+		}
+		player.ShipDesigns = append(player.ShipDesigns, design)
 	}
 	if err := g.issueFleetMoveCommands(playerID, commands.FleetMove); err != nil {
 		return err

@@ -66,8 +66,20 @@ type Commands struct {
 	Invade               []*InvadeCommand             `json:"invade,omitempty"`
 	BuyProduction        []*BuyProductionCommand      `json:"buy_production,omitempty"`
 	MutateRace           *MutateRaceCommand           `json:"mutate_race,omitempty"`
+	DesignShip           *DesignShipCommand           `json:"design_ship,omitempty"`
 }
 
 type MutateRaceCommand struct {
 	TraitIDs []string `json:"trait_ids"`
+}
+
+type DesignShipCommand struct {
+	Name     string `json:"name"`
+	Hull     string `json:"hull"`
+	Drive    string `json:"drive"`
+	Armor    string `json:"armor"`
+	Computer string `json:"computer"`
+	FuelCell string `json:"fuel_cell"`
+	Shield   string `json:"shield"`
+	Beam     string `json:"beam"`
 }

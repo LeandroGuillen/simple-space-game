@@ -32,6 +32,7 @@ func (SimplePolicy) Decide(snapshot *VisibleGame, playerID uint) Decision {
 	d.Notes = append(d.Notes, fmt.Sprintf("turn %.0f: %d owned planet(s), %d fleet(s)", snapshot.CurrentTurn, len(planets), len(myFleets(snapshot, playerID))))
 
 	pickResearch(snapshot, me, &d)
+	planShipDesign(snapshot, me, planets, &d)
 	balanceLabor(me, planets, &d)
 	keepBuildQueueWarm(planets, me, &d)
 	resolvePendingColonies(snapshot, playerID, &d)
@@ -50,6 +51,21 @@ func pickResearch(snapshot *VisibleGame, me *model.Player, d *Decision) {
 		return
 	}
 	choice, subject, cost := firstAvailableTech(snapshot.Resources.TechTree, me)
+	if len(me.Available.Beams) == 0 {
+		for _, candidate := range snapshot.Resources.TechTree.Subjects {
+			if candidate.Name == "Physics" && len(candidate.Levels) > 0 {
+				level := candidate.Levels[0]
+				known := map[string]struct{}{}
+				for _, name := range me.ResearchedTechs {
+					known[name] = struct{}{}
+				}
+				if !levelComplete(level, known, me) {
+					choice, subject, cost = level.Name, candidate.Name, level.Cost
+				}
+				break
+			}
+		}
+	}
 	if choice == "" {
 		d.Notes = append(d.Notes, "no current research; no incomplete subjects found")
 		return
@@ -172,6 +188,16 @@ func balanceLabor(me *model.Player, planets []*model.Planet, d *Decision) {
 func keepBuildQueueWarm(planets []*model.Planet, me *model.Player, d *Decision) {
 	wanted := []string{"Automated Factory", "Research Lab", "Marine Barracks"}
 	for _, p := range planets {
+		planned := false
+		for _, cmd := range d.Commands.Build {
+			if cmd.PlanetID == p.ID {
+				planned = true
+				break
+			}
+		}
+		if planned {
+			continue
+		}
 		if p.CurrentProject != "" || len(p.BuildQueue) > 0 {
 			continue
 		}

@@ -373,6 +373,10 @@ func copyCommands(cmds model.Commands) model.Commands {
 			out.BuyProduction[i] = &cp
 		}
 	}
+	if cmds.DesignShip != nil {
+		cp := *cmds.DesignShip
+		out.DesignShip = &cp
+	}
 	if cmds.MutateRace != nil {
 		cp := *cmds.MutateRace
 		cp.TraitIDs = cloneSlice(cmds.MutateRace.TraitIDs)

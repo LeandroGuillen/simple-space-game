@@ -43,12 +43,22 @@ type VisibleResources struct {
 	TechTree             *model.TechTree              `json:"tech_tree,omitempty"`
 	ShipParts            *VisibleShipParts            `json:"ship_parts,omitempty"`
 	ShipDesignCollection *VisibleShipDesignCollection `json:"ship_design_collection,omitempty"`
+	BeamCollection       *VisibleBeams                `json:"beam_collection,omitempty"`
+}
+
+type VisibleBeams struct {
+	Beams []model.Beam `json:"beams"`
 }
 
 // VisibleShipParts carries the fuel-cell catalog the AI needs to match
 // submit-time fuel-range validation (FuelCell autonomy over stamps).
 type VisibleShipParts struct {
 	FuelCells []model.FuelCell `json:"fuel_cells,omitempty"`
+	HullSizes []model.HullSize `json:"hull_sizes,omitempty"`
+	Drives    []model.Drive    `json:"drives,omitempty"`
+	Armors    []model.Armor    `json:"armors,omitempty"`
+	Computers []model.Computer `json:"computers,omitempty"`
+	Shields   []model.Shield   `json:"shields,omitempty"`
 }
 
 // VisibleShipDesignCollection carries stock designs so design-only fleet ships
