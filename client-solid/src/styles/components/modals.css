@@ -30,3 +30,118 @@
     padding: var(--space-4);
   }
 }
+
+/* Turn report: centered modal above the campaign bar (z 30) and toasts,
+   kept clear of the bar so it never sits underneath it. */
+.turn-report-backdrop {
+  padding-bottom: calc(var(--campaign-nav-height) + var(--dialog-gutter));
+}
+
+.turn-report {
+  display: flex;
+  flex-direction: column;
+  width: min(560px, 100%);
+  max-height: min(720px, calc(100dvh - 2 * var(--dialog-gutter) - var(--campaign-nav-height)));
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elev);
+  color: var(--text);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+}
+
+.turn-report-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-4) var(--space-3);
+  border-bottom: 1px solid var(--rule);
+
+  & .eyebrow {
+    margin: 0 0 2px;
+    color: var(--text-dim);
+  }
+
+  & h2 {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: 1.18rem;
+    font-weight: 600;
+  }
+}
+
+.turn-report-close {
+  flex: 0 0 auto;
+  color: var(--text-dim);
+  font-size: 1.25rem;
+  opacity: 1;
+}
+
+.turn-report-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-strong) transparent;
+  padding: var(--space-3) var(--space-4);
+}
+
+.turn-report-empty {
+  margin: 0;
+  color: var(--text-dim);
+}
+
+.turn-report-group + .turn-report-group {
+  margin-top: var(--space-4);
+}
+
+.turn-report-group-title {
+  margin: 0 0 6px;
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.turn-report-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.turn-report-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  background: var(--surface-quiet);
+  color: var(--text);
+  text-decoration: none;
+  line-height: 1.4;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--accent-strong);
+    background: var(--accent-soft);
+  }
+}
+
+.turn-report-row-go {
+  flex: 0 0 auto;
+  color: var(--accent);
+  font-size: 0.78rem;
+}
+
+.turn-report-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--rule);
+}

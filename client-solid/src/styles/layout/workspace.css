@@ -20,7 +20,7 @@
   display: flex;
   align-items: center;
   gap: 0;
-  height: 44px;
+  height: var(--campaign-nav-height);
   max-height: none;
   padding: 0;
   overflow-x: auto;
