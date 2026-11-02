@@ -3,8 +3,8 @@ import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
 import { createSignal, Show } from "solid-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { TurnReport } from "../../components/TurnReport";
-import { groupTurnEvents, visibleInfoBanner } from "../turn-report";
+import { TurnReport, TurnReportDock } from "../../components/TurnReport";
+import { groupTurnEvents, readTurnReportMode, saveTurnReportMode, visibleInfoBanner, type TurnReportMode } from "../turn-report";
 import type { ApiTurnEvent } from "../types/api";
 
 beforeEach(() => {
@@ -16,17 +16,18 @@ afterEach(() => {
 });
 
 const events: ApiTurnEvent[] = [
-  { owner: 1, kind: "population", text: "Population grew by 40 on Alnitak II", planet_id: 2, star_id: 1 },
+  { owner: 1, kind: "starvation", text: "Food shortage on Alnitak II: 12 population lost", planet_id: 2, star_id: 1 },
   { owner: 1, kind: "research", text: "Research completed: Nuclear Drive" },
   { owner: 1, kind: "building", text: "Automated Factory completed at Alnitak II", planet_id: 2, star_id: 1 },
 ];
 
-function Harness(props: { events: ApiTurnEvent[]; onClose?: () => void }) {
+function Harness(props: { events: ApiTurnEvent[]; onClose?: () => void; onModeChange?: (mode: TurnReportMode) => void }) {
   const [open, setOpen] = createSignal(false);
   return <Router root={() => <>
     <button onClick={() => setOpen(true)}>End Turn</button>
     <Show when={open()}>
-      <TurnReport turn={12.4} events={props.events} onClose={() => { props.onClose?.(); setOpen(false); }} />
+      <TurnReport turn={12.4} events={props.events} onClose={() => { props.onClose?.(); setOpen(false); }}
+        mode="popup" onModeChange={(mode) => props.onModeChange?.(mode)} />
     </Show>
   </>}><Route path="*" component={() => null} /></Router>;
 }
@@ -54,7 +55,7 @@ describe("TurnReport", () => {
     const view = render(() => <Harness events={events} />);
     await openReport(view);
     expect(screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent)).toEqual(["Population", "Construction", "Research"]);
-    expect(screen.getByText("Population grew by 40 on Alnitak II").closest("a")?.getAttribute("href")).toBe("/stars/1/planets/2");
+    expect(screen.getByText("Food shortage on Alnitak II: 12 population lost").closest("a")?.getAttribute("href")).toBe("/stars/1/planets/2");
   });
 
   it("omits category headings for a single category", async () => {
@@ -90,7 +91,51 @@ describe("TurnReport", () => {
   });
 });
 
+describe("turn report modes", () => {
+  it("offers Pop up / Dock left / Hide from inside the popup", async () => {
+    const onModeChange = vi.fn();
+    const view = render(() => <Harness events={events} onModeChange={onModeChange} />);
+    await openReport(view);
+    expect(screen.getByRole("radio", { name: "Pop up" }).getAttribute("aria-checked")).toBe("true");
+    fireEvent.click(screen.getByRole("radio", { name: "Hide" }));
+    fireEvent.click(screen.getByRole("radio", { name: "Dock left" }));
+    expect(onModeChange.mock.calls).toEqual([["off"], ["docked"]]);
+  });
+
+  it("renders the dock inline (not as a dialog) and updates it in place for a new turn", () => {
+    const [turn, setTurn] = createSignal(3);
+    const [list, setList] = createSignal<ApiTurnEvent[]>([events[0]]);
+    const view = render(() => <Router root={() =>
+      <TurnReportDock turn={turn()} events={list()} mode="docked" onModeChange={() => {}} />}>
+      <Route path="*" component={() => null} />
+    </Router>);
+    expect(view.queryByRole("dialog")).toBeNull();
+    expect(view.getByText("Stardate 3.0")).toBeTruthy();
+    expect(view.getByRole("radio", { name: "Dock left" }).getAttribute("aria-checked")).toBe("true");
+    setTurn(4);
+    setList([events[1]]);
+    expect(view.getByText("Stardate 4.0")).toBeTruthy();
+    expect(view.getByText("Research completed: Nuclear Drive")).toBeTruthy();
+    expect(view.queryByText("Food shortage on Alnitak II: 12 population lost")).toBeNull();
+  });
+
+  it("persists the mode and falls back to popup for missing or unknown values", () => {
+    const store = new Map<string, string>();
+    const storage = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, v) };
+    expect(readTurnReportMode(storage)).toBe("popup");
+    saveTurnReportMode("docked", storage);
+    expect(readTurnReportMode(storage)).toBe("docked");
+    store.set("client-solid.turnReportMode", "sideways");
+    expect(readTurnReportMode(storage)).toBe("popup");
+  });
+});
+
 describe("turn report helpers", () => {
+  it("drops only the plain Turn complete toast while docked", () => {
+    expect(visibleInfoBanner("Turn complete", "", false, true)).toBe("");
+    expect(visibleInfoBanner("Waiting for 1 player", "", false, true)).toBe("Waiting for 1 player");
+  });
+
   it("hides the info toast while the report is open", () => {
     expect(visibleInfoBanner("Turn complete", "", true)).toBe("");
     expect(visibleInfoBanner("Turn complete", "", false)).toBe("Turn complete");

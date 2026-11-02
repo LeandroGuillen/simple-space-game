@@ -141,7 +141,78 @@
 
 .turn-report-actions {
   display: flex;
-  justify-content: flex-end;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   border-top: 1px solid var(--rule);
+}
+
+.turn-report-mode {
+  display: inline-flex;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.turn-report-mode-option {
+  padding: 4px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  cursor: pointer;
+
+  & + & {
+    border-left: 1px solid var(--rule-strong);
+  }
+
+  &:hover {
+    color: var(--text);
+  }
+
+  &[aria-checked="true"] {
+    background: var(--accent-soft);
+    color: var(--text);
+  }
+}
+
+/* Docked report: left column of the workspace, sticky between top bar and campaign bar. */
+.workspace--report-docked {
+  grid-template-columns: var(--turn-report-dock-width) minmax(0, 1fr);
+  align-items: start;
+}
+
+.turn-report-dock {
+  position: sticky;
+  top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - var(--campaign-nav-height) - 2 * var(--space-4));
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elev);
+  color: var(--text);
+
+  & .turn-report-header,
+  & .turn-report-body,
+  & .turn-report-actions {
+    padding-inline: var(--space-3);
+  }
+
+  & .turn-report-row {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .workspace--report-docked {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .turn-report-dock {
+    position: static;
+    max-height: 40dvh;
+  }
 }

@@ -132,3 +132,33 @@ func TestTurnEventsReportStarvation(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, eventKinds(g.TurnEvents), "starvation")
 }
+func TestTurnEventsSkipPopulationGrowth(t *testing.T) {
+	g, attacker, _ := invasionHarness(t)
+	defender := g.Players[1]
+	before := map[uint]int64{}
+	for _, star := range g.Galaxy.Stars {
+		for _, p := range star.Planets {
+			if p.Owner == attacker.ID {
+				p.Population = max(1000, p.MaxPopulation/2)
+				before[p.ID] = p.Population
+			}
+		}
+	}
+	_, _, err := g.SubmitTurn(attacker.ID, Commands{})
+	require.NoError(t, err)
+	_, advanced, err := g.SubmitTurn(defender.ID, Commands{})
+	require.NoError(t, err)
+	require.True(t, advanced)
+	grew := false
+	for _, star := range g.Galaxy.Stars {
+		for _, p := range star.Planets {
+			if old, ok := before[p.ID]; ok && p.Population > old {
+				grew = true
+			}
+		}
+	}
+	require.True(t, grew, "harness should grow at least one planet")
+	visible, err := g.GetVisibleGameForPlayer(attacker.ID)
+	require.NoError(t, err)
+	assert.NotContains(t, eventKinds(visible.TurnEvents), "population")
+}

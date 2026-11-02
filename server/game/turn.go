@@ -94,8 +94,6 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game, foodRe
 	}
 	if totalFood < foodDemand {
 		game.recordTurnEvent(TurnEvent{Owner: player.ID, Kind: "starvation", Text: fmt.Sprintf("Food shortage on %s: %d population lost", p.Name, max(0, oldPopulation-p.Population)), PlanetID: p.ID, StarID: p.ParentStar})
-	} else if p.Population > oldPopulation {
-		game.recordTurnEvent(TurnEvent{Owner: player.ID, Kind: "population", Text: fmt.Sprintf("Population grew by %d on %s", p.Population-oldPopulation, p.Name), PlanetID: p.ID, StarID: p.ParentStar})
 	}
 	if housingActive && p.Population >= maxPop {
 		p.CurrentProject = tradeGoodsProject

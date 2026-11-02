@@ -29,7 +29,30 @@ export function turnEventHref(event: ApiTurnEvent): string {
   return "/galaxy";
 }
 
-/** The info toast stays hidden while the turn report is open; the report header says the turn is complete. */
-export function visibleInfoBanner(info: string, error: string, reportOpen: boolean): string {
-  return error || reportOpen ? "" : info;
+/**
+ * The info toast stays hidden while the popup is open, and the plain
+ * "Turn complete" toast is dropped while docked: the report header says it.
+ */
+export function visibleInfoBanner(info: string, error: string, reportOpen: boolean, docked = false): string {
+  if (error || reportOpen) return "";
+  return docked && info === "Turn complete" ? "" : info;
+}
+
+export type TurnReportMode = "popup" | "docked" | "off";
+
+export const TURN_REPORT_MODES: { value: TurnReportMode; label: string; title: string }[] = [
+  { value: "popup", label: "Pop up", title: "Open the report after every turn" },
+  { value: "docked", label: "Dock left", title: "Keep the report docked on the left; it updates each turn" },
+  { value: "off", label: "Hide", title: "Hide the report; use the Report button to look it up" },
+];
+
+const TURN_REPORT_MODE_KEY = "client-solid.turnReportMode";
+
+export function readTurnReportMode(storage: Pick<Storage, "getItem"> | undefined = globalThis.localStorage): TurnReportMode {
+  const stored = storage?.getItem(TURN_REPORT_MODE_KEY);
+  return TURN_REPORT_MODES.some((mode) => mode.value === stored) ? (stored as TurnReportMode) : "popup";
+}
+
+export function saveTurnReportMode(mode: TurnReportMode, storage: Pick<Storage, "setItem"> | undefined = globalThis.localStorage) {
+  storage?.setItem(TURN_REPORT_MODE_KEY, mode);
 }

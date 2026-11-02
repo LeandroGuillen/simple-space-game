@@ -11,10 +11,11 @@ import {
   createEffect,
   createMemo,
   createSignal,
+  untrack,
 } from "solid-js";
 import { Portal } from "solid-js/web";
-import { TurnReport } from "./TurnReport";
-import { visibleInfoBanner } from "../lib/turn-report";
+import { TurnReport, TurnReportDock } from "./TurnReport";
+import { readTurnReportMode, saveTurnReportMode, visibleInfoBanner, type TurnReportMode } from "../lib/turn-report";
 
 import { APP_VERSION } from "../lib/app-meta";
 import { fleetRoster } from "../lib/fleet-roster";
@@ -410,6 +411,15 @@ export function AppShell(props: RouteSectionProps) {
 
   const showGameChrome = createMemo(() => isGameCommandPath(location.pathname));
   const [showTurnReport, setShowTurnReport] = createSignal(false);
+  const [turnReportMode, setTurnReportModeSignal] = createSignal<TurnReportMode>(readTurnReportMode());
+  const setTurnReportMode = (mode: TurnReportMode) => {
+    setTurnReportModeSignal(mode);
+    saveTurnReportMode(mode);
+    if (mode !== "popup") closeTurnReport();
+  };
+  const turnReportDocked = createMemo(() => turnReportMode() === "docked" && !!state.game);
+  const playerTurnEvents = createMemo(() =>
+    (state.game?.turnEvents ?? []).filter((event) => event.owner === state.session.playerId));
   const closeTurnReport = () => {
     setShowTurnReport(false);
     // The report header already said the turn is complete; keep warnings visible.
@@ -430,7 +440,10 @@ export function AppShell(props: RouteSectionProps) {
       setShowTurnReport(false);
       return;
     }
-    if (observedReportTurn !== game.currentTurn || events.length > observedReportCount) setShowTurnReport(true);
+    // Docked reports update in place and "off" waits for the Report button; only popup mode interrupts.
+    if ((observedReportTurn !== game.currentTurn || events.length > observedReportCount) && untrack(turnReportMode) === "popup") {
+      setShowTurnReport(true);
+    }
     observedReportTurn = game.currentTurn; observedReportCount = events.length;
   });
   const idleFleetCount = createMemo(() => fleetRoster(state.game, currentPlayer(), state.pendingCommands, state.pendingColonyShipFleets).filter((row) => row.status === "Idle").length);
@@ -818,13 +831,25 @@ export function AppShell(props: RouteSectionProps) {
         when={showGameChrome()}
         fallback={<main class="content content--route">{props.children}</main>}
       >
-        <div class="workspace">
+        <div class="workspace" classList={{ "workspace--report-docked": turnReportDocked() }}>
           <Show when={showTurnReport() && state.game}>
             {(game) => (
               <TurnReport
                 turn={game().currentTurn}
-                events={(game().turnEvents ?? []).filter((event) => event.owner === state.session.playerId)}
+                events={playerTurnEvents()}
                 onClose={closeTurnReport}
+                mode={turnReportMode()}
+                onModeChange={setTurnReportMode}
+              />
+            )}
+          </Show>
+          <Show when={turnReportDocked() && state.game}>
+            {(game) => (
+              <TurnReportDock
+                turn={game().currentTurn}
+                events={playerTurnEvents()}
+                mode={turnReportMode()}
+                onModeChange={setTurnReportMode}
               />
             )}
           </Show>
@@ -964,6 +989,12 @@ export function AppShell(props: RouteSectionProps) {
                     </div>
                   </div>
                   <div class="turn-actions">
+                    <Show when={!turnReportDocked()}>
+                      <button type="button" class="secondary-button" onClick={() => setShowTurnReport(true)}
+                        title="Show what happened last turn">
+                        Report
+                      </button>
+                    </Show>
                     <button type="button" class="secondary-button" onClick={() => void saveGameNow()}
                       disabled={state.isBusy} title="Save current server state; queued orders are not included">
                       Save now
@@ -1031,7 +1062,7 @@ export function AppShell(props: RouteSectionProps) {
         </div>
       </Show>
 
-      <Show when={visibleInfoBanner(state.info, state.error, showTurnReport() && showGameChrome() && !!state.game)}>
+      <Show when={visibleInfoBanner(state.info, state.error, showTurnReport() && showGameChrome() && !!state.game, turnReportDocked() && showGameChrome())}>
         <div
           class="status-banner status-banner--dismissable info"
           role="button"
