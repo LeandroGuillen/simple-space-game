@@ -54,10 +54,11 @@ SSG uses semantic versioning (X.Y.Z) with a single source of truth in the root `
 - Bugfix → increment patch number (e.g., 0.2.1 → 0.2.2)
 
 **Process:**
-1. Run `./scripts/bump-version.sh <new-version>` to update all version locations
-2. Commit: `git add -A && git commit -m "bump version to X.Y.Z"`
-3. Tag: `git tag vX.Y.Z`
-4. Push: `git push origin master && git push origin vX.Y.Z`
+1. Make and verify the change itself (tests, build).
+2. Run `./scripts/bump-version.sh <new-version>` to update all version locations.
+3. Commit the change and the version bump together in **one** commit, with a message describing the behavior change (e.g. `git add -A && git commit -m "food surplus UI"`). Never make a separate `bump version to X.Y.Z` commit.
+4. Tag that commit: `git tag vX.Y.Z`
+5. Push: `git push origin master && git push origin vX.Y.Z`
 
 The version is displayed in the client UI and returned by the server `/status` endpoint.
 

@@ -25,7 +25,7 @@ import {
   formatInteger,
   getBuyProductionCost,
   getPlanetIndustryForWorkers,
-  getPlanetProjectedPopulationGrowth,
+  getPlanetPopulationGrowthForecast,
   findStar,
   getArtificialPlanetTargets,
   getSuitablePlanetsForColonization,
@@ -475,12 +475,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     getPlanetIndustryForWorkers(props.planet, projectedWorkers(), currentPlayer()?.raceTraitIds),
   );
   const housingGrowthProjection = createMemo(() =>
-    getPlanetProjectedPopulationGrowth(
-      props.planet,
-      state.pendingCommands,
-      currentPlayer()?.raceTraitIds,
-      currentPlayer()?.racePopulationGrowthPercent,
-    ),
+    getPlanetPopulationGrowthForecast(state.game, props.planet, state.pendingCommands, currentPlayer()),
   );
   function effectiveProjectCost(project: BuildingViewModel) {
     if (project.name === 'Terraforming') {

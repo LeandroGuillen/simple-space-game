@@ -15,6 +15,7 @@ import {
   getPlanetGrossIndustryForWorkers,
   getPlanetProjectedIncome,
   getPlanetProjectedPopulationGrowth,
+  getProjectedFoodTransfers,
   destinationTransferRoomLeft,
   inboundInFlightTransferUnits,
   isArtificialPlanetTarget,
@@ -313,6 +314,7 @@ describe("freighter food projection", () => {
     };
 
     expect(getProjectedFoodFreightersUsed(game, 1, undefined, game.players[0])).toBe(1);
+    expect(getProjectedFoodTransfers(game, 1, undefined, game.players[0]).get(2)).toBe(1);
   });
 });
 
@@ -374,6 +376,49 @@ describe("getPlanetProjectedPopulationGrowth", () => {
     const colony = planet();
 
     expect(getPlanetProjectedPopulationGrowth(colony, undefined, ["growth_plus_50"], 100)).toBe(200);
+  });
+
+  it("counts food delivered by freighters before applying starvation", () => {
+    const colony = planet({
+      food: { farmers: 0, produced_per_farmer: 2, produced_per_building: 0 },
+    });
+
+    expect(getPlanetProjectedPopulationGrowth(colony)).toBe(-400);
+    expect(getPlanetProjectedPopulationGrowth(colony, undefined, undefined, null, { foodReceived: 10 })).toBe(100);
+  });
+
+  it("converts production to food with Food Replicators", () => {
+    const colony = planet({
+      buildings: [building("Food Replicators")],
+      food: { farmers: 0, produced_per_farmer: 2, produced_per_building: 0 },
+      industry: { workers: 0, produced_per_worker: 3, produced_per_building: 20, produced_per_colonist: 0 },
+    });
+
+    expect(getPlanetProjectedPopulationGrowth(colony)).toBe(100);
+  });
+
+  it("adds medicine growth percent", () => {
+    expect(getPlanetProjectedPopulationGrowth(planet(), undefined, undefined, null, { medicineGrowthPercent: 50 })).toBe(150);
+  });
+
+  it("clamps growth to the planet maximum", () => {
+    const nearlyFull = planet({
+      population: 19950,
+      maxPopulation: 20000,
+      food: { farmers: 10, produced_per_farmer: 2, produced_per_building: 0 },
+      buildings: [building("Cloning Center", [{ name: "population_growth", description: "", bonus: 100 }])],
+    });
+    expect(getPlanetProjectedPopulationGrowth(nearlyFull)).toBe(50);
+  });
+
+  it("still applies starvation at maximum population", () => {
+    const colony = planet({
+      population: 20000,
+      maxPopulation: 20000,
+      food: { farmers: 0, produced_per_farmer: 2, produced_per_building: 0 },
+    });
+
+    expect(getPlanetProjectedPopulationGrowth(colony)).toBe(-1000);
   });
 });
 

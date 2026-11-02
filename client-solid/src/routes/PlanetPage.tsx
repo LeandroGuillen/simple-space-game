@@ -15,7 +15,7 @@ import {
   calculateFleetTravelTurnsFromCoordinates,
   destinationTransferRoomLeft,
   getPlanetProjectedIncome,
-  getPlanetProjectedPopulationGrowth,
+  getPlanetPopulationGrowthForecast,
   inboundInFlightTransferUnits,
   labelForEnvironment,
   labelForGravity,
@@ -59,12 +59,7 @@ export function PlanetPage() {
   const projectedPopGrowth = createMemo(() => {
     const current = planet();
     return current
-      ? getPlanetProjectedPopulationGrowth(
-          current,
-          state.pendingCommands,
-          currentPlayer()?.raceTraitIds,
-          currentPlayer()?.racePopulationGrowthPercent,
-        )
+      ? getPlanetPopulationGrowthForecast(state.game, current, state.pendingCommands, currentPlayer())
       : 0;
   });
   const incomeBreakdown = createMemo(() => {

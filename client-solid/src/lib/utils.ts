@@ -631,16 +631,26 @@ export function getPlanetProjectedIncome(
   };
 }
 
+export type PopulationGrowthContext = {
+  /** Food delivered by automatic freighter transfers this turn. */
+  foodReceived?: number;
+  /** Empire-wide growth percent from researched medicine techs. */
+  medicineGrowthPercent?: number;
+};
+
+/**
+ * Mirrors the server's planet turn growth (server/game/turn.go): Food Replicators
+ * cover deficits before freighter deliveries, and the result is clamped to the
+ * planet's minimum (1,000) and maximum population.
+ */
 export function getPlanetProjectedPopulationGrowth(
   planet: PlanetViewModel,
   pendingCommands?: PendingCommands,
   traitIds?: string[],
   raceGrowthPercent?: number | null,
+  context: PopulationGrowthContext = {},
 ) {
   if (planet.population <= 0) {
-    return 0;
-  }
-  if (planet.population >= planet.maxPopulation) {
     return 0;
   }
 
@@ -652,8 +662,15 @@ export function getPlanetProjectedPopulationGrowth(
   const basicIncrement = planetCapacity > 0 && freeSpace > 0
     ? Math.floor(Math.sqrt((2000 * popUnits * freeSpace) / planetCapacity))
     : 0;
-  const foodProduced = getPlanetFoodForFarmers(planet, allocation.farmers);
   const foodDemand = populationFoodDemand(traitIds, planet.population);
+  const baseFood = getPlanetFoodForFarmers(planet, allocation.farmers);
+  const grossIndustry = getPlanetIndustryForWorkers(planet, allocation.workers, traitIds);
+  const replicatorFood = getFoodReplicatorFood(
+    planet,
+    Math.ceil(foodDemand) - baseFood,
+    grossIndustry,
+  );
+  const foodProduced = baseFood + replicatorFood + (context.foodReceived ?? 0);
   const foodLack = foodDemand - foodProduced;
   const foodLackPenalty = foodLack > 0 ? 50 * foodLack : 0;
   const flatGrowthBonus = planet.buildings.reduce(
@@ -669,18 +686,149 @@ export function getPlanetProjectedPopulationGrowth(
   const isHousing =
     pendingBuild?.building === "Housing" ||
     (!pendingBuild && planet.currentProject?.name === "Housing");
-  const industry = getPlanetIndustryForWorkers(planet, allocation.workers, traitIds);
+  const industry = grossIndustry - replicatorFood * 2;
   const populationUnits = Math.max(1, Math.floor(planet.population / 1000));
-  const housingBonusPercent = isHousing
+  const housingBonusPercent = isHousing && industry > 0
     ? Math.floor((industry * 40) / populationUnits)
     : 0;
-  const raceBonusPercent = racePopulationGrowthPercent(traitIds, raceGrowthPercent);
+  const raceBonusPercent =
+    racePopulationGrowthPercent(traitIds, raceGrowthPercent) +
+    (context.medicineGrowthPercent ?? 0);
 
-  return Math.floor(
+  const growth = Math.trunc(
     Math.floor((basicIncrement * (100 + housingBonusPercent + raceBonusPercent)) / 100) +
       flatGrowthBonus -
       foodLackPenalty,
   );
+  const nextPopulation = Math.min(
+    planet.maxPopulation,
+    Math.max(1000, planet.population + growth),
+  );
+  return nextPopulation - planet.population;
+}
+
+/** Projected growth for a planet with empire-wide inputs (freighters, medicine techs). */
+export function getPlanetPopulationGrowthForecast(
+  game: GameViewModel | null | undefined,
+  planet: PlanetViewModel,
+  pendingCommands?: PendingCommands,
+  player?: PlayerViewModel | null,
+) {
+  return getPlanetProjectedPopulationGrowth(
+    planet,
+    pendingCommands,
+    player?.raceTraitIds,
+    player?.racePopulationGrowthPercent,
+    {
+      foodReceived:
+        getProjectedFoodTransfers(game, planet.owner, pendingCommands, player).get(planet.id) ?? 0,
+      medicineGrowthPercent: getMedicineGrowthPercent(game, player),
+    },
+  );
+}
+
+/** Food converted from production by Food Replicators (2 production = 1 food). */
+function getFoodReplicatorFood(planet: PlanetViewModel, foodDeficit: number, industry: number) {
+  if (foodDeficit <= 0 || industry <= 0) {
+    return 0;
+  }
+  if (!planet.buildings.some((building) => building.name === "Food Replicators")) {
+    return 0;
+  }
+  return Math.min(foodDeficit, Math.floor(industry / 2));
+}
+
+/** Mirrors server MedicineGrowthPercent: upgraded techs do not stack with their successor. */
+export function getMedicineGrowthPercent(
+  game?: GameViewModel | null,
+  player?: PlayerViewModel | null,
+) {
+  if (!game || !player) {
+    return 0;
+  }
+  const techByName = new Map(game.resources.techCollection.techs.map((tech) => [tech.name, tech]));
+  const researched = player.researchedTechs
+    .map((name) => techByName.get(name))
+    .filter((tech): tech is NonNullable<typeof tech> => Boolean(tech));
+  const upgraded = new Set(researched.flatMap((tech) => tech.upgrades));
+  return researched
+    .filter((tech) => !upgraded.has(tech.name))
+    .reduce(
+      (sum, tech) =>
+        sum +
+        tech.grants.modifiers.reduce(
+          (modifierSum, modifier) =>
+            modifierSum + (modifier.name === "population_growth_percent" ? modifier.value : 0),
+          0,
+        ),
+      0,
+    );
+}
+
+/**
+ * Mirrors server calculateAutomaticFoodTransfers: idle freighters move surplus food
+ * to starving colonies, both visited in planet id order.
+ */
+export function getProjectedFoodTransfers(
+  game?: GameViewModel | null,
+  playerId = 1,
+  pendingCommands?: PendingCommands,
+  player?: PlayerViewModel | null,
+) {
+  const received = new Map<number, number>();
+  if (!game) {
+    return received;
+  }
+  const me = player ?? game.players.find((p) => p.id === playerId) ?? null;
+  if (!me) {
+    return received;
+  }
+  let remaining = Math.max(0, me.freighters - me.freightersUsed);
+  if (remaining <= 0) {
+    return received;
+  }
+  const surpluses: { id: number; amount: number }[] = [];
+  const deficits: { id: number; amount: number }[] = [];
+  for (const star of game.galaxy.stars) {
+    for (const planet of star.planets) {
+      if (planet.owner !== playerId) {
+        continue;
+      }
+      const allocation = getProjectedWorkerAllocation(
+        planet,
+        pendingCommands?.movePopulation ?? [],
+      );
+      const produced = getPlanetFoodForFarmers(planet, allocation.farmers);
+      const consumed = Math.ceil(populationFoodDemand(me.raceTraitIds, planet.population));
+      if (produced > consumed) {
+        surpluses.push({ id: planet.id, amount: produced - consumed });
+      } else if (consumed > produced) {
+        deficits.push({ id: planet.id, amount: consumed - produced });
+      }
+    }
+  }
+  surpluses.sort((a, b) => a.id - b.id);
+  deficits.sort((a, b) => a.id - b.id);
+  for (const deficit of deficits) {
+    if (remaining <= 0) {
+      break;
+    }
+    let needed = deficit.amount;
+    for (const surplus of surpluses) {
+      if (needed <= 0 || remaining <= 0) {
+        break;
+      }
+      if (surplus.amount <= 0) {
+        continue;
+      }
+      const moved = Math.min(needed, surplus.amount, remaining);
+      surplus.amount -= moved;
+      needed -= moved;
+      remaining -= moved;
+      received.set(deficit.id, (received.get(deficit.id) ?? 0) + moved);
+    }
+  }
+  return received;
 }
 
 export function getColonyRows(
