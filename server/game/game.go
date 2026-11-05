@@ -1336,9 +1336,10 @@ func validateMovePopulationCommand(cmd *MovePopulationCommand, p *Planet) error 
 	if cmd.Scientists < 0 {
 		return fmt.Errorf("bad pop movement: scientists cannot be negative")
 	}
-	newTotal := cmd.Farmers + cmd.Workers + cmd.Scientists
-	if newTotal > p.Population/1000 {
-		return fmt.Errorf("bad pop movement: too many units")
+	units := p.Population / 1000
+	// Subtract only after bounds checks to avoid overflow on untrusted orders.
+	if cmd.Farmers > units || cmd.Workers > units-cmd.Farmers || cmd.Scientists != units-cmd.Farmers-cmd.Workers {
+		return fmt.Errorf("bad pop movement: must assign all %d units", units)
 	}
 	if cmd.Farmers > 0 && !farmingPossible(p) {
 		return fmt.Errorf("bad pop movement: farming is not possible on this planet")
