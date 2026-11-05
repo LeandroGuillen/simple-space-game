@@ -730,9 +730,7 @@ func (g *Game) applyPlayerTurn(playerID uint, commands Commands) error {
 			return err
 		}
 	}
-	if len(g.PendingColonyBases[playerID]) > 0 && !g.hasColonizablePlanetsInSourceSystems(g.PendingColonyBases[playerID], playerID) {
-		delete(g.PendingColonyBases, playerID)
-	}
+	g.prunePendingColonyBases(playerID)
 	if len(g.PendingColonyShips[playerID]) > 0 && !g.hasColonizablePlanetsForPendingShips(g.PendingColonyShips[playerID], playerID) {
 		delete(g.PendingColonyShips, playerID)
 	}
@@ -1276,26 +1274,8 @@ func (g *Game) validateColonizeCommand(playerID uint, command *ColonizeCommand, 
 		_, _, err = g.validateColonizeWithShipOrder(playerID, command.FleetID, command.PlanetID)
 		return err
 	}
-	// Colony-base path: pending base must exist; target checked at apply against the source system.
-	if g.PendingColonyBases == nil {
-		return fmt.Errorf("no pending colony base")
-	}
-	pending := g.PendingColonyBases[playerID]
-	if len(pending) == 0 {
-		return fmt.Errorf("no pending colony base")
-	}
-	target, err := g.getPlanet(command.PlanetID)
-	if err != nil {
-		return err
-	}
-	source, err := g.getPlanet(pending[len(pending)-1])
-	if err != nil {
-		return err
-	}
-	if target.ParentStar != source.ParentStar {
-		return fmt.Errorf("colony base can only colonize planets in the same system")
-	}
-	return validateColonizePlanetTarget(target)
+	_, err := g.pendingColonyBaseForTarget(playerID, command.PlanetID)
+	return err
 }
 
 func quoteBuyProduction(p *Planet, game *Game) (effectiveCost, remaining, cost int64, err error) {
@@ -1376,17 +1356,17 @@ func (g *Game) processColonizeCommand(playerID uint, command *ColonizeCommand) e
 	if command.FleetID != 0 {
 		return g.ColonizePlanetWithShip(playerID, command.FleetID, command.PlanetID)
 	}
-	if g.PendingColonyBases == nil {
-		g.PendingColonyBases = make(map[uint][]uint)
+	index, err := g.pendingColonyBaseForTarget(playerID, command.PlanetID)
+	if err != nil {
+		return err
 	}
 	pending := g.PendingColonyBases[playerID]
-	if len(pending) == 0 {
-		return fmt.Errorf("no pending colony base")
+	// Write lock already held by SubmitTurn. Consume the base only on success.
+	if err := g.colonizePlanetUnlocked(playerID, pending[index], command.PlanetID); err != nil {
+		return err
 	}
-	sourcePlanetID := pending[len(pending)-1]
-	g.PendingColonyBases[playerID] = pending[:len(pending)-1]
-	// Write lock already held by SubmitTurn.
-	return g.colonizePlanetUnlocked(playerID, sourcePlanetID, command.PlanetID)
+	g.PendingColonyBases[playerID] = append(pending[:index], pending[index+1:]...)
+	return nil
 }
 
 func (g *Game) CreateCapitalPlanet(ownerID uint) error {
@@ -1594,29 +1574,41 @@ func (g *Game) colonizePlanet(ownerID uint, target *Planet) error {
 	return nil
 }
 
-func (g *Game) hasColonizablePlanetsInSourceSystems(sourcePlanetIDs []uint, ownerID uint) bool {
-	sourceStars := make(map[uint]bool)
-	for _, sourcePlanetID := range sourcePlanetIDs {
-		source, err := g.getPlanet(sourcePlanetID)
-		if err != nil || source.Owner != ownerID {
-			continue
-		}
-		sourceStars[source.ParentStar] = true
+// Select the newest usable base in the target system, ignoring stale saved entries.
+func (g *Game) pendingColonyBaseForTarget(playerID, targetID uint) (int, error) {
+	target, err := g.getPlanet(targetID)
+	if err != nil {
+		return 0, err
 	}
-	if len(sourceStars) == 0 {
-		return false
+	if err := validateColonizePlanetTarget(target); err != nil {
+		return 0, err
 	}
-	for _, star := range g.Galaxy.Stars {
-		if !sourceStars[star.ID] {
-			continue
-		}
-		for _, planet := range star.Planets {
-			if planet.Owner == 0 && planet.Environment != PlanetEnvironmentGasGiant && planet.Environment != PlanetEnvironmentAsteroidBelt {
-				return true
-			}
+	pending := g.PendingColonyBases[playerID]
+	for i := len(pending) - 1; i >= 0; i-- {
+		source, err := g.getPlanet(pending[i])
+		if err == nil && source.Owner == playerID && source.ParentStar == target.ParentStar {
+			return i, nil
 		}
 	}
-	return false
+	if len(pending) == 0 {
+		return 0, fmt.Errorf("no pending colony base")
+	}
+	return 0, fmt.Errorf("no owned pending colony base in target system: colony base can only colonize planets in the same system")
+}
+
+func (g *Game) prunePendingColonyBases(playerID uint) {
+	var kept []uint
+	for _, sourceID := range g.PendingColonyBases[playerID] {
+		source, err := g.getPlanet(sourceID)
+		if err == nil && source.Owner == playerID && g.hasColonizablePlanetsInStar(source.ParentStar) {
+			kept = append(kept, sourceID)
+		}
+	}
+	if len(kept) == 0 {
+		delete(g.PendingColonyBases, playerID)
+	} else {
+		g.PendingColonyBases[playerID] = kept
+	}
 }
 
 func (g *Game) hasColonizablePlanetsForPendingShips(fleetIDs []uint, ownerID uint) bool {

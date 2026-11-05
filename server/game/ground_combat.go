@@ -561,7 +561,9 @@ func (g *Game) capturePlanet(planet *Planet, newOwnerID uint, survivingUnits *Gr
 		remaining = append(remaining, name)
 	}
 	planet.Buildings = remaining
+	formerOwnerID := planet.Owner
 	planet.Owner = newOwnerID
+	g.prunePendingColonyBases(formerOwnerID)
 	g.updatePlanetDefenders(planet, survivingUnits)
 	planet.CurrentProject = ""
 	planet.BuildQueue = nil
