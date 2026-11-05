@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
+	"sort"
 	"ssg/game"
 	"ssg/model"
 	"ssg/ws"
+	"strings"
 	"sync"
 	"time"
 
@@ -18,6 +20,7 @@ type Server struct {
 	gameList          map[string]*game.Game
 	gameListMu        sync.RWMutex
 	autosaves         *autosaveStore
+	customMu          sync.RWMutex // guards CustomRaces, CustomShipDesigns and the catalog rebuild; writers hold it across persist and rollback
 	CustomRaces       map[string]game.RaceDesign
 	CustomShipDesigns map[string]model.ShipDesign
 	ResourceManager   *game.ResourceManager
@@ -153,6 +156,42 @@ func NewServerWithOptions(opts ServerOptions) (*Server, error) {
 	return server, nil
 }
 
+// customRaceList returns the saved custom races sorted by name.
+func (s *Server) customRaceList() []game.RaceDesign {
+	s.customMu.RLock()
+	defer s.customMu.RUnlock()
+	races := make([]game.RaceDesign, 0, len(s.CustomRaces))
+	for _, race := range s.CustomRaces {
+		races = append(races, race)
+	}
+	sort.Slice(races, func(i, j int) bool {
+		return races[i].Name < races[j].Name
+	})
+	return races
+}
+
+func (s *Server) customRace(name string) (game.RaceDesign, bool) {
+	s.customMu.RLock()
+	defer s.customMu.RUnlock()
+	race, ok := s.CustomRaces[name]
+	return race, ok
+}
+
+// customShipDesignList returns the saved custom ship designs sorted by name (case-insensitive).
+func (s *Server) customShipDesignList() []model.ShipDesign {
+	s.customMu.RLock()
+	defer s.customMu.RUnlock()
+	designs := make([]model.ShipDesign, 0, len(s.CustomShipDesigns))
+	for _, d := range s.CustomShipDesigns {
+		designs = append(designs, d)
+	}
+	sort.Slice(designs, func(i, j int) bool {
+		return strings.ToLower(designs[i].Name) < strings.ToLower(designs[j].Name)
+	})
+	return designs
+}
+
+// persistCustomRaces writes CustomRaces to disk. Caller must hold customMu.
 func (s *Server) persistCustomRaces() error {
 	if s == nil || s.RaceStore == nil {
 		return fmt.Errorf("race persistence unavailable")
@@ -164,6 +203,7 @@ func (s *Server) persistCustomRaces() error {
 	return s.RaceStore.SaveAll(s.ResourceManager, list)
 }
 
+// persistCustomShipDesigns writes CustomShipDesigns to disk. Caller must hold customMu.
 func (s *Server) persistCustomShipDesigns() error {
 	if s == nil || s.ShipStore == nil {
 		return fmt.Errorf("ship design persistence unavailable")
@@ -175,6 +215,8 @@ func (s *Server) persistCustomShipDesigns() error {
 	return s.ShipStore.SaveAll(s.ResourceManager, list)
 }
 
+// rebuildShipDesignCatalog merges built-in and custom ship designs into the
+// shared catalog. Caller must hold customMu (or own the server exclusively).
 func (s *Server) rebuildShipDesignCatalog() {
 	if s == nil || s.ResourceManager == nil {
 		return

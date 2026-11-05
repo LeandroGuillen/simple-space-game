@@ -119,7 +119,7 @@ func raceFromRequest(server *Server, req NewGameRequest) (model.Race, error) {
 		if name == "" {
 			return model.Race{}, fmt.Errorf("custom race name or payload is required")
 		}
-		saved, ok := server.CustomRaces[name]
+		saved, ok := server.customRace(name)
 		if !ok {
 			return model.Race{}, fmt.Errorf("unknown custom race %q", name)
 		}

@@ -8,6 +8,10 @@ import (
 )
 
 // ApplyMergedShipDesignCatalog replaces ShipDesignCollection.ShipDesigns with built-ins plus sorted customs.
+// It is copy-on-write: a fresh collection is built and swapped in with a single
+// pointer store, so readers that already hold the previous collection or its
+// ShipDesigns slice keep a consistent view and never observe a half-written
+// slice header.
 func (r *ResourceManager) ApplyMergedShipDesignCatalog(custom []ShipDesign) {
 	if r == nil || r.ShipDesignCollection == nil {
 		return
@@ -18,7 +22,10 @@ func (r *ResourceManager) ApplyMergedShipDesignCatalog(custom []ShipDesign) {
 	})
 	merged := append([]ShipDesign{}, r.BuiltinShipDesigns...)
 	merged = append(merged, sorted...)
-	r.ShipDesignCollection.ShipDesigns = merged
+	r.ShipDesignCollection = &ShipDesignCollection{
+		ShipDesignsDefs: r.ShipDesignCollection.ShipDesignsDefs,
+		ShipDesigns:     merged,
+	}
 }
 
 // IsBuiltInShipDesignName reports whether name matches a built-in ship design (case-insensitive).

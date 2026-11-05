@@ -3,7 +3,6 @@ package server
 import (
 	"log"
 	"net/http"
-	"sort"
 	"strings"
 
 	"ssg/game"
@@ -16,16 +15,9 @@ func GetRaces(c *gin.Context) {
 	if !ok {
 		return
 	}
-	out := make([]game.RaceDesign, 0, len(server.ResourceManager.BuiltInRaces)+len(server.CustomRaces))
+	custom := server.customRaceList()
+	out := make([]game.RaceDesign, 0, len(server.ResourceManager.BuiltInRaces)+len(custom))
 	out = append(out, server.ResourceManager.BuiltInRaces...)
-
-	custom := make([]game.RaceDesign, 0, len(server.CustomRaces))
-	for _, race := range server.CustomRaces {
-		custom = append(custom, race)
-	}
-	sort.Slice(custom, func(i, j int) bool {
-		return custom[i].Name < custom[j].Name
-	})
 	out = append(out, custom...)
 
 	c.JSON(http.StatusOK, gin.H{"races": out})
@@ -36,14 +28,7 @@ func GetCustomRaces(c *gin.Context) {
 	if !ok {
 		return
 	}
-	races := make([]game.RaceDesign, 0, len(server.CustomRaces))
-	for _, race := range server.CustomRaces {
-		races = append(races, race)
-	}
-	sort.Slice(races, func(i, j int) bool {
-		return races[i].Name < races[j].Name
-	})
-	c.JSON(http.StatusOK, gin.H{"custom_races": races})
+	c.JSON(http.StatusOK, gin.H{"custom_races": server.customRaceList()})
 }
 
 func SaveCustomRace(c *gin.Context) {
@@ -74,6 +59,9 @@ func SaveCustomRace(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	server.customMu.Lock()
+	defer server.customMu.Unlock()
 
 	if req.SaveAsNew {
 		if _, exists := server.CustomRaces[design.Name]; exists {
@@ -140,6 +128,8 @@ func DeleteCustomRace(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "cannot delete built-in race"})
 		return
 	}
+	server.customMu.Lock()
+	defer server.customMu.Unlock()
 	if _, exists := server.CustomRaces[name]; !exists {
 		c.JSON(http.StatusNotFound, gin.H{"error": "custom race not found"})
 		return

@@ -3,7 +3,6 @@ package server
 import (
 	"log"
 	"net/http"
-	"sort"
 	"strings"
 
 	"ssg/game"
@@ -53,17 +52,11 @@ func GetShipDesignTemplates(c *gin.Context) {
 	if !ok {
 		return
 	}
-	out := make([]ShipDesignTemplate, 0, len(server.ResourceManager.BuiltinShipDesigns)+len(server.CustomShipDesigns))
+	custom := server.customShipDesignList()
+	out := make([]ShipDesignTemplate, 0, len(server.ResourceManager.BuiltinShipDesigns)+len(custom))
 	for _, d := range server.ResourceManager.BuiltinShipDesigns {
 		out = append(out, shipDesignTemplateFromModel(d, true))
 	}
-	custom := make([]model.ShipDesign, 0, len(server.CustomShipDesigns))
-	for _, d := range server.CustomShipDesigns {
-		custom = append(custom, d)
-	}
-	sort.Slice(custom, func(i, j int) bool {
-		return strings.ToLower(custom[i].Name) < strings.ToLower(custom[j].Name)
-	})
 	for _, d := range custom {
 		out = append(out, shipDesignTemplateFromModel(d, false))
 	}
@@ -75,13 +68,7 @@ func GetCustomShipDesignTemplates(c *gin.Context) {
 	if !ok {
 		return
 	}
-	custom := make([]model.ShipDesign, 0, len(server.CustomShipDesigns))
-	for _, d := range server.CustomShipDesigns {
-		custom = append(custom, d)
-	}
-	sort.Slice(custom, func(i, j int) bool {
-		return strings.ToLower(custom[i].Name) < strings.ToLower(custom[j].Name)
-	})
+	custom := server.customShipDesignList()
 	out := make([]ShipDesignTemplate, 0, len(custom))
 	for _, d := range custom {
 		out = append(out, shipDesignTemplateFromModel(d, false))
@@ -122,6 +109,9 @@ func SaveCustomShipDesign(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	server.customMu.Lock()
+	defer server.customMu.Unlock()
 
 	if req.SaveAsNew {
 		if _, exists := server.CustomShipDesigns[design.Name]; exists {
@@ -191,6 +181,8 @@ func DeleteCustomShipDesign(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "cannot delete built-in ship design"})
 		return
 	}
+	server.customMu.Lock()
+	defer server.customMu.Unlock()
 	if _, exists := server.CustomShipDesigns[name]; !exists {
 		c.JSON(http.StatusNotFound, gin.H{"error": "custom ship design not found"})
 		return
