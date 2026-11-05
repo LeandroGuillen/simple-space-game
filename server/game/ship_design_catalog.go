@@ -7,10 +7,31 @@ import (
 	. "ssg/model"
 )
 
-// ApplyMergedShipDesignCatalog replaces ShipDesignCollection.ShipDesigns with built-ins plus sorted customs.
-// It is copy-on-write: a fresh collection is built and swapped in with a single
-// pointer store, so readers that already hold the previous collection or its
-// ShipDesigns slice keep a consistent view and never observe a half-written
+// ShipDesignCatalog returns the current merged stock ship-design catalog (built-ins
+// plus customs). The slice is immutable; concurrent catalog rebuilds publish a new
+// snapshot without racing readers.
+func (r *Resources) ShipDesignCatalog() []ShipDesign {
+	if r == nil {
+		return nil
+	}
+	coll := r.shipDesignCatalog.Load()
+	if coll == nil {
+		return nil
+	}
+	return coll.ShipDesigns
+}
+
+func (r *Resources) publishShipDesignCatalog(coll *ShipDesignCollection) {
+	if r == nil || coll == nil {
+		return
+	}
+	r.shipDesignCatalog.Store(coll)
+	r.ShipDesignCollection = coll
+}
+
+// ApplyMergedShipDesignCatalog replaces the published catalog with built-ins plus sorted customs.
+// It is copy-on-write: a fresh collection is built and published with a single
+// atomic store, so readers keep a consistent view and never observe a half-written
 // slice header.
 func (r *ResourceManager) ApplyMergedShipDesignCatalog(custom []ShipDesign) {
 	if r == nil || r.ShipDesignCollection == nil {
@@ -22,10 +43,10 @@ func (r *ResourceManager) ApplyMergedShipDesignCatalog(custom []ShipDesign) {
 	})
 	merged := append([]ShipDesign{}, r.BuiltinShipDesigns...)
 	merged = append(merged, sorted...)
-	r.ShipDesignCollection = &ShipDesignCollection{
+	r.Resources.publishShipDesignCatalog(&ShipDesignCollection{
 		ShipDesignsDefs: r.ShipDesignCollection.ShipDesignsDefs,
 		ShipDesigns:     merged,
-	}
+	})
 }
 
 // IsBuiltInShipDesignName reports whether name matches a built-in ship design (case-insensitive).

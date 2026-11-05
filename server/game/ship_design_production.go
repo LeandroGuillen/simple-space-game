@@ -10,11 +10,12 @@ import (
 const frigateProductionCost int64 = 100
 
 func (g *Game) findBuildableShipDesign(player *Player, name string) (*ShipDesign, bool) {
-	if g == nil || g.Resources == nil || g.Resources.ShipDesignCollection == nil || player == nil || name == "" {
+	if g == nil || g.Resources == nil || player == nil || name == "" {
 		return nil, false
 	}
-	for i := range g.Resources.ShipDesigns {
-		design := &g.Resources.ShipDesigns[i]
+	stock := g.Resources.ShipDesignCatalog()
+	for i := range stock {
+		design := &stock[i]
 		if design.Name == name && g.playerCanBuildShipDesign(player, *design) {
 			return design, true
 		}

@@ -1778,7 +1778,7 @@ func (g *Game) GetShipDesignsList(playerID uint) ([]*ShipDesign, error) {
 		return nil, err
 	}
 	var shipDesigns []*ShipDesign
-	for _, d := range g.Resources.ShipDesigns {
+	for _, d := range g.Resources.ShipDesignCatalog() {
 		cp := copyShipDesign(d)
 		shipDesigns = append(shipDesigns, &cp)
 	}
@@ -1854,7 +1854,7 @@ func (g *Game) CreateShipDesign(
 			return fmt.Errorf("cannot create a design with name '%s', name already exists", name)
 		}
 	}
-	for _, design := range g.Resources.ShipDesigns {
+	for _, design := range g.Resources.ShipDesignCatalog() {
 		if design.Name == name {
 			return fmt.Errorf("cannot create a design with name %q, name already exists", name)
 		}

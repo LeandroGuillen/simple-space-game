@@ -17,11 +17,9 @@ func (g *Game) shipDesignFromOrder(p *Player, c *DesignShipCommand) (ShipDesign,
 	if strings.TrimSpace(c.Name) != c.Name || len(c.Name) == 0 || len(c.Name) > 80 {
 		return empty, fmt.Errorf("invalid ship design name")
 	}
-	if g.Resources.ShipDesignCollection != nil {
-		for _, d := range g.Resources.ShipDesigns {
-			if d.Name == c.Name {
-				return empty, fmt.Errorf("ship design name already exists")
-			}
+	for _, d := range g.Resources.ShipDesignCatalog() {
+		if d.Name == c.Name {
+			return empty, fmt.Errorf("ship design name already exists")
 		}
 	}
 	for _, d := range p.ShipDesigns {

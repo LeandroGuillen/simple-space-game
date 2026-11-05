@@ -296,8 +296,8 @@ func (g *Game) findShipDesignForFleetShip(player *Player, ship FleetShip) (ShipD
 	if player != nil {
 		playerDesigns = player.ShipDesigns
 	}
-	if g != nil && g.Resources != nil && g.Resources.ShipDesignCollection != nil {
-		stock = g.Resources.ShipDesigns
+	if g != nil && g.Resources != nil {
+		stock = g.Resources.ShipDesignCatalog()
 	}
 	return findDesignForFuelRange(ship.DesignName, playerDesigns, stock)
 }
@@ -312,9 +312,7 @@ func (g *Game) fuelRangeLookup(player *Player) FuelRangeLookup {
 		if g.Resources.ShipPartsCollection != nil {
 			lookup.FuelCells = g.Resources.FuelCells
 		}
-		if g.Resources.ShipDesignCollection != nil {
-			lookup.StockDesigns = g.Resources.ShipDesigns
-		}
+		lookup.StockDesigns = g.Resources.ShipDesignCatalog()
 	}
 	if player != nil {
 		lookup.PlayerDesigns = player.ShipDesigns

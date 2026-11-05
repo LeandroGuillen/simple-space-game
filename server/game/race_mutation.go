@@ -28,8 +28,7 @@ func (g *Game) validateMutateRaceOrder(player *model.Player, cmd model.MutateRac
 		Government: player.Race.Government,
 		TraitIDs:   cmd.TraitIDs,
 	}
-	resourceManager := &ResourceManager{Resources: *g.Resources}
-	mutatedRace, err := buildMutationRace(resourceManager, mutationDesign, player.Race)
+	mutatedRace, err := buildMutationRace(g.Resources, mutationDesign, player.Race)
 	if err != nil {
 		return model.Race{}, fmt.Errorf("invalid race mutation: %w", err)
 	}
@@ -59,13 +58,13 @@ func (g *Game) ApplyRaceMutation(playerID uint, cmd model.MutateRaceCommand) err
 
 // buildMutationRace builds a race for mutation, using 14 pick points and
 // keeping the original race name and government.
-func buildMutationRace(resources *ResourceManager, design RaceDesign, originalRace model.Race) (model.Race, error) {
+func buildMutationRace(resources *Resources, design RaceDesign, originalRace model.Race) (model.Race, error) {
 	byID := raceTraitDefinitionsByID()
 	seen := map[string]bool{}
 	exclusiveGroups := map[string]string{}
 
 	// Start with base government cost
-	government, ok := findGovernmentTech(&resources.Resources, design.Government)
+	government, ok := findGovernmentTech(resources, design.Government)
 	if !ok {
 		return model.Race{}, fmt.Errorf("unknown government %q", design.Government)
 	}

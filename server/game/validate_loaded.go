@@ -436,7 +436,7 @@ func shipDesignKnown(owner *Player, resources *ResourceManager, name string) boo
 		}
 	}
 	if resources != nil {
-		for _, d := range resources.ShipDesigns {
+		for _, d := range resources.ShipDesignCatalog() {
 			if d.Name == name {
 				return true
 			}

@@ -8,6 +8,7 @@ import (
 	"slices"
 	. "ssg/model"
 	"strings"
+	"sync/atomic"
 )
 
 type Resources struct {
@@ -20,6 +21,7 @@ type Resources struct {
 	*BeamCollection        `json:"beam_collection"`
 	*EnvironmentCollection `json:"environment_collection"`
 	*TechTree              `json:"tech_tree"`
+	shipDesignCatalog      atomic.Pointer[ShipDesignCollection]
 }
 
 type ShipPartsCollection struct {
@@ -237,6 +239,7 @@ func (r *ResourceManager) loadDataFromFiles() error {
 		r.ShipDesigns = append(r.ShipDesigns, design)
 	}
 	r.BuiltinShipDesigns = slices.Clone(r.ShipDesigns)
+	r.Resources.publishShipDesignCatalog(r.ShipDesignCollection)
 
 	var techTree TechTree
 	if err := json.Unmarshal(techTreeFile, &techTree); err != nil {

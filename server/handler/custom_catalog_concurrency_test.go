@@ -186,7 +186,7 @@ func TestConcurrentCustomShipDesignSaveAndList(t *testing.T) {
 	assert.Equal(t, expectedSurvivors("S"), got)
 
 	// The merged catalog used by games must hold built-ins plus exactly the survivors.
-	catalog := s.ResourceManager.ShipDesigns
+	catalog := s.ResourceManager.ShipDesignCatalog()
 	require.Len(t, catalog, len(s.ResourceManager.BuiltinShipDesigns)+len(expectedSurvivors("S")))
 	for i, name := range expectedSurvivors("S") {
 		assert.Equal(t, name, catalog[len(s.ResourceManager.BuiltinShipDesigns)+i].Name)

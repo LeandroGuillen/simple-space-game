@@ -47,8 +47,8 @@ func TestResourceManagerLoadsBuildableStarterFrigate(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)
 
-	require.NotEmpty(t, resources.ShipDesigns)
-	design := resources.ShipDesigns[0]
+	require.NotEmpty(t, resources.ShipDesignCatalog())
+	design := resources.ShipDesignCatalog()[0]
 	assert.Equal(t, "Flunker I", design.Name)
 	assert.Equal(t, "Frigate", design.HullSize.Name)
 	assert.Equal(t, "Nuclear", design.Drive.Name)
