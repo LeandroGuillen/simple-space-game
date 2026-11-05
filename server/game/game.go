@@ -86,6 +86,22 @@ type NewGameOptions struct {
 	NumPlayers  uint
 }
 
+// InvalidInputError marks setup values the caller can fix (invalid player
+// color, too many players, ...). Callers detect it with errors.As and answer
+// with a client error instead of an internal error.
+type InvalidInputError struct {
+	Message string
+}
+
+func (e *InvalidInputError) Error() string { return e.Message }
+
+// IsInvalidInput marks the error as caller-fixable input.
+func (e *InvalidInputError) IsInvalidInput() bool { return true }
+
+func invalidInputf(format string, args ...any) error {
+	return &InvalidInputError{Message: fmt.Sprintf(format, args...)}
+}
+
 func NewGame(resources *ResourceManager, options NewGameOptions) (*Game, error) {
 	playerName := options.PlayerName
 	playerColor := options.PlayerColor
@@ -95,16 +111,16 @@ func NewGame(resources *ResourceManager, options NewGameOptions) (*Game, error) 
 		numPlayers = 1
 	}
 	if numPlayers > MaxPlayers {
-		return nil, fmt.Errorf("players must be between 1 and %d", MaxPlayers)
+		return nil, invalidInputf("players must be between 1 and %d", MaxPlayers)
 	}
 	if numPlayers > numStars {
-		return nil, fmt.Errorf("players (%d) cannot exceed stars (%d)", numPlayers, numStars)
+		return nil, invalidInputf("players (%d) cannot exceed stars (%d)", numPlayers, numStars)
 	}
 	if playerColor == "" {
 		playerColor = DefaultPlayerColor()
 	}
 	if !IsValidPlayerColor(playerColor) {
-		return nil, fmt.Errorf("invalid player color %q", playerColor)
+		return nil, invalidInputf("invalid player color %q", playerColor)
 	}
 	race := options.Race
 	if race.Name == "" {
@@ -132,7 +148,7 @@ func NewGame(resources *ResourceManager, options NewGameOptions) (*Game, error) 
 	}
 	randomShuffle(len(remaining), func(i, j int) { remaining[i], remaining[j] = remaining[j], remaining[i] })
 	if uint(len(remaining)) < numPlayers-1 {
-		return nil, fmt.Errorf("not enough player colors for %d players", numPlayers)
+		return nil, invalidInputf("not enough player colors for %d players", numPlayers)
 	}
 	for slot := uint(2); slot <= numPlayers; slot++ {
 		color := remaining[slot-2]

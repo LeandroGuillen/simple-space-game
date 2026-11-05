@@ -1,7 +1,9 @@
 package server
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"ssg/game"
@@ -63,7 +65,12 @@ type GetGalaxyRequest struct {
 
 func NewGame(c *gin.Context) {
 	var req NewGameRequest
-	_ = c.Bind(&req)
+	// ShouldBindJSON leaves the response to us; c.Bind would abort with its
+	// own 400 and let the handler write a second one.
+	if err := c.ShouldBindJSON(&req); err != nil && !errors.Is(err, io.EOF) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("invalid request body: %s", err.Error())})
+		return
+	}
 	if req.Difficulty != "" || req.GalaxyAge != "" || req.TechLevel != "" {
 		log.Printf("new game: difficulty, galaxy_age and tech_level are ignored")
 	}
@@ -77,6 +84,12 @@ func NewGame(c *gin.Context) {
 	}
 	server := rawServer.(*Server)
 
+	galaxySize, err := galaxySizeFromRequest(req.GalaxySize)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	race, err := raceFromRequest(server, req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -86,11 +99,17 @@ func NewGame(c *gin.Context) {
 		PlayerName:  req.PlayerName,
 		PlayerColor: req.PlayerColor,
 		NumStars:    req.NumStars,
-		GalaxySize:  req.GalaxySize,
+		GalaxySize:  galaxySize,
 		Race:        race,
 		NumPlayers:  req.Players,
 	})
 	if err != nil {
+		// Setup values the caller can fix are client errors, not server bugs.
+		var invalidInput *game.InvalidInputError
+		if errors.As(err, &invalidInput) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": fmt.Sprintf("error creating game: %s", err.Error()),
 		})
@@ -103,6 +122,21 @@ func NewGame(c *gin.Context) {
 		response["warning"] = "Game created, but autosave failed. Use Save now to retry."
 	}
 	c.JSON(http.StatusOK, response)
+}
+
+// galaxySizeFromRequest validates the requested galaxy size. An empty size
+// means the server default; unknown sizes are rejected instead of silently
+// building a default map.
+func galaxySizeFromRequest(size string) (string, error) {
+	galaxySize, ok := game.NormalizeGalaxySize(size)
+	if !ok {
+		return "", fmt.Errorf(
+			"unknown galaxy size %q (expected one of: %s)",
+			size,
+			strings.Join(game.BuiltinGalaxySizes, ", "),
+		)
+	}
+	return galaxySize, nil
 }
 
 func raceFromRequest(server *Server, req NewGameRequest) (model.Race, error) {

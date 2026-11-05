@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"ssg/model"
+	"strings"
 )
 
 const (
@@ -30,12 +31,27 @@ const (
 	maxRandomStarPlacementTries = 8_000
 )
 
+// Builtin galaxy sizes. They are the only sizes the server can build; any
+// other requested size is rejected instead of silently becoming a medium map.
+const (
+	galaxySizeTiny   = "tiny"
+	galaxySizeMedium = "medium"
+	galaxySizeHuge   = "huge"
+)
+
+// DefaultGalaxySize is the size used when the caller does not ask for one.
+const DefaultGalaxySize = galaxySizeMedium
+
+// BuiltinGalaxySizes lists the galaxy sizes the server can build, from the
+// smallest to the largest.
+var BuiltinGalaxySizes = []string{galaxySizeTiny, galaxySizeMedium, galaxySizeHuge}
+
 // ClientGalaxyStarCounts are the star counts the web client sends for each
 // built-in galaxy size (client-solid SetupPage galaxySizeStars).
 var ClientGalaxyStarCounts = map[string]uint{
-	"tiny":   15,
-	"medium": 40,
-	"huge":   100,
+	galaxySizeTiny:   15,
+	galaxySizeMedium: 40,
+	galaxySizeHuge:   100,
 }
 
 // GalaxyPlacementStats reports how star positions were chosen.
@@ -56,13 +72,27 @@ type GalaxyPlacementStats struct {
 	CollapsedPlacement bool
 }
 
+// NormalizeGalaxySize validates a requested galaxy size. An empty size means
+// the default one. Unknown sizes are rejected (false) instead of silently
+// falling back to a default map.
+func NormalizeGalaxySize(size string) (string, bool) {
+	switch key := strings.ToLower(strings.TrimSpace(size)); key {
+	case "":
+		return DefaultGalaxySize, true
+	case galaxySizeTiny, galaxySizeMedium, galaxySizeHuge:
+		return key, true
+	default:
+		return "", false
+	}
+}
+
 func galaxyDimensionsForSize(size string) (int64, int64) {
 	switch size {
-	case "tiny":
+	case galaxySizeTiny:
 		return tinyGalaxyWidth, tinyGalaxyHeight
-	case "medium":
+	case galaxySizeMedium:
 		return mediumGalaxyWidth, mediumGalaxyHeight
-	case "huge":
+	case galaxySizeHuge:
 		return hugeGalaxyWidth, hugeGalaxyHeight
 	default:
 		return mediumGalaxyWidth, mediumGalaxyHeight
@@ -347,7 +377,7 @@ func NewGalaxyForSizeWithStats(numStars uint, galaxySize string) (model.Galaxy, 
 			stars = append(stars, createStar(i))
 		}
 		stats.MinSeparation = placeStarsOnLattice(stars, width, height)
-		if galaxySize == "tiny" && numStars == 15 {
+		if galaxySize == galaxySizeTiny && numStars == 15 {
 			jitterTinyLattice(stars, width, height)
 			stats.MinSeparation = 47
 		}
