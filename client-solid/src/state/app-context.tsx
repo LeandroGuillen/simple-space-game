@@ -13,6 +13,7 @@ import {
 } from '../lib/setup-session-storage';
 import { isAutobuildProject, isBuildingApplicableToPlanet } from '../lib/construction';
 import { isServerDebugEnabled } from '../lib/server-status';
+import { colonyShipArrivalPrompts, hasEligibleColonizationPlanet, type ColonizePrompt } from '../lib/colonization';
 import {
   findPlanet,
   getColonyRows,
@@ -82,6 +83,9 @@ type AppState = {
   pendingColonyBasePlanets: number[]; // planets where Colony Base completed
   pendingColonyShipFleets: number[]; // fleets where Colony Ship command completed
   pendingArtificialPlanetSourcePlanets: number[]; // planets where Artificial Planet Construction completed
+  colonizePromptQueue: ColonizePrompt[];
+  colonizePromptDismissed: Record<number, number>; // fleet ID -> suppressed star ID
+  automaticColonizePrompt: boolean;
   showColonizeModal: boolean;
   showArtificialPlanetModal: boolean;
 };
@@ -200,6 +204,9 @@ export function AppProvider(props: ParentProps) {
     pendingColonyBasePlanets: [],
     pendingColonyShipFleets: [],
     pendingArtificialPlanetSourcePlanets: [],
+    colonizePromptQueue: [],
+    colonizePromptDismissed: {},
+    automaticColonizePrompt: false,
     showColonizeModal: false,
     showArtificialPlanetModal: false,
   });
@@ -234,6 +241,9 @@ export function AppProvider(props: ParentProps) {
       pendingColonyBasePlanets: [],
       pendingColonyShipFleets: [],
       pendingArtificialPlanetSourcePlanets: [],
+      colonizePromptQueue: [],
+      colonizePromptDismissed: {},
+      automaticColonizePrompt: false,
       showColonizeModal: false,
       showArtificialPlanetModal: false,
       error: '',
@@ -261,6 +271,9 @@ export function AppProvider(props: ParentProps) {
       pendingColonyBasePlanets: [],
       pendingColonyShipFleets: [],
       pendingArtificialPlanetSourcePlanets: [],
+      colonizePromptQueue: [],
+      colonizePromptDismissed: {},
+      automaticColonizePrompt: false,
       showColonizeModal: false,
       showArtificialPlanetModal: false,
       info: 'Disconnected',
@@ -642,6 +655,57 @@ export function AppProvider(props: ParentProps) {
     setState('info', 'Invasion cancelled');
   }
 
+  function activeColonizeQueueHead() {
+    const head = state.colonizePromptQueue[0];
+    if (
+      state.pendingColonyBasePlanets.length > 0 ||
+      state.pendingColonyShipFleets.length !== 1 ||
+      head?.fleetId !== state.pendingColonyShipFleets[0]
+    ) {
+      return undefined;
+    }
+    return head;
+  }
+
+  function showNextColonizePrompt() {
+    if (state.pendingColonyBasePlanets.length > 0) {
+      setState({
+        pendingColonyShipFleets: [],
+        automaticColonizePrompt: false,
+        showColonizeModal: true,
+        showArtificialPlanetModal: false,
+      });
+      return;
+    }
+
+    const head = state.colonizePromptQueue[0];
+    if (head) {
+      setState({
+        pendingColonyShipFleets: [head.fleetId],
+        automaticColonizePrompt: head.automatic,
+        showColonizeModal: true,
+        showArtificialPlanetModal: false,
+      });
+      return;
+    }
+
+    setState({
+      pendingColonyShipFleets: [],
+      automaticColonizePrompt: false,
+      showColonizeModal: false,
+      showArtificialPlanetModal: state.pendingArtificialPlanetSourcePlanets.length > 0,
+    });
+  }
+
+  function finishActiveColonizePrompt() {
+    const active = activeColonizeQueueHead();
+    if (active) {
+      setState('colonizePromptQueue', (queue) => queue.slice(1));
+    }
+    setState('pendingColonyBasePlanets', []);
+    showNextColonizePrompt();
+  }
+
   function selectColonizeTarget(planetId: number) {
     const game = state.game;
     const target = game ? findPlanet(game, planetId) : null;
@@ -663,21 +727,15 @@ export function AppProvider(props: ParentProps) {
           )?.id
         : undefined;
     addColonizeCommand(fleetId ? { planet_id: planetId, fleet_id: fleetId } : { planet_id: planetId });
-    setState('showColonizeModal', false);
-    setState('pendingColonyBasePlanets', []);
-    setState('pendingColonyShipFleets', []);
-    if (state.pendingArtificialPlanetSourcePlanets.length > 0) {
-      setState('showArtificialPlanetModal', true);
-    }
+    finishActiveColonizePrompt();
   }
 
   function closeColonizeModal() {
-    setState('showColonizeModal', false);
-    setState('pendingColonyBasePlanets', []);
-    setState('pendingColonyShipFleets', []);
-    if (state.pendingArtificialPlanetSourcePlanets.length > 0) {
-      setState('showArtificialPlanetModal', true);
+    const active = activeColonizeQueueHead();
+    if (active?.automatic) {
+      setState('colonizePromptDismissed', active.fleetId, active.starId);
     }
+    finishActiveColonizePrompt();
   }
 
   function addArtificialPlanetCommand(command: ArtificialPlanetCommand) {
@@ -707,8 +765,14 @@ export function AppProvider(props: ParentProps) {
   }
 
   function beginColonyShipColonization(fleetId: number) {
+    const dismissed = { ...state.colonizePromptDismissed };
+    delete dismissed[fleetId];
+    setState({ colonizePromptDismissed: dismissed });
+    setState('colonizePromptQueue', (queue) => queue.filter((prompt) => prompt.fleetId !== fleetId));
     setState('pendingColonyBasePlanets', []);
     setState('pendingColonyShipFleets', [fleetId]);
+    setState('automaticColonizePrompt', false);
+    setState('showArtificialPlanetModal', false);
     setState('showColonizeModal', true);
   }
 
@@ -796,6 +860,15 @@ export function AppProvider(props: ParentProps) {
     if (!api() || !state.session.selectedGameId) {
       return;
     }
+    const previousGame = state.game
+      ? {
+          ...state.game,
+          fleets: state.game.fleets.map((fleet) => ({ ...fleet, ships: [...fleet.ships] })),
+        }
+      : null;
+    const submittedColonizeFleetIds = new Set(
+      state.pendingCommands.colonize.map((command) => command.fleet_id).filter((fleetId) => fleetId != null),
+    );
     setBusy(true, 'Ending turn');
     clearError();
     try {
@@ -811,6 +884,8 @@ export function AppProvider(props: ParentProps) {
         setState('pendingColonyBasePlanets', []);
         setState('pendingColonyShipFleets', []);
         setState('pendingArtificialPlanetSourcePlanets', []);
+        setState('colonizePromptQueue', []);
+        setState('automaticColonizePrompt', false);
         setState('showColonizeModal', false);
         setState('showArtificialPlanetModal', false);
         setBusy(false, submittedTurnMessage(turnResponse, mappedGame, state.session.playerId));
@@ -819,31 +894,47 @@ export function AppProvider(props: ParentProps) {
         return;
       }
 
-      // Check for pending colony bases
       const playerId = state.session.playerId;
       const pendingBases = mappedGame.pendingColonyBases[playerId] ?? [];
       const pendingShips = mappedGame.pendingColonyShips[playerId] ?? [];
       const pendingArtificialPlanets = mappedGame.pendingArtificialPlanets[playerId] ?? [];
-      let completionInfo = 'Turn complete';
-      if (pendingBases.length > 0 || pendingShips.length > 0) {
-        setState('pendingColonyBasePlanets', pendingBases);
-        setState('pendingColonyShipFleets', pendingShips);
-        setState('pendingArtificialPlanetSourcePlanets', pendingArtificialPlanets);
-        setState('showColonizeModal', true);
-        setState('showArtificialPlanetModal', false);
-      } else if (pendingArtificialPlanets.length > 0) {
-        setState('pendingColonyBasePlanets', []);
-        setState('pendingColonyShipFleets', []);
-        setState('pendingArtificialPlanetSourcePlanets', pendingArtificialPlanets);
-        setState('showColonizeModal', false);
-        setState('showArtificialPlanetModal', true);
-      } else {
-        setState('pendingColonyBasePlanets', []);
-        setState('pendingColonyShipFleets', []);
-        setState('pendingArtificialPlanetSourcePlanets', []);
-        setState('showColonizeModal', false);
-        setState('showArtificialPlanetModal', false);
+      const completionInfo = 'Turn complete';
+      const prompts = colonyShipArrivalPrompts(previousGame, mappedGame, playerId).filter(
+        (prompt) =>
+          !submittedColonizeFleetIds.has(prompt.fleetId) &&
+          state.colonizePromptDismissed[prompt.fleetId] !== prompt.starId,
+      );
+
+      // Preserve the existing prepared-colony-ship flow, but merge it into the
+      // arrival queue so a fleet can only produce one prompt per turn.
+      for (const fleetId of pendingShips) {
+        const fleet = mappedGame.fleets.find((candidate) => candidate.id === fleetId);
+        if (
+          !fleet ||
+          fleet.ownerId !== playerId ||
+          (fleet.turnsRemaining ?? 0) !== 0 ||
+          fleet.destinationStarId ||
+          !fleet.ships.some((ship) => ship.type === 'colony_ship') ||
+          !hasEligibleColonizationPlanet(mappedGame, fleet.starId) ||
+          submittedColonizeFleetIds.has(fleetId) ||
+          state.colonizePromptDismissed[fleetId] === fleet.starId ||
+          prompts.some((prompt) => prompt.fleetId === fleetId)
+        ) {
+          continue;
+        }
+        prompts.push({ fleetId, starId: fleet.starId, automatic: false });
       }
+
+      setState({
+        pendingColonyBasePlanets: pendingBases,
+        pendingColonyShipFleets: [],
+        pendingArtificialPlanetSourcePlanets: pendingArtificialPlanets,
+        colonizePromptQueue: prompts,
+        automaticColonizePrompt: false,
+        showColonizeModal: false,
+        showArtificialPlanetModal: false,
+      });
+      showNextColonizePrompt();
 
       setBusy(false, turnResponse.warning || completionInfo);
       if (turnResponse.warning) setState('error', turnResponse.warning);
@@ -936,6 +1027,23 @@ export function AppProvider(props: ParentProps) {
     if (next !== window.location.pathname + window.location.search) {
       window.history.replaceState(window.history.state, '', next);
     }
+  });
+
+  createEffect(() => {
+    const game = state.game;
+    if (!game) return;
+
+    const dismissed = state.colonizePromptDismissed;
+    const next = { ...dismissed };
+    let changed = false;
+    for (const [fleetIdText, starId] of Object.entries(dismissed)) {
+      const fleet = game.fleets.find((candidate) => candidate.id === Number(fleetIdText));
+      if (!fleet || fleet.starId !== starId) {
+        delete next[Number(fleetIdText)];
+        changed = true;
+      }
+    }
+    if (changed) setState({ colonizePromptDismissed: next });
   });
 
   createEffect(() => {

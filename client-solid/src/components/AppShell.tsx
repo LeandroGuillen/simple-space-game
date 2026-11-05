@@ -572,6 +572,11 @@ export function AppShell(props: RouteSectionProps) {
         star.planets.some(isPlanetSuitableForColonization),
     );
   });
+  const colonizeModalTitle = createMemo(() => {
+    if (!state.automaticColonizePrompt) return "Select Target Planet";
+    const starName = colonizeModalStars()[0]?.name || "system";
+    return `Colony ship arrived at ${starName}`;
+  });
   const artificialPlanetModalStars = createMemo(() => {
     const game = state.game;
     if (!game) return [];
@@ -1189,7 +1194,7 @@ export function AppShell(props: RouteSectionProps) {
         </Portal>
       </Show>
 
-      <Show when={state.showColonizeModal}>
+      <Show when={state.showColonizeModal && !showTurnReport()}>
         <Portal>
           <div class="research-modal-backdrop" onClick={closeColonizeModal}>
             <section
@@ -1207,7 +1212,7 @@ export function AppShell(props: RouteSectionProps) {
                       ? "Colony Ship Ready"
                       : "Colony Base Ready"}
                   </p>
-                  <h2 id="colonize-modal-title">Select Target Planet</h2>
+                  <h2 id="colonize-modal-title">{colonizeModalTitle()}</h2>
                 </div>
                 <button
                   class="secondary-button research-close-button"
@@ -1319,7 +1324,7 @@ export function AppShell(props: RouteSectionProps) {
         </Portal>
       </Show>
 
-      <Show when={state.showArtificialPlanetModal}>
+      <Show when={state.showArtificialPlanetModal && !showTurnReport()}>
         <Portal>
           <div class="research-modal-backdrop" onClick={closeArtificialPlanetModal}>
             <section
