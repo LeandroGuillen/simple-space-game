@@ -15,7 +15,7 @@
 
 .app-topbar-brand {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 10px;
     min-width: 0;
     flex-shrink: 0;
@@ -123,6 +123,12 @@
 .app-game-switcher-turn {
     flex-shrink: 0;
     color: var(--text-mute);
+}
+
+.app-logo {
+    flex-shrink: 0;
+    display: block;
+    border-radius: 4px;
 }
 
 .app-title {

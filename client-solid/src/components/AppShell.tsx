@@ -18,6 +18,7 @@ import { TurnReport, TurnReportDock } from "./TurnReport";
 import { readTurnReportMode, saveTurnReportMode, visibleInfoBanner, type TurnReportMode } from "../lib/turn-report";
 
 import { APP_VERSION } from "../lib/app-meta";
+import { formatDocumentTitle } from "../lib/document-title";
 import { fleetRoster } from "../lib/fleet-roster";
 import { recordPlanetReturnCandidate } from "../lib/navigation-history";
 import { researchLevelUnlocksAllTechs } from "../lib/research";
@@ -698,6 +699,15 @@ export function AppShell(props: RouteSectionProps) {
   }
 
   createEffect(() => {
+    document.title = formatDocumentTitle({
+      pathname: location.pathname,
+      hasGame: !!state.game,
+      game: state.game,
+      playerId: state.session.playerId,
+    });
+  });
+
+  createEffect(() => {
     const gameId = state.game?.id ?? "";
     const player = currentPlayer();
     const knownTechs = player?.researchedTechs ?? [];
@@ -760,7 +770,15 @@ export function AppShell(props: RouteSectionProps) {
           title="Home"
           aria-label="Home"
         >
-          <span class="app-title">Simple Space Game</span>
+          <img
+            class="app-logo"
+            src="/favicon.svg"
+            width="20"
+            height="20"
+            alt=""
+            aria-hidden="true"
+          />
+          <span class="app-title">SSG</span>
           <span class="app-version" title="Client version">
             v{APP_VERSION}
           </span>

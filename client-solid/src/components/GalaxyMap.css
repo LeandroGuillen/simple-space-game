@@ -59,7 +59,7 @@
   min-height: 460px;
   overflow: hidden;
   border-radius: var(--radius-md);
-  background: #06101a;
+  background: var(--bg);
 }
 
 .galaxy-map {
@@ -67,7 +67,7 @@
   height: 100%;
   border-radius: var(--radius-md);
   display: block;
-  background: #06101a;
+  background: var(--bg);
   cursor: grab;
   touch-action: none;
   user-select: none;
@@ -145,7 +145,7 @@
   font-size: 10px;
   font-family: var(--font-mono);
   paint-order: stroke;
-  stroke: #06101a;
+  stroke: var(--bg);
   stroke-width: 3px;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -175,7 +175,7 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   paint-order: stroke;
-  stroke: #06101a;
+  stroke: var(--bg);
   stroke-width: 3px;
   stroke-linecap: round;
   stroke-linejoin: round;
