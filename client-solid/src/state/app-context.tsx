@@ -1177,6 +1177,18 @@ export function toTurnCommands(commands: PendingCommands, game: GameViewModel | 
       totals[move.to] += move.count;
     }
 
+    // The server removes outbound colonists before applying job assignments.
+    const outbound = (commands.transferPopulation ?? [])
+      .filter((transfer) => transfer.source_planet_id === planetId)
+      .reduce((sum, transfer) => sum + transfer.population_units, 0);
+    let excess = Math.max(0, totals.farmers + totals.workers + totals.scientists
+      - (Math.floor(planet.population / 1000) - outbound));
+    for (const job of ['farmers', 'workers', 'scientists'] as const) {
+      const removed = Math.min(Math.max(0, totals[job]), excess);
+      totals[job] -= removed;
+      excess -= removed;
+    }
+
     movePopulation.push({
       planetId,
       farmers: Math.max(0, totals.farmers),

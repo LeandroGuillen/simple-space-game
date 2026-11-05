@@ -518,8 +518,14 @@ func (g *Game) validatePlayerCommands(playerID uint, commands Commands) error {
 			break
 		}
 
-		// Validate move population commands
-		if err := validateMovePopulationCommands(colony, commands.MovePopulation); err != nil {
+		// Transfers have already been validated and are issued before colony turns.
+		projected := *colony
+		for _, transfer := range commands.TransferPopulation {
+			if transfer != nil && transfer.SourcePlanetID == colony.ID {
+				projected.Population -= int64(transfer.PopulationUnits) * 1000
+			}
+		}
+		if err := validateMovePopulationCommands(&projected, commands.MovePopulation); err != nil {
 			return err
 		}
 	}

@@ -54,6 +54,28 @@ function gameWithFleets(fleetIds: number[]): GameViewModel {
 }
 
 describe("toTurnCommands", () => {
+  it("assigns the remaining population after outbound transfers and job moves", () => {
+    const game = gameWithFleets([]);
+    game.galaxy.stars = [{ planets: [
+      { id: 1, population: 8500, food: { farmers: 4 }, industry: { workers: 3 }, science: { scientists: 1 } },
+      { id: 2, population: 5000, food: { farmers: 2 }, industry: { workers: 2 }, science: { scientists: 1 } },
+    ] }] as unknown as GameViewModel["galaxy"]["stars"];
+    const commands = toTurnCommands(pendingCommands({
+      movePopulation: [
+        { planetId: 1, from: "farmers", to: "workers", count: 1 },
+        { planetId: 2, from: "workers", to: "scientists", count: 1 },
+      ],
+      transferPopulation: [
+        { source_planet_id: 1, destination_planet_id: 2, population_units: 1 },
+        { source_planet_id: 1, destination_planet_id: 2, population_units: 1 },
+      ],
+    }), game);
+    expect(commands.movePopulation).toEqual([
+      { planetId: 1, farmers: 1, workers: 4, scientists: 1 },
+      { planetId: 2, farmers: 2, workers: 1, scientists: 2 },
+    ]);
+  });
+
   it("serializes multiple artificial planet commands", () => {
     const commands = toTurnCommands(
       pendingCommands({
