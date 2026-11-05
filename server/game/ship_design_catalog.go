@@ -26,7 +26,16 @@ func (r *Resources) publishShipDesignCatalog(coll *ShipDesignCollection) {
 		return
 	}
 	r.shipDesignCatalog.Store(coll)
-	r.ShipDesignCollection = coll
+}
+
+func (r *Resources) loadedShipDesignCollection() *ShipDesignCollection {
+	if r == nil {
+		return nil
+	}
+	if coll := r.shipDesignCatalog.Load(); coll != nil {
+		return coll
+	}
+	return r.ShipDesignCollection
 }
 
 // ApplyMergedShipDesignCatalog replaces the published catalog with built-ins plus sorted customs.
@@ -34,7 +43,8 @@ func (r *Resources) publishShipDesignCatalog(coll *ShipDesignCollection) {
 // atomic store, so readers keep a consistent view and never observe a half-written
 // slice header.
 func (r *ResourceManager) ApplyMergedShipDesignCatalog(custom []ShipDesign) {
-	if r == nil || r.ShipDesignCollection == nil {
+	base := r.Resources.loadedShipDesignCollection()
+	if r == nil || base == nil {
 		return
 	}
 	sorted := append([]ShipDesign{}, custom...)
@@ -44,7 +54,7 @@ func (r *ResourceManager) ApplyMergedShipDesignCatalog(custom []ShipDesign) {
 	merged := append([]ShipDesign{}, r.BuiltinShipDesigns...)
 	merged = append(merged, sorted...)
 	r.Resources.publishShipDesignCatalog(&ShipDesignCollection{
-		ShipDesignsDefs: r.ShipDesignCollection.ShipDesignsDefs,
+		ShipDesignsDefs: base.ShipDesignsDefs,
 		ShipDesigns:     merged,
 	})
 }

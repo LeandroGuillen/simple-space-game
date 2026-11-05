@@ -54,7 +54,8 @@ func (g *Game) getVisibleGameForPlayerLocked(playerID uint) (*Game, error) {
 		TurnsPlayed: g.TurnsPlayed,
 		CreatedAt:   g.CreatedAt,
 		Debug:       g.Debug,
-		// Resources is an immutable catalog shared across games; safe to share.
+		// Resources is an immutable catalog shared across games; ship designs are read
+		// via ShipDesignCatalog() and JSON uses Resources.MarshalJSON snapshots.
 		Resources:  g.Resources,
 		TurnStatus: copyTurnStatus(g.TurnStatus),
 		// Do not share submission map or mutex with the live game.
