@@ -1342,3 +1342,12 @@ export function inboundInFlightTransferUnits(
     )
     .reduce((total, transfer) => total + transfer.populationUnits, 0);
 }
+
+// Match the full-save endpoint: unknown controllers must fail closed.
+export function canDownloadGameSave(
+  players: readonly { id?: number; controller?: string }[],
+  playerId: number,
+): boolean {
+  return players.some((player) => player.id === playerId) &&
+    players.every((player) => player.id === playerId || player.controller === "server_ai");
+}

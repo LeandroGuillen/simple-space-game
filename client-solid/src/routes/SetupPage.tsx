@@ -32,6 +32,7 @@ import {
   setSessionLastSetupServerUrl,
 } from "../lib/setup-session-storage";
 import {
+  canDownloadGameSave,
   formatGameLastTurnAt,
   formatStardate,
   gameSessionPath,
@@ -862,8 +863,10 @@ export function SetupPage() {
                           <button
                             type="button"
                             class="secondary-button button-compact"
-                            title="Download this game"
-                            disabled={downloadingGameId() === game.game_id}
+                            title={canDownloadGameSave(game.players, state.session.playerId)
+                              ? "Download this game"
+                              : "Download requires your player slot and only Server AI opponents"}
+                            disabled={downloadingGameId() === game.game_id || !canDownloadGameSave(game.players, state.session.playerId)}
                             onClick={(event) => {
                               event.stopPropagation();
                               void handleDownloadGame(game.game_id);

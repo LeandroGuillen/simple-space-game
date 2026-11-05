@@ -15,13 +15,24 @@ func (g *Game) MarshalSave() ([]byte, error) {
 	return json.Marshal(g)
 }
 
-// MarshalSinglePlayerSave prevents full-state export when multiple players can access the game.
+// MarshalSinglePlayerSave allows full-state export only for a player with server AI opponents.
 func (g *Game) MarshalSinglePlayerSave(playerID uint) ([]byte, error) {
 	g.ensureMu()
 	g.mu.RLock()
 	defer g.mu.RUnlock()
-	if len(g.Players) != 1 || g.Players[0] == nil || g.Players[0].ID != playerID {
-		return nil, fmt.Errorf("full saves are only available to the sole player of a single-player game")
+	found := false
+	for _, player := range g.Players {
+		if player == nil {
+			return nil, fmt.Errorf("full saves require a valid player and only server AI opponents")
+		}
+		if player.ID == playerID {
+			found = true
+		} else if player.Controller != "server_ai" {
+			return nil, fmt.Errorf("full saves require a valid player and only server AI opponents")
+		}
+	}
+	if !found {
+		return nil, fmt.Errorf("full saves require a valid player and only server AI opponents")
 	}
 	return json.Marshal(g)
 }

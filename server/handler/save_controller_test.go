@@ -776,6 +776,15 @@ func TestLoadUploadedSaveRoundTripsFreshExportAndScenarios(t *testing.T) {
 }
 
 func TestGameSaveUploadRoundTripPreservesFullState(t *testing.T) {
+	testSaveUploadRoundTrip(t, 1)
+}
+
+func TestServerAISaveUploadRoundTripPreservesFullState(t *testing.T) {
+	testSaveUploadRoundTrip(t, 3)
+}
+
+func testSaveUploadRoundTrip(t *testing.T, players uint) {
+	t.Helper()
 	gin.SetMode(gin.TestMode)
 	server, err := NewServer()
 	require.NoError(t, err)
@@ -783,7 +792,7 @@ func TestGameSaveUploadRoundTripPreservesFullState(t *testing.T) {
 	g, err := game.NewGame(server.ResourceManager, game.NewGameOptions{
 		PlayerName:  "RoundTrip",
 		NumStars:    8,
-		NumPlayers:  1,
+		NumPlayers:  players,
 		PlayerColor: model.DefaultPlayerColor(),
 		Race:        game.DefaultRace("Human"),
 	})
@@ -983,6 +992,7 @@ func TestMultiplayerSaveRejectsRequests(t *testing.T) {
 	require.NoError(t, err)
 	g, err := game.NewGame(server.ResourceManager, game.NewGameOptions{PlayerName: "Ada", NumStars: 8, NumPlayers: 2, PlayerColor: model.DefaultPlayerColor(), Race: game.DefaultRace("Human")})
 	require.NoError(t, err)
+	g.Players[1].Controller = "human"
 	g.Players[1].Treasury = 4242
 	server.putGame(g.ID, g)
 	for _, tc := range []struct {
@@ -1074,4 +1084,22 @@ func TestLoadingScenarioTwiceKeepsBothGames(t *testing.T) {
 	require.NotEqual(t, first, second)
 	require.Equal(t, float64(4242), s.getGame(first).Players[0].Treasury)
 	require.NotNil(t, s.getGame(second))
+}
+
+func TestSaveDownloadRejectsPrivateOpponents(t *testing.T) {
+	for _, controller := range []string{"human", "external", "", "unknown"} {
+		t.Run(controller, func(t *testing.T) {
+			t.Setenv("SSG_SAVES_DIR", t.TempDir())
+			s, err := NewServer()
+			require.NoError(t, err)
+			g := testAutosaveGame(t, s, 3)
+			allowed := autosaveRequest(s, http.MethodGet, "/games/"+g.ID+"/save", g.ID, "1", nil)
+			require.Equal(t, http.StatusOK, allowed.Code, allowed.Body.String())
+			g.Players[2].Controller = controller
+			g.Players[2].Treasury = 4242
+			out := autosaveRequest(s, http.MethodGet, "/games/"+g.ID+"/save", g.ID, "1", nil)
+			require.Equal(t, http.StatusForbidden, out.Code)
+			require.NotContains(t, out.Body.String(), "4242")
+		})
+	}
 }
