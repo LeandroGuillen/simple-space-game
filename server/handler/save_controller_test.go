@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -1102,4 +1103,34 @@ func TestSaveDownloadRejectsPrivateOpponents(t *testing.T) {
 			require.NotContains(t, out.Body.String(), "4242")
 		})
 	}
+}
+
+// TestMaxGalaxyStarsSaveFitsUploadLimit proves the star cap keeps every allowed
+// new game inside the upload limit: a max-size (huge, 100 stars) new game's
+// single-player save stays under MaxUploadedSaveBytes, so a player can download
+// it and upload it again without hitting the 413 in MaxUploadedSaveBytes. The
+// literal 100 matches game.MaxGalaxyStars so the guard is a real contract on
+// the documented limit, not an internal reference.
+func TestMaxGalaxyStarsSaveFitsUploadLimit(t *testing.T) {
+	s := newGameTestServer(t)
+	g, err := game.NewGame(s.ResourceManager, game.NewGameOptions{
+		PlayerName: "Ada",
+		NumStars:   100,
+		GalaxySize: "huge",
+		Race:       game.DefaultRace("Human"),
+	})
+	require.NoError(t, err)
+	s.putGame(g.ID, g)
+
+	save, err := g.MarshalSinglePlayerSave(1)
+	require.NoError(t, err)
+	require.Less(t, len(save), MaxUploadedSaveBytes,
+		fmt.Sprintf("a max-size new game's save is %d bytes; the cap must keep saves under the %d byte upload limit", len(save), MaxUploadedSaveBytes))
+
+	req := httptest.NewRequest(http.MethodPost, "/saves/upload", bytes.NewReader(save))
+	req.Header.Set("Content-Type", "application/json")
+	out := httptest.NewRecorder()
+	s.Handler().ServeHTTP(out, req)
+	require.Equal(t, http.StatusOK, out.Code, "uploading the max-size save failed: %s", out.Body.String())
+	require.NotEmpty(t, scenarioResponseGameID(t, out))
 }

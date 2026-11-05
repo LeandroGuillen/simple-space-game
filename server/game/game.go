@@ -110,6 +110,11 @@ func NewGame(resources *ResourceManager, options NewGameOptions) (*Game, error) 
 	if numPlayers == 0 {
 		numPlayers = 1
 	}
+	// Cap before anything else: huge counts would build an enormous galaxy,
+	// autosave and RSS footprint from one request. Caller-fixable input.
+	if numStars > MaxGalaxyStars {
+		return nil, invalidInputf("num_stars must be between 1 and %d", MaxGalaxyStars)
+	}
 	if numPlayers > MaxPlayers {
 		return nil, invalidInputf("players must be between 1 and %d", MaxPlayers)
 	}

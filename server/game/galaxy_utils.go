@@ -54,6 +54,15 @@ var ClientGalaxyStarCounts = map[string]uint{
 	galaxySizeHuge:   100,
 }
 
+// MaxGalaxyStars is the highest star count a single new game may request. It
+// matches the biggest galaxy the web client offers (huge, 100 stars) so any
+// allowed new game stays fast, its autosave stays small, and its save can
+// always be downloaded and uploaded again within the /saves/upload limit
+// (server.MaxUploadedSaveBytes, 20 MB). Counts above it, like an unbounded
+// num_stars in POST /games, are rejected as invalid input before building a
+// galaxy.
+const MaxGalaxyStars uint = 100
+
 // GalaxyPlacementStats reports how star positions were chosen.
 type GalaxyPlacementStats struct {
 	MinSeparation float64

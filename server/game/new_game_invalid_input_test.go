@@ -56,6 +56,16 @@ func TestNewGameMarksCallerFixableSetupErrors(t *testing.T) {
 			},
 			want: fmt.Sprintf("players must be between 1 and %d", model.MaxPlayers),
 		},
+		{
+			name: "more stars than allowed",
+			options: NewGameOptions{
+				PlayerName: "Ada",
+				NumStars:   101,
+				NumPlayers: 1,
+				Race:       DefaultRace("Human"),
+			},
+			want: "num_stars must be between 1 and 100",
+		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

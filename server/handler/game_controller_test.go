@@ -67,7 +67,7 @@ func TestNewGameRejectsFixableSetupWithBadRequest(t *testing.T) {
 		},
 		{
 			name: "more players than allowed",
-			body: `{"player_name":"Ada","num_stars":40,"players":9,"race":"human"}`,
+			body: `{"player_name":"Ada","num_stars":40,"players":99,"race":"human"}`,
 			want: fmt.Sprintf("players must be between 1 and %d", model.MaxPlayers),
 		},
 		{
@@ -78,6 +78,11 @@ func TestNewGameRejectsFixableSetupWithBadRequest(t *testing.T) {
 		{
 			name: "empty body",
 			body: "",
+			want: "players (1) cannot exceed stars (0)",
+		},
+		{
+			name: "zero stars",
+			body: `{"player_name":"Ada","num_stars":0,"players":1,"race":"human"}`,
 			want: "players (1) cannot exceed stars (0)",
 		},
 		{
@@ -109,6 +114,23 @@ func TestNewGameAcceptsKnownGalaxySizes(t *testing.T) {
 			require.Equal(t, http.StatusOK, out.Code, out.Body.String())
 		})
 	}
+}
+
+func TestNewGameRejectsStarCountAboveCap(t *testing.T) {
+	s := newGameTestServer(t)
+
+	// 101 stars is one past the documented cap; 100000 is the request shape
+	// that created 228 MB autosaves before the cap existed.
+	for _, stars := range []uint{101, 100000} {
+		out := postNewGame(t, s, fmt.Sprintf(`{"player_name":"Ada","num_stars":%d,"players":1,"race":"human"}`, stars))
+		require.Equal(t, http.StatusBadRequest, out.Code, "num_stars=%d: %s", stars, out.Body.String())
+		assert.Contains(t, errorField(t, out), "num_stars must be between 1 and 100")
+	}
+	assert.Empty(t, s.listGames(), "rejected requests must not leave a game behind")
+
+	// Exactly the cap still works, matching the biggest galaxy the web client offers.
+	atCap := postNewGame(t, s, `{"player_name":"Ada","num_stars":100,"players":1,"race":"human","galaxy_size":"huge"}`)
+	require.Equal(t, http.StatusOK, atCap.Code, atCap.Body.String())
 }
 
 func TestNewGameRejectsMalformedBody(t *testing.T) {
