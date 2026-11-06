@@ -381,6 +381,7 @@ export type ApiShipDesignDef = {
 
 /** Ship design template from GET /ship-designs (built-in + custom). */
 export type ShipDesignTemplateRow = {
+  beam?: string;
   name: string;
   drive: string;
   computer: string;
@@ -392,6 +393,7 @@ export type ShipDesignTemplateRow = {
 };
 
 export type ApiShipParts = {
+  beams?: { name: string; minDamage: number; maxDamage: number }[];
   hull_sizes: ApiHullSize[];
   drives: ApiDrive[];
   armors: ApiArmor[];

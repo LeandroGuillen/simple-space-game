@@ -2,7 +2,6 @@ package game
 
 import (
 	"fmt"
-	"slices"
 	. "ssg/model"
 	"strings"
 )
@@ -27,56 +26,16 @@ func (g *Game) shipDesignFromOrder(p *Player, c *DesignShipCommand) (ShipDesign,
 			return empty, fmt.Errorf("ship design name already exists")
 		}
 	}
-	parts := g.Resources.ShipPartsCollection
-	hull, err := HullSizeFromName(c.Hull, parts.HullSizes)
+	if c.Beam == "" {
+		return empty, fmt.Errorf("combat ship design needs a beam")
+	}
+	design, err := g.Resources.resolveShipDesign(ShipDesignsDef{Name: c.Name, Drive: c.Drive, Armor: c.Armor, Computer: c.Computer, FuelCell: c.FuelCell, Shield: c.Shield, HullSize: c.Hull, Beam: c.Beam})
 	if err != nil {
 		return empty, err
 	}
-	if hull.Name != "Frigate" || hull.Space < 1 {
+	if design.HullSize.Name != "Frigate" {
 		return empty, fmt.Errorf("ship design requires a frigate with weapon space")
 	}
-	drive, err := DriveFromName(c.Drive, parts.Drives)
-	if err != nil {
-		return empty, err
-	}
-	if drive.InterstellarSpeed <= 0 {
-		return empty, fmt.Errorf("ship design needs an interstellar drive")
-	}
-	armor, err := ArmorFromName(c.Armor, parts.Armors)
-	if err != nil {
-		return empty, err
-	}
-	computer, err := ComputerFromName(c.Computer, parts.Computers)
-	if err != nil {
-		return empty, err
-	}
-	fuel, err := FuelCellFromName(c.FuelCell, parts.FuelCells)
-	if err != nil {
-		return empty, err
-	}
-	if fuel.Autonomy <= 0 {
-		return empty, fmt.Errorf("ship design needs fuel range")
-	}
-	shield, err := ShieldFromName(c.Shield, parts.Shields)
-	if err != nil {
-		return empty, err
-	}
-	if !slices.Contains(p.Available.Beams, c.Beam) {
-		return empty, fmt.Errorf("beam %q is not researched", c.Beam)
-	}
-	var weapon Beam
-	found := false
-	for _, b := range g.Resources.Beams {
-		if b.Name == c.Beam && b.MaxDamage > 0 {
-			weapon = b
-			found = true
-			break
-		}
-	}
-	if !found {
-		return empty, fmt.Errorf("unknown or ineffective beam %q", c.Beam)
-	}
-	design := NewShipDesign(c.Name, []Beam{weapon}, nil, hull, drive, armor, computer, fuel, shield)
 	if err := validatePlayerCanUseShipDesignParts(p, design); err != nil {
 		return empty, err
 	}

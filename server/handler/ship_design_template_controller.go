@@ -12,6 +12,7 @@ import (
 )
 
 type ShipDesignTemplate struct {
+	Beam     string `json:"beam"`
 	Name     string `json:"name"`
 	Drive    string `json:"drive"`
 	Computer string `json:"computer"`
@@ -23,6 +24,7 @@ type ShipDesignTemplate struct {
 }
 
 type CustomShipDesignRequest struct {
+	Beam       string `json:"beam"`
 	Name       string `json:"name"`
 	Drive      string `json:"drive"`
 	Computer   string `json:"computer"`
@@ -37,6 +39,7 @@ type CustomShipDesignRequest struct {
 func shipDesignTemplateFromModel(d model.ShipDesign, builtIn bool) ShipDesignTemplate {
 	return ShipDesignTemplate{
 		Name:     d.Name,
+		Beam:     game.ShipDesignPartsDef(d).Beam,
 		Drive:    d.Drive.Name,
 		Computer: d.Computer.Name,
 		Shield:   d.Shield.Name,
@@ -98,6 +101,7 @@ func SaveCustomShipDesign(c *gin.Context) {
 
 	design, err := game.SaveableCustomShipDesign(server.ResourceManager, model.ShipDesignsDef{
 		Name:     req.Name,
+		Beam:     req.Beam,
 		Drive:    req.Drive,
 		Computer: req.Computer,
 		Shield:   req.Shield,

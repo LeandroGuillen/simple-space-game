@@ -1262,24 +1262,26 @@ export function defaultShipDesignForm(
   const parts = game?.resources.shipParts;
   return {
     name: "",
-    drive: parts?.drives[0]?.name ?? "",
+    beam: "",
+    drive: parts?.drives.find((d) => d.interstellarSpeed > 0)?.name ?? "",
     computer: parts?.computers[0]?.name ?? "",
     shield: parts?.shields[0]?.name ?? "",
     armor: parts?.armors[0]?.name ?? "",
     hullSize: parts?.hullSizes[0]?.name ?? "",
-    fuelCell: parts?.fuelCells[0]?.name ?? "",
+    fuelCell: parts?.fuelCells.find((f) => f.autonomy > 0)?.name ?? "",
   };
 }
 
 export function defaultShipDesignFormFromParts(parts: ApiShipParts | null | undefined): ShipDesignForm {
   return {
     name: "",
-    drive: parts?.drives[0]?.name ?? "",
+    beam: "",
+    drive: parts?.drives.find((d) => d.interstellar_speed > 0)?.name ?? "",
     computer: parts?.computers[0]?.name ?? "",
     shield: parts?.shields[0]?.name ?? "",
     armor: parts?.armors[0]?.name ?? "",
     hullSize: parts?.hull_sizes[0]?.name ?? "",
-    fuelCell: parts?.fuel_cells[0]?.name ?? "",
+    fuelCell: parts?.fuel_cells.find((f) => f.autonomy > 0)?.name ?? "",
   };
 }
 

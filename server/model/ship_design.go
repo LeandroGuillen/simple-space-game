@@ -14,6 +14,7 @@ type ShipDesign struct {
 }
 
 type ShipDesignsDef struct {
+	Beam     string `json:"beam,omitempty"`
 	Name     string `json:"name"`
 	Drive    string `json:"drive"`
 	Computer string `json:"computer"`

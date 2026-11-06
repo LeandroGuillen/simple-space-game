@@ -7,6 +7,7 @@ import (
 	"slices"
 	"sort"
 	. "ssg/model"
+	"strings"
 	"sync"
 	"time"
 
@@ -1789,155 +1790,66 @@ func (g *Game) GetShipDesignsList(playerID uint) ([]*ShipDesign, error) {
 	return shipDesigns, nil
 }
 
-func (g *Game) CreateShipDesign(
-	playerID uint,
-	name,
-	driveName,
-	computerName,
-	shieldName,
-	armorName,
-	hullSizeName,
-	fuelCellName string) error {
-
+// CreateShipDesign saves an armed design, or a weaponless utility design when beam is omitted.
+func (g *Game) CreateShipDesign(playerID uint, name, driveName, computerName, shieldName, armorName, hullSizeName, fuelCellName string, beam ...string) error {
 	g.ensureMu()
 	g.mu.Lock()
 	defer g.mu.Unlock()
-
-	parts := g.Resources.ShipPartsCollection
 	player, err := g.getPlayer(playerID)
 	if err != nil {
 		return err
 	}
-
-	armor, err := ArmorFromName(armorName, parts.Armors)
-	if err != nil {
-		return err
-	}
-	drive, err := DriveFromName(driveName, parts.Drives)
-	if err != nil {
-		return err
-	}
-	hullSize, err := HullSizeFromName(hullSizeName, parts.HullSizes)
-	if err != nil {
-		return err
-	}
-	computer, err := ComputerFromName(computerName, parts.Computers)
-	if err != nil {
-		return err
-	}
-	fuelCell, err := FuelCellFromName(fuelCellName, parts.FuelCells)
-	if err != nil {
-		return err
-	}
-	shield, err := ShieldFromName(shieldName, parts.Shields)
-	if err != nil {
-		return err
-	}
-
-	basicDesign := NewShipDesign(
-		name,
-		[]Beam{},
-		[]SpecialSystem{},
-		hullSize,
-		drive,
-		armor,
-		computer,
-		fuelCell,
-		shield,
-	)
-
-	if err := validatePlayerCanUseShipDesignParts(player, basicDesign); err != nil {
-		return err
-	}
-	for _, design := range player.ShipDesigns {
-		if design.Name == name {
-			return fmt.Errorf("cannot create a design with name '%s', name already exists", name)
+	for _, d := range append(append([]ShipDesign{}, player.ShipDesigns...), g.Resources.ShipDesignCatalog()...) {
+		if d.Name == name {
+			return fmt.Errorf("ship design name already exists")
 		}
 	}
-	for _, design := range g.Resources.ShipDesignCatalog() {
-		if design.Name == name {
-			return fmt.Errorf("cannot create a design with name %q, name already exists", name)
-		}
+	design, err := g.resolvePlayerShipDesign(player, name, driveName, computerName, shieldName, armorName, hullSizeName, fuelCellName, beam)
+	if err != nil {
+		return err
 	}
-	player.ShipDesigns = append(player.ShipDesigns, basicDesign)
+	player.ShipDesigns = append(player.ShipDesigns, design)
 	return nil
 }
 
-func (g *Game) UpdateShipDesign(
-	playerID uint,
-	name,
-	driveName,
-	computerName,
-	shieldName,
-	armorName,
-	hullSizeName,
-	fuelCellName string) error {
-
+func (g *Game) UpdateShipDesign(playerID uint, name, driveName, computerName, shieldName, armorName, hullSizeName, fuelCellName string, beam ...string) error {
 	g.ensureMu()
 	g.mu.Lock()
 	defer g.mu.Unlock()
-
-	parts := g.Resources.ShipPartsCollection
-
-	armor, err := ArmorFromName(armorName, parts.Armors)
-	if err != nil {
-		return err
-	}
-	drive, err := DriveFromName(driveName, parts.Drives)
-	if err != nil {
-		return err
-	}
-	hullSize, err := HullSizeFromName(hullSizeName, parts.HullSizes)
-	if err != nil {
-		return err
-	}
-	computer, err := ComputerFromName(computerName, parts.Computers)
-	if err != nil {
-		return err
-	}
-	fuelCell, err := FuelCellFromName(fuelCellName, parts.FuelCells)
-	if err != nil {
-		return err
-	}
-	shield, err := ShieldFromName(shieldName, parts.Shields)
-	if err != nil {
-		return err
-	}
-
-	// get player reference
 	player, err := g.getPlayer(playerID)
 	if err != nil {
 		return err
 	}
-
-	updatedDesign := NewShipDesign(
-		name,
-		[]Beam{},
-		[]SpecialSystem{},
-		hullSize,
-		drive,
-		armor,
-		computer,
-		fuelCell,
-		shield,
-	)
-	if err := validatePlayerCanUseShipDesignParts(player, updatedDesign); err != nil {
+	design, err := g.resolvePlayerShipDesign(player, name, driveName, computerName, shieldName, armorName, hullSizeName, fuelCellName, beam)
+	if err != nil {
 		return err
 	}
-
-	// find ship design to update
 	for i, d := range player.ShipDesigns {
 		if d.Name == name {
-			design := &player.ShipDesigns[i]
-			design.Armor = armor
-			design.Drive = drive
-			design.HullSize = hullSize
-			design.Computer = computer
-			design.FuelCell = fuelCell
-			design.Shield = shield
+			player.ShipDesigns[i] = design
 			return nil
 		}
 	}
-
 	return fmt.Errorf("cannot update, did not find a design with name %q", name)
+}
+
+func (g *Game) resolvePlayerShipDesign(player *Player, name, drive, computer, shield, armor, hull, fuel string, beam []string) (ShipDesign, error) {
+	if strings.TrimSpace(name) != name {
+		return ShipDesign{}, fmt.Errorf("invalid ship design name")
+	}
+	if len(beam) > 1 {
+		return ShipDesign{}, fmt.Errorf("only one beam slot is supported")
+	}
+	weapon := ""
+	if len(beam) == 1 {
+		weapon = beam[0]
+	}
+	design, err := g.Resources.resolveShipDesign(ShipDesignsDef{Name: name, Drive: drive, Computer: computer, Shield: shield, Armor: armor, HullSize: hull, FuelCell: fuel, Beam: weapon})
+	if err != nil {
+		return ShipDesign{}, err
+	}
+	if err := validatePlayerCanUseShipDesignParts(player, design); err != nil {
+		return ShipDesign{}, err
+	}
+	return design, nil
 }

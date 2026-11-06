@@ -637,6 +637,7 @@ function mapShipDesign(
 ): ShipDesignViewModel {
   return {
     name: ship.name,
+    beam: ship.weapons?.[0]?.name ?? "",
     baseSpace: ship.base_space ?? 0,
     drive: mapDrive(ship.drive),
     computer: mapComputer(ship.computer),

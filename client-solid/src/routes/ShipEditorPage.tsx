@@ -38,6 +38,7 @@ function BackArrowIcon() {
 function templateRowToForm(row: ShipDesignTemplateRow): ShipDesignForm {
   return {
     name: row.name,
+    beam: row.beam ?? "",
     drive: row.drive,
     computer: row.computer,
     shield: row.shield,
@@ -254,6 +255,9 @@ export function ShipEditorPage() {
     if (!parts()) {
       e.push("Ship parts did not load.");
     }
+    if (parts() && !parts()?.drives.some((d) => d.name === f.drive && d.interstellar_speed > 0)) e.push("Choose an interstellar drive.");
+    if (parts() && !parts()?.fuel_cells.some((cell) => cell.name === f.fuelCell && cell.autonomy > 0)) e.push("Choose a fuel cell with range.");
+    if (f.beam && !parts()?.beams?.some((b) => b.name === f.beam)) e.push("Choose a supported weapon.");
     return e;
   });
 
@@ -712,21 +716,56 @@ export function ShipEditorPage() {
                     <section class="ship-editor-bay" aria-label="Weapons">
                       <h3 class="ship-editor-bay-title">Weapons</h3>
                       <div class="ship-editor-bay-table-wrap">
-                      <table class="ship-editor-data-table">
-                        <thead>
-                          <tr>
-                            <th scope="col">Weapon</th>
-                            <th scope="col">Damage</th>
-                            <th scope="col">Arc</th>
-                            <th scope="col">Cost</th>
-                            <th scope="col">Space</th>
-                            <th scope="col">Mods</th>
-                          </tr>
-                        </thead>
-                        <tbody />
-                      </table>
+                        <table class="ship-editor-data-table">
+                          <thead>
+                            <tr>
+                              <th scope="col">Weapon</th>
+                              <th scope="col">Damage</th>
+                              <th scope="col">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <Show when={form().beam}>
+                              <tr>
+                                <td>
+                                  <select
+                                    aria-label="Weapon"
+                                    value={form().beam}
+                                    disabled={readOnly()}
+                                    onChange={(e) => updateForm({ beam: e.currentTarget.value })}
+                                  >
+                                    <For each={parts()?.beams ?? []}>
+                                      {(b) => <option value={b.name}>{b.name}</option>}
+                                    </For>
+                                  </select>
+                                </td>
+                                <td>
+                                  {parts()?.beams?.find((b) => b.name === form().beam)?.minDamage}
+                                  –{parts()?.beams?.find((b) => b.name === form().beam)?.maxDamage}
+                                </td>
+                                <td>
+                                  <button type="button" disabled={readOnly()} onClick={() => updateForm({ beam: "" })}>
+                                    Remove weapon
+                                  </button>
+                                </td>
+                              </tr>
+                            </Show>
+                          </tbody>
+                        </table>
                       </div>
-                      <p class="ship-editor-bay-add-hint">+ Add weapon</p>
+                      <button
+                        type="button"
+                        class="ship-editor-bay-add-hint"
+                        disabled={readOnly() || !!form().beam || !parts()?.beams?.length}
+                        onClick={() => updateForm({ beam: parts()?.beams?.[0]?.name ?? "" })}
+                      >
+                        + Add weapon
+                      </button>
+                      <p>
+                        {form().beam
+                          ? "Armed design. Requires researched weapon technology to build."
+                          : "Weaponless utility design — cannot fight. Add a weapon to create a combat ship."}
+                      </p>
                     </section>
 
                     <section class="ship-editor-bay" aria-label="Special systems">

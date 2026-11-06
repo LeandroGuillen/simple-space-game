@@ -25,12 +25,13 @@ type Resources struct {
 }
 
 type ShipPartsCollection struct {
-	HullSizes []HullSize `json:"hull_sizes"`
-	Drives    []Drive    `json:"drives"`
-	Armors    []Armor    `json:"armors"`
-	Computers []Computer `json:"computers"`
-	FuelCells []FuelCell `json:"fuel_cells"`
-	Shields   []Shield   `json:"shields"`
+	BeamOptions []Beam     `json:"beams"`
+	HullSizes   []HullSize `json:"hull_sizes"`
+	Drives      []Drive    `json:"drives"`
+	Armors      []Armor    `json:"armors"`
+	Computers   []Computer `json:"computers"`
+	FuelCells   []FuelCell `json:"fuel_cells"`
+	Shields     []Shield   `json:"shields"`
 }
 
 type ShipSystemCollection struct {
@@ -191,6 +192,7 @@ func (r *ResourceManager) loadDataFromFiles() error {
 		return err
 	}
 	r.BeamCollection = &beamCollection
+	r.ShipPartsCollection.BeamOptions = slices.Clone(beamCollection.Beams)
 
 	var shipDesignCollection ShipDesignCollection
 	if err := json.Unmarshal(shipDesignsFile, &shipDesignCollection); err != nil {

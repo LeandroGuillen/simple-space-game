@@ -11,6 +11,7 @@ import (
 func ShipDesignPartsDef(d ShipDesign) ShipDesignsDef {
 	return ShipDesignsDef{
 		Name:     d.Name,
+		Beam:     shipDesignBeamName(d),
 		Drive:    d.Drive.Name,
 		Computer: d.Computer.Name,
 		Shield:   d.Shield.Name,
@@ -25,9 +26,25 @@ func SaveableCustomShipDesign(resources *ResourceManager, def ShipDesignsDef) (S
 	if resources == nil || resources.ShipPartsCollection == nil {
 		return ShipDesign{}, fmt.Errorf("ship parts unavailable")
 	}
+
+	return resources.Resources.resolveShipDesign(def)
+}
+
+func shipDesignBeamName(d ShipDesign) string {
+	if len(d.Beams) > 0 {
+		return d.Beams[0].Name
+	}
+	return ""
+}
+
+// resolveShipDesign supports explicitly weaponless utility templates.
+func (resources *Resources) resolveShipDesign(def ShipDesignsDef) (ShipDesign, error) {
+	if resources == nil || resources.ShipPartsCollection == nil {
+		return ShipDesign{}, fmt.Errorf("ship parts unavailable")
+	}
 	name := strings.TrimSpace(def.Name)
-	if name == "" {
-		return ShipDesign{}, fmt.Errorf("ship design name is required")
+	if name == "" || len(name) > 80 {
+		return ShipDesign{}, fmt.Errorf("invalid ship design name")
 	}
 	parts := resources.ShipPartsCollection
 
@@ -56,9 +73,33 @@ func SaveableCustomShipDesign(resources *ResourceManager, def ShipDesignsDef) (S
 		return ShipDesign{}, err
 	}
 
+	if drive.InterstellarSpeed <= 0 {
+		return ShipDesign{}, fmt.Errorf("ship design needs an interstellar drive")
+	}
+	if fuelCell.Autonomy <= 0 {
+		return ShipDesign{}, fmt.Errorf("ship design needs fuel range")
+	}
+	beams := []Beam{}
+	if def.Beam != "" {
+		if resources.BeamCollection == nil {
+			return ShipDesign{}, fmt.Errorf("beam catalog unavailable")
+		}
+		for _, b := range resources.Beams {
+			if b.Name == def.Beam && b.MaxDamage > 0 {
+				beams = append(beams, b)
+				break
+			}
+		}
+		if len(beams) == 0 {
+			return ShipDesign{}, fmt.Errorf("unknown or ineffective beam %q", def.Beam)
+		}
+		if hullSize.Space < 1 {
+			return ShipDesign{}, fmt.Errorf("ship design needs weapon space")
+		}
+	}
 	design := NewShipDesign(
 		name,
-		[]Beam{},
+		beams,
 		[]SpecialSystem{},
 		hullSize,
 		drive,

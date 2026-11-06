@@ -2,6 +2,7 @@ import type { ApiInvasionReport, ApiTurnEvent } from "./api";
 import type { ApiTacticalBattle } from "./battle";
 
 export type ShipDesignForm = {
+  beam?: string;
   name: string;
   drive: string;
   computer: string;
@@ -282,6 +283,7 @@ export type FuelCellViewModel = {
 };
 
 export type ShipDesignViewModel = {
+  beam?: string;
   name: string;
   drive: DriveViewModel;
   computer: ComputerViewModel;

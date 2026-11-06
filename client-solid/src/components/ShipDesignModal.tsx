@@ -41,6 +41,7 @@ export function ShipDesignModal(props: ShipDesignModalProps) {
     setForm({
       name: props.mode === "duplicate" ? `${source.name} Copy` : source.name,
       drive: source.drive.name,
+      beam: source.beam ?? "",
       computer: source.computer.name,
       shield: source.shield.name,
       armor: source.armor.name,
@@ -102,6 +103,12 @@ export function ShipDesignModal(props: ShipDesignModalProps) {
               <Show when={parts()}>
                 {(shipParts) => (
                   <div class="ship-design-options">
+                    <OptionToggleField
+                      label="Weapon (None = utility ship, cannot fight)"
+                      value={form().beam || "None"}
+                      options={["None", ...(state.game?.players.find((p) => p.id === state.session.playerId)?.available.beams ?? [])]}
+                      onSelect={(value) => setForm({ ...form(), beam: value === "None" ? "" : value })}
+                    />
                     <OptionToggleField
                       label="Hull"
                       value={form().hullSize}

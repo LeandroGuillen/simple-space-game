@@ -198,6 +198,7 @@ export class ApiClient {
   ) {
     const body: Record<string, unknown> = {
       name: design.name,
+      beam: design.beam ?? "",
       drive: design.drive,
       computer: design.computer,
       shield: design.shield,
@@ -293,6 +294,7 @@ export class ApiClient {
       headers: this.headers(gameId),
       body: JSON.stringify({
         name: form.name,
+        beam: form.beam ?? "",
         drive: form.drive,
         computer: form.computer,
         shield: form.shield,

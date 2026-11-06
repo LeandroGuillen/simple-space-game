@@ -14,7 +14,8 @@ export function getCustomShipDesignDraft(): ShipDesignForm | null {
     const armor = typeof parsed.armor === "string" ? parsed.armor : "";
     const hullSize = typeof parsed.hullSize === "string" ? parsed.hullSize : "";
     const fuelCell = typeof parsed.fuelCell === "string" ? parsed.fuelCell : "";
-    return { name, drive, computer, shield, armor, hullSize, fuelCell };
+    const beam = typeof parsed.beam === "string" ? parsed.beam : "";
+    return { beam, name, drive, computer, shield, armor, hullSize, fuelCell };
   } catch {
     return null;
   }

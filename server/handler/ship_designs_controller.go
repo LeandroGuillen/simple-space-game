@@ -27,6 +27,7 @@ func GetShipDesignList(c *gin.Context) {
 }
 
 type CreateShipDesignRequest struct {
+	Beam     string `json:"beam"`
 	Name     string `binding:"required" json:"name"`
 	Drive    string `binding:"required" json:"drive"`
 	Computer string `binding:"required" json:"computer"`
@@ -63,6 +64,7 @@ func CreateShipDesign(c *gin.Context) {
 		req.Armor,
 		req.HullSize,
 		req.FuelCell,
+		req.Beam,
 	)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
@@ -100,6 +102,7 @@ func UpdateShipDesign(c *gin.Context) {
 		req.Armor,
 		req.HullSize,
 		req.FuelCell,
+		req.Beam,
 	)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})

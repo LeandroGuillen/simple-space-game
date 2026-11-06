@@ -36,7 +36,7 @@ func (g *Game) playerCanBuildShipDesign(player *Player, design ShipDesign) bool 
 	if shipDesignProductionCost(design) <= 0 {
 		return false
 	}
-	return design.HullSize.Name != "" &&
+	return playerHasBeamUnlocks(player, design) && design.HullSize.Name != "" &&
 		design.Drive.Name != "" &&
 		design.Armor.Name != "" &&
 		design.Computer.Name != "" &&
@@ -75,7 +75,7 @@ func playerHasShipPartUnlocks(player *Player, design ShipDesign) bool {
 	if player == nil {
 		return false
 	}
-	return slices.Contains(player.Available.HullSizes, design.HullSize.Name) &&
+	return playerHasBeamUnlocks(player, design) && slices.Contains(player.Available.HullSizes, design.HullSize.Name) &&
 		slices.Contains(player.Available.Drives, design.Drive.Name) &&
 		slices.Contains(player.Available.Armors, design.Armor.Name) &&
 		slices.Contains(player.Available.Computers, design.Computer.Name) &&
@@ -86,6 +86,11 @@ func playerHasShipPartUnlocks(player *Player, design ShipDesign) bool {
 func validatePlayerCanUseShipDesignParts(player *Player, design ShipDesign) error {
 	if player == nil {
 		return fmt.Errorf("player is required")
+	}
+	for _, b := range design.Beams {
+		if !slices.Contains(player.Available.Beams, b.Name) {
+			return fmt.Errorf("beam %q has not been researched", b.Name)
+		}
 	}
 	if !slices.Contains(player.Available.HullSizes, design.HullSize.Name) {
 		return fmt.Errorf("hull size %q has not been researched", design.HullSize.Name)
@@ -106,4 +111,13 @@ func validatePlayerCanUseShipDesignParts(player *Player, design ShipDesign) erro
 		return fmt.Errorf("shield %q has not been researched", design.Shield.Name)
 	}
 	return nil
+}
+
+func playerHasBeamUnlocks(player *Player, design ShipDesign) bool {
+	for _, b := range design.Beams {
+		if !slices.Contains(player.Available.Beams, b.Name) {
+			return false
+		}
+	}
+	return true
 }
