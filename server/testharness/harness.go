@@ -131,13 +131,12 @@ func (c *APIClient) GetGame(gameID string) (*game.Game, error) {
 }
 
 func (c *APIClient) GetColonyList(gameID string, playerID uint) ([]model.Planet, error) {
-	req := serverpkg.GetColonyListRequest{
-		GameID:   gameID,
-		PlayerID: playerID,
-	}
+	headers := http.Header{}
+	headers.Set(serverpkg.GameIDHeader, gameID)
+	headers.Set(serverpkg.PlayerIDHeader, fmt.Sprint(playerID))
 
 	var out []model.Planet
-	if _, err := c.doJSON(http.MethodPost, "/colonies", nil, req, &out); err != nil {
+	if _, err := c.doJSON(http.MethodPost, "/colonies", headers, nil, &out); err != nil {
 		return nil, err
 	}
 	return out, nil
