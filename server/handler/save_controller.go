@@ -139,6 +139,8 @@ func LoadScenario(c *gin.Context) {
 	}
 
 	s := c.MustGet("server").(*Server)
+	s.customMu.RLock()
+	defer s.customMu.RUnlock()
 
 	var loaded game.Game
 	if err := json.Unmarshal(data, &loaded); err != nil {
@@ -180,6 +182,8 @@ func LoadUploadedSave(c *gin.Context) {
 	}
 
 	s := c.MustGet("server").(*Server)
+	s.customMu.RLock()
+	defer s.customMu.RUnlock()
 
 	var loaded game.Game
 	if err := json.Unmarshal(data, &loaded); err != nil {

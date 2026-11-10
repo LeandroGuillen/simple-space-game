@@ -1,7 +1,9 @@
 package server
 
 import (
+	"errors"
 	"net/http"
+	"ssg/game"
 
 	"github.com/gin-gonic/gin"
 )
@@ -105,7 +107,12 @@ func UpdateShipDesign(c *gin.Context) {
 		req.Beam,
 	)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		status := http.StatusBadRequest
+		var inUse *game.ShipDesignInUseError
+		if errors.As(err, &inUse) {
+			status = http.StatusConflict
+		}
+		c.JSON(status, gin.H{"message": err.Error()})
 		return
 	} else {
 		c.JSON(http.StatusCreated, gin.H{"ok": true})

@@ -40,11 +40,13 @@ func buildOnPlanet(game *Game, planet *Planet, buildingName string) {
 	if slices.Contains(planet.Buildings, buildingName) {
 		return
 	}
-	if building, err := getBuildingFromName(game, buildingName); err == nil {
-		planet.Buildings = slices.DeleteFunc(planet.Buildings, func(existing string) bool {
-			return slices.Contains(building.Upgrades, existing)
-		})
+	building, err := getBuildingFromName(game, buildingName)
+	if err != nil {
+		return
 	}
+	planet.Buildings = slices.DeleteFunc(planet.Buildings, func(existing string) bool {
+		return slices.Contains(building.Upgrades, existing)
+	})
 	planet.Buildings = append(planet.Buildings, buildingName)
 }
 

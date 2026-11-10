@@ -2,7 +2,7 @@ import type { ApiTurnEvent } from "./types/api";
 
 const CATEGORIES: { label: string; kinds: string[] }[] = [
   { label: "Population", kinds: ["population", "starvation", "colony"] },
-  { label: "Construction", kinds: ["building", "ship"] },
+  { label: "Construction", kinds: ["building", "ship", "production_blocked"] },
   { label: "Research", kinds: ["research"] },
   { label: "Fleets & combat", kinds: ["arrival", "battle"] },
   { label: "Invasions", kinds: ["invasion"] },

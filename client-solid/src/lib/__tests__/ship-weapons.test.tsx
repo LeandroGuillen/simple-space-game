@@ -31,3 +31,25 @@ it.each(["create", "update"] as const)("in-game %s sends the selected beam", asy
  await new ApiClient("http://example.test").saveShipDesign("game", form, mode);
  expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body)).beam).toBe("Laser");
 });
+
+it.each(["save", "delete"] as const)("shows a 409 %s conflict beside the Ship Editor actions", async (operation) => {
+  const message = 'ship design "Lancer" is in use in the build queue at Sol I; save the changes under a new name';
+  const row = { name: "Lancer", drive: "Nuclear", computer: "None", shield: "None", armor: "Titanium", hull_size: "Frigate", fuel_cell: "Standard", beam: "", built_in: false };
+  vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => {
+    if (init?.method === "POST" || init?.method === "DELETE") {
+      return new Response(JSON.stringify({ error: message }), { status: 409 });
+    }
+    return new Response(JSON.stringify(url.endsWith("/shipparts") ? parts : { ship_designs: [row] }));
+  }));
+  const view = render(() => <ShipEditorPage />);
+  fireEvent.click(await view.findByRole("button", { name: /Lancer/ }));
+  await waitFor(() => expect(view.getByRole("button", { name: "Save design" }).hasAttribute("disabled")).toBe(false));
+  if (operation === "save") {
+    fireEvent.click(view.getByRole("button", { name: "Save design" }));
+  } else {
+    fireEvent.click(view.getByRole("button", { name: "Delete" }));
+    fireEvent.click(view.getByRole("button", { name: "Confirm delete" }));
+  }
+  await waitFor(() => expect(view.getByRole("alert").textContent).toBe(message));
+  expect(view.getByRole("button", { name: /Lancer/ })).toBeTruthy();
+});

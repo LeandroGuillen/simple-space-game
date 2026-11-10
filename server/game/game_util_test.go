@@ -9,7 +9,7 @@ import (
 )
 
 func TestBuildOnPlanetAddsMissingBuilding(t *testing.T) {
-	g := &Game{Resources: &Resources{BuildingCollection: &BuildingCollection{}}}
+	g := &Game{Resources: &Resources{BuildingCollection: &BuildingCollection{Buildings: []model.Building{{Name: "Capitol"}, {Name: "Star Base"}}}}}
 	planet := &model.Planet{}
 
 	buildOnPlanet(g, planet, "Capitol")

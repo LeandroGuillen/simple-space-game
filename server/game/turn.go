@@ -121,6 +121,7 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game, foodRe
 		if len(p.BuildQueue) > 0 {
 			buildingName = popNextQueuedBuild(p)
 			if !Build(p, buildingName, player.Available.Buildings, game) {
+				game.recordBlockedProduction(p, buildingName)
 				p.CurrentProject = tradeGoodsProject
 				p.IsBuilding = false
 				p.BuildBucket = 0
@@ -178,10 +179,17 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game, foodRe
 			}
 
 			completedProject := p.CurrentProject
+			// Resolve once before spending production. A missing/unbuildable ship
+			// must never be interpreted as a newly invented building.
+			design, isDesign := game.findBuildableShipDesign(player, completedProject)
+			_, buildingErr := getBuildingFromName(game, completedProject)
+			if !isDesign && buildingErr != nil {
+				p.IndustryStack += availableProduction
+				game.recordBlockedProduction(p, completedProject)
+				break
+			}
 			kind := "building"
-			if completedProject == "Colony Ship" || completedProject == "Transport" {
-				kind = "ship"
-			} else if _, ok := game.findBuildableShipDesign(player, completedProject); ok {
+			if isDesign || completedProject == "Colony Ship" || completedProject == "Transport" {
 				kind = "ship"
 			}
 			game.recordTurnEvent(TurnEvent{Owner: player.ID, Kind: kind, Text: fmt.Sprintf("%s completed at %s", completedProject, p.Name), PlanetID: p.ID, StarID: p.ParentStar})
@@ -220,7 +228,7 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game, foodRe
 				})
 			} else if completedProject == "Freighters" {
 				player.Freighters += 5
-			} else if design, ok := game.findBuildableShipDesign(player, completedProject); ok {
+			} else if isDesign {
 				game.addShipToOrbitFleet(player.ID, p.ParentStar, fleetShipFromDesign(*design))
 			} else {
 				buildOnPlanet(game, p, completedProject)
@@ -232,6 +240,7 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game, foodRe
 			}
 			nextProject := popNextQueuedBuild(p)
 			if !Build(p, nextProject, player.Available.Buildings, game) {
+				game.recordBlockedProduction(p, nextProject)
 				p.CurrentProject = tradeGoodsProject
 				p.IsBuilding = false
 				p.BuildBucket = 0
@@ -795,4 +804,8 @@ func groundUnitModifierValue(modifiers []Modifier, modifierName string) int64 {
 		}
 	}
 	return total
+}
+
+func (g *Game) recordBlockedProduction(p *Planet, project string) {
+	g.recordTurnEvent(TurnEvent{Owner: p.Owner, Kind: "production_blocked", Text: fmt.Sprintf("%s could no longer be built at %s; production kept", project, p.Name), PlanetID: p.ID, StarID: p.ParentStar})
 }

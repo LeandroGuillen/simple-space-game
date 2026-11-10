@@ -146,3 +146,12 @@ describe("turn report helpers", () => {
     expect(groupTurnEvents([{ owner: 1, kind: "mystery", text: "?" }]).map((g) => g.label)).toEqual(["Other"]);
   });
 });
+
+it("shows blocked production in Construction with the retained-production message", async () => {
+  const event = { owner: 1, kind: "production_blocked", text: "Raider could no longer be built at Sol I; production kept", planet_id: 1, star_id: 1 };
+  const view = render(() => <Harness events={[events[0], event]} />);
+  await openReport(view);
+  expect(screen.getByText("Construction")).toBeTruthy();
+  expect(screen.getByText(event.text)).toBeTruthy();
+  expect(screen.getByRole("link", { name: event.text }).getAttribute("href")).toBe("/stars/1/planets/1");
+});

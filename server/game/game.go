@@ -1826,6 +1826,9 @@ func (g *Game) UpdateShipDesign(playerID uint, name, driveName, computerName, sh
 	}
 	for i, d := range player.ShipDesigns {
 		if d.Name == name {
+			if err := g.shipDesignUsage(name, playerID); err != nil {
+				return err
+			}
 			player.ShipDesigns[i] = design
 			return nil
 		}

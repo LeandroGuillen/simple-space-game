@@ -570,6 +570,10 @@ export function ShipEditorPage() {
             </div>
           </div>
         </header>
+        <Show when={saveError()}>
+          <p class="race-editor-save-error" role="alert">{saveError()}</p>
+        </Show>
+        <p class="ship-editor-hint">Designs used by construction, build queues, or existing ships cannot be changed or deleted. Copy the design and save it under a new name.</p>
 
         <div class="ship-editor-card">
           <aside class="ship-editor-sidebar" aria-label="Saved ship designs">
@@ -800,9 +804,6 @@ export function ShipEditorPage() {
                           Built-in designs are read-only. Use Copy to derive an editable template.
                         </p>
                       </Show>
-                      <Show when={saveError()}>
-                        <p class="race-editor-save-error">{saveError()}</p>
-                      </Show>
                       <Show when={saveMessage()}>
                         <p class="race-editor-save-message">{saveMessage()}</p>
                       </Show>
@@ -818,9 +819,6 @@ export function ShipEditorPage() {
                   <ul class="race-editor-errors">
                     <For each={errors()}>{(error) => <li>{error}</li>}</For>
                   </ul>
-                </Show>
-                <Show when={saveError()}>
-                  <p class="race-editor-save-error">{saveError()}</p>
                 </Show>
               </div>
             </Show>
