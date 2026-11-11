@@ -24,6 +24,10 @@ const EYEBROW_BY_MODE: Record<ShipDesignModalMode, string> = {
 export function ShipDesignModal(props: ShipDesignModalProps) {
   const { state, saveShipDesign } = useAppContext();
   const parts = createMemo(() => state.game?.resources.shipParts);
+  const beams = createMemo(() => {
+    const researched = state.game?.players.find((p) => p.id === state.session.playerId)?.available.beams ?? [];
+    return (parts()?.beams ?? []).filter((beam) => beam.maxDamage > 0 && researched.includes(beam.name));
+  });
   const [form, setForm] = createSignal<ShipDesignForm>(
     defaultShipDesignForm(state.game),
   );
@@ -106,7 +110,7 @@ export function ShipDesignModal(props: ShipDesignModalProps) {
                     <OptionToggleField
                       label="Weapon (None = utility ship, cannot fight)"
                       value={form().beam || "None"}
-                      options={["None", ...(state.game?.players.find((p) => p.id === state.session.playerId)?.available.beams ?? [])]}
+                      options={["None", ...beams().map((beam) => beam.name)]}
                       onSelect={(value) => setForm({ ...form(), beam: value === "None" ? "" : value })}
                     />
                     <OptionToggleField

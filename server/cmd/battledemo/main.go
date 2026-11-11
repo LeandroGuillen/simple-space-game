@@ -43,7 +43,7 @@ func main() {
 	must(err)
 
 	laser := findBeam(resources.Beams, "Laser")
-	fusion := findBeam(resources.Beams, "Fusion")
+	fusion := findBeam(resources.Beams, "Fusion Beam")
 
 	gunship := game.NewShipDesign("Laser Gunship", []Beam{laser, laser, laser}, nil, hull, drive, armor, computer, fuel, shield)
 	raider := game.NewShipDesign("Fusion Raider", []Beam{fusion, fusion}, nil, bigHull, drive, armor, computer, fuel, shield)

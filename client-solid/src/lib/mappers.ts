@@ -156,6 +156,7 @@ export function mapGame(apiGame: ApiGame): GameViewModel {
     })),
     resources: {
       shipParts: {
+        beams: apiGame.resources.ship_parts.beams ?? [],
         hullSizes: apiGame.resources.ship_parts.hull_sizes.map(mapHullSize),
         drives: apiGame.resources.ship_parts.drives.map(mapDrive),
         armors: apiGame.resources.ship_parts.armors.map(mapArmor),

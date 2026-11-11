@@ -187,6 +187,7 @@ export function ShipEditorPage() {
   const { state } = useAppContext();
   const [allDesigns, setAllDesigns] = createSignal<ShipDesignTemplateRow[]>([]);
   const [parts, setParts] = createSignal<ApiShipParts | null>(null);
+  const beams = createMemo(() => (parts()?.beams ?? []).filter((beam) => beam.maxDamage > 0));
   const [listFocus, setListFocus] = createSignal<string | null>(null);
   const [isDraft, setIsDraft] = createSignal(false);
   const [form, setForm] = createSignal<ShipDesignForm>(defaultShipDesignFormFromParts(null));
@@ -738,7 +739,7 @@ export function ShipEditorPage() {
                                     disabled={readOnly()}
                                     onChange={(e) => updateForm({ beam: e.currentTarget.value })}
                                   >
-                                    <For each={parts()?.beams ?? []}>
+                                    <For each={beams()}>
                                       {(b) => <option value={b.name}>{b.name}</option>}
                                     </For>
                                   </select>
@@ -760,8 +761,8 @@ export function ShipEditorPage() {
                       <button
                         type="button"
                         class="ship-editor-bay-add-hint"
-                        disabled={readOnly() || !!form().beam || !parts()?.beams?.length}
-                        onClick={() => updateForm({ beam: parts()?.beams?.[0]?.name ?? "" })}
+                        disabled={readOnly() || !!form().beam || !beams().length}
+                        onClick={() => updateForm({ beam: beams()[0]?.name ?? "" })}
                       >
                         + Add weapon
                       </button>

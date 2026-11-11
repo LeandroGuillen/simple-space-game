@@ -14,7 +14,7 @@ func TestShipDesignOrderValidatesUnlocksAndKeepsExistingDesigns(t *testing.T) {
 	g.hydratePlayerAvailability(p)
 	c := &DesignShipCommand{Name: "AI Frigate 1", Hull: "Frigate", Drive: "Nuclear", Armor: "Titanium", Computer: "None", FuelCell: "Standard", Shield: "None", Beam: "Laser"}
 	invalid := *c
-	invalid.Beam = "Fusion"
+	invalid.Beam = "Fusion Beam"
 	_, _, err := g.SubmitTurn(p.ID, Commands{DesignShip: &invalid})
 	require.Error(t, err)
 	require.Empty(t, p.ShipDesigns)

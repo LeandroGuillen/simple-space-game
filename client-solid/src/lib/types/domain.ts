@@ -304,6 +304,7 @@ export type ShipSystemViewModel = {
 
 export type ResourcesViewModel = {
   shipParts: {
+    beams?: { name: string; minDamage: number; maxDamage: number }[];
     hullSizes: HullSizeViewModel[];
     drives: DriveViewModel[];
     armors: ArmorViewModel[];

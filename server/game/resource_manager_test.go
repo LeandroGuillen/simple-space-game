@@ -34,6 +34,37 @@ func TestResourceManagerLoadsBeamDamage(t *testing.T) {
 	assert.Equal(t, int64(4), laser.MaxDamage)
 }
 
+func TestEveryResearchedBeamHasDamage(t *testing.T) {
+	resources := testResources(t)
+	unlocked := make(map[string]bool)
+	for _, tech := range resources.TechTree.AllTechs {
+		for _, name := range tech.Grants.Unlocks.Beams {
+			unlocked[name] = true
+			t.Run(tech.Name+"/"+name, func(t *testing.T) {
+				var beam *Beam
+				for i := range resources.Beams {
+					if resources.Beams[i].Name == name {
+						beam = &resources.Beams[i]
+						break
+					}
+				}
+				require.NotNil(t, beam, "tech unlock must exist in beams.json")
+				assert.Positive(t, beam.MinDamage)
+				assert.Positive(t, beam.MaxDamage)
+				assert.GreaterOrEqual(t, beam.MaxDamage, beam.MinDamage)
+			})
+		}
+	}
+	require.NotEmpty(t, unlocked)
+	for _, beam := range resources.Beams {
+		assert.True(t, unlocked[beam.Name], "catalog beam %q must be researchable", beam.Name)
+		if beam.Name == "Fusion Beam" {
+			assert.Equal(t, int64(2), beam.MinDamage)
+			assert.Equal(t, int64(8), beam.MaxDamage)
+		}
+	}
+}
+
 func TestNewResourceManagerLoadsHumanBuiltinRace(t *testing.T) {
 	resources, err := NewResourceManager()
 	require.NoError(t, err)

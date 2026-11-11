@@ -5,6 +5,15 @@ import (
 	. "ssg/model"
 )
 
+// canonicalBeamName accepts the pre-0.18.7 name in saved designs and templates.
+// Keep the alias out of the beam catalog so editors only offer Fusion Beam.
+func canonicalBeamName(name string) string {
+	if name == "Fusion" {
+		return "Fusion Beam"
+	}
+	return name
+}
+
 func GetDamage(b Beam, distance int64) int64 {
 	// base damage
 	totalDamage := b.MaxDamage

@@ -85,7 +85,7 @@ func (resources *Resources) resolveShipDesign(def ShipDesignsDef) (ShipDesign, e
 			return ShipDesign{}, fmt.Errorf("beam catalog unavailable")
 		}
 		for _, b := range resources.Beams {
-			if b.Name == def.Beam && b.MaxDamage > 0 {
+			if b.Name == canonicalBeamName(def.Beam) && b.MaxDamage > 0 {
 				beams = append(beams, b)
 				break
 			}

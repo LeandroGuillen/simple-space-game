@@ -6,49 +6,44 @@
       "maxDamage": 4
     },
     {
-      "name": "Fusion",
+      "name": "Death Spores",
+      "minDamage": 3,
+      "maxDamage": 12
+    },
+    {
+      "name": "Bio Terminator",
+      "minDamage": 10,
+      "maxDamage": 40
+    },
+    {
+      "name": "Fusion Beam",
       "minDamage": 2,
       "maxDamage": 8
     },
     {
-      "name": "Death Spores",
-      "minDamage": 0,
-      "maxDamage": 0
-    },
-    {
-      "name": "Bio Terminator",
-      "minDamage": 0,
-      "maxDamage": 0
-    },
-    {
-      "name": "Fusion Beam",
-      "minDamage": 0,
-      "maxDamage": 0
-    },
-    {
       "name": "Tractor Beam",
-      "minDamage": 0,
-      "maxDamage": 0
+      "minDamage": 5,
+      "maxDamage": 20
     },
     {
       "name": "Phasors",
-      "minDamage": 0,
-      "maxDamage": 0
+      "minDamage": 6,
+      "maxDamage": 24
     },
     {
       "name": "Plasma Web",
-      "minDamage": 0,
-      "maxDamage": 0
+      "minDamage": 8,
+      "maxDamage": 32
     },
     {
       "name": "Stellar Converter",
-      "minDamage": 0,
-      "maxDamage": 0
+      "minDamage": 20,
+      "maxDamage": 80
     },
     {
       "name": "Gyro Destabilizer",
-      "minDamage": 0,
-      "maxDamage": 0
+      "minDamage": 4,
+      "maxDamage": 16
     }
   ]
 }

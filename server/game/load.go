@@ -49,6 +49,23 @@ func HydrateLoadedGame(g *Game, resources *ResourceManager) {
 	if resources != nil {
 		g.Resources = &resources.Resources
 	}
+	// Normalize legacy beam names while preserving saved damage and all other
+	// parts (including the distinct Fusion drive). This keeps unlock checks and
+	// AI design comparisons consistent with the current beam catalog.
+	for _, player := range g.Players {
+		if player == nil {
+			continue
+		}
+		for i := range player.Available.Beams {
+			player.Available.Beams[i] = canonicalBeamName(player.Available.Beams[i])
+		}
+		for i := range player.ShipDesigns {
+			for j := range player.ShipDesigns[i].Beams {
+				beam := &player.ShipDesigns[i].Beams[j]
+				beam.Name = canonicalBeamName(beam.Name)
+			}
+		}
+	}
 	if g.TurnSubmissions == nil {
 		g.TurnSubmissions = make(map[uint]Commands)
 	}
