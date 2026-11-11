@@ -52,7 +52,12 @@ type InvadeCommand struct {
 	ShipIndexes    *[]uint `json:"ship_indexes,omitempty"`
 }
 
+type SetTaxRateCommand struct {
+	Rate float64 `json:"rate"`
+}
+
 type Commands struct {
+	SetTaxRate           *SetTaxRateCommand           `json:"set_tax_rate,omitempty"`
 	Build                []*BuildCommand              `json:"build"`
 	MovePopulation       []*MovePopulationCommand     `json:"movePopulation,omitempty"`
 	TransferPopulation   []*TransferPopulationCommand `json:"transfer_population,omitempty"`

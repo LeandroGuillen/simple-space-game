@@ -1215,6 +1215,7 @@ func TestCommandsFieldsHaveSubmitTimeValidators(t *testing.T) {
 	// Guard: every Commands field must be covered by validatePlayerCommands.
 	// When adding a field to model.Commands, add submit-time validation and list it here.
 	covered := map[string]bool{
+		"SetTaxRate":           true, // validateTaxRate in validatePlayerCommands
 		"Build":                true, // validated via buy-production projection / build apply path
 		"MovePopulation":       true,
 		"TransferPopulation":   true,

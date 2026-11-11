@@ -309,6 +309,10 @@ func copyCommands(cmds model.Commands) model.Commands {
 			out.TransferPopulation[i] = &cp
 		}
 	}
+	if cmds.SetTaxRate != nil {
+		cp := *cmds.SetTaxRate
+		out.SetTaxRate = &cp
+	}
 	if cmds.SelectResearch != nil {
 		cp := *cmds.SelectResearch
 		out.SelectResearch = &cp

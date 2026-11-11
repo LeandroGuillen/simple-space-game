@@ -371,6 +371,12 @@ func (g *Game) validatePlayerCommands(playerID uint, commands Commands) error {
 		return err
 	}
 
+	if commands.SetTaxRate != nil {
+		if err := validateTaxRate(commands.SetTaxRate.Rate); err != nil {
+			return err
+		}
+	}
+
 	// Research is applied first in applyPlayerTurn; validate against current player state.
 	if commands.SelectResearch != nil {
 		if _, err := g.validateSelectResearchOrder(player, *commands.SelectResearch); err != nil {
@@ -684,6 +690,13 @@ func (g *Game) applyPlayerTurn(playerID uint, commands Commands) error {
 	player, err := g.getPlayer(playerID)
 	if err != nil {
 		return err
+	}
+
+	if commands.SetTaxRate != nil {
+		if err := validateTaxRate(commands.SetTaxRate.Rate); err != nil {
+			return err
+		}
+		player.TaxRate = commands.SetTaxRate.Rate
 	}
 
 	if commands.SelectResearch != nil {

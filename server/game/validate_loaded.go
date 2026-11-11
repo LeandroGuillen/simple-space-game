@@ -45,8 +45,8 @@ func ValidateLoadedGame(g *Game, resources *ResourceManager) error {
 		// Negative treasury is reachable in normal play (command-point overdraw
 		// and freighter operating costs are subtracted with no floor), so do
 		// not reject it on load — only NaN/Inf are absurd.
-		// TaxRate is unused by turn logic today (no SetTaxRate handler); treat
-		// it as a unit-interval rate matching the field name.
+		// Preserve the historical save range of 0..1 for compatibility. New
+		// set_tax_rate orders are restricted to 0..0.5 at submission.
 		if math.IsNaN(p.TaxRate) || math.IsInf(p.TaxRate, 0) || p.TaxRate < 0 || p.TaxRate > 1 {
 			return fmt.Errorf("player %d has out-of-range tax_rate %v (want 0..1)", p.ID, p.TaxRate)
 		}
