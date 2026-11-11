@@ -10,6 +10,8 @@ import {
   getBuyProductionCost,
   getArtificialPlanetTargets,
   getEmpireFoodBalance,
+  getEmpireIncome,
+  formatEmpireIncomeTooltip,
   getProjectedFoodFreightersUsed,
   getColonyRows,
   getPlanetGrossIndustryForWorkers,
@@ -690,4 +692,58 @@ describe("inboundInFlightTransferUnits", () => {
       ),
     ).toBe(8);
   });
+});
+
+
+describe("industry tax preview", () => {
+  it.each([0, 0.3, 0.5])("converts post-pollution industry 1:1 at rate %s without bonuses", (rate) => {
+    const colony = planet({
+      isBuilding: true,
+      industry: { workers: 0, produced_per_worker: 3, produced_per_building: 10, produced_per_colonist: 0 },
+      income: { taxes: 10, buildings: 0, tradeGoods: 0, maintenance: 0, total: 25, bonus: 1.5 },
+    });
+    const projected = getPlanetProjectedIncome(colony, undefined, [], rate);
+    expect(projected.industryTax).toBe(Math.floor(10 * rate));
+    expect(projected.total).toBe(25 + Math.floor(10 * rate));
+  });
+
+  it("feeds replicators before tax and Trade Goods", () => {
+    const colony = planet({
+      food: { farmers: 3, produced_per_farmer: 2, produced_per_building: 0 },
+      industry: { workers: 0, produced_per_worker: 3, produced_per_building: 18, produced_per_colonist: 0 },
+      buildings: [building("Food Replicators")],
+      currentProject: building("Trade Goods"),
+    });
+    const projected = getPlanetProjectedIncome(colony, undefined, [], .3);
+    expect(projected.industryTax).toBe(3); // (18 - 8) * .3
+    expect(projected.tradeGoods).toBe(3); // floor((10 - 3) / 2)
+    expect(projected.total).toBe(16);
+  });
+
+  it("preserves hydrated industry tax when no rate is supplied", () => {
+    const colony = planet({ isBuilding: true });
+    colony.income.industryTax = 3;
+    colony.income.total = 13;
+    expect(getPlanetProjectedIncome(colony).total).toBe(13);
+  });
+});
+
+
+it("uses hydrated colony income in the top bar and previews pending zero tax", () => {
+  const colonies = [1, 2].map(id => planet({
+    id, owner: 1, isBuilding: true,
+    industry: { workers: 0, produced_per_worker: 3, produced_per_building: 11, produced_per_colonist: 0 },
+    income: { taxes: 10, industryTax: 3, buildings: 0, tradeGoods: 0, maintenance: 0, total: 13, bonus: 0 },
+  }));
+  const player = { id: 1, taxRate: .3, commandOverdrawBc: 2 } as PlayerViewModel;
+  const game = {
+    players: [player], galaxy: { stars: [{ name: "Sol", planets: colonies }] },
+  } as GameViewModel;
+  expect(getEmpireIncome(game)).toBe(24);
+  const pending = {
+    build: [], movePopulation: [], colonize: [], artificialPlanet: [],
+    fleetMove: [], invade: [], buyProduction: [], setTaxRate: { rate: 0 },
+  };
+  expect(getEmpireIncome(game, 1, pending)).toBe(18);
+  expect(formatEmpireIncomeTooltip(game, player, pending)).toContain("Colonies total: +20 BC");
 });

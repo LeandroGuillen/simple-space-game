@@ -252,6 +252,7 @@ export type ApiPlanet = {
   income?: {
     taxes: number;
     buildings: number;
+    industry_tax?: number;
     trade_goods: number;
     maintenance: number;
     total: number;

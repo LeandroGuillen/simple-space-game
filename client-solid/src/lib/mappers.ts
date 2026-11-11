@@ -559,6 +559,7 @@ function mapIncome(planet: ApiPlanet, buildingsOnPlanet: BuildingViewModel[]) {
   if (planet.income) {
     return {
       taxes: planet.income.taxes,
+      industryTax: planet.income.industry_tax ?? 0,
       buildings: planet.income.buildings,
       tradeGoods: planet.income.trade_goods,
       maintenance: planet.income.maintenance,

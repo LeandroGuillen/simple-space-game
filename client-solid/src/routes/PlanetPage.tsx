@@ -67,6 +67,7 @@ export function PlanetPage() {
     if (!current) {
       return {
         taxes: 0,
+        industryTax: 0,
         buildings: 0,
         tradeGoods: 0,
         maintenance: 0,
@@ -75,7 +76,7 @@ export function PlanetPage() {
       };
     }
 
-    return getPlanetProjectedIncome(current, state.pendingCommands, currentPlayer()?.raceTraitIds);
+    return getPlanetProjectedIncome(current, state.pendingCommands, currentPlayer()?.raceTraitIds, currentPlayer()?.taxRate);
   });
   const incomeIcons = createMemo(() => {
     const total = Math.max(0, incomeBreakdown().total);
@@ -455,6 +456,11 @@ export function PlanetPage() {
                     <div class="pop-output-tooltip-row">
                       <span>Trade Goods:</span>
                       <strong>{incomeBreakdown().tradeGoods} BC</strong>
+                    </div>
+                    {/* SSG's own breakdown design: 1 BC removes 1 industry. */}
+                    <div class="pop-output-tooltip-row">
+                      <span>Tax:</span>
+                      <strong>+{incomeBreakdown().industryTax} BC (−{incomeBreakdown().industryTax} industry)</strong>
                     </div>
                     <Show when={incomeBreakdown().bonus !== 0}>
                       <div class="pop-output-tooltip-row">

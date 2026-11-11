@@ -1,3 +1,4 @@
+import { TaxControl } from "./TaxControl";
 import { attachModalBehavior } from "../lib/modal";
 import {
   A,
@@ -378,6 +379,7 @@ export function AppShell(props: RouteSectionProps) {
   const {
     state,
     currentPlayer,
+    setTaxRate,
     enableDebugMode,
     endTurn,
     saveGameNow,
@@ -935,6 +937,7 @@ export function AppShell(props: RouteSectionProps) {
                     >
                       <span>Income</span>
                       <strong>{formatSignedBc(empireIncome())}</strong>
+                      <TaxControl rate={state.pendingCommands.setTaxRate?.rate ?? currentPlayer()?.taxRate ?? 0} onChange={setTaxRate} />
                     </div>
 
                     <div class="turn-stat turn-stat--accent">

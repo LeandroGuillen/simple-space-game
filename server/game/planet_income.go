@@ -9,6 +9,25 @@ func hydratePlanetIncome(game *Game, p *model.Planet, industryProduced int64) {
 	p.Income = PlanetIncome(game, p, industryProduced)
 }
 
+// industryAfterReplicators uses industry after pollution, before empire tax.
+func industryAfterReplicators(game *Game, p *model.Planet) int64 {
+	player := gamePlayerForPlanet(game, p)
+	base := GamePlanetIndustryProduced(game, p)
+	food := CalculateFoodWithReplicators(game, p, int64(math.Ceil(PopulationFoodDemand(player, p.Population))), base)
+	return maxInt64(0, base-food.IndustryConsumed)
+}
+
+// splitIndustryTax follows the confirmed MoO2 1.50 assumptions: 1:1 BC,
+// floor per colony, after pollution and food replicators. No income bonuses,
+// morale effects or changes to pollution or population taxes.
+func splitIndustryTax(net int64, player *model.Player) (buildIndustry, taxBC int64) {
+	net = maxInt64(0, net)
+	if player != nil {
+		taxBC = int64(math.Floor(float64(net) * player.TaxRate))
+	}
+	return net - taxBC, taxBC
+}
+
 func PlanetIncome(game *Game, planet *model.Planet, industryProduced int64) model.PlanetIncomeOutput {
 	var player *model.Player
 	if game != nil {
@@ -17,6 +36,7 @@ func PlanetIncome(game *Game, planet *model.Planet, industryProduced int64) mode
 			player = found
 		}
 	}
+	industryProduced, industryTax := splitIndustryTax(industryProduced, player)
 	taxes := int64(math.Floor(float64(planet.Population/1000) *
 		governmentMoraleMultiplier(game, player, planet.Morale) *
 		governmentTaxMultiplier(game, player)))
@@ -63,10 +83,11 @@ func PlanetIncome(game *Game, planet *model.Planet, industryProduced int64) mode
 	if incomeMultiplier < 0 {
 		incomeMultiplier = 0
 	}
-	totalIncome := int64(float64(grossIncome)*incomeMultiplier) - maintenance
+	totalIncome := int64(float64(grossIncome)*incomeMultiplier) - maintenance + industryTax
 
 	return model.PlanetIncomeOutput{
 		Taxes:       taxes,
+		IndustryTax: industryTax,
 		Buildings:   incomeFromBuildings,
 		TradeGoods:  tradeGoods,
 		Maintenance: maintenance,

@@ -177,6 +177,14 @@ describe('mapGame', () => {
     ])
     expect(game.galaxy.stars[0]?.planets[0]?.income.maintenance).toBe(2)
     expect(game.galaxy.stars[0]?.planets[0]?.income.total).toBe(6)
+    apiGame.galaxy.stars[0]!.planets![0]!.income = {
+      taxes: 8, buildings: 0, trade_goods: 0, industry_tax: 3,
+      maintenance: 2, total: 9, bonus: 0,
+    }
+    const taxed = mapGame(apiGame).galaxy.stars[0]!.planets[0]!.income
+    expect(taxed.industryTax).toBe(3)
+    expect(taxed.total).toBe(9)
+
     expect(game.galaxy.stars[0]?.planets[0]?.morale).toEqual({
       bonus: 0,
       multiplier: 1,

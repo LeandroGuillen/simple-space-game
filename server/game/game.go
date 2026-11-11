@@ -1453,7 +1453,7 @@ func (g *Game) CreateCapitalPlanetAtStar(ownerID, starID uint) error {
 	hydratePlanetPopulationCapacity(g, planet, player)
 	hydratePlanetMorale(g, planet, player)
 	hydratePlanetOutputs(g, planet)
-	hydratePlanetIncome(g, planet, 0)
+	hydratePlanetIncome(g, planet, industryAfterReplicators(g, planet))
 
 	g.HydrateCommandPoints()
 
@@ -1722,7 +1722,7 @@ func (g *Game) colonyListUnlocked(playerID uint) ([]*Planet, error) {
 				hydratePlanetMorale(g, planet, player)
 				hydratePlanetOutputs(g, planet)
 				hydratePlanetPopulationCapacity(g, planet, player)
-				hydratePlanetIncome(g, planet, GamePlanetIndustryProduced(g, planet))
+				hydratePlanetIncome(g, planet, industryAfterReplicators(g, planet))
 				colonyList = append(colonyList, planet)
 			}
 		}
@@ -1749,7 +1749,7 @@ func (g *Game) colonyListCopiesUnlocked(playerID uint) ([]*Planet, error) {
 			hydratePlanetMorale(g, planetCopy, player)
 			hydratePlanetOutputs(g, planetCopy)
 			hydratePlanetPopulationCapacity(g, planetCopy, player)
-			hydratePlanetIncome(g, planetCopy, GamePlanetIndustryProduced(g, planetCopy))
+			hydratePlanetIncome(g, planetCopy, industryAfterReplicators(g, planetCopy))
 			colonyList = append(colonyList, planetCopy)
 		}
 	}

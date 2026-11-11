@@ -132,6 +132,7 @@ type AppContextValue = {
   setInfo: (info: string) => void;
   clearError: () => void;
   clearInfo: () => void;
+  setTaxRate: (rate: number) => void;
   mutateRace: (traitIds: string[]) => void;
 };
 
@@ -1188,6 +1189,9 @@ export function AppProvider(props: ParentProps) {
     setInfo,
     clearError,
     clearInfo,
+    setTaxRate: (rate: number) => {
+      setState('pendingCommands', 'setTaxRate', { rate });
+    },
     mutateRace: (traitIds: string[]) => {
       setState('pendingCommands', 'mutateRace', { trait_ids: traitIds });
       setState('info', 'Race mutation queued for next turn');
@@ -1246,6 +1250,10 @@ export function toTurnCommands(commands: PendingCommands, game: GameViewModel | 
     turnCommands.buy_production = commands.buyProduction.map((cmd) => ({
       planetId: cmd.planetId,
     }));
+  }
+
+  if (commands.setTaxRate) {
+    turnCommands.set_tax_rate = { rate: commands.setTaxRate.rate };
   }
 
   if (commands.mutateRace) {

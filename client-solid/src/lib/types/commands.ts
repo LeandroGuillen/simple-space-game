@@ -53,6 +53,7 @@ export type MutateRaceCommand = {
 };
 
 export type PendingCommands = {
+  setTaxRate?: { rate: number };
   build: BuildCommand[];
   movePopulation: MovePopulationCommand[];
   transferPopulation?: TransferPopulationCommand[];
@@ -73,6 +74,7 @@ export type TurnMovePopulationCommand = {
 };
 
 export type TurnCommands = {
+  set_tax_rate?: { rate: number };
   build: BuildCommand[];
   movePopulation?: TurnMovePopulationCommand[];
   selectResearch?: SelectResearchCommand;

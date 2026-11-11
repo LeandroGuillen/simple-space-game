@@ -70,3 +70,18 @@
     margin-left: 4px;
     border-left: 1px solid var(--rule);
 }
+
+.tax-control {
+    margin-top: 3px;
+    font-size: 0.7rem;
+    color: var(--text-mute);
+
+    & select {
+        padding: 1px 4px;
+        border: 1px solid var(--rule);
+        border-radius: 3px;
+        background: var(--bg-elev);
+        color: var(--text);
+        cursor: pointer;
+    }
+}

@@ -91,6 +91,7 @@ export type PlanetViewModel = {
   income: {
     taxes: number;
     buildings: number;
+    industryTax?: number;
     tradeGoods: number;
     maintenance: number;
     total: number;

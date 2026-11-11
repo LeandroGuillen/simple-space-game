@@ -159,3 +159,8 @@ describe("submittedTurnMessage", () => {
     expect(submittedTurnMessage(response, gameWithFleets([]), 1)).toBe("Orders submitted; waiting for other players");
   });
 });
+
+
+it.each([0, .1, .2, .3, .4, .5])("submits empire tax rate %s including zero", (rate) => {
+  expect(toTurnCommands(pendingCommands({ setTaxRate: { rate } }), null).set_tax_rate).toEqual({ rate });
+});

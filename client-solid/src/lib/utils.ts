@@ -597,7 +597,16 @@ export function getPlanetProjectedIncome(
   planet: PlanetViewModel,
   pendingCommands?: PendingCommands,
   traitIds?: string[],
+  taxRate?: number,
 ) {
+  // Hydrated server income is authoritative until an economic order changes it.
+  // Older snapshots without industryTax still use the local projection below.
+  if (planet.income.industryTax !== undefined &&
+      !pendingCommands?.setTaxRate &&
+      !pendingCommands?.movePopulation.some(command => command.planetId === planet.id) &&
+      !pendingCommands?.build.some(command => command.planetId === planet.id)) {
+    return { ...planet.income, industryTax: planet.income.industryTax };
+  }
   const population = getProjectedWorkerAllocation(planet, pendingCommands?.movePopulation ?? []);
   const pendingBuild = getPendingBuild(planet.id, pendingCommands?.build ?? []);
   const food = getPlanetFoodForFarmers(planet, population.farmers);
@@ -605,7 +614,15 @@ export function getPlanetProjectedIncome(
     0,
     food - Math.ceil(populationFoodDemand(traitIds, planet.population)),
   );
-  const industry = getPlanetIndustryForWorkers(planet, population.workers, traitIds);
+  const baseIndustry = getPlanetIndustryForWorkers(planet, population.workers, traitIds);
+  const replicatorFood = getFoodReplicatorFood(
+    planet, Math.ceil(populationFoodDemand(traitIds, planet.population)) - food, baseIndustry,
+  );
+  const netIndustry = Math.max(0, baseIndustry - replicatorFood * 2);
+  const rate = pendingCommands?.setTaxRate?.rate ?? taxRate;
+  // Same 1:1, per-colony floor as the server; tax never gets income bonuses.
+  const industryTax = rate == null ? (planet.income.industryTax ?? 0) : Math.floor(netIndustry * rate);
+  const industry = netIndustry - industryTax;
   const producesTradeGoods =
     pendingBuild?.building === "Trade Goods" ||
     (!planet.isBuilding && !pendingBuild && planet.currentProject?.name === "Trade Goods");
@@ -619,10 +636,11 @@ export function getPlanetProjectedIncome(
       (planet.government?.taxMultiplier ?? 1),
   );
   const gross = taxes + planet.income.buildings + tradeGoods;
-  const total = Math.trunc(gross * (1 + planet.income.bonus)) - planet.income.maintenance;
+  const total = Math.trunc(gross * (1 + planet.income.bonus)) - planet.income.maintenance + industryTax;
 
   return {
     taxes,
+    industryTax,
     buildings: planet.income.buildings,
     tradeGoods,
     maintenance: planet.income.maintenance,
@@ -634,6 +652,7 @@ export function getPlanetProjectedIncome(
 export type PopulationGrowthContext = {
   /** Food delivered by automatic freighter transfers this turn. */
   foodReceived?: number;
+  taxRate?: number;
   /** Empire-wide growth percent from researched medicine techs. */
   medicineGrowthPercent?: number;
 };
@@ -686,7 +705,8 @@ export function getPlanetProjectedPopulationGrowth(
   const isHousing =
     pendingBuild?.building === "Housing" ||
     (!pendingBuild && planet.currentProject?.name === "Housing");
-  const industry = grossIndustry - replicatorFood * 2;
+  const netIndustry = Math.max(0, grossIndustry - replicatorFood * 2);
+  const industry = netIndustry - Math.floor(netIndustry * (pendingCommands?.setTaxRate?.rate ?? context.taxRate ?? 0));
   const populationUnits = Math.max(1, Math.floor(planet.population / 1000));
   const housingBonusPercent = isHousing && industry > 0
     ? Math.floor((industry * 40) / populationUnits)
@@ -722,6 +742,7 @@ export function getPlanetPopulationGrowthForecast(
     {
       foodReceived:
         getProjectedFoodTransfers(game, planet.owner, pendingCommands, player).get(planet.id) ?? 0,
+      taxRate: player?.taxRate,
       medicineGrowthPercent: getMedicineGrowthPercent(game, player),
     },
   );
@@ -866,6 +887,7 @@ export function getColonyRows(
             planet,
             pendingCommands,
             game.players.find((p) => p.id === playerId)?.raceTraitIds,
+            game.players.find((p) => p.id === playerId)?.taxRate,
           ).total,
           morale: planet.morale.bonus,
           currentProject: planet.currentProject?.name || "Idle",
@@ -888,7 +910,7 @@ export function getEmpireIncome(
     .filter((planet) => planet.owner === playerId)
     .reduce((total, planet) => {
       const me = player ?? game.players.find((p) => p.id === playerId);
-      return total + getPlanetProjectedIncome(planet, pendingCommands, me?.raceTraitIds).total;
+      return total + getPlanetProjectedIncome(planet, pendingCommands, me?.raceTraitIds, me?.taxRate).total;
     }, 0);
   const me = player ?? game.players.find((p) => p.id === playerId);
   const commandPenalty = me?.commandOverdrawBc ?? 0;
@@ -1047,7 +1069,7 @@ export function formatEmpireIncomeTooltip(
       if (planet.owner !== player.id) {
         continue;
       }
-      const inc = getPlanetProjectedIncome(planet, pendingCommands, player.raceTraitIds).total;
+      const inc = getPlanetProjectedIncome(planet, pendingCommands, player.raceTraitIds, player.taxRate).total;
       coloniesTotal += inc;
       lines.push(`${planet.name} (${star.name}): ${formatSignedBc(inc)}`);
     }

@@ -43,7 +43,8 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game, foodRe
 	totalFood := replicatorResult.FoodProduced + foodReceived
 
 	// Industry is reduced by what Food Replicators consumed (2 production = 1 food)
-	industryProduced := baseIndustryProduced - replicatorResult.IndustryConsumed
+	netIndustry := maxInt64(0, baseIndustryProduced-replicatorResult.IndustryConsumed)
+	industryProduced, _ := splitIndustryTax(netIndustry, player)
 
 	planetBuildCommand := findPlanetBuildCommand(p, commands)
 	buildingName := ""
@@ -164,7 +165,7 @@ func planetTurn(p *Planet, commands Commands, player *Player, game *Game, foodRe
 		break
 	}
 
-	hydratePlanetIncome(game, p, industryProduced)
+	hydratePlanetIncome(game, p, netIndustry)
 
 	// Advance build project
 	if p.IsBuilding {

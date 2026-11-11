@@ -89,7 +89,7 @@ func (g *Game) getVisibleGameForPlayerLocked(playerID uint) (*Game, error) {
 					hydratePlanetMorale(g, planetCopy, player)
 					hydratePlanetOutputs(g, planetCopy)
 					hydratePlanetPopulationCapacity(g, planetCopy, player)
-					hydratePlanetIncome(g, planetCopy, GamePlanetIndustryProduced(g, planetCopy))
+					hydratePlanetIncome(g, planetCopy, industryAfterReplicators(g, planetCopy))
 				}
 				starCopy.Planets = append(starCopy.Planets, planetCopy)
 			}

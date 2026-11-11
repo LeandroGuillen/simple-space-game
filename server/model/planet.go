@@ -70,6 +70,7 @@ type PlanetScienceOutput struct {
 }
 
 type PlanetIncomeOutput struct {
+	IndustryTax int64   `json:"industry_tax"`
 	Taxes       int64   `json:"taxes"`
 	Buildings   int64   `json:"buildings"`
 	TradeGoods  int64   `json:"trade_goods"`
