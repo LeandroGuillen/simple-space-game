@@ -22,7 +22,7 @@ func parseBattleID(c *gin.Context) (uint, bool) {
 // GetBattle returns the full tactical battle state, including the event log
 // clients consume for animation.
 func GetBattle(c *gin.Context) {
-	gameID, _, err := readHeaders(c)
+	gameID, playerID, err := readHeaders(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -35,7 +35,7 @@ func GetBattle(c *gin.Context) {
 	if !ok {
 		return
 	}
-	battle, err := g.GetTacticalBattle(battleID)
+	battle, err := g.GetTacticalBattle(battleID, playerID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		return

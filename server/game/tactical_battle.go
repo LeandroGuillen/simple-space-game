@@ -197,18 +197,21 @@ func (g *Game) seekLiveShip(b *TacticalBattle) {
 	}
 }
 
-// GetTacticalBattle finds a pending battle by ID and returns a deep copy so
-// the caller cannot mutate live battle state through the response.
-func (g *Game) GetTacticalBattle(battleID uint) (*TacticalBattle, error) {
+// GetTacticalBattle returns a deep copy of a pending battle for an involved
+// player. Unknown players and hidden battles return the same not-found error.
+func (g *Game) GetTacticalBattle(battleID, playerID uint) (*TacticalBattle, error) {
 	g.ensureMu()
 	g.mu.RLock()
 	defer g.mu.RUnlock()
+	if _, err := g.getPlayer(playerID); err != nil {
+		return nil, fmt.Errorf("battle not found")
+	}
 	for _, b := range g.PendingBattles {
-		if b != nil && b.ID == battleID {
+		if b != nil && b.ID == battleID && tacticalBattleInvolvesPlayer(b, playerID) {
 			return copyTacticalBattle(b), nil
 		}
 	}
-	return nil, fmt.Errorf("battle %d not found", battleID)
+	return nil, fmt.Errorf("battle not found")
 }
 
 // ApplyBattleAction validates and applies one order from playerID for the

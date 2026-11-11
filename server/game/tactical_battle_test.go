@@ -46,6 +46,47 @@ func startTacticalBattle(t *testing.T, g *Game, star *Star) *TacticalBattle {
 	return g.PendingBattles[0]
 }
 
+func TestGetTacticalBattleVisibility(t *testing.T) {
+	battle := &TacticalBattle{
+		ID: 1, HumanOwnerIDs: []uint{1, 999},
+		Ships: []*TacticalShip{
+			nil,
+			{ID: 1, OwnerID: 2, Destroyed: true},
+			{ID: 2, OwnerID: 998},
+		},
+	}
+	g := &Game{
+		Players:        []*Player{{ID: 1}, {ID: 2}, {ID: 3}},
+		PendingBattles: []*TacticalBattle{nil, battle},
+	}
+	for _, tc := range []struct {
+		name     string
+		playerID uint
+		battleID uint
+		allowed  bool
+	}{
+		{"human owner without ship", 1, 1, true},
+		{"owner of destroyed ship", 2, 1, true},
+		{"non-participant", 3, 1, false},
+		{"unknown human owner", 999, 1, false},
+		{"unknown ship owner", 998, 1, false},
+		{"nonexistent battle", 1, 999, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := g.GetTacticalBattle(tc.battleID, tc.playerID)
+			if !tc.allowed {
+				require.EqualError(t, err, "battle not found")
+				require.Nil(t, got)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, battle, got)
+			require.NotSame(t, battle, got)
+			require.NotSame(t, battle.Ships[1], got.Ships[1])
+		})
+	}
+}
+
 // armHumanGunboat registers the fast gunboat design for player 1 and parks a
 // one-ship fleet at the star; speed 9 guarantees it tops initiative.
 func armHumanGunboat(t *testing.T, g *Game, star *Star) {
