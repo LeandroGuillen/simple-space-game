@@ -118,6 +118,68 @@ func TestHumanBattleBecomesPendingInsteadOfAutoResolving(t *testing.T) {
 	assert.Equal(t, 9, current.MovesLeft)
 }
 
+func TestTacticalBattleDeploymentUsesUniqueSquares(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		counts []int
+	}{
+		{"two sides", []int{1, 1}},
+		{"three sides", []int{1, 1, 1}},
+		{"four sides", []int{1, 1, 1, 1}},
+		{"four sides with full left edge", []int{10, 1, 1, 1}},
+		{"four sides with inward overflow", []int{21, 21, 29, 29}},
+		{"full grid", []int{35, 35, 35, 35}},
+		{"large first side", []int{137, 1, 1, 1}},
+		{"beyond default grid capacity", []int{36, 36, 36, 36}},
+		{"large last side", []int{1, 1, 1, 150}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			resources, err := NewResourceManager()
+			require.NoError(t, err)
+			g, err := NewGame(resources, NewGameOptions{
+				PlayerName:  "Ada",
+				PlayerColor: DefaultPlayerColor(),
+				NumStars:    8,
+				Race:        DefaultRace("Human"),
+				NumPlayers:  uint(len(tc.counts)),
+			})
+			require.NoError(t, err)
+			star := contestedStar(g)
+			total := 0
+			for side, count := range tc.counts {
+				// Keep every side human so AI actions cannot move ships before
+				// we inspect their starting squares.
+				g.Players[side].IsHuman = true
+				ships := make([]FleetShip, count)
+				for i := range ships {
+					ships[i] = FleetShip{Type: "colony_ship", Name: fmt.Sprintf("Ship %d", i)}
+				}
+				addOrbitFleet(g, g.Players[side].ID, star, ships)
+				total += count
+			}
+
+			battle := startTacticalBattle(t, g, star)
+			require.Len(t, battle.Ships, total)
+			require.Len(t, battle.TurnOrder, total)
+			occupied := map[[2]int]uint{}
+			for _, ship := range battle.Ships {
+				require.False(t, ship.Destroyed)
+				require.True(t, ship.X >= 0 && ship.X < battle.GridWidth && ship.Y >= 0 && ship.Y < battle.GridHeight,
+					"ship %d starts off grid at (%d,%d)", ship.ID, ship.X, ship.Y)
+				position := [2]int{ship.X, ship.Y}
+				require.NotContains(t, occupied, position,
+					"ship %d (owner %d) overlaps ship %d at %v", ship.ID, ship.OwnerID, occupied[position], position)
+				occupied[position] = ship.ID
+				require.Same(t, ship, battle.ShipAt(ship.X, ship.Y), "every ship must be targetable by its square")
+			}
+			if total <= TacticalGridWidth*TacticalGridHeight {
+				assert.Equal(t, TacticalGridWidth, battle.GridWidth)
+				assert.Equal(t, TacticalGridHeight, battle.GridHeight)
+			}
+		})
+	}
+}
+
 func TestAIOnlyBattleStillAutoResolves(t *testing.T) {
 	g, star := newTacticalGame(t)
 	g.Players[0].IsHuman = false

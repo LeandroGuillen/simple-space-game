@@ -6,8 +6,8 @@ const (
 	TacticalBattleFinished = "finished"
 )
 
-// Tactical battle grid dimensions, MoO2-ish proportions. Small enough that
-// every square is within beam dissipation range (max Chebyshev distance 13).
+// Default tactical battle grid dimensions, MoO2-ish proportions. Battles add
+// rows when needed to give every ship its own square.
 const (
 	TacticalGridWidth  = 14
 	TacticalGridHeight = 10

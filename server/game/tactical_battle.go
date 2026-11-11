@@ -44,7 +44,9 @@ func (g *Game) createTacticalBattle(starID uint, fleets []*Fleet) *TacticalBattl
 	ownerOrder := []uint{}
 	shipsByOwner := map[uint][]*TacticalShip{}
 	nextShipID := uint(1)
+	shipCount := 0
 	for _, fleet := range fleets {
+		shipCount += len(fleet.Ships)
 		player, _ := g.getPlayer(fleet.Owner)
 		if _, seen := shipsByOwner[fleet.Owner]; !seen {
 			ownerOrder = append(ownerOrder, fleet.Owner)
@@ -61,6 +63,12 @@ func (g *Game) createTacticalBattle(starID uint, fleets []*Fleet) *TacticalBattl
 	}
 	sort.SliceStable(ownerOrder, func(i, j int) bool { return ownerOrder[i] < ownerOrder[j] })
 	sort.Slice(battle.HumanOwnerIDs, func(i, j int) bool { return battle.HumanOwnerIDs[i] < battle.HumanOwnerIDs[j] })
+
+	// Fleets have no ship-count limit. Add rows when necessary so placement
+	// can always find a distinct square for every ship.
+	if rows := (shipCount + battle.GridWidth - 1) / battle.GridWidth; rows > battle.GridHeight {
+		battle.GridHeight = rows
+	}
 
 	for sideIndex, ownerID := range ownerOrder {
 		placeSide(battle, shipsByOwner[ownerID], sideIndex)
@@ -107,22 +115,35 @@ func newTacticalShip(id uint, fleet *Fleet, shipIndex int, fs FleetShip, ship *S
 
 // placeSide lines a side's ships up along one edge of the grid: side 0 left,
 // side 1 right, side 2 top, side 3 bottom. Overflow wraps to the next column
-// (or row) inward.
+// (or row) inward, skipping squares claimed by earlier sides. The caller
+// ensures the grid has enough capacity for all sides before placement.
 func placeSide(b *TacticalBattle, ships []*TacticalShip, sideIndex int) {
-	for i, ts := range ships {
-		switch sideIndex {
-		case 0:
-			ts.X = i / b.GridHeight
-			ts.Y = i % b.GridHeight
-		case 1:
-			ts.X = b.GridWidth - 1 - i/b.GridHeight
-			ts.Y = i % b.GridHeight
-		case 2:
-			ts.X = i % b.GridWidth
-			ts.Y = i / b.GridWidth
-		default:
-			ts.X = i % b.GridWidth
-			ts.Y = b.GridHeight - 1 - i/b.GridWidth
+	occupied := make(map[[2]int]bool, len(b.Ships)+len(ships))
+	for _, ts := range b.Ships {
+		occupied[[2]int{ts.X, ts.Y}] = true
+	}
+	nextCell := 0
+	for _, ts := range ships {
+		for {
+			x, y := 0, 0
+			switch sideIndex {
+			case 0:
+				x, y = nextCell/b.GridHeight, nextCell%b.GridHeight
+			case 1:
+				x, y = b.GridWidth-1-nextCell/b.GridHeight, nextCell%b.GridHeight
+			case 2:
+				x, y = nextCell%b.GridWidth, nextCell/b.GridWidth
+			default:
+				x, y = nextCell%b.GridWidth, b.GridHeight-1-nextCell/b.GridWidth
+			}
+			nextCell++
+			position := [2]int{x, y}
+			if occupied[position] {
+				continue
+			}
+			ts.X, ts.Y = x, y
+			occupied[position] = true
+			break
 		}
 	}
 }
