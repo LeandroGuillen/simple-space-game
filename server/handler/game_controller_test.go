@@ -105,6 +105,53 @@ func TestNewGameRejectsFixableSetupWithBadRequest(t *testing.T) {
 	}
 }
 
+func TestNewGamePsilonAliasUsesFullBuiltInRace(t *testing.T) {
+	s := newGameTestServer(t)
+	for _, name := range []string{"Psilon", " psILon ", "psilons"} {
+		t.Run(name, func(t *testing.T) {
+			out := postNewGame(t, s, fmt.Sprintf(`{"player_name":"Ada","num_stars":8,"players":1,"race":%q}`, name))
+			require.Equal(t, http.StatusOK, out.Code, out.Body.String())
+			var created struct {
+				GameID string `json:"gameID"`
+			}
+			require.NoError(t, json.Unmarshal(out.Body.Bytes(), &created))
+			g := s.getGame(created.GameID)
+			require.NotNil(t, g)
+			require.Len(t, g.Players, 1)
+			player := g.Players[0]
+			assert.Equal(t, "Psilons", player.Race.Name)
+			assert.Equal(t, "Dictatorship", player.Race.Government)
+			assert.ElementsMatch(t, []string{"research_plus_2", "large_homeworld", "low_g_world", "creative"}, player.Race.TraitIDs)
+			assert.Equal(t, int64(2), player.Race.Stats.Research)
+			assert.Contains(t, player.Race.Grants.Modifiers, model.Modifier{Name: "science_per_scientist", Value: 2})
+
+			var homeworld *model.Planet
+			for _, star := range g.Galaxy.Stars {
+				for _, planet := range star.Planets {
+					if planet.Owner == player.ID {
+						homeworld = planet
+					}
+				}
+			}
+			require.NotNil(t, homeworld)
+			assert.Equal(t, model.PlanetGravityLow, homeworld.Gravity)
+			assert.Equal(t, model.PlanetSizeLarge, homeworld.Size)
+		})
+	}
+}
+
+func TestNewGameRejectsUnknownRaceNames(t *testing.T) {
+	s := newGameTestServer(t)
+	for _, name := range []string{"klingon", "Psilonn", " psilons_unknown "} {
+		t.Run(name, func(t *testing.T) {
+			out := postNewGame(t, s, fmt.Sprintf(`{"player_name":"Ada","num_stars":8,"players":1,"race":%q}`, name))
+			require.Equal(t, http.StatusBadRequest, out.Code, out.Body.String())
+			assert.Equal(t, fmt.Sprintf("unknown race %q", name), errorField(t, out))
+			assert.Empty(t, s.listGames(), "rejected race must not create a game")
+		})
+	}
+}
+
 func TestNewGameAcceptsKnownGalaxySizes(t *testing.T) {
 	s := newGameTestServer(t)
 	for _, size := range []string{"", "tiny", "medium", "huge"} {

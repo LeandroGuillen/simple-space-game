@@ -140,7 +140,12 @@ func galaxySizeFromRequest(size string) (string, error) {
 }
 
 func raceFromRequest(server *Server, req NewGameRequest) (model.Race, error) {
-	switch strings.TrimSpace(strings.ToLower(req.Race)) {
+	key := strings.TrimSpace(strings.ToLower(req.Race))
+	// Preserve the legacy singular alias using the full built-in race design.
+	if key == "psilon" {
+		key = "psilons"
+	}
+	switch key {
 	case "custom":
 		if req.CustomRace != nil {
 			return game.BuildCustomRace(server.ResourceManager, game.RaceDesign{
@@ -161,10 +166,7 @@ func raceFromRequest(server *Server, req NewGameRequest) (model.Race, error) {
 			return model.Race{}, fmt.Errorf("custom race %q is not playable", saved.Name)
 		}
 		return game.BuildCustomRace(server.ResourceManager, saved)
-	case "psilon":
-		return game.DefaultRace("Psilon"), nil
 	default:
-		key := strings.TrimSpace(strings.ToLower(req.Race))
 		if key == "" {
 			key = "human"
 		}
