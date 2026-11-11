@@ -71,6 +71,7 @@ export function GalaxyPage() {
     handledStarQuery = requested;
     setSelectedStarId(star.id);
     setSelectedFleetStarId(null);
+    exitFleetTravelMode();
     setFocusPoint({ x: star.x, y: star.y });
   });
   const fleetsAtSelectedStar = createMemo(() => {
@@ -123,6 +124,20 @@ export function GalaxyPage() {
       })
       .filter((route): route is { fromX: number; fromY: number; toX: number; toY: number; eta: number } => Boolean(route)),
   );
+  // Match server fuel validation: destinations may be supplied by any owned colony.
+  const fuelRangeStarIds = createMemo(() => {
+    const mode = travelMode();
+    if (!mode || selectedFleetStarId() == null) return null;
+    const fleet = ownedFleets().find((item) => item.id === mode.fleetId);
+    if (!fleet || fleet.turnsRemaining > 0 || fleet.destinationStarId) return null;
+    const ships = fleet.ships.filter((_, index) => mode.shipIndexes.includes(index));
+    const range = fleetSelectionFuelRange(ships, currentPlayer(), state.game?.resources);
+    if (!range) return null;
+    return stars()
+      .filter((star) => destinationInSupplyRange(state.game, currentPlayer()?.id ?? 0, star.id, range))
+      .map((star) => star.id);
+  });
+
   const previewFleetRoute = createMemo(() => {
     const mode = travelMode();
     const toStarId = snappedStarId();
@@ -191,6 +206,8 @@ export function GalaxyPage() {
         ship_indexes: mode.shipIndexes,
       });
       exitFleetTravelMode();
+      setSelectedFleetStarId(null);
+      setSelectedFleetId(null);
       setSelectedStarId(starId);
       return;
     }
@@ -209,6 +226,8 @@ export function GalaxyPage() {
     });
     setSelectedStarId(starId);
     exitFleetTravelMode();
+    setSelectedFleetStarId(null);
+    setSelectedFleetId(null);
   }
 
   function selectFleetForInspector(fleetId: number | null, starId: number | null) {
@@ -221,9 +240,7 @@ export function GalaxyPage() {
 
   function handleFleetSelectionChange(fleetId: number | null, shipIndexes: number[]) {
     if (fleetId == null || shipIndexes.length === 0) {
-      if (travelMode()?.fleetId === fleetId) {
-        exitFleetTravelMode();
-      }
+      exitFleetTravelMode();
       return;
     }
     const f = ownedFleets().find((item) => item.id === fleetId);
@@ -264,6 +281,7 @@ export function GalaxyPage() {
               const f = ownedFleets().find((item) => item.id === fleetId);
               selectFleetForInspector(fleetId, f?.starId ?? null);
             }}
+            fuelRangeStarIds={fuelRangeStarIds()}
             routeLines={fleetRouteLines()}
             onHoverSnappedStar={(starId) => {
               if (!travelMode()) {
@@ -381,6 +399,7 @@ export function GalaxyPage() {
                 starId={fleetStarId()}
                 fleetId={selectedFleetId()}
                 onViewSystem={(starId) => {
+                  exitFleetTravelMode();
                   setSelectedStarId(starId);
                   setSelectedFleetStarId(null);
                   setSelectedFleetId(null);

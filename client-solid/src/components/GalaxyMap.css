@@ -199,3 +199,20 @@
     min-height: 360px;
   }
 }
+
+/* Fuel marks remain in map coordinates at every galaxy size and zoom level. */
+.star-fuel-ring {
+  fill: none;
+  stroke: #7af0ab;
+  stroke-width: 1.5;
+  pointer-events: none;
+}
+
+.galaxy-star.is-out-of-fuel-range {
+  opacity: 0.4;
+}
+
+.galaxy-star.is-out-of-fuel-range .star-fuel-ring {
+  stroke: #f87171;
+  stroke-dasharray: 2 4;
+}

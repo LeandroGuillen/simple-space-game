@@ -1,5 +1,6 @@
 import {
   For,
+  Show,
   createEffect,
   createMemo,
   createSignal,
@@ -36,6 +37,7 @@ const STAR_VIEW_MARGIN = 28;
 type GalaxyMapProps = {
   stars: StarSummary[];
   selectedStarId?: number;
+  fuelRangeStarIds?: number[] | null;
   onSelect: (starId: number) => void;
   fleets?: {
     id: number;
@@ -63,6 +65,7 @@ type GalaxyMapProps = {
 };
 
 export function GalaxyMap(props: GalaxyMapProps) {
+  const reachableStars = createMemo(() => props.fuelRangeStarIds == null ? null : new Set(props.fuelRangeStarIds));
   let svgRef: SVGSVGElement | undefined;
   let saveTimeout: ReturnType<typeof setTimeout> | undefined;
   const starsContentBounds = createMemo(() => {
@@ -462,10 +465,18 @@ export function GalaxyMap(props: GalaxyMapProps) {
               {(star) => (
                 <g
                   class="galaxy-star"
-                  classList={{ selected: props.selectedStarId === star.id }}
+                  classList={{
+                    selected: props.selectedStarId === star.id,
+                    "is-in-fuel-range": reachableStars()?.has(star.id) === true,
+                    "is-out-of-fuel-range": reachableStars()?.has(star.id) === false,
+                  }}
                   transform={`translate(${star.x} ${star.y})`}
                   onClick={() => handleStarClick(star.id)}
                 >
+                  <Show when={reachableStars() != null}>
+                    <title>{star.name}: {reachableStars()?.has(star.id) ? "In fuel range" : "Out of fuel range"}</title>
+                    <circle class="star-fuel-ring" r="15" />
+                  </Show>
                   <circle
                     class="star-halo"
                     r="10"
