@@ -1,6 +1,7 @@
 package game
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	. "ssg/model"
@@ -218,6 +219,10 @@ func (g *Game) seekLiveShip(b *TacticalBattle) {
 	}
 }
 
+// ErrBattleNotFound is returned for missing battles and for battles the
+// requesting player is not part of; the two cases are indistinguishable.
+var ErrBattleNotFound = errors.New("battle not found")
+
 // GetTacticalBattle returns a deep copy of a pending battle for an involved
 // player. Unknown players and hidden battles return the same not-found error.
 func (g *Game) GetTacticalBattle(battleID, playerID uint) (*TacticalBattle, error) {
@@ -225,14 +230,14 @@ func (g *Game) GetTacticalBattle(battleID, playerID uint) (*TacticalBattle, erro
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 	if _, err := g.getPlayer(playerID); err != nil {
-		return nil, fmt.Errorf("battle not found")
+		return nil, ErrBattleNotFound
 	}
 	for _, b := range g.PendingBattles {
 		if b != nil && b.ID == battleID && tacticalBattleInvolvesPlayer(b, playerID) {
 			return copyTacticalBattle(b), nil
 		}
 	}
-	return nil, fmt.Errorf("battle not found")
+	return nil, ErrBattleNotFound
 }
 
 // ApplyBattleAction validates and applies one order from playerID for the
@@ -243,15 +248,21 @@ func (g *Game) ApplyBattleAction(battleID, playerID uint, action BattleAction) (
 	g.ensureMu()
 	g.mu.Lock()
 	defer g.mu.Unlock()
+	// Unknown players, non-participants and missing ids all get the same
+	// error and no battle copy, matching GetTacticalBattle, so the endpoint
+	// neither leaks state nor reveals which battle ids exist.
+	if _, err := g.getPlayer(playerID); err != nil {
+		return nil, ErrBattleNotFound
+	}
 	var battle *TacticalBattle
 	for _, b := range g.PendingBattles {
-		if b != nil && b.ID == battleID {
+		if b != nil && b.ID == battleID && tacticalBattleInvolvesPlayer(b, playerID) {
 			battle = b
 			break
 		}
 	}
 	if battle == nil {
-		return nil, fmt.Errorf("battle %d not found", battleID)
+		return nil, ErrBattleNotFound
 	}
 	if battle.Status != TacticalBattleActive {
 		return copyTacticalBattle(battle), fmt.Errorf("battle %d is finished", battleID)

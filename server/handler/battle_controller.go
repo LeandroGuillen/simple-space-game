@@ -1,10 +1,12 @@
 package server
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"strconv"
 
+	"ssg/game"
 	"ssg/model"
 
 	"github.com/gin-gonic/gin"
@@ -67,6 +69,10 @@ func PostBattleAction(c *gin.Context) {
 	}
 
 	battle, err := g.ApplyBattleAction(battleID, playerID, action)
+	if errors.Is(err, game.ErrBattleNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"message": err.Error()})
+		return
+	}
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error(), "battle": battle})
 		return
