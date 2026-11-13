@@ -1,5 +1,5 @@
 import { createContext, createEffect, createMemo, onCleanup, onMount, useContext, type ParentProps } from 'solid-js';
-import { createStore } from 'solid-js/store';
+import { createStore, reconcile } from 'solid-js/store';
 
 import { ApiClient, parseGameUpdate } from '../lib/api';
 import { mapGame, mapPlayerColorOptions } from '../lib/mappers';
@@ -180,6 +180,7 @@ export function AppProvider(props: ParentProps) {
     invade: [],
     buyProduction: [],
     mutateRace: undefined,
+    setTaxRate: undefined,
   });
 
   const bootstrap = readBootstrapSession();
@@ -878,7 +879,8 @@ export function AppProvider(props: ParentProps) {
       else if (turnResponse.advanced) autosaveWarnings.delete(state.session.selectedGameId);
       const rawGame = await api()!.getGame(state.session.selectedGameId);
       const mappedGame = mapGame(rawGame);
-      setState('pendingCommands', emptyPendingCommands());
+      // Replace, not merge: every pending order is one-shot once the turn is submitted.
+      setState('pendingCommands', reconcile(emptyPendingCommands()));
       setState('game', mappedGame);
 
       if (!turnResponse.advanced) {
