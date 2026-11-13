@@ -14,6 +14,8 @@ import {
   formatEmpireIncomeTooltip,
   getProjectedFoodFreightersUsed,
   getColonyRows,
+  getBuildTurnsRemaining,
+  getPlanetBuildIndustry,
   getPlanetGrossIndustryForWorkers,
   getPlanetProjectedIncome,
   getPlanetProjectedPopulationGrowth,
@@ -746,4 +748,57 @@ it("uses hydrated colony income in the top bar and previews pending zero tax", (
   };
   expect(getEmpireIncome(game, 1, pending)).toBe(18);
   expect(formatEmpireIncomeTooltip(game, player, pending)).toContain("Colonies total: +20 BC");
+});
+
+
+describe("build industry after empire tax", () => {
+  const pending = (rate?: number) => ({
+    build: [], movePopulation: [], colonize: [], artificialPlanet: [],
+    fleetMove: [], invade: [], buyProduction: [],
+    ...(rate === undefined ? {} : { setTaxRate: { rate } }),
+  });
+  const capital = () => planet({
+    isBuilding: true,
+    industry: { workers: 0, produced_per_worker: 3, produced_per_building: 7, produced_per_colonist: 0 },
+  });
+
+  it("sends 4 of 7 industry to construction at 50% tax, so 171 PP takes 43 turns", () => {
+    const build = getPlanetBuildIndustry(capital(), pending(), { raceTraitIds: [], taxRate: 0.5 });
+    expect(build).toMatchObject({ afterPollution: 7, net: 7, tax: 3, build: 4 });
+    expect(getBuildTurnsRemaining(171, build.build)).toBe(43);
+  });
+
+  it("is unchanged at 0% tax", () => {
+    const build = getPlanetBuildIndustry(capital(), pending(), { raceTraitIds: [], taxRate: 0 });
+    expect(build).toMatchObject({ tax: 0, build: 7 });
+    expect(getBuildTurnsRemaining(171, build.build)).toBe(25);
+    expect(getBuildTurnsRemaining(171, 0)).toBeNull();
+  });
+
+  it("previews a pending Tax change this turn", () => {
+    const player = { raceTraitIds: [], taxRate: 0 };
+    expect(getPlanetBuildIndustry(capital(), pending(0.5), player).build).toBe(4);
+    expect(getPlanetBuildIndustry(capital(), pending(0), { ...player, taxRate: 0.5 }).build).toBe(7);
+  });
+
+  it("feeds Food Replicators before taxing", () => {
+    const colony = planet({
+      isBuilding: true,
+      food: { farmers: 3, produced_per_farmer: 2, produced_per_building: 0 },
+      industry: { workers: 0, produced_per_worker: 3, produced_per_building: 18, produced_per_colonist: 0 },
+      buildings: [building("Food Replicators")],
+    });
+    // 18 - 8 for 4 food = 10 net; floor(10 * .5) = 5 tax.
+    expect(getPlanetBuildIndustry(colony, pending(), { raceTraitIds: [], taxRate: 0.5 }))
+      .toMatchObject({ replicators: 8, net: 10, tax: 5, build: 5 });
+  });
+
+  it("shows build industry in the Colonies list without double counting tax", () => {
+    const colony = capital();
+    const player = { id: 1, taxRate: 0.5, raceTraitIds: [] } as unknown as PlayerViewModel;
+    const game = { players: [player], galaxy: { stars: [{ id: 1, name: "Sol", planets: [colony] }] } } as unknown as GameViewModel;
+    const [row] = getColonyRows(game, pending() as never, 1);
+    expect(row.industry).toBe(4);
+    expect(row.income).toBe(10 + 3);
+  });
 });

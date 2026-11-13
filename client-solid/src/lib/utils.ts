@@ -593,6 +593,72 @@ export function getPlanetIndustryForWorkers(
   return Math.max(0, grossIndustry - pollution);
 }
 
+export type PlanetBuildIndustry = {
+  /** Industry after pollution, before Food Replicators and empire tax. */
+  afterPollution: number;
+  /** Industry consumed by Food Replicators (2 production = 1 food). */
+  replicators: number;
+  /** Food produced by Food Replicators. */
+  replicatorFood: number;
+  /** Industry after pollution and Food Replicators (the taxable amount). */
+  net: number;
+  /** Industry converted 1:1 to BC by the empire tax. */
+  tax: number;
+  /** Industry that actually goes into construction this turn. */
+  build: number;
+};
+
+/**
+ * Mirrors server planetTurn: pollution, then Food Replicators, then the empire
+ * tax as floor(net * rate) per colony. When the rate is unknown, the
+ * server-hydrated industry tax is used instead.
+ */
+export function getPlanetBuildIndustryForAllocation(
+  planet: PlanetViewModel,
+  allocation: { farmers: number; workers: number },
+  traitIds?: string[],
+  taxRate?: number | null,
+): PlanetBuildIndustry {
+  const afterPollution = getPlanetIndustryForWorkers(planet, allocation.workers, traitIds);
+  const foodDemand = Math.ceil(populationFoodDemand(traitIds, planet.population));
+  const replicatorFood = getFoodReplicatorFood(
+    planet,
+    foodDemand - getPlanetFoodForFarmers(planet, allocation.farmers),
+    afterPollution,
+  );
+  const replicators = replicatorFood * 2;
+  const net = Math.max(0, afterPollution - replicators);
+  const tax = taxRate == null
+    ? Math.min(net, planet.income.industryTax ?? 0)
+    : Math.floor(net * taxRate);
+  return { afterPollution, replicators, replicatorFood, net, tax, build: net - tax };
+}
+
+/**
+ * Build industry for a colony with this turn's pending orders: worker moves and
+ * a pending Tax change (falling back to the player's current tax rate).
+ */
+export function getPlanetBuildIndustry(
+  planet: PlanetViewModel,
+  pendingCommands?: PendingCommands | null,
+  player?: Pick<PlayerViewModel, "raceTraitIds" | "taxRate"> | null,
+): PlanetBuildIndustry {
+  return getPlanetBuildIndustryForAllocation(
+    planet,
+    getProjectedWorkerAllocation(planet, pendingCommands?.movePopulation ?? []),
+    player?.raceTraitIds,
+    pendingCommands?.setTaxRate?.rate ?? player?.taxRate,
+  );
+}
+
+/** Turns to finish `remaining` production at `industryPerTurn`; null if it never finishes. */
+export function getBuildTurnsRemaining(remaining: number, industryPerTurn: number) {
+  if (industryPerTurn <= 0) {
+    return null;
+  }
+  return Math.max(1, Math.ceil(remaining / industryPerTurn));
+}
+
 export function getPlanetProjectedIncome(
   planet: PlanetViewModel,
   pendingCommands?: PendingCommands,
@@ -614,15 +680,10 @@ export function getPlanetProjectedIncome(
     0,
     food - Math.ceil(populationFoodDemand(traitIds, planet.population)),
   );
-  const baseIndustry = getPlanetIndustryForWorkers(planet, population.workers, traitIds);
-  const replicatorFood = getFoodReplicatorFood(
-    planet, Math.ceil(populationFoodDemand(traitIds, planet.population)) - food, baseIndustry,
-  );
-  const netIndustry = Math.max(0, baseIndustry - replicatorFood * 2);
-  const rate = pendingCommands?.setTaxRate?.rate ?? taxRate;
   // Same 1:1, per-colony floor as the server; tax never gets income bonuses.
-  const industryTax = rate == null ? (planet.income.industryTax ?? 0) : Math.floor(netIndustry * rate);
-  const industry = netIndustry - industryTax;
+  const { tax: industryTax, build: industry } = getPlanetBuildIndustryForAllocation(
+    planet, population, traitIds, pendingCommands?.setTaxRate?.rate ?? taxRate,
+  );
   const producesTradeGoods =
     pendingBuild?.building === "Trade Goods" ||
     (!planet.isBuilding && !pendingBuild && planet.currentProject?.name === "Trade Goods");
@@ -878,11 +939,12 @@ export function getColonyRows(
           farmers: allocation.farmers,
           workers: allocation.workers,
           scientists: allocation.scientists,
-          industry: getPlanetIndustryForWorkers(
+          // Industry that goes into construction; the taxed part is in income.
+          industry: getPlanetBuildIndustry(
             planet,
-            allocation.workers,
-            game.players.find((p) => p.id === playerId)?.raceTraitIds,
-          ),
+            pendingCommands,
+            game.players.find((p) => p.id === playerId),
+          ).build,
           income: getPlanetProjectedIncome(
             planet,
             pendingCommands,

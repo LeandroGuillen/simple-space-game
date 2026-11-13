@@ -5,8 +5,8 @@ import { raceTraitById } from "../lib/race-design";
 import {
   getGovernmentAdjustedLaborOutput,
   getPlanetFoodForFarmers,
+  getPlanetBuildIndustry,
   getPlanetGrossIndustryForWorkers,
-  getPlanetIndustryForWorkers,
   getPlanetPollutionDivisor,
   getPlanetPollutionForWorkers,
   getPlanetPollutionSize,
@@ -72,8 +72,14 @@ type PopulationPanelProps = {
 
 export function PopulationPanel(props: PopulationPanelProps) {
   const { state, addMovePopulationCommand } = useAppContext();
-  const raceTraitIds = () =>
-    state.game?.players.find((player) => player.id === props.planet.owner)?.raceTraitIds;
+  const owner = createMemo(() =>
+    state.game?.players.find((player) => player.id === props.planet.owner) ?? null,
+  );
+  const raceTraitIds = () => owner()?.raceTraitIds;
+  // Same build industry as ConstructionPanel and the Colonies list.
+  const buildIndustry = createMemo(() =>
+    getPlanetBuildIndustry(props.planet, state.pendingCommands, owner()),
+  );
   const [draggedCount, setDraggedCount] = createSignal(0);
   const [dragSource, setDragSource] = createSignal<PopCategory | null>(null);
   const pendingMoves = createMemo(() =>
@@ -143,10 +149,6 @@ export function PopulationPanel(props: PopulationPanelProps) {
         ),
       0,
     );
-
-  const owner = createMemo(() =>
-    state.game?.players.find((player) => player.id === props.planet.owner) ?? null,
-  );
 
   const getRaceContributions = (cat: PopCategory): RaceContribution[] => {
     const player = owner();
@@ -486,7 +488,7 @@ export function PopulationPanel(props: PopulationPanelProps) {
 
   const getIndustryOutput = () =>
     getOutputIcons(
-      getPlanetIndustryForWorkers(props.planet, getPopCount("workers"), raceTraitIds()),
+      buildIndustry().build,
       "⚡",
       "🔧",
     );
@@ -705,15 +707,25 @@ export function PopulationPanel(props: PopulationPanelProps) {
             )}
             <div class="pop-output-tooltip">
               <div class="pop-output-tooltip-row pop-output-tooltip-row--total">
-                <span>Final industry output:</span>
-                <strong>
-                  {getPlanetIndustryForWorkers(
-                    props.planet,
-                    getPopCount("workers"),
-                    raceTraitIds(),
-                  )}
-                </strong>
+                <span>Industry to construction:</span>
+                <strong>{buildIndustry().build}</strong>
               </div>
+              <div class="pop-output-tooltip-row">
+                <span>Industry after pollution:</span>
+                <strong>{buildIndustry().afterPollution}</strong>
+              </div>
+              <Show when={buildIndustry().replicators > 0}>
+                <div class="pop-output-tooltip-row">
+                  <span>Food Replicators:</span>
+                  <strong>-{buildIndustry().replicators}</strong>
+                </div>
+              </Show>
+              <Show when={buildIndustry().tax > 0}>
+                <div class="pop-output-tooltip-row">
+                  <span>Empire tax:</span>
+                  <strong>-{buildIndustry().tax} (+{buildIndustry().tax} BC)</strong>
+                </div>
+              </Show>
               <div class="pop-output-tooltip-row">
                 <span>Gross industry produced:</span>
                 <strong>{getOutputBreakdown("workers").total}</strong>

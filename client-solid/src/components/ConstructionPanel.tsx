@@ -24,7 +24,8 @@ import {
 import {
   formatInteger,
   getBuyProductionCost,
-  getPlanetIndustryForWorkers,
+  getBuildTurnsRemaining,
+  getPlanetBuildIndustry,
   getPlanetPopulationGrowthForecast,
   findStar,
   getArtificialPlanetTargets,
@@ -327,11 +328,6 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
         ]),
       ),
   );
-  const pendingMoves = createMemo(() =>
-    state.pendingCommands.movePopulation.filter(
-      (cmd) => cmd.planetId === props.planet.id,
-    ),
-  );
   const pendingBuild = createMemo(() =>
     state.pendingCommands.build.find((cmd) => cmd.planetId === props.planet.id),
   );
@@ -459,21 +455,12 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     ...androidCommands(),
     ...spyCommands(),
   ]);
-  const projectedWorkers = createMemo(() => {
-    let workers = props.planet.industry.workers;
-    for (const move of pendingMoves()) {
-      if (move.to === "workers") {
-        workers += move.count;
-      }
-      if (move.from === "workers") {
-        workers -= move.count;
-      }
-    }
-    return Math.max(0, workers);
-  });
-  const industryPerTurn = createMemo(() =>
-    getPlanetIndustryForWorkers(props.planet, projectedWorkers(), currentPlayer()?.raceTraitIds),
+  // After pollution, Food Replicators and empire tax (incl. a pending Tax change),
+  // matching what the server adds to the build bucket.
+  const buildIndustry = createMemo(() =>
+    getPlanetBuildIndustry(props.planet, state.pendingCommands, currentPlayer()),
   );
+  const industryPerTurn = createMemo(() => buildIndustry().build);
   const housingGrowthProjection = createMemo(() =>
     getPlanetPopulationGrowthForecast(state.game, props.planet, state.pendingCommands, currentPlayer()),
   );
@@ -574,10 +561,10 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
     );
   });
   const turnsRemaining = createMemo(() => {
-    if (activeProject().id === TRADE_GOODS.id || activeProject().id === HOUSING.id || industryPerTurn() <= 0) {
+    if (activeProject().id === TRADE_GOODS.id || activeProject().id === HOUSING.id) {
       return null;
     }
-    return Math.max(1, Math.ceil(displayedBuildBucket() / industryPerTurn()));
+    return getBuildTurnsRemaining(displayedBuildBucket(), industryPerTurn());
   });
   const isRepeatableProject = (projectName: string) =>
     projectName === "Colony Base" ||
@@ -1007,7 +994,7 @@ export function ConstructionPanel(props: ConstructionPanelProps) {
                         <dd>
                           {previewProject().id === HOUSING.id
                             ? `${housingGrowthProjection()} population growth`
-                            : `${industryPerTurn()} PP/turn`}
+                            : `${industryPerTurn()} PP/turn${buildIndustry().tax > 0 ? ` (${buildIndustry().tax} to tax)` : ""}`}
                         </dd>
                       </div>
                     </dl>
