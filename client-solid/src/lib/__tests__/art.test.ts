@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -33,6 +33,26 @@ describe("planet art", () => {
       planetArtForEnvironment(11, 42, variants),
     );
   });
+
+  for (const [environment, slug] of Object.entries(planetArtSlugByEnvironment)) {
+    it(`ships at least three numbered 256px PNGs with alpha for ${slug}`, () => {
+      const directory = join(publicDir, "art/planets");
+      const numbered = readdirSync(directory).filter((name) =>
+        new RegExp(`^${slug}[1-9]\\d*\\.png$`).test(name),
+      );
+      expect(numbered.length, `environment ${environment}`).toBeGreaterThanOrEqual(3);
+      for (const name of numbered) {
+        expect(planetArtCandidatesForEnvironment(Number(environment))).toContain(`/art/planets/${name}`);
+        const png = readFileSync(join(directory, name));
+        expect(png.subarray(0, 8).toString("hex"), name).toBe("89504e470d0a1a0a");
+        expect(png.subarray(12, 16).toString("ascii"), name).toBe("IHDR");
+        expect(png.readUInt32BE(16), `${name} width`).toBe(256);
+        expect(png.readUInt32BE(20), `${name} height`).toBe(256);
+        // PNG color types 4 (gray + alpha) and 6 (RGBA) have explicit alpha.
+        expect([4, 6], `${name} alpha channel`).toContain(png[25]);
+      }
+    });
+  }
 
   it("falls back to barren art for unknown environments", () => {
     expect(planetArtFallbackForEnvironment(999)).toBe("/art/planets/barren1.png");

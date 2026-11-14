@@ -1,0 +1,260 @@
+{
+  "tool": "Codex CLI / gpt-6.1-sol / built-in image_gen.imagegen",
+  "date": "2026-11-14",
+  "sharedPromptSummary": "Use case: stylized-concept. Asset: original SSG strategy game sprite. Clean retro 1990s 4X inspired painted game art, restrained crisp details readable at 256x256. Square transparent canvas, isolated centered subject occupying 80% of canvas, consistent orthographic camera and distance. Three-quarter lighting from upper left, lower right in soft deep shadow. Genuinely transparent background with alpha, no stars, text, borders, logos, or copied game assets. Subject: ",
+  "processing": "Crop transparent margins, fit within 208x208 centered on 256x256 RGBA; Lanczos resize; lossless PNG compression level 9. Preserve generated alpha.",
+  "assets": [
+    {
+      "file": "gas-giant1.png",
+      "subject": "a single clean retro 1990s 4X inspired gas giant sphere with amber and cream atmospheric bands and one russet storm",
+      "generationFile": "exec-0ae5b5df-ae4c-4ac0-9c2e-54bf28a35f29.png",
+      "sourceSha256": "0e11a534dac33fa2d67286b3b7981c65ea4be16a4577b557a1be70ea07faa108",
+      "sha256": "606aaabf46af71bfc374e5c94c4c3f8692b10b1fb6f51bf5fe7ed631b29dc7f2"
+    },
+    {
+      "file": "gas-giant2.png",
+      "subject": "a gas giant sphere with pale teal and blue bands, a small white cyclone",
+      "generationFile": "exec-e5a4ba2a-779b-4f54-a11c-5c851198b8b8.png",
+      "sourceSha256": "487cc654b008748b2bd17dc63fe65968f6e9b0f813e6c167d3000a33545fe81d",
+      "sha256": "688d3282a307050375da1051c596e69cbbec7c38908cd95192621c0491a54a8f"
+    },
+    {
+      "file": "gas-giant3.png",
+      "subject": "a gas giant sphere with lavender, muted rose and ivory bands and long swirling storms",
+      "generationFile": "exec-97e0997d-2ef1-40de-9f5c-99e3d4f6fbf6.png",
+      "sourceSha256": "5ce03f3f692ad94c56865b0a1e6f70e9f96078887c5da6b9cbb61a01b1a985f4",
+      "sha256": "b85dcc4fb7fe18f6f51a37b823a6fb4c502f55745ca68dde8349c837a324fd22"
+    },
+    {
+      "file": "asteroid-belt1.png",
+      "subject": "an elliptical field/belt of irregular gray cratered rocks, large nearer rocks and small distant rocks; no central planet; belt fills same 80% canvas footprint",
+      "generationFile": "exec-a537c4dd-1b6e-4165-9ce7-b33ff7d8a5ac.png",
+      "sourceSha256": "56e765fddbb2a65ebafc09a15e4a0a96e6e295cf2dda88cf40ea4c0a858916c3",
+      "sha256": "9435d5a05b5b8bb4b4ad766b34a04471ea79c950dd484c427d7faa5efb18fc16"
+    },
+    {
+      "file": "asteroid-belt2.png",
+      "subject": "an elliptical belt of irregular brown rocky asteroids, varied sizes, no central sphere",
+      "generationFile": "exec-991978d9-3d3f-44d3-ba49-c26bb7ec2720.png",
+      "sourceSha256": "107a90409e1b58955b60c21309f7274b4b71e79e2fe880216230ebad056e8bf6",
+      "sha256": "e134cb12307f011cae8327cd7d5a5572e7d000f4bb34f64045c5dd48670e941a"
+    },
+    {
+      "file": "asteroid-belt3.png",
+      "subject": "an elliptical field of charcoal and pale nickel cratered asteroids, no central sphere",
+      "generationFile": "exec-e136a81f-c790-4c6a-b2c0-9f1dfe92f876.png",
+      "sourceSha256": "52c469f5a3c0c7cbc3999bebd2ee1e93f858d2d21fc936bdebb084b072795226",
+      "sha256": "ecca777e4c0353d2d6d0dbf9237f3427b943bae2db48175bcb062136b33936ad"
+    },
+    {
+      "file": "toxic1.png",
+      "subject": "a single spherical planet with acid green cloud seas and sulfur yellow storms",
+      "generationFile": "exec-76ad4940-5943-42bf-a271-d24c8003926d.png",
+      "sourceSha256": "aa8fa96b568b7e75313f3087e1242c572766e1ed3d8c39c6b37052dd36ddc021",
+      "sha256": "a24ad274f336844447cbf7db10c0b925ff4fdc46fb39b9987af4decc168fdb32"
+    },
+    {
+      "file": "toxic2.png",
+      "subject": "a single spherical planet with mustard yellow dense clouds and sickly olive land",
+      "generationFile": "exec-6f99eade-01a8-4304-b413-585c20a26ed2.png",
+      "sourceSha256": "8059309c81d2329059f5480979179f45647bad517053d757d509afe463d7a617",
+      "sha256": "6a3a525945daa54424cdf6a063b2dc47f66c3a63a160529c0bb22735e9543cee"
+    },
+    {
+      "file": "toxic3.png",
+      "subject": "a single spherical planet with violet toxic haze with chartreuse corrosive basins",
+      "generationFile": "exec-d6ed541c-7fe3-473c-91d9-74e3af9d0107.png",
+      "sourceSha256": "536b3b85f71a39c4bbf14b6e3b03ea20dce007fe2e678abf46468cbbc97365fb",
+      "sha256": "3b10e921c923ba27f099bac2bf51ca022608727167f9169401b7bf663cffa7fc"
+    },
+    {
+      "file": "radiated1.png",
+      "subject": "a single spherical planet with rust red cracked irradiated surface, pale impact scars and faint violet atmospheric rim",
+      "generationFile": "exec-7c2b1966-79b7-4f49-b0b9-6a039306d7b6.png",
+      "sourceSha256": "5bbb31a617523efe27282b20426aa3f3c2ffd4143b290ff5e80a1c5d128e192b",
+      "sha256": "98bf2832e9056d6afa1cab6078d331ad619a876e0d8bbf12434e1362e9813e3c"
+    },
+    {
+      "file": "radiated2.png",
+      "subject": "a single spherical planet with dark purple scarred rock with orange radioactive fissures",
+      "generationFile": "exec-a3707e3d-b81c-43eb-866b-fc65d141d408.png",
+      "sourceSha256": "43a1854e355fa6962fa546f0b7cd82ad8fe23db16ec9c43990439403e41aab84",
+      "sha256": "c85071eb6f1a69a6b9a68b067f548c4a070577acffa06585c51c91d8bf80159e"
+    },
+    {
+      "file": "radiated3.png",
+      "subject": "a single spherical planet with copper gray blasted terrain, turquoise mineral scars and almost no atmosphere",
+      "generationFile": "exec-06567b79-f9ff-4a15-894f-ede3ddb327a3.png",
+      "sourceSha256": "c6b42b7d7840ef471c9d0ace1a8113e72b288a569492c51f484015e41a6a1b8c",
+      "sha256": "ebf7776d5481c45bf7642d58e723de584665135385849b73071aa5aaaf74d8e2"
+    },
+    {
+      "file": "barren1.png",
+      "subject": "a single spherical planet with gray airless cratered moonlike planet with broad dark basalt plains",
+      "generationFile": "exec-4ef4a9ae-2aae-46f1-9a73-1a958a436440.png",
+      "sourceSha256": "5edb1a7624a6a7e86f51037621c19252c5c7f37c8162c8bbf7b485cc897da320",
+      "sha256": "8fa779dfd84dd7946c68d9bfed836ba012810eba18ea727eb7d533d2a7192ae5"
+    },
+    {
+      "file": "barren2.png",
+      "subject": "a single spherical planet with umber cratered dry rock sphere with pale ejecta rays",
+      "generationFile": "exec-b2f8a1f9-98eb-47c1-b19f-125823d4d7ec.png",
+      "sourceSha256": "c57aa3bfc50b32e86a3a11b08e955bd1edac2a4700564b8a6fe545ba9718d237",
+      "sha256": "a8eaeade29ad50d25384376e214b08c8bf5bb37848b40cf05f56030100ef982f"
+    },
+    {
+      "file": "barren3.png",
+      "subject": "a single spherical planet with slate charcoal rocky sphere with large overlapping impact craters",
+      "generationFile": "exec-65711ef9-106c-46f4-8c15-1cc5ff0246d6.png",
+      "sourceSha256": "516d27ec87630f21da52f409d754b44721bc42589ba492ccf28794b3d2c00df1",
+      "sha256": "3503c0d4967fc54525c6629f0d9992268b435c170285740a89e280eb6f5a89de"
+    },
+    {
+      "file": "desert1.png",
+      "subject": "a single spherical planet with golden sand world with sweeping dunes and rusty exposed ridges",
+      "generationFile": "exec-dd3687da-76a1-4d43-b188-cb3a87944e43.png",
+      "sourceSha256": "692354fb1b6c43725984bc637b8348be387f0de04529f7d95eff2b3394b9e990",
+      "sha256": "96141b83d0077dfc8f7014303d4474f135bf26d2ea3eb19d9b08f9849c39f275"
+    },
+    {
+      "file": "desert2.png",
+      "subject": "a single spherical planet with red orange desert world with pale dry salt basins",
+      "generationFile": "exec-37501c12-0b7c-4403-9cbf-e12905f2f7c7.png",
+      "sourceSha256": "73610ed8adac1329576f2bb713126b427814722a1c63d61c8c4e578bd0f26971",
+      "sha256": "20d4caf3e317d7ef92c961b5b5989b630d67c38c71138c7846b6ec031e4d5d1f"
+    },
+    {
+      "file": "desert3.png",
+      "subject": "a single spherical planet with ochre desert with sweeping dark canyon systems and sandy dune fields",
+      "generationFile": "exec-79606a82-f82a-4f26-8b57-d727b0c5c0df.png",
+      "sourceSha256": "fa4160dc30dd434801d3e874fc915840741b968dfb5d74c3b7d1f11fc4a69c0e",
+      "sha256": "d98fe5d8e9fe3761085e959f366ceeba0296f715f43bc14412bbd1177d9b4d33"
+    },
+    {
+      "file": "arid1.png",
+      "subject": "a single spherical planet with dry tan continents with sparse muted olive scrub and small blue inland seas",
+      "generationFile": "exec-996cb2f5-eed0-4e99-8c81-00a442e54087.png",
+      "sourceSha256": "f9a693cbfc57584fa813234b60b15344756b771751c1718bbe97c00cff6d6e88",
+      "sha256": "e9a6e8b54631be2f116d4e345149b634f8194b8519ac2c18882949944a682c70"
+    },
+    {
+      "file": "arid2.png",
+      "subject": "a single spherical planet with rusty dry highlands with thin turquoise river valleys and patchy green steppe",
+      "generationFile": "exec-507296c3-c143-4a28-8eb2-cf08657652f1.png",
+      "sourceSha256": "1e5c81eaaa0c140697d59ebcc0042597cb3f7c494dc95a2285034796794eb32c",
+      "sha256": "298342e9abad1d30a7650150316c1801ea89844db81553153ced3796019f8032"
+    },
+    {
+      "file": "arid3.png",
+      "subject": "a single spherical planet with buff dry plains, weathered brown mountain ridges, sparse sage vegetation and shallow lakes",
+      "generationFile": "exec-8ee096a3-aa34-4d17-95a4-2055ed2a79e6.png",
+      "sourceSha256": "5378880a413eeb0f706a13030535fc72fe6569bca28e4632c33b6466657a67ed",
+      "sha256": "b93b03ae31b4295c8f48ed2fddc20858b1d79843dbc83d13f2fee120709fc863"
+    },
+    {
+      "file": "tundra1.png",
+      "subject": "a single spherical planet with frozen blue gray world, snowy polar land and dark exposed tundra",
+      "generationFile": "exec-64f8278d-e073-413d-9c50-0b25a0b5a161.png",
+      "sourceSha256": "29abd0103b600360c69b3833b6c61924765d57f278e98367f2624caceb00f845",
+      "sha256": "5152f5ce472f612b6c59da5dbd2ed5bc78b6b202b9849d5a8123173dff37965e"
+    },
+    {
+      "file": "tundra2.png",
+      "subject": "a single spherical planet with pale icy continents and steel blue frozen seas with small brown tundra patches",
+      "generationFile": "exec-501309dc-8a14-495d-b2ec-791fea889ee8.png",
+      "sourceSha256": "64d639de43dc256ce2e45d32400809197de6aded2360977003cb3646a86e5128",
+      "sha256": "c4121c5501743354d832e48d77b43d6def3a0851be37fffb556103c077e88da5"
+    },
+    {
+      "file": "tundra3.png",
+      "subject": "a single spherical planet with snow streaked charcoal mountains, icy blue glaciers and muted moss tundra",
+      "generationFile": "exec-60990960-fee4-469a-96d0-9ea0fdedb65c.png",
+      "sourceSha256": "a8846999cca3e791f3ba5b85a7bfa1bcb76f1456c450ec4bf0ea8b457fdb138d",
+      "sha256": "bf58dfcf4bb898916efb88c3e59c2cdc2b1079dfe6d4aafa4e9a1bf76b51f2df"
+    },
+    {
+      "file": "swamp1.png",
+      "subject": "a single spherical planet with dark olive wetland world with winding muddy rivers and misty marsh continents",
+      "generationFile": "exec-382106cc-8c49-49c7-9b78-994df33d471c.png",
+      "sourceSha256": "cf92b9dac4ba1ef584e62e5d8709e52bd039d8af433faaa76f1faf4e851e0d05",
+      "sha256": "3220c71270ffee4030d4c51ad1d5201bd604600fca6aea92a81085eabb39ce1a"
+    },
+    {
+      "file": "swamp2.png",
+      "subject": "a single spherical planet with emerald swamp continents with brown shallow seas and humid cloud wisps",
+      "generationFile": "exec-03fcdb31-228b-406d-b01f-cd13301c2679.png",
+      "sourceSha256": "d61f5f1b04553942035f336e7d8757e23a02f0a1434b836b6370873da2a7c839",
+      "sha256": "76a47dad06f36d57d61571e6185202623621afc18b162ccf0be94ea811ad2581"
+    },
+    {
+      "file": "swamp3.png",
+      "subject": "a single spherical planet with moss green and teal wetland sphere with tangled estuaries and peat brown lowlands",
+      "generationFile": "exec-af8eb76e-a93b-42cc-891d-cd7e441946c6.png",
+      "sourceSha256": "78a7aae2511a8bf0112efe1ef6cd1a7de1d4cacb22555061e8984eb9751ba36a",
+      "sha256": "854095b07ec376e77cdc19e8202e9116f6636dc755816bef091b5fbafbf897c7"
+    },
+    {
+      "file": "ocean1.png",
+      "subject": "a single spherical planet with deep cobalt ocean world with turquoise currents, scattered tiny islands and white cloud spirals",
+      "generationFile": "exec-07116ff6-32be-44ed-842f-21003ac31515.png",
+      "sourceSha256": "c60f27785bf166abc5620a5b151ad69d14e81a41dafb6c4ce3fdbd9784209f94",
+      "sha256": "cb55007248445ccad2447f9b5bdfeb9077310e0a187bcee629b8ef5bd4a74f87"
+    },
+    {
+      "file": "ocean2.png",
+      "subject": "a single spherical planet with cerulean ocean planet with broad aqua shallows and few volcanic island chains",
+      "generationFile": "exec-aaaebbe4-03e8-42a1-99ff-5260573d82f9.png",
+      "sourceSha256": "b0fe5c975569fc8a2cf182a6f05b42c6832c3ef5c0fe9bc607490e1c4a2a361c",
+      "sha256": "4004f8ea8a419bb0c84605bd886932a5f8264ea1cdf425b1e3e504cfa845d087"
+    },
+    {
+      "file": "ocean3.png",
+      "subject": "a single spherical planet with indigo ocean globe with luminous teal currents, scattered white clouds and tiny sandy atolls",
+      "generationFile": "exec-8f350931-12ae-460a-843f-e32d33308e67.png",
+      "sourceSha256": "9463c77266e61858819c2bfe25efa8b625242197d5356d8896ee0ea83a0dab07",
+      "sha256": "618ff18e0fc4dad0910e3cf94f9f45decd1adcb1248d0f5e68f237d5ef302262"
+    },
+    {
+      "file": "terran1.png",
+      "subject": "a single spherical planet with blue oceans, green temperate continents, tan mountains, white polar caps and delicate clouds",
+      "generationFile": "exec-0e48a708-77a2-49ac-8ee2-903048c12693.png",
+      "sourceSha256": "2261341a9d26d08e7c3cbdb1c73b8894b145855abe9f8f9297273f232fca19f8",
+      "sha256": "801d28fa47e00ecd5b4366047eb4dcbe1f1a0c35c7cab0cfe0d89449a6f9049d"
+    },
+    {
+      "file": "terran2.png",
+      "subject": "a single spherical planet with Earthlike world with broad forest continents, sapphire oceans and scattered clouds; original geography",
+      "generationFile": "exec-e78beea8-e8bd-4619-9d23-64fe35067e7a.png",
+      "sourceSha256": "3c2b2219d322dd52a0af64a48cbb5d8245539deafdfd51fbbaaf038e8e2a47ab",
+      "sha256": "3198b4c8bce5056347620bd4b97178f3c7ab0a05840977195e490b408db0a460"
+    },
+    {
+      "file": "terran3.png",
+      "subject": "a single spherical planet with temperate globe with archipelagos, green and brown continents, blue seas and white polar ice",
+      "generationFile": "exec-013051a7-7c86-487d-b20a-59772cab5fed.png",
+      "sourceSha256": "0e082bfd9a1b9e8d45fe037ce47833792560823277577a1ebe79f64f94e8d2b7",
+      "sha256": "92beed343ade1477ee6febd8de51d734132531a8ff2cf1f5cb4c1c56c70425b6"
+    },
+    {
+      "file": "gaia1.png",
+      "subject": "a single spherical planet with lush emerald garden continents with bright turquoise seas, abundant green land and soft white clouds",
+      "generationFile": "exec-e58f724d-ccd8-426c-8946-eef03e45b7ff.png",
+      "sourceSha256": "12747afb679ca6c9bf847cc82e9f6071b0a2814ec8bdc5cb18a7a6d7ad9ee6b0",
+      "sha256": "5da7864898479426203c22aeeeed5d6d31e432b7a6c01a7cf5fcb716103db8ff"
+    },
+    {
+      "file": "gaia2.png",
+      "subject": "a single spherical planet with verdant jade paradise world with winding azure inland seas and fertile island continents",
+      "generationFile": "exec-c592e3b7-e2f3-40b6-98ba-f54dc1697953.png",
+      "sourceSha256": "2578de9db2d87e634ae9c52af9d52ad14a7da7973671c2708f8186c4197dd3d2",
+      "sha256": "970802968502c34a116482c4fdc02a0cc4a4e2fea32fbc3094c7eab7891ef7f0"
+    },
+    {
+      "file": "gaia3.png",
+      "subject": "a single spherical planet with vivid green garden world with turquoise coastal shelves, blue oceans and delicate cloud bands",
+      "generationFile": "exec-0b17d769-fe86-4022-aad3-5cf6f63903aa.png",
+      "sourceSha256": "f6cbc972472499aef08c68473840e8faac442c596b2842dce16c0f9a2cf1d03e",
+      "sha256": "bd00bee047836855fea5411623c435d5f0658d86f317e80775ea6dae4124b726"
+    }
+  ]
+}
