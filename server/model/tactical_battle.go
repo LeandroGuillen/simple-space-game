@@ -38,6 +38,12 @@ type TacticalShip struct {
 	BeamAttackBonus int64  `json:"beam_attack_bonus"`
 	BeamDefense     int64  `json:"beam_defense"`
 
+	// Shield copied from the ship's design. ShieldReduceDamage is subtracted
+	// from every beam hit. Battles saved before shields mattered have neither
+	// field, which means no shield and no reduction.
+	ShieldName         string `json:"shield_name,omitempty"`
+	ShieldReduceDamage int64  `json:"shield_reduce_damage,omitempty"`
+
 	ShipStatus `json:"status"`
 
 	// per-activation state

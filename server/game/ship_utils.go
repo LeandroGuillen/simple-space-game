@@ -24,7 +24,7 @@ func FireOn(attacker *Ship, defender *Ship, distance int64, attackerPlayer, defe
 	for _, beam := range attacker.Beams {
 		roll := randomFloat64()
 		if roll <= chanceToHit {
-			totalDamage += GetDamage(beam, distance)
+			totalDamage += shieldedBeamDamage(GetDamage(beam, distance), defender.Shield.ReduceDamage)
 		}
 	}
 
@@ -55,6 +55,20 @@ func FireOn(attacker *Ship, defender *Ship, distance int64, attackerPlayer, defe
 	}
 
 	return totalDamage
+}
+
+// shieldedBeamDamage applies a shield's per-hit damage reduction to one beam
+// hit. Shields reduce each hit separately, never the whole volley, and can
+// absorb a hit entirely but never heal. A missing shield (reduce 0) or a
+// negative value leaves the hit unchanged.
+func shieldedBeamDamage(damage, reduceDamage int64) int64 {
+	if reduceDamage > 0 {
+		damage -= reduceDamage
+	}
+	if damage < 0 {
+		return 0
+	}
+	return damage
 }
 
 func NewEmptyBattleShip(name string) Ship {

@@ -34,6 +34,9 @@ export type ApiTacticalShip = {
   beams?: ApiBeam[];
   beam_attack_bonus: number;
   beam_defense: number;
+  // Absent on battles saved before shields reduced damage: no shield.
+  shield_name?: string;
+  shield_reduce_damage?: number;
   status: ApiTacticalShipStatus;
   moves_left: number;
   has_fired: boolean;
@@ -96,4 +99,19 @@ export function currentBattleShip(
   }
   const shipId = battle.turn_order[battle.turn_index];
   return battle.ships.find((ship) => ship.id === shipId && !ship.destroyed) ?? null;
+}
+
+/**
+ * Battle HUD shield readout: the shield class and how much damage it blocks
+ * from every beam hit. Ships without shield data (older battles) show None.
+ */
+export function formatShieldStrength(
+  ship: Pick<ApiTacticalShip, 'shield_name' | 'shield_reduce_damage'>,
+): string {
+  const reduce = Math.max(0, ship.shield_reduce_damage ?? 0);
+  const name = ship.shield_name?.trim() || 'None';
+  if (reduce === 0) {
+    return name === 'None' ? 'None' : `${name} (-0/hit)`;
+  }
+  return `${name} (-${reduce}/hit)`;
 }

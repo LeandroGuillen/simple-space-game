@@ -97,20 +97,22 @@ func newTacticalShip(id uint, fleet *Fleet, shipIndex int, fs FleetShip, ship *S
 		speed = 1
 	}
 	return &TacticalShip{
-		ID:              id,
-		OwnerID:         fleet.Owner,
-		FleetID:         fleet.ID,
-		ShipIndex:       shipIndex,
-		Name:            fs.Name,
-		DesignName:      fs.DesignName,
-		HullSize:        ship.HullSize.Name,
-		SizeRating:      ship.HullSize.SizeRating,
-		CombatSpeed:     speed,
-		Initiative:      int64(speed),
-		Beams:           ship.Beams,
-		BeamAttackBonus: ship.Computer.BeamAttackBonus,
-		BeamDefense:     ship.BeamDefense,
-		ShipStatus:      ship.ShipStatus,
+		ID:                 id,
+		OwnerID:            fleet.Owner,
+		FleetID:            fleet.ID,
+		ShipIndex:          shipIndex,
+		Name:               fs.Name,
+		DesignName:         fs.DesignName,
+		HullSize:           ship.HullSize.Name,
+		SizeRating:         ship.HullSize.SizeRating,
+		CombatSpeed:        speed,
+		Initiative:         int64(speed),
+		Beams:              ship.Beams,
+		BeamAttackBonus:    ship.Computer.BeamAttackBonus,
+		BeamDefense:        ship.BeamDefense,
+		ShieldName:         ship.Shield.Name,
+		ShieldReduceDamage: ship.Shield.ReduceDamage,
+		ShipStatus:         ship.ShipStatus,
 	}
 }
 
@@ -331,7 +333,8 @@ func (g *Game) moveTacticalShip(b *TacticalBattle, ship *TacticalShip, x, y int)
 }
 
 // fireTacticalShip fires every beam on the ship at the target, one volley per
-// activation. Hit chance and dissipation reuse the auto-resolve combat math.
+// activation. Hit chance, dissipation and per-hit shield reduction reuse the
+// auto-resolve combat math.
 func (g *Game) fireTacticalShip(b *TacticalBattle, ship *TacticalShip, targetID uint) error {
 	if ship.HasFired {
 		return fmt.Errorf("ship %d already fired this round", ship.ID)
@@ -359,7 +362,7 @@ func (g *Game) fireTacticalShip(b *TacticalBattle, ship *TacticalShip, targetID 
 	for _, beam := range ship.Beams {
 		if randomFloat64() <= chance {
 			hits++
-			totalDamage += GetDamage(beam, distance)
+			totalDamage += shieldedBeamDamage(GetDamage(beam, distance), target.ShieldReduceDamage)
 		} else {
 			misses++
 		}

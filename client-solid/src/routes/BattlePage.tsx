@@ -16,7 +16,7 @@ import type {
   ApiTacticalShip,
   BattleActionRequest,
 } from "../lib/types/battle";
-import { currentBattleShip } from "../lib/types/battle";
+import { currentBattleShip, formatShieldStrength } from "../lib/types/battle";
 import { useAppContext } from "../state/app-context";
 
 const RETURN_TO_MAP_DELAY_MS = 2200;
@@ -349,6 +349,10 @@ export function BattlePage() {
               <dd>
                 {hudShip()!.status.current_armor_hp}/
                 {hudShip()!.status.max_armor_hp}
+              </dd>
+              <dt>Shield</dt>
+              <dd title="Damage blocked from each beam hit">
+                {formatShieldStrength(hudShip()!)}
               </dd>
               <dt>Computer</dt>
               <dd>+{hudShip()!.beam_attack_bonus}</dd>
