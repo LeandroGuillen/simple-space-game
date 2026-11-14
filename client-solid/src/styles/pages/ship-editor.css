@@ -638,3 +638,9 @@
     grid-column: 1;
   }
 }
+
+.ship-editor-weapon-research {
+  margin-top: 4px;
+  font-size: 0.72rem;
+  color: var(--text-mute);
+}

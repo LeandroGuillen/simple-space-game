@@ -9,6 +9,9 @@ type Missile struct {
 	Damage int64  `json:"damage"`
 	Ammo   int    `json:"ammo"`
 	Speed  int64  `json:"speed,omitempty"`
+	// RequiredTech names the research level that unlocks this missile. It
+	// is only filled on the editor's ship-parts options, never on designs.
+	RequiredTech string `json:"required_tech,omitempty"`
 }
 
 // MissileRack is one missile rack's per-battle state. Ammo lives only on

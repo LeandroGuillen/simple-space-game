@@ -403,10 +403,12 @@ export type ApiMissile = {
   damage: number;
   ammo: number;
   speed?: number;
+  /** Research level that unlocks it; only set on the ship-parts list. */
+  required_tech?: string;
 };
 
 export type ApiShipParts = {
-  beams?: { name: string; minDamage: number; maxDamage: number }[];
+  beams?: { name: string; minDamage: number; maxDamage: number; required_tech?: string }[];
   missiles?: ApiMissile[];
   hull_sizes: ApiHullSize[];
   drives: ApiDrive[];

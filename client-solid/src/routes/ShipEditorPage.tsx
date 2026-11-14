@@ -18,7 +18,7 @@ import type {
   ShipDesignTemplateRow,
 } from "../lib/types/api";
 import type { ShipDesignForm } from "../lib/types/domain";
-import { formatMissileDamage, selectedWeaponName, withWeapon } from "../lib/ship-weapons";
+import { formatMissileDamage, selectedWeaponName, weaponOptionLabel, weaponResearchHint, withWeapon } from "../lib/ship-weapons";
 import { defaultShipDesignFormFromParts } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
 
@@ -787,18 +787,25 @@ export function ShipEditorPage() {
                                     <Show when={beams().length > 0}>
                                       <optgroup label="Beams">
                                         <For each={beams()}>
-                                          {(b) => <option value={b.name}>{b.name}</option>}
+                                          {(b) => <option value={b.name}>{weaponOptionLabel(b)}</option>}
                                         </For>
                                       </optgroup>
                                     </Show>
                                     <Show when={missiles().length > 0}>
                                       <optgroup label="Missiles">
                                         <For each={missiles()}>
-                                          {(m) => <option value={m.name}>{m.name}</option>}
+                                          {(m) => <option value={m.name}>{weaponOptionLabel(m)}</option>}
                                         </For>
                                       </optgroup>
                                     </Show>
                                   </select>
+                                  <Show when={selectedMissile() ?? selectedBeam()}>
+                                    {(w) => (
+                                      <div class="ship-editor-weapon-research" role="note">
+                                        🔒 {weaponResearchHint(w())}
+                                      </div>
+                                    )}
+                                  </Show>
                                 </td>
                                 <td>
                                   <Show
@@ -832,7 +839,7 @@ export function ShipEditorPage() {
                       </button>
                       <p>
                         {weaponName()
-                          ? "Armed design. Requires researched weapon technology to build."
+                          ? "Armed design. This editor does not check research; in a game the weapon must be researched to save or build this design."
                           : "Weaponless utility design — cannot fight. Add a weapon to create a combat ship."}
                       </p>
                     </section>

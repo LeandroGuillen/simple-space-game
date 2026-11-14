@@ -476,6 +476,9 @@ func (g *Game) validatePlayerCommands(playerID uint, commands Commands) error {
 		if command.Building != "" && !isSpecialNonBuildingProject(command.Building) {
 			projected := *planet
 			if !Build(&projected, command.Building, player.Available.Buildings, g) {
+				if err := g.shipDesignResearchError(player, command.Building); err != nil {
+					return fmt.Errorf("planet %d cannot build %q: %w", planet.ID, command.Building, err)
+				}
 				return fmt.Errorf("planet %d cannot build %q", planet.ID, command.Building)
 			}
 		}
@@ -487,6 +490,9 @@ func (g *Game) validatePlayerCommands(playerID uint, commands Commands) error {
 				continue
 			}
 			if !canBuild(planet, name, player.Available.Buildings, g) {
+				if err := g.shipDesignResearchError(player, name); err != nil {
+					return fmt.Errorf("planet %d cannot queue %q: %w", planet.ID, name, err)
+				}
 				return fmt.Errorf("planet %d cannot queue %q", planet.ID, name)
 			}
 		}

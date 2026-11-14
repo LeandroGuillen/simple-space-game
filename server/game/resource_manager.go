@@ -281,6 +281,7 @@ func (r *ResourceManager) loadDataFromFiles() error {
 	if err := r.validateTechDefinitions(); err != nil {
 		return err
 	}
+	annotateWeaponRequiredTechs(r.ShipPartsCollection, r.TechTree)
 
 	var raceCollection RaceCollection
 	if err := json.Unmarshal(racesFile, &raceCollection); err != nil {

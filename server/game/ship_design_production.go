@@ -29,6 +29,28 @@ func (g *Game) findBuildableShipDesign(player *Player, name string) (*ShipDesign
 	return nil, false
 }
 
+// shipDesignResearchError explains why the player cannot build the named
+// catalog template or player design because of unresearched parts (for
+// example a custom template saved in the standalone editor with a missile
+// the player has not researched). It returns nil when no design has that
+// name or the design's parts are all researched.
+func (g *Game) shipDesignResearchError(player *Player, name string) error {
+	if g == nil || g.Resources == nil || player == nil || name == "" {
+		return nil
+	}
+	designs := append(append([]ShipDesign{}, player.ShipDesigns...), g.Resources.ShipDesignCatalog()...)
+	for _, design := range designs {
+		if design.Name != name {
+			continue
+		}
+		if err := validatePlayerCanUseShipDesignParts(player, design); err != nil {
+			return fmt.Errorf("ship design %q cannot be used: %w", name, err)
+		}
+		return nil
+	}
+	return nil
+}
+
 func (g *Game) playerCanBuildShipDesign(player *Player, design ShipDesign) bool {
 	if player == nil {
 		return false

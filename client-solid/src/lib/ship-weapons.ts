@@ -6,6 +6,20 @@ export function formatMissileDamage(missile: Pick<ApiMissile, "damage" | "ammo">
   return `${missile.damage} (${missile.ammo} shots/battle)`;
 }
 
+/**
+ * Research hint for a weapon in the standalone Ship Editor, e.g.
+ * "Requires Chemistry · locked until researched". The editor has no player,
+ * so this is informational: every weapon shows it, researched or not.
+ */
+export function weaponResearchHint(weapon: { required_tech?: string }): string {
+  return `Requires ${weapon.required_tech || "weapon research"} · locked until researched`;
+}
+
+/** Weapon list entry for the standalone Ship Editor, with its research hint. */
+export function weaponOptionLabel(weapon: { name: string; required_tech?: string }): string {
+  return `${weapon.name} — 🔒 ${weaponResearchHint(weapon)}`;
+}
+
 /** The weapon currently in a design's one slot (beam or missile), or "". */
 export function selectedWeaponName(form: Pick<ShipDesignForm, "beam" | "missile">): string {
   return form.beam || form.missile || "";
