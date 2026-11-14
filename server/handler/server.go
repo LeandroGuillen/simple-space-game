@@ -261,6 +261,7 @@ func (s *Server) registerRoutes(r *gin.Engine) {
 		resources.GET("/shipdesigns", GetShipDesignList)
 		resources.POST("/shipdesigns", CreateShipDesign)
 		resources.PUT("/shipdesigns", UpdateShipDesign)
+		resources.POST("/shipdesigns/suggest", SuggestShipDesign)
 
 		resources.GET("/shipparts", GetShipPartsList)
 		resources.GET("/governments", GetGovernments)

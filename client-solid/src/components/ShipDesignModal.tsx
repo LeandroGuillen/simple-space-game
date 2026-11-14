@@ -23,7 +23,10 @@ const EYEBROW_BY_MODE: Record<ShipDesignModalMode, string> = {
 };
 
 export function ShipDesignModal(props: ShipDesignModalProps) {
-  const { state, saveShipDesign } = useAppContext();
+  const { state, saveShipDesign, suggestShipDesign } = useAppContext();
+  const [suggestError, setSuggestError] = createSignal("");
+  const [suggestMessage, setSuggestMessage] = createSignal("");
+  const [isSuggesting, setIsSuggesting] = createSignal(false);
   const parts = createMemo(() => state.game?.resources.shipParts);
   const beams = createMemo(() => {
     const researched = state.game?.players.find((p) => p.id === state.session.playerId)?.available.beams ?? [];
@@ -43,6 +46,8 @@ export function ShipDesignModal(props: ShipDesignModalProps) {
     }
     const base = defaultShipDesignForm(state.game);
     const source = props.initial;
+    setSuggestError("");
+    setSuggestMessage("");
     if (!source) {
       setForm({ ...base, name: "" });
       return;
@@ -59,6 +64,23 @@ export function ShipDesignModal(props: ShipDesignModalProps) {
       fuelCell: source.fuelCell.name,
     });
   });
+
+  // Fills the form with a server draft; nothing is saved until "Save Design".
+  // On failure the current draft stays as it was.
+  const suggest = async () => {
+    setIsSuggesting(true);
+    setSuggestError("");
+    setSuggestMessage("");
+    try {
+      const suggestion = await suggestShipDesign();
+      setForm(suggestion);
+      setSuggestMessage("Suggested design loaded. Review and edit it, then save.");
+    } catch (error) {
+      setSuggestError(error instanceof Error ? error.message : "Unable to suggest a ship design.");
+    } finally {
+      setIsSuggesting(false);
+    }
+  };
 
   const submit = async (event: SubmitEvent) => {
     event.preventDefault();
@@ -98,6 +120,25 @@ export function ShipDesignModal(props: ShipDesignModalProps) {
             </div>
 
             <form class="stack-form" onSubmit={submit}>
+              <Show when={props.mode !== "edit"}>
+                <div class="ship-design-suggest-row">
+                  <button
+                    class="secondary-button"
+                    type="button"
+                    onClick={() => void suggest()}
+                    disabled={isSuggesting() || state.isBusy}
+                  >
+                    {isSuggesting() ? "Suggesting…" : "Suggest design"}
+                  </button>
+                  <span class="ship-design-suggest-hint">Fill the form from your best researched parts.</span>
+                </div>
+                <Show when={suggestError()}>
+                  <p class="ship-design-suggest-error" role="alert">{suggestError()}</p>
+                </Show>
+                <Show when={suggestMessage()}>
+                  <p class="ship-design-suggest-message" role="status">{suggestMessage()}</p>
+                </Show>
+              </Show>
               <label class="field">
                 <span>Design Name</span>
                 <input

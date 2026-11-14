@@ -172,6 +172,32 @@
   gap: 8px;
 }
 
+.ship-design-suggest-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.ship-design-suggest-hint {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+}
+
+.ship-design-suggest-error,
+.ship-design-suggest-message {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.ship-design-suggest-error {
+  color: var(--danger);
+}
+
+.ship-design-suggest-message {
+  color: var(--text-dim);
+}
+
 .ship-design-modal-actions {
   display: flex;
   justify-content: flex-end;

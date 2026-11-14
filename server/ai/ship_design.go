@@ -2,7 +2,6 @@ package ai
 
 import (
 	"fmt"
-	"slices"
 	"ssg/model"
 )
 
@@ -13,61 +12,21 @@ func planShipDesign(s *VisibleGame, p *model.Player, planets []*model.Planet, ou
 		return
 	}
 	parts := s.Resources.ShipParts
-	c := model.DesignShipCommand{Hull: "Frigate"}
-	for _, h := range parts.HullSizes {
-		if h.Name == c.Hull && h.Space > 0 && slices.Contains(p.Available.HullSizes, h.Name) {
-			c.Hull = h.Name
-			break
-		}
-	}
-	if !slices.Contains(p.Available.HullSizes, c.Hull) {
+	// The AI keeps to beam-armed Frigates: missiles are not offered here, and
+	// a fallback hull or an unarmed design is skipped.
+	choice, err := model.SuggestShipDesignParts(p.Available, model.ShipDesignPartCatalog{
+		HullSizes: parts.HullSizes,
+		Drives:    parts.Drives,
+		FuelCells: parts.FuelCells,
+		Armors:    parts.Armors,
+		Computers: parts.Computers,
+		Shields:   parts.Shields,
+		Beams:     s.Resources.BeamCollection.Beams,
+	}, "Frigate")
+	if err != nil || choice.Hull != "Frigate" || choice.Beam == "" {
 		return
 	}
-	var speed int64
-	for _, v := range parts.Drives {
-		if slices.Contains(p.Available.Drives, v.Name) && v.InterstellarSpeed > speed {
-			speed = v.InterstellarSpeed
-			c.Drive = v.Name
-		}
-	}
-	var rangeValue int64
-	for _, v := range parts.FuelCells {
-		if slices.Contains(p.Available.FuelCells, v.Name) && v.Autonomy > rangeValue {
-			rangeValue = v.Autonomy
-			c.FuelCell = v.Name
-		}
-	}
-	var armorValue int64 = -1
-	for _, v := range parts.Armors {
-		if slices.Contains(p.Available.Armors, v.Name) && v.Multiplier > armorValue {
-			armorValue = v.Multiplier
-			c.Armor = v.Name
-		}
-	}
-	var compValue int64 = -1
-	for _, v := range parts.Computers {
-		if slices.Contains(p.Available.Computers, v.Name) && v.BeamAttackBonus > compValue {
-			compValue = v.BeamAttackBonus
-			c.Computer = v.Name
-		}
-	}
-	var shieldValue int64 = -1
-	for _, v := range parts.Shields {
-		if slices.Contains(p.Available.Shields, v.Name) && v.ReduceDamage > shieldValue {
-			shieldValue = v.ReduceDamage
-			c.Shield = v.Name
-		}
-	}
-	var damage int64
-	for _, v := range s.Resources.BeamCollection.Beams {
-		if slices.Contains(p.Available.Beams, v.Name) && v.MaxDamage > damage {
-			damage = v.MaxDamage
-			c.Beam = v.Name
-		}
-	}
-	if c.Drive == "" || c.FuelCell == "" || c.Armor == "" || c.Computer == "" || c.Shield == "" || c.Beam == "" {
-		return
-	}
+	c := model.DesignShipCommand{Hull: choice.Hull, Drive: choice.Drive, FuelCell: choice.FuelCell, Armor: choice.Armor, Computer: choice.Computer, Shield: choice.Shield, Beam: choice.Beam}
 	for _, d := range p.ShipDesigns {
 		if d.HullSize.Name == c.Hull && d.Drive.Name == c.Drive && d.FuelCell.Name == c.FuelCell && d.Armor.Name == c.Armor && d.Computer.Name == c.Computer && d.Shield.Name == c.Shield && len(d.Beams) == 1 && d.Beams[0].Name == c.Beam {
 			count := 0

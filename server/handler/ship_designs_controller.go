@@ -141,3 +141,39 @@ func GetShipPartsList(c *gin.Context) {
 	// so every handler that reaches a live Game goes through a locked accessor.
 	c.JSON(http.StatusOK, g.ShipPartsCollection())
 }
+
+// SuggestShipDesign returns an unsaved draft built from the requesting
+// player's researched parts. It never creates or changes a design.
+func SuggestShipDesign(c *gin.Context) {
+	gameID, playerID, err := readHeaders(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	g, _, err := getGameHandle(c, gameID)
+	if err != nil {
+		return
+	}
+
+	def, err := g.SuggestShipDesign(playerID)
+	if err != nil {
+		status := http.StatusBadRequest
+		if errors.Is(err, model.ErrNoSuitableShipPart) {
+			status = http.StatusUnprocessableEntity
+		}
+		c.JSON(status, gin.H{"message": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"suggestion": CreateShipDesignRequest{
+		Name:     def.Name,
+		Beam:     def.Beam,
+		Missile:  def.Missile,
+		Drive:    def.Drive,
+		Computer: def.Computer,
+		Shield:   def.Shield,
+		Armor:    def.Armor,
+		HullSize: def.HullSize,
+		FuelCell: def.FuelCell,
+	}})
+}

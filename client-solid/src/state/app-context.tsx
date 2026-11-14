@@ -129,6 +129,8 @@ type AppContextValue = {
   getBattle: (battleId: number) => Promise<ApiTacticalBattle>;
   sendBattleAction: (battleId: number, action: BattleActionRequest) => Promise<ApiTacticalBattle>;
   saveShipDesign: (form: ShipDesignForm, mode: 'create' | 'update') => Promise<void>;
+  /** Fetches an unsaved suggested design for the current player; never saves. */
+  suggestShipDesign: () => Promise<ShipDesignForm>;
   setInfo: (info: string) => void;
   clearError: () => void;
   clearInfo: () => void;
@@ -990,6 +992,13 @@ export function AppProvider(props: ParentProps) {
     }
   }
 
+  async function suggestShipDesign(): Promise<ShipDesignForm> {
+    if (!api() || !state.session.selectedGameId || !state.session.playerId) {
+      throw new Error('Join a game to get a suggested design from your researched technology.');
+    }
+    return api()!.suggestShipDesign(state.session.selectedGameId);
+  }
+
   createEffect(() => {
     if (state.session.serverUrl) {
       window.localStorage.setItem(STORAGE_KEYS.serverUrl, state.session.serverUrl);
@@ -1188,6 +1197,7 @@ export function AppProvider(props: ParentProps) {
     getBattle,
     sendBattleAction,
     saveShipDesign,
+    suggestShipDesign,
     setInfo,
     clearError,
     clearInfo,

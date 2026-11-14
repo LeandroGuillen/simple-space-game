@@ -202,6 +202,7 @@ export function ShipEditorPage() {
   const [saveMessage, setSaveMessage] = createSignal("");
   const [confirmDelete, setConfirmDelete] = createSignal("");
   const [isSaving, setIsSaving] = createSignal(false);
+  const [isSuggesting, setIsSuggesting] = createSignal(false);
 
   const client = createMemo(() =>
     state.session.serverUrl ? new ApiClient(state.session.serverUrl, state.session.playerId) : null,
@@ -398,6 +399,33 @@ export function ShipEditorPage() {
     setConfirmDelete("");
   };
 
+  // Loads a server suggestion for the session's player as an unsaved draft.
+  // Without a game and player there is no researched technology to use, so
+  // the current draft is kept and an error is shown.
+  const handleSuggest = async () => {
+    setSaveError("");
+    setSaveMessage("");
+    const gameId = state.session.selectedGameId;
+    if (!client() || !gameId || !state.session.playerId) {
+      setSaveError("Suggestions use a player's researched technology. Open the editor from a game to get one.");
+      return;
+    }
+    setIsSuggesting(true);
+    try {
+      const suggestion = await client()!.suggestShipDesign(gameId);
+      setIsDraft(true);
+      setListFocus(null);
+      setOpenPartDropdown(null);
+      setConfirmDelete("");
+      setForm(suggestion);
+      setSaveMessage("Suggested design loaded. Review and edit it, then save.");
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Unable to suggest a ship design.");
+    } finally {
+      setIsSuggesting(false);
+    }
+  };
+
   const handleCopy = () => {
     const next = nextCopyName(form().name.trim() || "Design", allDesigns());
     setIsDraft(true);
@@ -538,6 +566,14 @@ export function ShipEditorPage() {
             </button>
             <button class="link-button" type="button" onClick={handleCopy} disabled={!client() || isSaving()}>
               Copy
+            </button>
+            <button
+              class="secondary-button"
+              type="button"
+              onClick={() => void handleSuggest()}
+              disabled={isSaving() || isSuggesting()}
+            >
+              {isSuggesting() ? "Suggesting…" : "Suggest design"}
             </button>
             <button
               class="secondary-button"

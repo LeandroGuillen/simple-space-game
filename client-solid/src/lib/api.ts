@@ -289,6 +289,16 @@ export class ApiClient {
     return readJson<{ game: ApiGame }>(response);
   }
 
+  /** Asks the server for an unsaved draft built from this player's researched parts. */
+  async suggestShipDesign(gameId: string): Promise<ShipDesignForm> {
+    const response = await fetch(`${this.baseUrl}/resources/shipdesigns/suggest`, {
+      method: 'POST',
+      headers: this.headers(gameId),
+    });
+    const body = await readJson<{ suggestion: ApiSuggestedShipDesign }>(response);
+    return suggestedShipDesignToForm(body.suggestion);
+  }
+
   async saveShipDesign(gameId: string, form: ShipDesignForm, mode: 'create' | 'update') {
     const response = await fetch(`${this.baseUrl}/resources/shipdesigns`, {
       method: mode === 'create' ? 'POST' : 'PUT',
@@ -307,6 +317,32 @@ export class ApiClient {
     });
     return readJson<{ ok: boolean }>(response);
   }
+}
+
+type ApiSuggestedShipDesign = {
+  name: string;
+  beam?: string;
+  missile?: string;
+  drive: string;
+  computer: string;
+  shield: string;
+  armor: string;
+  hull_size: string;
+  fuel_cell: string;
+};
+
+export function suggestedShipDesignToForm(row: ApiSuggestedShipDesign): ShipDesignForm {
+  return {
+    name: row.name,
+    beam: row.beam ?? "",
+    missile: row.missile ?? "",
+    drive: row.drive,
+    computer: row.computer,
+    shield: row.shield,
+    armor: row.armor,
+    hullSize: row.hull_size,
+    fuelCell: row.fuel_cell,
+  };
 }
 
 export function parseGameUpdate(payload: string) {
