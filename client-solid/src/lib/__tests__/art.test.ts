@@ -54,6 +54,15 @@ describe("planet art", () => {
     });
   }
 
+  it("only probes the three numbered variants plus the unnumbered slug", () => {
+    expect(planetArtCandidatesForEnvironment(11)).toEqual([
+      "/art/planets/terran1.png",
+      "/art/planets/terran2.png",
+      "/art/planets/terran3.png",
+      "/art/planets/terran.png",
+    ]);
+  });
+
   it("falls back to barren art for unknown environments", () => {
     expect(planetArtFallbackForEnvironment(999)).toBe("/art/planets/barren1.png");
   });

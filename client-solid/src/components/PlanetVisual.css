@@ -72,7 +72,6 @@
 
 .planet-mini--gasgiant {
   background: linear-gradient(135deg, #9c7a6a 0%, #6e4a3a 50%, #3a1a10 100%);
-  border-radius: 50% / 40%;
 }
 
 .planet-mini--frozen {
@@ -172,7 +171,6 @@
 
 .planet-orbit--gasgiant {
   background: linear-gradient(135deg, #9c7a6a 0%, #6e4a3a 50%, #3a1a10 100%);
-  border-radius: 50% / 40%;
 }
 
 .planet-orbit--gasgiant::before {

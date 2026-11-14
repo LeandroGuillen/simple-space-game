@@ -59,7 +59,7 @@ import {
   labelForSize,
   hasEvolutionaryMutation,
 } from "../lib/utils";
-import { newContactsThisTurn } from "../lib/diplomacy";
+import { empireName, newContactsThisTurn } from "../lib/diplomacy";
 import { useAppContext } from "../state/app-context";
 import { PlanetVisual } from "./PlanetVisual";
 import { GameOver } from "./GameOver";
@@ -530,12 +530,6 @@ export function AppShell(props: RouteSectionProps) {
   });
   const hyperAdvancedLevels = createMemo(
     () => currentPlayer()?.hyperAdvanced ?? {},
-  );
-  const playerNameById = createMemo(
-    () =>
-      new Map(
-        (state.game?.players ?? []).map((player) => [player.id, player.name]),
-      ),
   );
   const playerColorById = createMemo(
     () =>
@@ -1329,7 +1323,7 @@ export function AppShell(props: RouteSectionProps) {
                                       </p>
                                       <p>
                                         {planet.owner > 0
-                                          ? `Controlled by ${playerNameById().get(planet.owner) ?? `Player ${planet.owner}`}`
+                                          ? `Controlled by ${empireName(state.game?.players, planet.owner)}`
                                           : eligible()
                                             ? "Eligible colonization target"
                                             : "Not suitable for colonization"}

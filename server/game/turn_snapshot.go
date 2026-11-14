@@ -381,6 +381,16 @@ func copyCommands(cmds model.Commands) model.Commands {
 			out.BuyProduction[i] = &cp
 		}
 	}
+	if cmds.DeclareWar != nil {
+		out.DeclareWar = make([]*model.DeclareWarCommand, len(cmds.DeclareWar))
+		for i, c := range cmds.DeclareWar {
+			if c == nil {
+				continue
+			}
+			cp := *c
+			out.DeclareWar[i] = &cp
+		}
+	}
 	if cmds.DesignShip != nil {
 		cp := *cmds.DesignShip
 		out.DesignShip = &cp

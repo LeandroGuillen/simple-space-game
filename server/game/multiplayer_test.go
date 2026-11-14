@@ -1230,6 +1230,7 @@ func TestCommandsFieldsHaveSubmitTimeValidators(t *testing.T) {
 		"BuyProduction":        true,
 		"MutateRace":           true,
 		"DesignShip":           true,
+		"DeclareWar":           true, // validateDeclareWarCommands
 	}
 	rt := reflect.TypeOf(model.Commands{})
 	require.Equal(t, reflect.Struct, rt.Kind())

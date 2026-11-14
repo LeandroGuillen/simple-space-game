@@ -1,5 +1,6 @@
 import { For, Show } from "solid-js";
 
+import { UNKNOWN_EMPIRE } from "../lib/diplomacy";
 import type { ApiInvasionReport } from "../lib/types/api";
 
 type InvasionReportPanelProps = {
@@ -10,7 +11,7 @@ type InvasionReportPanelProps = {
 
 export function InvasionReportPanel(props: InvasionReportPanelProps) {
   const visibleReports = () => props.reports.filter((report) => report.attacker_owner_id === props.playerId || report.defender_owner_id === props.playerId);
-  const getPlayerName = (playerId: number) => props.playerNames.get(playerId) || `Player ${playerId}`;
+  const getPlayerName = (playerId: number) => props.playerNames.get(playerId) || UNKNOWN_EMPIRE;
 
   return (
     <Show when={visibleReports().length > 0}>

@@ -396,6 +396,10 @@ func (g *Game) validatePlayerCommands(playerID uint, commands Commands) error {
 		}
 	}
 
+	if err := g.validateDeclareWarCommands(player, commands.DeclareWar); err != nil {
+		return err
+	}
+
 	// Validate fleet move commands
 	if err := g.validateFleetMoveCommands(playerID, commands.FleetMove); err != nil {
 		return err
@@ -679,6 +683,10 @@ func (g *Game) advanceTurnApplying(submissions map[uint]Commands) error {
 	}
 	g.CurrentTurn = advanceStardate(g.CurrentTurn)
 	g.TurnsPlayed++
+	// War declarations resolve together so mutual declarations are simply war.
+	if err := g.resolveWarDeclarations(submissions, playerIDs); err != nil {
+		return err
+	}
 	g.advanceFleetMovements()
 	// Arrivals and colonies founded this turn meet any empire already present,
 	// before orbital battles at the same star.

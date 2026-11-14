@@ -1,14 +1,24 @@
 import { A } from "@solidjs/router";
 import { For, Show } from "solid-js";
 
-import type { DiplomacyContactRow } from "../lib/diplomacy";
+import { canDeclareWar, type DiplomacyContactRow } from "../lib/diplomacy";
 import { formatStardate } from "../lib/utils";
 
+type DiplomacyContactsProps = {
+  rows: DiplomacyContactRow[];
+  /** Empires with a declaration of war queued for this turn. */
+  queuedWarIds?: readonly number[];
+  onDeclareWar?: (playerId: number) => void;
+  onCancelDeclareWar?: (playerId: number) => void;
+};
+
 /**
- * Read-only list of contacted empires. Diplomatic actions (war, peace,
- * treaties) are not available yet.
+ * Contacted empires with their war/peace status. Declare War queues a turn
+ * order that resolves with the next turn; peace offers are not available yet.
  */
-export function DiplomacyContacts(props: { rows: DiplomacyContactRow[] }) {
+export function DiplomacyContacts(props: DiplomacyContactsProps) {
+  const queued = () => props.queuedWarIds ?? [];
+  const isQueued = (row: DiplomacyContactRow) => queued().includes(row.playerId);
   return (
     <Show
       when={props.rows.length > 0}
@@ -24,6 +34,7 @@ export function DiplomacyContacts(props: { rows: DiplomacyContactRow[] }) {
               <th>Status</th>
               <th>Relation</th>
               <th>First contact</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -36,12 +47,37 @@ export function DiplomacyContacts(props: { rows: DiplomacyContactRow[] }) {
                   </td>
                   <td>{row.raceName}</td>
                   <td>{row.government}</td>
-                  <td>{row.eliminated ? "Eliminated" : "Peace"}</td>
+                  <td class={row.atWar ? "diplomacy-status-war" : undefined}>{row.status}</td>
                   <td>{row.relation}</td>
                   <td>
                     <Show when={row.starId} fallback={formatStardate(row.metTurn)}>
                       <A href={`/galaxy?star=${row.starId}`}>{row.starName || `Star ${row.starId}`}</A>
                       {` · ${formatStardate(row.metTurn)}`}
+                    </Show>
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      class="secondary-button"
+                      disabled={!canDeclareWar(row, queued()) || !props.onDeclareWar}
+                      title={
+                        row.eliminated
+                          ? "This empire has been eliminated"
+                          : row.atWar
+                            ? "Already at war"
+                            : isQueued(row)
+                              ? "War will be declared when the turn ends"
+                              : "Declare war when the turn ends"
+                      }
+                      onClick={() => props.onDeclareWar?.(row.playerId)}
+                    >
+                      {isQueued(row) ? "War queued" : "Declare War"}
+                    </button>
+                    <Show when={isQueued(row) && props.onCancelDeclareWar}>
+                      {" "}
+                      <button type="button" class="secondary-button" onClick={() => props.onCancelDeclareWar?.(row.playerId)}>
+                        Cancel
+                      </button>
                     </Show>
                   </td>
                 </tr>

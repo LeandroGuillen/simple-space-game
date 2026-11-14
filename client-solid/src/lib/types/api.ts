@@ -477,6 +477,9 @@ export type ApiContact = {
   met_turn?: number;
   star_id?: number;
   relation?: number;
+  /** Set on both sides while the empires are at war; omitted means peace. */
+  at_war?: boolean;
+  war_since?: number;
 };
 
 export type ApiPlayer = {

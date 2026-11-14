@@ -80,3 +80,8 @@
     border-radius: 50%;
     vertical-align: middle;
 }
+
+.diplomacy-status-war {
+    color: var(--danger);
+    font-weight: 600;
+}

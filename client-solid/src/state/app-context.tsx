@@ -112,6 +112,9 @@ type AppContextValue = {
   addFleetMoveCommand: (command: FleetMoveCommand) => void;
   addColonizeCommand: (command: ColonizeCommand) => void;
   addInvadeCommand: (command: InvadeCommand) => void;
+  /** Queues a declaration of war on a contacted empire for this turn. */
+  declareWar: (playerId: number) => void;
+  cancelDeclareWar: (playerId: number) => void;
   beginInvasion: (fleetId: number, planetId: number) => void;
   cancelInvasion: (fleetId: number) => void;
   beginColonyShipColonization: (fleetId: number) => void;
@@ -183,6 +186,7 @@ export function AppProvider(props: ParentProps) {
     buyProduction: [],
     mutateRace: undefined,
     setTaxRate: undefined,
+    declareWar: [],
   });
 
   const bootstrap = readBootstrapSession();
@@ -649,6 +653,22 @@ export function AppProvider(props: ParentProps) {
       target_planet_id: planetId,
       ship_indexes: transportIndexes,
     });
+  }
+
+  function declareWar(playerId: number) {
+    if ((state.pendingCommands.declareWar ?? []).some((command) => command.player_id === playerId)) {
+      return;
+    }
+    setState('pendingCommands', 'declareWar', (commands) => [...(commands ?? []), { player_id: playerId }]);
+    setState('info', 'Declaration of war queued for next turn');
+  }
+
+  function cancelDeclareWar(playerId: number) {
+    if (!(state.pendingCommands.declareWar ?? []).some((command) => command.player_id === playerId)) {
+      return;
+    }
+    setState('pendingCommands', 'declareWar', (commands) => (commands ?? []).filter((command) => command.player_id !== playerId));
+    setState('info', 'Declaration of war cancelled');
   }
 
   function cancelInvasion(fleetId: number) {
@@ -1180,6 +1200,8 @@ export function AppProvider(props: ParentProps) {
     addFleetMoveCommand,
     addColonizeCommand,
     addInvadeCommand,
+    declareWar,
+    cancelDeclareWar,
     beginInvasion,
     cancelInvasion,
     beginColonyShipColonization,
@@ -1262,6 +1284,10 @@ export function toTurnCommands(commands: PendingCommands, game: GameViewModel | 
     turnCommands.buy_production = commands.buyProduction.map((cmd) => ({
       planetId: cmd.planetId,
     }));
+  }
+
+  if ((commands.declareWar ?? []).length > 0) {
+    turnCommands.declare_war = (commands.declareWar ?? []).map((cmd) => ({ player_id: cmd.player_id }));
   }
 
   if (commands.setTaxRate) {

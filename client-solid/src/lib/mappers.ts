@@ -305,6 +305,8 @@ function mapPlayer(player: ApiPlayer): PlayerViewModel {
       metTurn: contact.met_turn ?? 0,
       starId: contact.star_id ?? 0,
       relation: contact.relation ?? 0,
+      atWar: contact.at_war ?? false,
+      warSince: contact.war_since ?? 0,
     })),
   };
 }

@@ -66,6 +66,9 @@ func ValidateLoadedGame(g *Game, resources *ResourceManager) error {
 			return err
 		}
 	}
+	if err := validateWarsSymmetric(g.Players); err != nil {
+		return err
+	}
 
 	if g.Status != "" && g.Status != "active" && g.Status != "finished" {
 		return fmt.Errorf("invalid game status %q", g.Status)
@@ -260,6 +263,26 @@ func validatePlayerContacts(p *Player, playerIDs map[uint]struct{}) error {
 			return fmt.Errorf("player %d has a duplicate contact with player %d", p.ID, contact.PlayerID)
 		}
 		seen[contact.PlayerID] = struct{}{}
+	}
+	return nil
+}
+
+// validateWarsSymmetric rejects a war flag that only one side records.
+func validateWarsSymmetric(players []*Player) error {
+	for _, p := range players {
+		if p == nil {
+			continue
+		}
+		for _, contact := range p.Contacts {
+			if !contact.AtWar {
+				continue
+			}
+			other := findPlayerByID(players, contact.PlayerID)
+			back := contactWith(other, p.ID)
+			if back == nil || !back.AtWar {
+				return fmt.Errorf("player %d is at war with player %d, but not the other way round", p.ID, contact.PlayerID)
+			}
+		}
 	}
 	return nil
 }

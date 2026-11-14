@@ -46,6 +46,7 @@ func (g *Game) evaluateConquest() {
 		}
 		if colonies[player.ID] == 0 && !colonyShips[player.ID] {
 			player.Eliminated = true
+			g.endWarsWith(player.ID)
 			delete(g.TurnSubmissions, player.ID)
 			continue
 		}

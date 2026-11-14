@@ -155,6 +155,8 @@ export type ContactViewModel = {
   metTurn: number;
   starId: number;
   relation: number;
+  atWar: boolean;
+  warSince: number;
 };
 
 export type PlayerViewModel = {

@@ -38,6 +38,11 @@ export type InvadeCommand = {
   ship_indexes: number[];
 };
 
+/** Declares war on a contacted empire; resolves with the turn. */
+export type DeclareWarCommand = {
+  player_id: number;
+};
+
 export type BuyProductionCommand = {
   planetId: number;
 };
@@ -64,6 +69,7 @@ export type PendingCommands = {
   invade: InvadeCommand[];
   buyProduction: BuyProductionCommand[];
   mutateRace?: MutateRaceCommand;
+  declareWar?: DeclareWarCommand[];
 };
 
 export type TurnMovePopulationCommand = {
@@ -87,4 +93,5 @@ export type TurnCommands = {
   buy_production?: BuyProductionCommand[];
   transfer_population?: TransferPopulationCommand[];
   mutate_race?: MutateRaceCommand;
+  declare_war?: DeclareWarCommand[];
 };

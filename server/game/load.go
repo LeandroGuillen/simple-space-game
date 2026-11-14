@@ -67,6 +67,12 @@ func HydrateLoadedGame(g *Game, resources *ResourceManager) {
 		}
 	}
 	g.backfillMissileAvailability()
+	// A war with an eliminated empire ends.
+	for _, player := range g.Players {
+		if player != nil && player.Eliminated {
+			g.endWarsWith(player.ID)
+		}
+	}
 	if g.TurnSubmissions == nil {
 		g.TurnSubmissions = make(map[uint]Commands)
 	}

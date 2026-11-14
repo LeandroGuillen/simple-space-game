@@ -52,6 +52,12 @@ type InvadeCommand struct {
 	ShipIndexes    *[]uint `json:"ship_indexes,omitempty"`
 }
 
+// DeclareWarCommand declares war on a contacted, non-eliminated empire. It
+// resolves with the simultaneous turn.
+type DeclareWarCommand struct {
+	PlayerID uint `json:"player_id"`
+}
+
 type SetTaxRateCommand struct {
 	Rate float64 `json:"rate"`
 }
@@ -72,6 +78,7 @@ type Commands struct {
 	BuyProduction        []*BuyProductionCommand      `json:"buy_production,omitempty"`
 	MutateRace           *MutateRaceCommand           `json:"mutate_race,omitempty"`
 	DesignShip           *DesignShipCommand           `json:"design_ship,omitempty"`
+	DeclareWar           []*DeclareWarCommand         `json:"declare_war,omitempty"`
 }
 
 type MutateRaceCommand struct {

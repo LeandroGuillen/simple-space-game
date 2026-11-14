@@ -54,6 +54,15 @@ function gameWithFleets(fleetIds: number[]): GameViewModel {
 }
 
 describe("toTurnCommands", () => {
+  it("sends queued declarations of war as declare_war", () => {
+    const commands = toTurnCommands(
+      { ...pendingCommands(), declareWar: [{ player_id: 3 }] } as PendingCommands,
+      gameWithFleets([]),
+    );
+    expect((commands as Record<string, unknown>).declare_war).toEqual([{ player_id: 3 }]);
+    expect((toTurnCommands(pendingCommands(), gameWithFleets([])) as Record<string, unknown>).declare_war).toBeUndefined();
+  });
+
   it("assigns the remaining population after outbound transfers and job moves", () => {
     const game = gameWithFleets([]);
     game.galaxy.stars = [{ planets: [

@@ -1,5 +1,5 @@
 const ART_ROOT = "/art";
-const MAX_PLANET_ART_VARIANTS = 24;
+const MAX_PLANET_ART_VARIANTS = 3;
 
 export const planetArtSlugByEnvironment: Record<number, string> = {
   1: "gas-giant",
