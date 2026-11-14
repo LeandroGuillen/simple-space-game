@@ -54,12 +54,11 @@ describe("planet art", () => {
     });
   }
 
-  it("only probes the three numbered variants plus the unnumbered slug", () => {
+  it("only probes the three numbered variants", () => {
     expect(planetArtCandidatesForEnvironment(11)).toEqual([
       "/art/planets/terran1.png",
       "/art/planets/terran2.png",
       "/art/planets/terran3.png",
-      "/art/planets/terran.png",
     ]);
   });
 

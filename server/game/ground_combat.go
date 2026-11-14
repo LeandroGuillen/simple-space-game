@@ -1,6 +1,8 @@
 package game
 
 import (
+	"fmt"
+
 	. "ssg/model"
 )
 
@@ -35,6 +37,10 @@ func (g *Game) holdsOrbit(starID, ownerID uint) bool {
 		}
 		if fleet.Owner == ownerID {
 			ownerPresent = true
+			continue
+		}
+		// Treaty partners do not fight, so their warships do not contest orbit.
+		if g.peaceTreatyBetween(ownerID, fleet.Owner) {
 			continue
 		}
 		if g.fleetHasArmedShips(fleet) {
@@ -226,6 +232,17 @@ func (g *Game) resolvePendingInvasion(order PendingInvasion) *InvasionReport {
 	if attackerForce.TotalUnits() == 0 {
 		return nil
 	}
+
+	// Invading in the default no-treaty state auto-declares war, then the
+	// landing proceeds (a peace treaty already rejected the order above).
+	defenderID := planet.Owner
+	planetName := planet.Name
+	g.autoDeclareWar(order.OwnerID, defenderID, planet.ParentStar, func(self, other *Player) string {
+		if self.ID == order.OwnerID {
+			return fmt.Sprintf("War with %s: you invaded %s", other.Name, planetName)
+		}
+		return fmt.Sprintf("War with %s: %s invaded %s", other.Name, other.Name, planetName)
+	})
 
 	defenderForce := g.createPlanetDefenseForce(planet)
 	report := g.resolveInvasion(planet, order.OwnerID, attackerForce, defenderForce)

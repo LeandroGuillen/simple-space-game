@@ -16,7 +16,9 @@ const maxBattleRounds = 24
 const battleStartRange int64 = 5
 
 // resolveStarBattles runs auto-resolve combat at every star where two or more
-// owners currently share orbit. Returns the new reports it produced.
+// owners currently share orbit, except between empires with a peace treaty.
+// Owners not yet at war auto-declare war first. Returns the new reports it
+// produced.
 func (g *Game) resolveStarBattles() []*BattleReport {
 	if g == nil {
 		return nil
@@ -40,6 +42,13 @@ func (g *Game) resolveStarBattles() []*BattleReport {
 		if !multipleOwners(fleets) {
 			continue
 		}
+		// Empires with a peace treaty share orbit without fighting. Any
+		// other pair not yet at war auto-declares war, then fights.
+		fleets = g.battleCombatants(fleets)
+		if fleets == nil {
+			continue
+		}
+		g.declareWarForBattle(starID, fleets)
 		// Battles with a human participant pause as interactive tactical
 		// battles, resolved through the battle action API after the turn.
 		if g.starHasHumanConflict(fleets) {

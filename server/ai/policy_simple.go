@@ -300,7 +300,13 @@ func resolvePendingColonies(snapshot *VisibleGame, playerID uint, d *Decision) {
 // issueInvasionsAtEnemyPlanets restores the prior auto-capture behavior for the
 // AI now that transports no longer invade without an Invade order: any idle
 // fleet with transports at a star with an enemy colony issues Invade.
+// Empires under a peace treaty are never invaded, and their ships do not
+// contest the orbit.
 func issueInvasionsAtEnemyPlanets(snapshot *VisibleGame, playerID uint, d *Decision) {
+	me := findPlayer(snapshot, playerID)
+	if me == nil {
+		me = &model.Player{ID: playerID}
+	}
 	invading := map[uint]bool{}
 	for _, f := range snapshot.Fleets {
 		if f == nil || f.Owner != playerID || f.DestinationStarID != 0 || f.TurnsRemaining != 0 {
@@ -324,7 +330,7 @@ func issueInvasionsAtEnemyPlanets(snapshot *VisibleGame, playerID uint, d *Decis
 			}
 		}
 		for _, other := range snapshot.Fleets {
-			if other != nil && other.Owner != playerID && other.StarID == f.StarID && other.DestinationStarID == 0 && len(other.Ships) > 0 {
+			if other != nil && hostileOwner(me, other.Owner) && other.StarID == f.StarID && other.DestinationStarID == 0 && len(other.Ships) > 0 {
 				contested = true
 				break
 			}
@@ -337,7 +343,7 @@ func issueInvasionsAtEnemyPlanets(snapshot *VisibleGame, playerID uint, d *Decis
 			continue
 		}
 		for _, planet := range star.Planets {
-			if planet == nil || planet.Owner == 0 || planet.Owner == playerID {
+			if planet == nil || !hostileOwner(me, planet.Owner) {
 				continue
 			}
 			indexes := append([]uint(nil), transportIndexes...)

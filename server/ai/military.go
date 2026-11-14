@@ -49,6 +49,14 @@ func mobileCombatShip(s *VisibleGame, p *model.Player, ship model.FleetShip) boo
 	d := shipCombatDesign(s, p, ship)
 	return d != nil && d.Drive.InterstellarSpeed > 0
 }
+
+// hostileOwner reports whether owner is a rival empire the AI may attack or
+// invade: anyone but itself and empires it has a peace treaty with. Without a
+// treaty (at war or not) attacks are allowed; the fight auto-declares war.
+func hostileOwner(p *model.Player, owner uint) bool {
+	return owner != 0 && owner != p.ID && !p.HasPeaceTreatyWith(owner)
+}
+
 func planFleetAttacks(s *VisibleGame, p *model.Player, orders *Decision) {
 	busy := map[uint]bool{}
 	reserved := map[uint]bool{}
@@ -119,7 +127,7 @@ func planFleetAttacks(s *VisibleGame, p *model.Player, orders *Decision) {
 			}
 			enemy := false
 			for _, planet := range star.Planets {
-				if planet != nil && planet.Owner != 0 && planet.Owner != p.ID {
+				if planet != nil && hostileOwner(p, planet.Owner) {
 					enemy = true
 					break
 				}
@@ -129,9 +137,10 @@ func planFleetAttacks(s *VisibleGame, p *model.Player, orders *Decision) {
 			}
 			// Rival ship details are limited to the visible fleet snapshot. Count every
 			// visible ship conservatively; hidden fleets are not available to the AI.
+			// Treaty partners' ships do not fight, so they are not defenders.
 			defenders := 0
 			for _, other := range s.Fleets {
-				if other != nil && other.Owner != p.ID && other.StarID == star.ID {
+				if other != nil && hostileOwner(p, other.Owner) && other.StarID == star.ID {
 					defenders += len(other.Ships)
 				}
 			}
@@ -168,7 +177,7 @@ func planMilitaryProduction(s *VisibleGame, p *model.Player, planets []*model.Pl
 			continue
 		}
 		for _, planet := range star.Planets {
-			if planet != nil && planet.Owner != 0 && planet.Owner != p.ID {
+			if planet != nil && hostileOwner(p, planet.Owner) {
 				enemy = true
 				break
 			}
@@ -287,7 +296,7 @@ func planTransportMoves(s *VisibleGame, p *model.Player, d *Decision) {
 			}
 			enemyPlanet := false
 			for _, planet := range star.Planets {
-				if planet != nil && planet.Owner != 0 && planet.Owner != p.ID {
+				if planet != nil && hostileOwner(p, planet.Owner) {
 					enemyPlanet = true
 					break
 				}
@@ -300,7 +309,7 @@ func planTransportMoves(s *VisibleGame, p *model.Player, d *Decision) {
 				if other == nil || other.StarID != star.ID || other.DestinationStarID != 0 || other.TurnsRemaining != 0 {
 					continue
 				}
-				if other.Owner != p.ID && len(other.Ships) > 0 {
+				if hostileOwner(p, other.Owner) && len(other.Ships) > 0 {
 					hostile = true
 				}
 				if other.Owner == p.ID {

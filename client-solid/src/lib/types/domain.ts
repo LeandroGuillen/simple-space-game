@@ -157,6 +157,7 @@ export type ContactViewModel = {
   relation: number;
   atWar: boolean;
   warSince: number;
+  peaceTreaty: boolean;
 };
 
 export type PlayerViewModel = {

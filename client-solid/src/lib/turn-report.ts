@@ -6,7 +6,7 @@ const CATEGORIES: { label: string; kinds: string[] }[] = [
   { label: "Research", kinds: ["research"] },
   { label: "Fleets & combat", kinds: ["arrival", "battle"] },
   { label: "Invasions", kinds: ["invasion"] },
-  { label: "Diplomacy", kinds: ["first_contact", "declared_war"] },
+  { label: "Diplomacy", kinds: ["first_contact", "declared_war", "declare_war_failed"] },
 ];
 
 export type TurnEventGroup = { label: string; events: ApiTurnEvent[] };
@@ -25,7 +25,7 @@ export function groupTurnEvents(events: ApiTurnEvent[]): TurnEventGroup[] {
 export function turnEventHref(event: ApiTurnEvent): string {
   if (event.kind === "research") return "/technology";
   if (event.kind === "invasion") return "/fleets";
-  if (event.kind === "first_contact" || event.kind === "declared_war") return "/diplomacy";
+  if (event.kind === "first_contact" || event.kind === "declared_war" || event.kind === "declare_war_failed") return "/diplomacy";
   if (event.planet_id && event.star_id) return `/stars/${event.star_id}/planets/${event.planet_id}`;
   if (event.star_id) return `/galaxy?star=${event.star_id}`;
   return "/galaxy";

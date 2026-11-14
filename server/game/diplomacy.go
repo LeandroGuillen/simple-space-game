@@ -15,6 +15,20 @@ const TurnEventFirstContact = "first_contact"
 // a war starts.
 const TurnEventDeclaredWar = "declared_war"
 
+// TurnEventDeclareWarFailed is the turn-report kind recorded for a declarer
+// whose declaration of war was valid at submit time but could not be applied
+// when the turn resolved.
+const TurnEventDeclareWarFailed = "declare_war_failed"
+
+// empireNameFor names otherID as viewer knows it: the empire's name once
+// met, otherwise a neutral label.
+func (g *Game) empireNameFor(viewer *Player, otherID uint) string {
+	if other, err := g.getPlayer(otherID); err == nil && other != nil && hasContact(viewer, otherID) {
+		return other.Name
+	}
+	return "an unknown empire"
+}
+
 // hasContact reports whether player has met otherID.
 func hasContact(player *Player, otherID uint) bool {
 	return contactWith(player, otherID) != nil
@@ -87,7 +101,9 @@ func (g *Game) validateDeclareWarCommands(player *Player, commands []*DeclareWar
 // resolveWarDeclarations applies every DeclareWar order of the turn at once.
 // A declaration against an empire the player is already at war with is a
 // no-op, and two empires declaring on each other in the same turn simply go to
-// war. Both sides get a turn-report event. Caller holds the write lock.
+// war. Both sides get a turn-report event. An order whose target is no longer
+// valid is skipped with a declare_war_failed event for the declarer; it never
+// fails the turn. Caller holds the write lock.
 func (g *Game) resolveWarDeclarations(submissions map[uint]Commands, playerIDs []uint) error {
 	type pair struct{ a, b uint }
 	declared := map[pair]map[uint]bool{} // ordered pair -> declarers
@@ -102,7 +118,15 @@ func (g *Game) resolveWarDeclarations(submissions map[uint]Commands, playerIDs [
 				continue
 			}
 			if _, err := g.warTarget(player, command.PlayerID); err != nil {
-				return &TurnSubmissionError{PlayerID: playerID, PlayerName: player.Name, Err: err}
+				// Valid at submit but not any more (for example the target
+				// was eliminated meanwhile): skip this order and tell the
+				// declarer, without failing the turn for everyone.
+				g.recordTurnEvent(TurnEvent{
+					Owner: playerID,
+					Kind:  TurnEventDeclareWarFailed,
+					Text:  fmt.Sprintf("Your declaration of war on %s could not be applied: %v", g.empireNameFor(player, command.PlayerID), err),
+				})
+				continue
 			}
 			if atWar(player, command.PlayerID) {
 				continue
@@ -118,10 +142,7 @@ func (g *Game) resolveWarDeclarations(submissions map[uint]Commands, playerIDs [
 	for _, key := range order {
 		a, _ := g.getPlayer(key.a)
 		b, _ := g.getPlayer(key.b)
-		for _, contact := range []*Contact{contactWith(a, b.ID), contactWith(b, a.ID)} {
-			contact.AtWar = true
-			contact.WarSince = g.CurrentTurn
-		}
+		g.startWar(a, b)
 		mutual := declared[key][a.ID] && declared[key][b.ID]
 		for _, side := range [][2]*Player{{a, b}, {b, a}} {
 			self, other := side[0], side[1]
@@ -138,6 +159,127 @@ func (g *Game) resolveWarDeclarations(submissions map[uint]Commands, playerIDs [
 		}
 	}
 	return nil
+}
+
+// startWar puts both empires at war from this turn: at_war and war_since are
+// set on both contacts and any peace treaty is cleared. Both contacts must
+// exist. Turn events are the caller's job.
+func (g *Game) startWar(a, b *Player) {
+	for _, contact := range []*Contact{contactWith(a, b.ID), contactWith(b, a.ID)} {
+		contact.AtWar = true
+		contact.WarSince = g.CurrentTurn
+		contact.PeaceTreaty = false
+	}
+}
+
+// peaceTreatyBetween reports whether a peace treaty is in effect between the
+// two empires (on either side's record). While it is, no battles or
+// invasions happen between them. Slice 4 (Offer Peace) only has to set
+// Contact.PeaceTreaty on both sides; declaring war clears it.
+func (g *Game) peaceTreatyBetween(aID, bID uint) bool {
+	a, _ := g.getPlayer(aID)
+	b, _ := g.getPlayer(bID)
+	return a.HasPeaceTreatyWith(bID) || b.HasPeaceTreatyWith(aID)
+}
+
+// autoDeclareWar is called when a fight or invasion between two empires is
+// about to start. Empires already at war are left alone. Otherwise (the
+// default no-treaty state) war is declared on the spot with the same
+// bookkeeping as a declare_war order, and both sides get a declared_war turn
+// event naming the cause. Missing contacts are created at starID first.
+// Callers must have checked peaceTreatyBetween; a treaty blocks the fight.
+func (g *Game) autoDeclareWar(aID, bID, starID uint, text func(self, other *Player) string) {
+	a, errA := g.getPlayer(aID)
+	b, errB := g.getPlayer(bID)
+	if errA != nil || errB != nil || a == nil || b == nil || aID == bID {
+		return
+	}
+	if !hasContact(a, bID) || !hasContact(b, aID) {
+		if star, err := g.getStar(starID); err == nil && star != nil {
+			g.makeContact(aID, bID, star)
+		}
+		if !hasContact(a, bID) || !hasContact(b, aID) {
+			return
+		}
+	}
+	if atWar(a, bID) && atWar(b, aID) {
+		return
+	}
+	g.startWar(a, b)
+	for _, side := range [][2]*Player{{a, b}, {b, a}} {
+		g.recordTurnEvent(TurnEvent{Owner: side[0].ID, Kind: TurnEventDeclaredWar, Text: text(side[0], side[1]), StarID: starID})
+	}
+}
+
+// starName returns a display name for starID.
+func (g *Game) starName(starID uint) string {
+	if star, err := g.getStar(starID); err == nil && star != nil && star.Name != "" {
+		return star.Name
+	}
+	return fmt.Sprintf("star %d", starID)
+}
+
+// battleCombatants picks the fleets that fight at a shared star. Owners are
+// taken in ID order and an owner with a peace treaty with an owner already
+// taken sits the battle out (treaty partners never shoot at each other in
+// the free-for-all). Returns nil when fewer than two owners would fight.
+func (g *Game) battleCombatants(fleets []*Fleet) []*Fleet {
+	owners := []uint{}
+	seen := map[uint]bool{}
+	for _, fleet := range fleets {
+		if !seen[fleet.Owner] {
+			seen[fleet.Owner] = true
+			owners = append(owners, fleet.Owner)
+		}
+	}
+	slices.Sort(owners)
+	kept := map[uint]bool{}
+	keptOrder := []uint{}
+	for _, owner := range owners {
+		blocked := false
+		for _, other := range keptOrder {
+			if g.peaceTreatyBetween(owner, other) {
+				blocked = true
+				break
+			}
+		}
+		if !blocked {
+			kept[owner] = true
+			keptOrder = append(keptOrder, owner)
+		}
+	}
+	if len(keptOrder) < 2 {
+		return nil
+	}
+	out := make([]*Fleet, 0, len(fleets))
+	for _, fleet := range fleets {
+		if kept[fleet.Owner] {
+			out = append(out, fleet)
+		}
+	}
+	return out
+}
+
+// declareWarForBattle auto-declares war between every pair of combatant
+// owners not yet at war, just before the battle at starID starts.
+func (g *Game) declareWarForBattle(starID uint, fleets []*Fleet) {
+	owners := []uint{}
+	seen := map[uint]bool{}
+	for _, fleet := range fleets {
+		if !seen[fleet.Owner] {
+			seen[fleet.Owner] = true
+			owners = append(owners, fleet.Owner)
+		}
+	}
+	slices.Sort(owners)
+	where := g.starName(starID)
+	for i := 0; i < len(owners); i++ {
+		for j := i + 1; j < len(owners); j++ {
+			g.autoDeclareWar(owners[i], owners[j], starID, func(_, other *Player) string {
+				return fmt.Sprintf("War with %s: your fleets clashed at %s", other.Name, where)
+			})
+		}
+	}
 }
 
 // endWarsWith ends every war involving playerID (for example when that

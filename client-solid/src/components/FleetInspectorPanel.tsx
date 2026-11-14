@@ -10,6 +10,7 @@ import {
   isPlanetSuitableForColonization,
   sortFleetsForStarTabs,
 } from "../lib/utils";
+import { invasionChoice } from "../lib/diplomacy";
 import { useAppContext } from "../state/app-context";
 
 type FleetStackShip = FleetShipViewModel & {
@@ -146,14 +147,17 @@ export function FleetInspectorPanel(props: FleetInspectorPanelProps) {
     state.pendingCommands.invade.some((command) => command.fleet_id === activeStack()?.fleetId),
   );
 
-  const invasionTarget = createMemo(() => {
+  // A peace treaty blocks Invade; without one the landing auto-declares war.
+  const invasion = createMemo(() => {
     const star = system();
     const player = currentPlayer();
     if (!star || !player) {
-      return null;
+      return { target: null, blockedReason: null };
     }
-    return star.planets.find((planet) => planet.owner !== player.id && planet.owner !== 0) || null;
+    return invasionChoice(state.game, player.id, star.planets);
   });
+  const invasionTarget = createMemo(() => invasion().target);
+  const invasionBlockedReason = createMemo(() => (isInvading() ? null : invasion().blockedReason));
   const selectedFuelRange = createMemo(() => {
     const stack = activeStack();
     if (!stack) {
@@ -304,7 +308,8 @@ export function FleetInspectorPanel(props: FleetInspectorPanelProps) {
               <button
                 class={isInvading() ? "secondary-button" : "primary-button"}
                 type="button"
-                disabled={state.isBusy}
+                disabled={state.isBusy || invasionBlockedReason() != null}
+                title={invasionBlockedReason() ?? undefined}
                 onClick={() => {
                   const stack_val = stack();
                   const target = invasionTarget();
@@ -317,6 +322,9 @@ export function FleetInspectorPanel(props: FleetInspectorPanelProps) {
               >
                 {isInvading() ? "Cancel Invasion" : "Invade Planet"}
               </button>
+              <Show when={invasionBlockedReason()}>
+                {(reason) => <span class="fleet-orbit-selection-summary fleet-invade-blocked">{reason()}</span>}
+              </Show>
             </Show>
           </div>
         </div>

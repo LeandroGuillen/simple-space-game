@@ -267,20 +267,27 @@ func validatePlayerContacts(p *Player, playerIDs map[uint]struct{}) error {
 	return nil
 }
 
-// validateWarsSymmetric rejects a war flag that only one side records.
+// validateWarsSymmetric rejects a war flag or peace treaty that only one side
+// records, and a contact that is both at war and under a peace treaty.
 func validateWarsSymmetric(players []*Player) error {
 	for _, p := range players {
 		if p == nil {
 			continue
 		}
 		for _, contact := range p.Contacts {
-			if !contact.AtWar {
+			if contact.AtWar && contact.PeaceTreaty {
+				return fmt.Errorf("player %d is both at war and under a peace treaty with player %d", p.ID, contact.PlayerID)
+			}
+			if !contact.AtWar && !contact.PeaceTreaty {
 				continue
 			}
 			other := findPlayerByID(players, contact.PlayerID)
 			back := contactWith(other, p.ID)
-			if back == nil || !back.AtWar {
+			if contact.AtWar && (back == nil || !back.AtWar) {
 				return fmt.Errorf("player %d is at war with player %d, but not the other way round", p.ID, contact.PlayerID)
+			}
+			if contact.PeaceTreaty && (back == nil || !back.PeaceTreaty) {
+				return fmt.Errorf("player %d has a peace treaty with player %d, but not the other way round", p.ID, contact.PlayerID)
 			}
 		}
 	}

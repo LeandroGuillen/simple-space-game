@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { DiplomacyContacts } from "../../components/DiplomacyContacts";
 import { InvasionReportPanel } from "../../components/InvasionReportPanel";
 import { screenTitleForPath } from "../document-title";
-import { canDeclareWar, diplomacyContacts, empireName, newContactsThisTurn } from "../diplomacy";
+import { canDeclareWar, diplomacyBadgeCount, diplomacyContacts, empireName, incomingWarDeclarationsThisTurn, newContactsThisTurn } from "../diplomacy";
 import { groupTurnEvents, turnEventHref } from "../turn-report";
 import type { ApiInvasionReport, ApiTurnEvent } from "../types/api";
 import type { GameViewModel } from "../types/domain";
@@ -143,6 +143,31 @@ describe("first contact events", () => {
     expect(newContactsThisTurn(events, 1)).toBe(1);
     expect(newContactsThisTurn(events, 3)).toBe(0);
     expect(newContactsThisTurn(undefined, 1)).toBe(0);
+  });
+
+  it("counts incoming declarations of war (not the viewer's own) for the nav badge", () => {
+    const wars: ApiTurnEvent[] = [
+      ...events,
+      { owner: 1, kind: "declared_war", text: "Zorg declared war on you" },
+      { owner: 1, kind: "declared_war", text: "War with Kree: both empires declared war" },
+      { owner: 1, kind: "declared_war", text: "War with Vosk: your fleets clashed at Vega", star_id: 4 },
+      { owner: 1, kind: "declared_war", text: "You declared war on Zorg" },
+      { owner: 1, kind: "declare_war_failed", text: "Your declaration of war on Zorg could not be applied" },
+      { owner: 3, kind: "declared_war", text: "Ada declared war on you" },
+    ];
+    expect(incomingWarDeclarationsThisTurn(wars, 1)).toBe(3);
+    expect(incomingWarDeclarationsThisTurn(wars, 3)).toBe(1);
+    expect(incomingWarDeclarationsThisTurn(undefined, 1)).toBe(0);
+    expect(newContactsThisTurn(wars, 1)).toBe(1);
+    expect(diplomacyBadgeCount(wars, 1)).toBe(4);
+    expect(diplomacyBadgeCount(events, 1)).toBe(1);
+    expect(diplomacyBadgeCount(undefined, 1)).toBe(0);
+  });
+
+  it("groups a declaration of war that could not be applied under Diplomacy", () => {
+    const failed: ApiTurnEvent = { owner: 1, kind: "declare_war_failed", text: "Your declaration of war on Zorg could not be applied" };
+    expect(groupTurnEvents([failed]).map((group) => group.label)).toEqual(["Diplomacy"]);
+    expect(turnEventHref(failed)).toBe("/diplomacy");
   });
 
   it("groups first contact under Diplomacy and links to the Diplomacy screen", () => {

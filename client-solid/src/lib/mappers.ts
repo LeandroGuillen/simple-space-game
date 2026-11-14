@@ -307,6 +307,7 @@ function mapPlayer(player: ApiPlayer): PlayerViewModel {
       relation: contact.relation ?? 0,
       atWar: contact.at_war ?? false,
       warSince: contact.war_since ?? 0,
+      peaceTreaty: contact.peace_treaty ?? false,
     })),
   };
 }

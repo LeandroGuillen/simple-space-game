@@ -20,7 +20,7 @@ func TestHostedWebClientAndAPIRoutes(t *testing.T) {
 		status       int
 		contains     string
 	}{
-		{"GET", "/", 200, "SSG client"}, {"GET", "/galaxy", 200, "SSG client"}, {"GET", "/stars/1/planets/2", 200, "SSG client"}, {"GET", "/assets/app.js", 200, "console.log"}, {"GET", "/status", 200, "ok"}, {"GET", "/assets/missing.js", 404, ""}, {"GET", "/unknown-api", 404, ""}, {"POST", "/galaxy", 404, ""},
+		{"GET", "/", 200, "SSG client"}, {"GET", "/galaxy", 200, "SSG client"}, {"GET", "/diplomacy", 200, "SSG client"}, {"GET", "/stars/1/planets/2", 200, "SSG client"}, {"GET", "/assets/app.js", 200, "console.log"}, {"GET", "/status", 200, "ok"}, {"GET", "/assets/missing.js", 404, ""}, {"GET", "/unknown-api", 404, ""}, {"POST", "/galaxy", 404, ""},
 	} {
 		t.Run(tc.method+tc.path, func(t *testing.T) {
 			w := httptest.NewRecorder()

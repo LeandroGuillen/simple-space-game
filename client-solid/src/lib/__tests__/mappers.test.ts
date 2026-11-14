@@ -298,7 +298,7 @@ describe('mapGame', () => {
 
     const game = mapGame(apiGame)
     expect(game.players[1]?.name).toBe('Rival')
-    expect(game.players[0]?.contacts).toEqual([{ playerId: 2, metTurn: 3500.4, starId: 1, relation: 0, atWar: true, warSince: 3500.5 }])
+    expect(game.players[0]?.contacts).toEqual([{ playerId: 2, metTurn: 3500.4, starId: 1, relation: 0, atWar: true, warSince: 3500.5, peaceTreaty: false }])
     expect(game.players[1]?.contacts).toEqual([])
     expect(game.players[1]?.treasury).toBe(0)
     expect(game.players[1]?.researchPoints).toBe(0)

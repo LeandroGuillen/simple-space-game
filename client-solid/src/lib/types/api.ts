@@ -480,6 +480,11 @@ export type ApiContact = {
   /** Set on both sides while the empires are at war; omitted means peace. */
   at_war?: boolean;
   war_since?: number;
+  /**
+   * Set on both sides while a peace treaty is in effect: no battles or
+   * invasions until war is declared again. Omitted means no treaty.
+   */
+  peace_treaty?: boolean;
 };
 
 export type ApiPlayer = {

@@ -40,12 +40,11 @@ export function planetArtFallbackForEnvironment(environment: number) {
 
 export function planetArtCandidatesForEnvironment(environment: number) {
   const slug = planetArtSlugForEnvironment(environment);
-  const candidates = Array.from(
+  // Only the numbered variants exist; an unnumbered {slug}.png would 404.
+  return Array.from(
     { length: MAX_PLANET_ART_VARIANTS },
     (_, index) => `${ART_ROOT}/planets/${slug}${index + 1}.png`,
   );
-
-  return [...candidates, `${ART_ROOT}/planets/${slug}.png`];
 }
 
 export function discoverPlanetArtForEnvironment(environment: number) {

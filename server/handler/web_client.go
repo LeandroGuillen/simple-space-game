@@ -47,7 +47,7 @@ func registerWebClient(router *gin.Engine, directory string) error {
 
 func isClientRoute(path string) bool {
 	switch path {
-	case "/", "/race-editor", "/ship-editor", "/setup", "/setup/races", "/setup/custom-race", "/setup/ship-editor", "/galaxy", "/colonies", "/fleets", "/technology", "/mutation":
+	case "/", "/race-editor", "/ship-editor", "/setup", "/setup/races", "/setup/custom-race", "/setup/ship-editor", "/galaxy", "/colonies", "/fleets", "/technology", "/mutation", "/diplomacy":
 		return true
 	}
 	parts := strings.Split(strings.Trim(path, "/"), "/")

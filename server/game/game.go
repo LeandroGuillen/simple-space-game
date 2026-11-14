@@ -905,6 +905,12 @@ func (g *Game) validateInvadeOrder(playerID uint, command *InvadeCommand) (*Flee
 	if planet.Owner == playerID {
 		return nil, nil, fmt.Errorf("cannot invade your own planet %d", planet.ID)
 	}
+	// A peace treaty blocks invasions until war is declared again. Without a
+	// treaty the order is accepted even when not at war: the landing
+	// auto-declares war when it resolves (see resolvePendingInvasion).
+	if g.peaceTreatyBetween(playerID, planet.Owner) {
+		return nil, nil, fmt.Errorf("cannot invade planet %d: a peace treaty is in effect with its owner; declare war first", planet.ID)
+	}
 
 	// ShipIndexes semantics:
 	//   nil  → all transport ships in the fleet participate

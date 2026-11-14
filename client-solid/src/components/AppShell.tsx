@@ -59,7 +59,7 @@ import {
   labelForSize,
   hasEvolutionaryMutation,
 } from "../lib/utils";
-import { empireName, newContactsThisTurn } from "../lib/diplomacy";
+import { diplomacyBadgeCount, empireName } from "../lib/diplomacy";
 import { useAppContext } from "../state/app-context";
 import { PlanetVisual } from "./PlanetVisual";
 import { GameOver } from "./GameOver";
@@ -454,7 +454,7 @@ export function AppShell(props: RouteSectionProps) {
     }
     observedReportTurn = game.currentTurn; observedReportCount = events.length;
   });
-  const newContactCount = createMemo(() => newContactsThisTurn(state.game?.turnEvents, state.session.playerId));
+  const diplomacyUpdateCount = createMemo(() => diplomacyBadgeCount(state.game?.turnEvents, state.session.playerId));
   const idleFleetCount = createMemo(() => fleetRoster(state.game, currentPlayer(), state.pendingCommands, state.pendingColonyShipFleets).filter((row) => row.status === "Idle").length);
   const gameOver = createMemo(() => state.game?.status === "finished" || !!currentPlayer()?.eliminated);
 
@@ -900,8 +900,8 @@ export function AppShell(props: RouteSectionProps) {
                       <Show when={item.href === "/fleets" && idleFleetCount() > 0}>
                         <span class="fleet-idle-badge" aria-label={`${idleFleetCount()} idle fleets`}>{idleFleetCount()}</span>
                       </Show>
-                      <Show when={item.href === "/diplomacy" && newContactCount() > 0}>
-                        <span class="fleet-idle-badge" aria-label={`${newContactCount()} new contacts`}>{newContactCount()}</span>
+                      <Show when={item.href === "/diplomacy" && diplomacyUpdateCount() > 0}>
+                        <span class="fleet-idle-badge" aria-label={`${diplomacyUpdateCount()} diplomacy updates`}>{diplomacyUpdateCount()}</span>
                       </Show>
                       <span class="campaign-nav-link-shortcut" aria-hidden="true">
                         {item.shortcutKey.toUpperCase()}
