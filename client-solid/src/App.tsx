@@ -4,6 +4,7 @@ import { lazy } from "solid-js";
 
 import { AppShell } from "./components/AppShell";
 import { ColoniesPage } from "./routes/ColoniesPage";
+import { DiplomacyPage } from "./routes/DiplomacyPage";
 import { FleetsPage } from "./routes/FleetsPage";
 import { GalaxyPage } from "./routes/GalaxyPage";
 import { MutationPage } from "./routes/MutationPage";
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="/stars/:starId/planets/:planetId" component={PlanetPage} />
         <Route path="/colonies" component={ColoniesPage} />
         <Route path="/fleets" component={FleetsPage} />
+        <Route path="/diplomacy" component={DiplomacyPage} />
         <Route path="/technology" component={TechnologyPage} />
         <Route path="/mutation" component={MutationPage} />
         <Route path="*404" component={() => <Navigate href="/" />} />

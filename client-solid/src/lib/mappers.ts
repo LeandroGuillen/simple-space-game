@@ -300,6 +300,12 @@ function mapPlayer(player: ApiPlayer): PlayerViewModel {
     commandPointsStartingBonus: player.command_points_starting_bonus ?? 0,
     evolutionaryMutationPoints: player.evolutionary_mutation_points ?? 0,
     hasUsedEvolutionaryMutation: player.has_used_evolutionary_mutation ?? false,
+    contacts: (player.contacts ?? []).map((contact) => ({
+      playerId: contact.player_id,
+      metTurn: contact.met_turn ?? 0,
+      starId: contact.star_id ?? 0,
+      relation: contact.relation ?? 0,
+    })),
   };
 }
 

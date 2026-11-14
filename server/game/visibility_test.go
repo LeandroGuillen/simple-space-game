@@ -183,6 +183,10 @@ func TestVisibleGameStripsRivalPrivateState(t *testing.T) {
 	}
 	g.PendingColonyBases = map[uint][]uint{1: {p1Home.ID}, 2: {p2Home.ID}}
 	g.PendingColonyShips = map[uint][]uint{2: {enemyAtHome.ID}}
+	// Rivals are listed only after first contact; the rival's own contact
+	// list is private.
+	p1.Contacts = []model.Contact{{PlayerID: 2}}
+	p2.Contacts = []model.Contact{{PlayerID: 1, StarID: 7}}
 
 	visible, err := g.GetVisibleGameForPlayer(1)
 	require.NoError(t, err)
@@ -207,6 +211,7 @@ func TestVisibleGameStripsRivalPrivateState(t *testing.T) {
 
 	assert.Equal(t, "Player 2", rivalView.Name)
 	assert.Equal(t, p2.Color, rivalView.Color)
+	assert.Empty(t, rivalView.Contacts, "rival contacts are private")
 	assert.Equal(t, p2.Race.Name, rivalView.Race.Name)
 	assert.Zero(t, rivalView.Treasury)
 	assert.Zero(t, rivalView.ResearchPoints)
@@ -287,6 +292,7 @@ func TestVisibleGameOmniscientStillSeesStars(t *testing.T) {
 		NumPlayers:  2,
 	})
 	require.NoError(t, err)
+	g.Players[0].Contacts = []model.Contact{{PlayerID: 2}}
 
 	visible, err := g.GetVisibleGameForPlayer(1)
 	require.NoError(t, err)

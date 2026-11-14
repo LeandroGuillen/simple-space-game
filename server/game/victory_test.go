@@ -33,6 +33,9 @@ func TestEliminationRemovesPlayerFromTurns(t *testing.T) {
 	_, advanced, err = g.SubmitTurn(3, model.Commands{})
 	require.NoError(t, err)
 	require.True(t, advanced)
+	// Rivals appear in the visible player list only after first contact; an
+	// eliminated contact stays listed.
+	g.Players[0].Contacts = []model.Contact{{PlayerID: 2}}
 	view, err := g.GetVisibleGameForPlayer(1)
 	require.NoError(t, err)
 	require.True(t, view.Players[1].Eliminated)

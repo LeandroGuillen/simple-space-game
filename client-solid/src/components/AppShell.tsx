@@ -59,6 +59,7 @@ import {
   labelForSize,
   hasEvolutionaryMutation,
 } from "../lib/utils";
+import { newContactsThisTurn } from "../lib/diplomacy";
 import { useAppContext } from "../state/app-context";
 import { PlanetVisual } from "./PlanetVisual";
 import { GameOver } from "./GameOver";
@@ -68,6 +69,7 @@ const gameNavItems = [
   { href: "/galaxy", label: "Galaxy", shortcutKey: "g" },
   { href: "/colonies", label: "Colonies", shortcutKey: "c" },
   { href: "/fleets", label: "Fleets", shortcutKey: "f" },
+  { href: "/diplomacy", label: "Diplomacy", shortcutKey: "d" },
   { href: "/technology", label: "Technology", shortcutKey: "r" },
 ] as const;
 
@@ -93,6 +95,9 @@ function campaignNavActiveHref(
   }
   if (pathname.startsWith("/technology")) {
     return "/technology";
+  }
+  if (pathname.startsWith("/diplomacy")) {
+    return "/diplomacy";
   }
   return null;
 }
@@ -449,6 +454,7 @@ export function AppShell(props: RouteSectionProps) {
     }
     observedReportTurn = game.currentTurn; observedReportCount = events.length;
   });
+  const newContactCount = createMemo(() => newContactsThisTurn(state.game?.turnEvents, state.session.playerId));
   const idleFleetCount = createMemo(() => fleetRoster(state.game, currentPlayer(), state.pendingCommands, state.pendingColonyShipFleets).filter((row) => row.status === "Idle").length);
   const gameOver = createMemo(() => state.game?.status === "finished" || !!currentPlayer()?.eliminated);
 
@@ -899,6 +905,9 @@ export function AppShell(props: RouteSectionProps) {
                       {item.label}
                       <Show when={item.href === "/fleets" && idleFleetCount() > 0}>
                         <span class="fleet-idle-badge" aria-label={`${idleFleetCount()} idle fleets`}>{idleFleetCount()}</span>
+                      </Show>
+                      <Show when={item.href === "/diplomacy" && newContactCount() > 0}>
+                        <span class="fleet-idle-badge" aria-label={`${newContactCount()} new contacts`}>{newContactCount()}</span>
                       </Show>
                       <span class="campaign-nav-link-shortcut" aria-hidden="true">
                         {item.shortcutKey.toUpperCase()}

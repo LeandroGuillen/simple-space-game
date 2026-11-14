@@ -71,3 +71,12 @@
     color: var(--text);
     border-color: var(--accent);
 }
+
+.diplomacy-swatch {
+    display: inline-block;
+    width: 0.7rem;
+    height: 0.7rem;
+    margin-right: 0.45rem;
+    border-radius: 50%;
+    vertical-align: middle;
+}

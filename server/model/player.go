@@ -27,6 +27,9 @@ type Player struct {
 
 	ShipDesigns   []ShipDesign `json:"ship_designs"`
 	ExploredStars []uint       `json:"explored_stars"`
+	// Contacts lists the empires this player has met. Omitted in older saves,
+	// which load with no contacts.
+	Contacts []Contact `json:"contacts,omitempty"`
 
 	CommandPointsCapacity      int64 `json:"command_points_capacity"`
 	CommandPointsUsed          int64 `json:"command_points_used"`

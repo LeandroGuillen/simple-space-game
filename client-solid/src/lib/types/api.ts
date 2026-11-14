@@ -471,6 +471,14 @@ export type ApiResources = {
   };
 };
 
+/** A rival empire the player has met. Relation is omitted when 0. */
+export type ApiContact = {
+  player_id: number;
+  met_turn?: number;
+  star_id?: number;
+  relation?: number;
+};
+
 export type ApiPlayer = {
   id: number;
   name: string;
@@ -507,6 +515,8 @@ export type ApiPlayer = {
   command_points_starting_bonus?: number;
   evolutionary_mutation_points?: number;
   has_used_evolutionary_mutation?: boolean;
+  /** Own player only; omitted in older saves and before first contact. */
+  contacts?: ApiContact[] | null;
 };
 
 export type ApiFleetShip = {

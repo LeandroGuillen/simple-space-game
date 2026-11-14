@@ -9,6 +9,7 @@ const screenTitles: { prefix: string; title: string }[] = [
   { prefix: "/technology", title: "Technology" },
   { prefix: "/colonies", title: "Colonies" },
   { prefix: "/fleets", title: "Fleets" },
+  { prefix: "/diplomacy", title: "Diplomacy" },
   { prefix: "/galaxy", title: "Galaxy" },
   { prefix: "/ship-editor", title: "Ship Editor" },
   { prefix: "/race-editor", title: "Race Editor" },

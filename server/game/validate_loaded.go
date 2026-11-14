@@ -61,6 +61,12 @@ func ValidateLoadedGame(g *Game, resources *ResourceManager) error {
 		}
 	}
 
+	for _, p := range g.Players {
+		if err := validatePlayerContacts(p, playerIDs); err != nil {
+			return err
+		}
+	}
+
 	if g.Status != "" && g.Status != "active" && g.Status != "finished" {
 		return fmt.Errorf("invalid game status %q", g.Status)
 	}
@@ -237,6 +243,25 @@ func postponedInvasionStarID(g *Game, planetID uint) uint {
 		}
 	}
 	return 0
+}
+
+// validatePlayerContacts rejects contacts with unknown empires, the player
+// itself, or duplicates. Missing contacts (older saves) are valid.
+func validatePlayerContacts(p *Player, playerIDs map[uint]struct{}) error {
+	seen := make(map[uint]struct{}, len(p.Contacts))
+	for _, contact := range p.Contacts {
+		if contact.PlayerID == p.ID {
+			return fmt.Errorf("player %d has a contact with itself", p.ID)
+		}
+		if _, ok := playerIDs[contact.PlayerID]; !ok {
+			return fmt.Errorf("player %d has a contact with unknown player %d", p.ID, contact.PlayerID)
+		}
+		if _, dup := seen[contact.PlayerID]; dup {
+			return fmt.Errorf("player %d has a duplicate contact with player %d", p.ID, contact.PlayerID)
+		}
+		seen[contact.PlayerID] = struct{}{}
+	}
+	return nil
 }
 
 func findPlayerByID(players []*Player, id uint) *Player {

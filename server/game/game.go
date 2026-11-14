@@ -680,6 +680,9 @@ func (g *Game) advanceTurnApplying(submissions map[uint]Commands) error {
 	g.CurrentTurn = advanceStardate(g.CurrentTurn)
 	g.TurnsPlayed++
 	g.advanceFleetMovements()
+	// Arrivals and colonies founded this turn meet any empire already present,
+	// before orbital battles at the same star.
+	g.resolveFirstContacts()
 	g.resolveStarBattles()
 	g.resolveGroundInvasions()
 	g.advancePopulationTransfers(existingPopulationTransfers)

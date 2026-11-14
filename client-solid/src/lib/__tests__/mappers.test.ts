@@ -254,6 +254,8 @@ describe('mapGame', () => {
           freighters: 2,
           freighters_used: 1,
           ship_designs: [],
+          // Relation 0 is omitted by the server.
+          contacts: [{ player_id: 2, met_turn: 3500.4, star_id: 1 }],
         },
         {
           id: 2,
@@ -296,6 +298,8 @@ describe('mapGame', () => {
 
     const game = mapGame(apiGame)
     expect(game.players[1]?.name).toBe('Rival')
+    expect(game.players[0]?.contacts).toEqual([{ playerId: 2, metTurn: 3500.4, starId: 1, relation: 0 }])
+    expect(game.players[1]?.contacts).toEqual([])
     expect(game.players[1]?.treasury).toBe(0)
     expect(game.players[1]?.researchPoints).toBe(0)
     expect(game.players[1]?.researchedTechs).toEqual([])

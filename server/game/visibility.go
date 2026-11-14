@@ -104,7 +104,8 @@ func (g *Game) getVisibleGameForPlayerLocked(playerID uint) (*Game, error) {
 		}
 		if p.ID == playerID {
 			visible.Players = append(visible.Players, copyPlayerPrivate(p))
-		} else {
+		} else if hasContact(player, p.ID) {
+			// Uncontacted rivals stay hidden until first contact.
 			visible.Players = append(visible.Players, publicPlayerView(p))
 		}
 	}
@@ -215,6 +216,7 @@ func copyPlayerPrivate(p *model.Player) *model.Player {
 		}
 	}
 	cp.ExploredStars = cloneSlice(p.ExploredStars)
+	cp.Contacts = cloneSlice(p.Contacts)
 	cp.Race = p.Race
 	cp.Race.TraitIDs = cloneSlice(p.Race.TraitIDs)
 	cp.Race.Grants = copyGrants(p.Race.Grants)

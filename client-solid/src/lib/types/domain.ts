@@ -150,6 +150,13 @@ export type GalaxyViewModel = {
   height: number;
 };
 
+export type ContactViewModel = {
+  playerId: number;
+  metTurn: number;
+  starId: number;
+  relation: number;
+};
+
 export type PlayerViewModel = {
   id: number;
   eliminated?: boolean;
@@ -179,6 +186,7 @@ export type PlayerViewModel = {
   commandPointsStartingBonus: number;
   evolutionaryMutationPoints: number;
   hasUsedEvolutionaryMutation: boolean;
+  contacts: ContactViewModel[];
 };
 
 export type FleetShipViewModel = {
