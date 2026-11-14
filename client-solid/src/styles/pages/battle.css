@@ -91,6 +91,10 @@
   line-height: 1.5;
 }
 
+.battle-missile-row {
+  color: #ffb26b;
+}
+
 .battle-weapon-row.is-spent {
   color: #5a6a8a;
 }

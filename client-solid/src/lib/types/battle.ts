@@ -8,6 +8,14 @@ export type ApiBeam = {
   maxDamage: number;
 };
 
+/** One missile rack's per-battle magazine. */
+export type ApiMissileRack = {
+  name: string;
+  damage: number;
+  ammo_left: number;
+  ammo_max: number;
+};
+
 export type ApiTacticalShipStatus = {
   current_armor_hp: number;
   current_structure_hp: number;
@@ -37,6 +45,9 @@ export type ApiTacticalShip = {
   // Absent on battles saved before shields reduced damage: no shield.
   shield_name?: string;
   shield_reduce_damage?: number;
+  // Absent on beam ships and battles saved before missiles: no rack, ME 0.
+  missiles?: ApiMissileRack[];
+  missile_evasion?: number;
   status: ApiTacticalShipStatus;
   moves_left: number;
   has_fired: boolean;
@@ -62,6 +73,9 @@ export type ApiBattleEvent = {
   damage?: number;
   hits?: number;
   misses?: number;
+  // "missile" for missile launches; absent for beam fire.
+  weapon_kind?: 'missile';
+  weapon_name?: string;
   winner_owner_id?: number;
   draw?: boolean;
 };
@@ -114,4 +128,65 @@ export function formatShieldStrength(
     return name === 'None' ? 'None' : `${name} (-0/hit)`;
   }
   return `${name} (-${reduce}/hit)`;
+}
+
+/** HUD weapons row for a missile rack, e.g. "Nuclear Missile · 8 dmg · 3/5 left". */
+export function formatMissileRack(rack: ApiMissileRack): string {
+  return `${rack.name} · ${rack.damage} dmg · ${Math.max(0, rack.ammo_left)}/${rack.ammo_max} left`;
+}
+
+/** True when the ship's only weapons are missile racks and all are empty. */
+export function isOutOfMissiles(
+  ship: Pick<ApiTacticalShip, 'beams' | 'missiles'>,
+): boolean {
+  const racks = ship.missiles ?? [];
+  if ((ship.beams?.length ?? 0) > 0 || racks.length === 0) {
+    return false;
+  }
+  return racks.every((rack) => rack.ammo_left <= 0);
+}
+
+/** Whether the ship can still fire this activation. */
+export function canShipFire(
+  ship: Pick<ApiTacticalShip, 'beams' | 'missiles' | 'has_fired'>,
+): boolean {
+  if (ship.has_fired) return false;
+  if ((ship.beams?.length ?? 0) > 0) return true;
+  return (ship.missiles ?? []).some((rack) => rack.ammo_left > 0);
+}
+
+/** Why the Fire command is unavailable, or "" when the ship can fire. */
+export function fireDisabledReason(
+  ship: Pick<ApiTacticalShip, 'beams' | 'missiles' | 'has_fired'> | null,
+): string {
+  if (!ship) return 'No ship is acting';
+  if (isOutOfMissiles(ship)) return 'Out of missiles';
+  if ((ship.beams?.length ?? 0) === 0 && (ship.missiles?.length ?? 0) === 0) {
+    return 'No weapons';
+  }
+  if (ship.has_fired) return 'Already fired this round';
+  return '';
+}
+
+/** Missile launches animate as projectiles; everything else as beams. */
+export function isMissileFire(event: Pick<ApiBattleEvent, 'type' | 'weapon_kind'>): boolean {
+  return event.type === 'fire' && event.weapon_kind === 'missile';
+}
+
+/** Nearest living enemy by grid (Chebyshev) distance, lowest id on ties. */
+export function nearestEnemyShip(
+  battle: ApiTacticalBattle,
+  ship: ApiTacticalShip,
+): ApiTacticalShip | null {
+  let best: ApiTacticalShip | null = null;
+  let bestDist = Number.POSITIVE_INFINITY;
+  for (const other of battle.ships) {
+    if (other.destroyed || other.owner_id === ship.owner_id) continue;
+    const dist = Math.max(Math.abs(other.x - ship.x), Math.abs(other.y - ship.y));
+    if (dist < bestDist || (dist === bestDist && best && other.id < best.id)) {
+      best = other;
+      bestDist = dist;
+    }
+  }
+  return best;
 }

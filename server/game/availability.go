@@ -42,6 +42,7 @@ func applyUnlocks(available *AvailableTech, unlocks Unlocks) {
 	appendUniqueStrings(&available.FuelCells, unlocks.FuelCells...)
 	appendUniqueStrings(&available.Shields, unlocks.Shields...)
 	appendUniqueStrings(&available.Beams, unlocks.Beams...)
+	appendUniqueStrings(&available.Missiles, unlocks.Missiles...)
 	appendUniqueStrings(&available.ShipSystems, unlocks.ShipSystems...)
 }
 

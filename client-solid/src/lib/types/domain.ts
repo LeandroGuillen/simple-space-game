@@ -1,8 +1,10 @@
-import type { ApiInvasionReport, ApiTurnEvent } from "./api";
+import type { ApiInvasionReport, ApiMissile, ApiTurnEvent } from "./api";
 import type { ApiTacticalBattle } from "./battle";
 
 export type ShipDesignForm = {
   beam?: string;
+  /** Missile rack in the one weapon slot; never set together with beam. */
+  missile?: string;
   name: string;
   drive: string;
   computer: string;
@@ -33,6 +35,7 @@ export type GrantsViewModel = {
     fuelCells: string[];
     shields: string[];
     beams: string[];
+    missiles?: string[];
     shipSystems: string[];
   };
   modifiers: ModifierViewModel[];
@@ -226,6 +229,7 @@ export type PlayerAvailabilityViewModel = {
   fuelCells: string[];
   shields: string[];
   beams: string[];
+  missiles?: string[];
   shipSystems: string[];
 };
 
@@ -285,6 +289,7 @@ export type FuelCellViewModel = {
 
 export type ShipDesignViewModel = {
   beam?: string;
+  missile?: string;
   name: string;
   drive: DriveViewModel;
   computer: ComputerViewModel;
@@ -306,6 +311,7 @@ export type ShipSystemViewModel = {
 export type ResourcesViewModel = {
   shipParts: {
     beams?: { name: string; minDamage: number; maxDamage: number }[];
+    missiles?: ApiMissile[];
     hullSizes: HullSizeViewModel[];
     drives: DriveViewModel[];
     armors: ArmorViewModel[];

@@ -44,6 +44,12 @@ type TacticalShip struct {
 	ShieldName         string `json:"shield_name,omitempty"`
 	ShieldReduceDamage int64  `json:"shield_reduce_damage,omitempty"`
 
+	// Missile racks with this battle's ammo, filled from the design when the
+	// battle starts. MissileEvasion is the target's evasion against missile
+	// hit rolls. Battles saved before missiles have neither: no racks, ME 0.
+	Missiles       []MissileRack `json:"missiles,omitempty"`
+	MissileEvasion int64         `json:"missile_evasion,omitempty"`
+
 	ShipStatus `json:"status"`
 
 	// per-activation state
@@ -68,6 +74,11 @@ type BattleEvent struct {
 	Damage   int64 `json:"damage,omitempty"`
 	Hits     int   `json:"hits,omitempty"`
 	Misses   int   `json:"misses,omitempty"`
+
+	// WeaponKind is "missile" for missile launches; beam fire leaves both
+	// fields empty, so older clients animate every fire event the same way.
+	WeaponKind string `json:"weapon_kind,omitempty"`
+	WeaponName string `json:"weapon_name,omitempty"`
 
 	WinnerOwnerID uint `json:"winner_owner_id,omitempty"`
 	Draw          bool `json:"draw,omitempty"`

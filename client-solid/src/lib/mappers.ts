@@ -157,6 +157,7 @@ export function mapGame(apiGame: ApiGame): GameViewModel {
     resources: {
       shipParts: {
         beams: apiGame.resources.ship_parts.beams ?? [],
+        missiles: apiGame.resources.ship_parts.missiles ?? [],
         hullSizes: apiGame.resources.ship_parts.hull_sizes.map(mapHullSize),
         drives: apiGame.resources.ship_parts.drives.map(mapDrive),
         armors: apiGame.resources.ship_parts.armors.map(mapArmor),
@@ -253,6 +254,7 @@ function mapPlayer(player: ApiPlayer): PlayerViewModel {
     fuelCells: player.available?.fuel_cells ?? [],
     shields: player.available?.shields ?? [],
     beams: player.available?.beams ?? [],
+    missiles: player.available?.missiles ?? [],
     shipSystems: player.available?.ship_systems ?? [],
   };
 
@@ -640,6 +642,7 @@ function mapShipDesign(
   return {
     name: ship.name,
     beam: ship.weapons?.[0]?.name ?? "",
+    missile: ship.missiles?.[0]?.name ?? "",
     baseSpace: ship.base_space ?? 0,
     drive: mapDrive(ship.drive),
     computer: mapComputer(ship.computer),
@@ -757,6 +760,7 @@ function mapGrants(grants: ApiGrants | undefined) {
       fuelCells: grants?.unlocks?.fuel_cells ?? [],
       shields: grants?.unlocks?.shields ?? [],
       beams: grants?.unlocks?.beams ?? [],
+      missiles: grants?.unlocks?.missiles ?? [],
       shipSystems: grants?.unlocks?.ship_systems ?? [],
     },
     modifiers: grants?.modifiers?.map((modifier) => ({

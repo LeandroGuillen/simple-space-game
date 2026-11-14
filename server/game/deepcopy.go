@@ -41,6 +41,7 @@ func copyPlanet(p *model.Planet) *model.Planet {
 func copyShipDesign(d model.ShipDesign) model.ShipDesign {
 	cp := d
 	cp.Beams = cloneSlice(d.Beams)
+	cp.Missiles = cloneSlice(d.Missiles)
 	cp.SpecialSystems = cloneSlice(d.SpecialSystems)
 	return cp
 }
@@ -51,6 +52,7 @@ func copyTacticalShip(s *model.TacticalShip) *model.TacticalShip {
 	}
 	cp := *s
 	cp.Beams = cloneSlice(s.Beams)
+	cp.Missiles = cloneSlice(s.Missiles)
 	return &cp
 }
 

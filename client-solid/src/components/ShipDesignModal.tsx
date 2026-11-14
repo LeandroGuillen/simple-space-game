@@ -3,6 +3,7 @@ import { Portal } from "solid-js/web";
 import { For, Show, createEffect, createMemo, createSignal } from "solid-js";
 
 import type { ShipDesignForm, ShipDesignViewModel } from "../lib/types/domain";
+import { selectedWeaponName, withWeapon } from "../lib/ship-weapons";
 import { defaultShipDesignForm } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
 
@@ -28,6 +29,10 @@ export function ShipDesignModal(props: ShipDesignModalProps) {
     const researched = state.game?.players.find((p) => p.id === state.session.playerId)?.available.beams ?? [];
     return (parts()?.beams ?? []).filter((beam) => beam.maxDamage > 0 && researched.includes(beam.name));
   });
+  const missiles = createMemo(() => {
+    const researched = state.game?.players.find((p) => p.id === state.session.playerId)?.available.missiles ?? [];
+    return (parts()?.missiles ?? []).filter((missile) => missile.damage > 0 && researched.includes(missile.name));
+  });
   const [form, setForm] = createSignal<ShipDesignForm>(
     defaultShipDesignForm(state.game),
   );
@@ -46,6 +51,7 @@ export function ShipDesignModal(props: ShipDesignModalProps) {
       name: props.mode === "duplicate" ? `${source.name} Copy` : source.name,
       drive: source.drive.name,
       beam: source.beam ?? "",
+      missile: source.missile ?? "",
       computer: source.computer.name,
       shield: source.shield.name,
       armor: source.armor.name,
@@ -109,9 +115,15 @@ export function ShipDesignModal(props: ShipDesignModalProps) {
                   <div class="ship-design-options">
                     <OptionToggleField
                       label="Weapon (None = utility ship, cannot fight)"
-                      value={form().beam || "None"}
-                      options={["None", ...beams().map((beam) => beam.name)]}
-                      onSelect={(value) => setForm({ ...form(), beam: value === "None" ? "" : value })}
+                      value={selectedWeaponName(form()) || "None"}
+                      options={[
+                        "None",
+                        ...beams().map((beam) => beam.name),
+                        ...missiles().map((missile) => missile.name),
+                      ]}
+                      onSelect={(value) =>
+                        setForm(withWeapon(form(), value === "None" ? "" : value, missiles()))
+                      }
                     />
                     <OptionToggleField
                       label="Hull"

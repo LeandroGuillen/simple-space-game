@@ -45,7 +45,7 @@ func (g *Game) holdsOrbit(starID, ownerID uint) bool {
 }
 
 // fleetHasArmedShips reports whether any ship in the fleet carries beam
-// weapons when materialized for combat.
+// weapons or missile racks when materialized for combat.
 func (g *Game) fleetHasArmedShips(fleet *Fleet) bool {
 	if fleet == nil {
 		return false
@@ -53,7 +53,7 @@ func (g *Game) fleetHasArmedShips(fleet *Fleet) bool {
 	player, _ := g.getPlayer(fleet.Owner)
 	for _, fs := range fleet.Ships {
 		ship := materializeBattleShip(g, player, fs)
-		if ship != nil && len(ship.Beams) > 0 {
+		if ship != nil && (len(ship.Beams) > 0 || len(ship.Missiles) > 0) {
 			return true
 		}
 	}

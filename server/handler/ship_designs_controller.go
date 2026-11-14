@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"ssg/game"
+	"ssg/model"
 
 	"github.com/gin-gonic/gin"
 )
@@ -30,6 +31,7 @@ func GetShipDesignList(c *gin.Context) {
 
 type CreateShipDesignRequest struct {
 	Beam     string `json:"beam"`
+	Missile  string `json:"missile,omitempty"`
 	Name     string `binding:"required" json:"name"`
 	Drive    string `binding:"required" json:"drive"`
 	Computer string `binding:"required" json:"computer"`
@@ -37,6 +39,20 @@ type CreateShipDesignRequest struct {
 	Armor    string `binding:"required" json:"armor"`
 	HullSize string `binding:"required" json:"hull_size"`
 	FuelCell string `binding:"required" json:"fuel_cell"`
+}
+
+func (req CreateShipDesignRequest) def() model.ShipDesignsDef {
+	return model.ShipDesignsDef{
+		Name:     req.Name,
+		Beam:     req.Beam,
+		Missile:  req.Missile,
+		Drive:    req.Drive,
+		Computer: req.Computer,
+		Shield:   req.Shield,
+		Armor:    req.Armor,
+		HullSize: req.HullSize,
+		FuelCell: req.FuelCell,
+	}
 }
 
 func CreateShipDesign(c *gin.Context) {
@@ -57,17 +73,7 @@ func CreateShipDesign(c *gin.Context) {
 		return
 	}
 
-	err = g.CreateShipDesign(
-		playerID,
-		req.Name,
-		req.Drive,
-		req.Computer,
-		req.Shield,
-		req.Armor,
-		req.HullSize,
-		req.FuelCell,
-		req.Beam,
-	)
+	err = g.CreateShipDesignFromDef(playerID, req.def())
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
@@ -95,17 +101,7 @@ func UpdateShipDesign(c *gin.Context) {
 		return
 	}
 
-	err = g.UpdateShipDesign(
-		playerID,
-		req.Name,
-		req.Drive,
-		req.Computer,
-		req.Shield,
-		req.Armor,
-		req.HullSize,
-		req.FuelCell,
-		req.Beam,
-	)
+	err = g.UpdateShipDesignFromDef(playerID, req.def())
 	if err != nil {
 		status := http.StatusBadRequest
 		var inUse *game.ShipDesignInUseError

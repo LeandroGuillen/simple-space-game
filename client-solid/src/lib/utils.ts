@@ -1347,6 +1347,7 @@ export function defaultShipDesignForm(
   return {
     name: "",
     beam: "",
+    missile: "",
     drive: parts?.drives.find((d) => d.interstellarSpeed > 0)?.name ?? "",
     computer: parts?.computers[0]?.name ?? "",
     shield: parts?.shields[0]?.name ?? "",
@@ -1360,6 +1361,7 @@ export function defaultShipDesignFormFromParts(parts: ApiShipParts | null | unde
   return {
     name: "",
     beam: "",
+    missile: "",
     drive: parts?.drives.find((d) => d.interstellar_speed > 0)?.name ?? "",
     computer: parts?.computers[0]?.name ?? "",
     shield: parts?.shields[0]?.name ?? "",

@@ -1,0 +1,8 @@
+{
+  "missiles": [
+    { "name": "Nuclear Missile", "damage": 8, "ammo": 5, "speed": 12 },
+    { "name": "Merculite Missile", "damage": 14, "ammo": 5, "speed": 12 },
+    { "name": "Pulson Missile", "damage": 20, "ammo": 5, "speed": 12 },
+    { "name": "Zeon Missile", "damage": 30, "ammo": 5, "speed": 12 }
+  ]
+}

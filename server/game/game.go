@@ -1805,6 +1805,38 @@ func (g *Game) GetShipDesignsList(playerID uint) ([]*ShipDesign, error) {
 
 // CreateShipDesign saves an armed design, or a weaponless utility design when beam is omitted.
 func (g *Game) CreateShipDesign(playerID uint, name, driveName, computerName, shieldName, armorName, hullSizeName, fuelCellName string, beam ...string) error {
+	def, err := shipDesignDefWithBeams(name, driveName, computerName, shieldName, armorName, hullSizeName, fuelCellName, beam)
+	if err != nil {
+		return err
+	}
+	return g.CreateShipDesignFromDef(playerID, def)
+}
+
+// UpdateShipDesign replaces a player design, keeping the beam-only signature.
+func (g *Game) UpdateShipDesign(playerID uint, name, driveName, computerName, shieldName, armorName, hullSizeName, fuelCellName string, beam ...string) error {
+	def, err := shipDesignDefWithBeams(name, driveName, computerName, shieldName, armorName, hullSizeName, fuelCellName, beam)
+	if err != nil {
+		return err
+	}
+	return g.UpdateShipDesignFromDef(playerID, def)
+}
+
+func shipDesignDefWithBeams(name, drive, computer, shield, armor, hull, fuel string, beam []string) (ShipDesignsDef, error) {
+	if len(beam) > 1 {
+		return ShipDesignsDef{}, fmt.Errorf("only one weapon slot is supported")
+	}
+	def := ShipDesignsDef{Name: name, Drive: drive, Computer: computer, Shield: shield, Armor: armor, HullSize: hull, FuelCell: fuel}
+	if len(beam) == 1 {
+		def.Beam = beam[0]
+	}
+	return def, nil
+}
+
+// CreateShipDesignFromDef saves a player design from part names. The one
+// weapon slot holds a beam or a missile rack (def.Beam or def.Missile), or
+// stays empty for a weaponless utility design.
+func (g *Game) CreateShipDesignFromDef(playerID uint, def ShipDesignsDef) error {
+	name := def.Name
 	g.ensureMu()
 	g.mu.Lock()
 	defer g.mu.Unlock()
@@ -1817,7 +1849,7 @@ func (g *Game) CreateShipDesign(playerID uint, name, driveName, computerName, sh
 			return fmt.Errorf("ship design name already exists")
 		}
 	}
-	design, err := g.resolvePlayerShipDesign(player, name, driveName, computerName, shieldName, armorName, hullSizeName, fuelCellName, beam)
+	design, err := g.resolvePlayerShipDesign(player, def)
 	if err != nil {
 		return err
 	}
@@ -1825,7 +1857,9 @@ func (g *Game) CreateShipDesign(playerID uint, name, driveName, computerName, sh
 	return nil
 }
 
-func (g *Game) UpdateShipDesign(playerID uint, name, driveName, computerName, shieldName, armorName, hullSizeName, fuelCellName string, beam ...string) error {
+// UpdateShipDesignFromDef replaces the player design named def.Name.
+func (g *Game) UpdateShipDesignFromDef(playerID uint, def ShipDesignsDef) error {
+	name := def.Name
 	g.ensureMu()
 	g.mu.Lock()
 	defer g.mu.Unlock()
@@ -1833,7 +1867,7 @@ func (g *Game) UpdateShipDesign(playerID uint, name, driveName, computerName, sh
 	if err != nil {
 		return err
 	}
-	design, err := g.resolvePlayerShipDesign(player, name, driveName, computerName, shieldName, armorName, hullSizeName, fuelCellName, beam)
+	design, err := g.resolvePlayerShipDesign(player, def)
 	if err != nil {
 		return err
 	}
@@ -1849,18 +1883,11 @@ func (g *Game) UpdateShipDesign(playerID uint, name, driveName, computerName, sh
 	return fmt.Errorf("cannot update, did not find a design with name %q", name)
 }
 
-func (g *Game) resolvePlayerShipDesign(player *Player, name, drive, computer, shield, armor, hull, fuel string, beam []string) (ShipDesign, error) {
-	if strings.TrimSpace(name) != name {
+func (g *Game) resolvePlayerShipDesign(player *Player, def ShipDesignsDef) (ShipDesign, error) {
+	if strings.TrimSpace(def.Name) != def.Name {
 		return ShipDesign{}, fmt.Errorf("invalid ship design name")
 	}
-	if len(beam) > 1 {
-		return ShipDesign{}, fmt.Errorf("only one beam slot is supported")
-	}
-	weapon := ""
-	if len(beam) == 1 {
-		weapon = beam[0]
-	}
-	design, err := g.Resources.resolveShipDesign(ShipDesignsDef{Name: name, Drive: drive, Computer: computer, Shield: shield, Armor: armor, HullSize: hull, FuelCell: fuel, Beam: weapon})
+	design, err := g.Resources.resolveShipDesign(def)
 	if err != nil {
 		return ShipDesign{}, err
 	}

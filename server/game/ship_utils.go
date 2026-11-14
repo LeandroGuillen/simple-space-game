@@ -24,13 +24,28 @@ func FireOn(attacker *Ship, defender *Ship, distance int64, attackerPlayer, defe
 	for _, beam := range attacker.Beams {
 		roll := randomFloat64()
 		if roll <= chanceToHit {
-			totalDamage += shieldedBeamDamage(GetDamage(beam, distance), defender.Shield.ReduceDamage)
+			totalDamage += shieldedHitDamage(GetDamage(beam, distance), defender.Shield.ReduceDamage)
 		}
 	}
 
-	// ------------------------------
-	// apply damage to receiving ship
-	// ------------------------------
+	applyShipDamage(defender, totalDamage)
+	return totalDamage
+}
+
+// fireMissilesOn launches one missile per loaded rack at the defender during
+// auto-resolve and applies the damage. racks is the attacker's per-battle
+// magazine; the fixed auto-resolve range does not affect missiles.
+func fireMissilesOn(racks []MissileRack, defender *Ship) int64 {
+	if !missilesLoaded(racks) {
+		return 0
+	}
+	volley := launchMissiles(racks, defender.MissileEvasion, defender.Shield.ReduceDamage)
+	applyShipDamage(defender, volley.damage)
+	return volley.damage
+}
+
+// applyShipDamage takes damage off armor first, then structure.
+func applyShipDamage(defender *Ship, totalDamage int64) {
 	if defender.CurrentArmorHP > 0 && defender.CurrentArmorHP >= totalDamage {
 		// armor absorbed the damage
 		defender.CurrentArmorHP -= totalDamage
@@ -53,15 +68,13 @@ func FireOn(attacker *Ship, defender *Ship, distance int64, attackerPlayer, defe
 		// no armor, no hull, defender destroyed
 		defender.CurrentStructureHP = 0
 	}
-
-	return totalDamage
 }
 
-// shieldedBeamDamage applies a shield's per-hit damage reduction to one beam
-// hit. Shields reduce each hit separately, never the whole volley, and can
+// shieldedHitDamage applies a shield's per-hit damage reduction to one beam
+// or missile hit. Shields reduce each hit separately, never the whole volley, and can
 // absorb a hit entirely but never heal. A missing shield (reduce 0) or a
 // negative value leaves the hit unchanged.
-func shieldedBeamDamage(damage, reduceDamage int64) int64 {
+func shieldedHitDamage(damage, reduceDamage int64) int64 {
 	if reduceDamage > 0 {
 		damage -= reduceDamage
 	}

@@ -199,6 +199,7 @@ export class ApiClient {
     const body: Record<string, unknown> = {
       name: design.name,
       beam: design.beam ?? "",
+      missile: design.missile ?? "",
       drive: design.drive,
       computer: design.computer,
       shield: design.shield,
@@ -295,6 +296,7 @@ export class ApiClient {
       body: JSON.stringify({
         name: form.name,
         beam: form.beam ?? "",
+        missile: form.missile ?? "",
         drive: form.drive,
         computer: form.computer,
         shield: form.shield,

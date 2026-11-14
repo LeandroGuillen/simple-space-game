@@ -193,6 +193,7 @@ export type ApiUnlocks = {
   fuel_cells?: string[];
   shields?: string[];
   beams?: string[];
+  missiles?: string[];
   ship_systems?: string[];
 };
 
@@ -360,6 +361,8 @@ export type ApiShipSystem = {
 export type ApiShipDesign = {
   name: string;
   weapons?: ApiWeapon[];
+  /** Absent on designs saved before missiles: no missile rack. */
+  missiles?: ApiMissile[];
   special_systems?: ApiSpecialSystem[];
   base_space?: number;
   drive: ApiDrive;
@@ -383,6 +386,7 @@ export type ApiShipDesignDef = {
 /** Ship design template from GET /ship-designs (built-in + custom). */
 export type ShipDesignTemplateRow = {
   beam?: string;
+  missile?: string;
   name: string;
   drive: string;
   computer: string;
@@ -393,8 +397,17 @@ export type ShipDesignTemplateRow = {
   built_in: boolean;
 };
 
+/** Missile rack from missiles.json: homing, fixed damage, ammo per battle. */
+export type ApiMissile = {
+  name: string;
+  damage: number;
+  ammo: number;
+  speed?: number;
+};
+
 export type ApiShipParts = {
   beams?: { name: string; minDamage: number; maxDamage: number }[];
+  missiles?: ApiMissile[];
   hull_sizes: ApiHullSize[];
   drives: ApiDrive[];
   armors: ApiArmor[];
@@ -478,6 +491,7 @@ export type ApiPlayer = {
     fuel_cells?: string[] | null;
     shields?: string[] | null;
     beams?: string[] | null;
+    missiles?: string[] | null;
     ship_systems?: string[] | null;
   };
   fleets?: number[] | null;

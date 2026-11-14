@@ -5,7 +5,7 @@ import type {
   ApiTacticalBattle,
   ApiTacticalShip,
 } from '../../lib/types/battle';
-import { currentBattleShip } from '../../lib/types/battle';
+import { canShipFire, currentBattleShip, isMissileFire } from '../../lib/types/battle';
 
 export type BattleIntent =
   | { type: 'move'; x: number; y: number }
@@ -27,6 +27,8 @@ const GRID_MARGIN_X = 40;
 const GRID_MARGIN_TOP = 28;
 const GRID_MARGIN_BOTTOM = 16;
 const MOVE_MS_PER_SQUARE = 110;
+const MISSILE_MS_PER_SQUARE = 45;
+const MISSILE_MIN_MS = 220;
 
 type ShipVisual = {
   container: Phaser.GameObjects.Container;
@@ -356,8 +358,7 @@ export class BattleScene extends Phaser.Scene {
     if (!active || active.owner_id !== this.config.playerId) return;
 
     const isEnemy = hovered && hovered.owner_id !== this.config.playerId;
-    const canShoot =
-      isEnemy && !active.has_fired && (active.beams?.length ?? 0) > 0;
+    const canShoot = isEnemy && canShipFire(active);
     const dist = Math.max(Math.abs(cell.x - active.x), Math.abs(cell.y - active.y));
     const canMove = !hovered && dist > 0 && dist <= active.moves_left;
     if (!canShoot && !canMove) return;
@@ -381,7 +382,7 @@ export class BattleScene extends Phaser.Scene {
 
     const clicked = this.livingShipAt(cell.x, cell.y);
     if (clicked && clicked.owner_id !== this.config.playerId) {
-      if (!active.has_fired && (active.beams?.length ?? 0) > 0) {
+      if (canShipFire(active)) {
         this.config.onIntent({ type: 'fire', targetId: clicked.id });
       }
       return;
@@ -475,6 +476,9 @@ export class BattleScene extends Phaser.Scene {
     }
     const from = attackerVisual.container;
     const to = targetVisual.container;
+    if (isMissileFire(event)) {
+      return this.animateMissile(event, attacker, target, from, to, done);
+    }
     const beam = this.add.graphics();
     beam.setDepth(20);
     const color = this.ownerColor(attacker.owner_id);
@@ -484,6 +488,83 @@ export class BattleScene extends Phaser.Scene {
     beam.lineBetween(from.x, from.y, to.x, to.y);
     this.fxLayer.add(beam);
 
+    this.tweens.add({
+      targets: beam,
+      alpha: 0,
+      duration: 280,
+      delay: 90,
+      onComplete: () => beam.destroy(),
+    });
+    this.showHitPopup(event, target, to, done);
+  }
+
+  /**
+   * Missiles render as a small warhead with a fading exhaust trail that flies
+   * from shooter to target; the damage popup (or MISS) follows on arrival.
+   */
+  private animateMissile(
+    event: ApiBattleEvent,
+    attacker: ApiTacticalShip,
+    target: ApiTacticalShip,
+    from: Phaser.GameObjects.Container,
+    to: Phaser.GameObjects.Container,
+    done: () => void,
+  ) {
+    const color = this.ownerColor(attacker.owner_id);
+    const radius = Math.max(2.5, this.cellSize * 0.07);
+    const warhead = this.add.graphics();
+    warhead.setDepth(22);
+    warhead.fillStyle(0xfff1c1, 1);
+    warhead.fillCircle(0, 0, radius);
+    warhead.lineStyle(1.5, color, 1);
+    warhead.strokeCircle(0, 0, radius + 1);
+    warhead.setPosition(from.x, from.y);
+    this.fxLayer.add(warhead);
+
+    const trail = this.add.graphics();
+    trail.setDepth(21);
+    this.fxLayer.add(trail);
+    const puffs: { x: number; y: number; life: number }[] = [];
+
+    const squares = Math.max(
+      1,
+      Math.max(Math.abs(attacker.x - target.x), Math.abs(attacker.y - target.y)),
+    );
+    this.tweens.add({
+      targets: warhead,
+      x: to.x,
+      y: to.y,
+      duration: Math.max(MISSILE_MIN_MS, squares * MISSILE_MS_PER_SQUARE),
+      ease: 'Quad.easeIn',
+      onUpdate: () => {
+        puffs.push({ x: warhead.x, y: warhead.y, life: 1 });
+        trail.clear();
+        for (const puff of puffs) {
+          puff.life -= 0.08;
+          if (puff.life <= 0) continue;
+          trail.fillStyle(0xffb26b, puff.life * 0.6);
+          trail.fillCircle(puff.x, puff.y, radius * puff.life);
+        }
+      },
+      onComplete: () => {
+        warhead.destroy();
+        this.tweens.add({
+          targets: trail,
+          alpha: 0,
+          duration: 200,
+          onComplete: () => trail.destroy(),
+        });
+        this.showHitPopup(event, target, to, done);
+      },
+    });
+  }
+
+  private showHitPopup(
+    event: ApiBattleEvent,
+    target: ApiTacticalShip,
+    to: Phaser.GameObjects.Container,
+    done: () => void,
+  ) {
     const label =
       (event.damage ?? 0) > 0 ? `-${event.damage}` : 'MISS';
     const text = this.add
@@ -498,13 +579,6 @@ export class BattleScene extends Phaser.Scene {
       .setDepth(21);
     this.fxLayer.add(text);
 
-    this.tweens.add({
-      targets: beam,
-      alpha: 0,
-      duration: 280,
-      delay: 90,
-      onComplete: () => beam.destroy(),
-    });
     this.tweens.add({
       targets: text,
       y: text.y - this.cellSize * 0.5,

@@ -12,6 +12,7 @@ func ShipDesignPartsDef(d ShipDesign) ShipDesignsDef {
 	return ShipDesignsDef{
 		Name:     d.Name,
 		Beam:     shipDesignBeamName(d),
+		Missile:  shipDesignMissileName(d),
 		Drive:    d.Drive.Name,
 		Computer: d.Computer.Name,
 		Shield:   d.Shield.Name,
@@ -35,6 +36,26 @@ func shipDesignBeamName(d ShipDesign) string {
 		return d.Beams[0].Name
 	}
 	return ""
+}
+
+func shipDesignMissileName(d ShipDesign) string {
+	if len(d.Missiles) > 0 {
+		return d.Missiles[0].Name
+	}
+	return ""
+}
+
+// missileByName finds a missile in the catalog by its exact name.
+func (resources *Resources) missileByName(name string) (Missile, bool) {
+	if resources == nil || resources.MissileCollection == nil {
+		return Missile{}, false
+	}
+	for _, m := range resources.MissileCollection.Missiles {
+		if m.Name == name {
+			return m, true
+		}
+	}
+	return Missile{}, false
 }
 
 // resolveShipDesign supports explicitly weaponless utility templates.
@@ -79,6 +100,9 @@ func (resources *Resources) resolveShipDesign(def ShipDesignsDef) (ShipDesign, e
 	if fuelCell.Autonomy <= 0 {
 		return ShipDesign{}, fmt.Errorf("ship design needs fuel range")
 	}
+	if def.Beam != "" && def.Missile != "" {
+		return ShipDesign{}, fmt.Errorf("only one weapon slot is supported")
+	}
 	beams := []Beam{}
 	if def.Beam != "" {
 		if resources.BeamCollection == nil {
@@ -97,6 +121,17 @@ func (resources *Resources) resolveShipDesign(def ShipDesignsDef) (ShipDesign, e
 			return ShipDesign{}, fmt.Errorf("ship design needs weapon space")
 		}
 	}
+	var missiles []Missile
+	if def.Missile != "" {
+		missile, ok := resources.missileByName(def.Missile)
+		if !ok || missile.Damage <= 0 {
+			return ShipDesign{}, fmt.Errorf("unknown or ineffective missile %q", def.Missile)
+		}
+		if hullSize.Space < 1 {
+			return ShipDesign{}, fmt.Errorf("ship design needs weapon space")
+		}
+		missiles = []Missile{missile}
+	}
 	design := NewShipDesign(
 		name,
 		beams,
@@ -108,5 +143,6 @@ func (resources *Resources) resolveShipDesign(def ShipDesignsDef) (ShipDesign, e
 		fuelCell,
 		shield,
 	)
+	design.Missiles = missiles
 	return design, nil
 }

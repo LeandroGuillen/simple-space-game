@@ -16,7 +16,14 @@ import type {
   ApiTacticalShip,
   BattleActionRequest,
 } from "../lib/types/battle";
-import { currentBattleShip, formatShieldStrength } from "../lib/types/battle";
+import {
+  canShipFire,
+  currentBattleShip,
+  fireDisabledReason,
+  formatMissileRack,
+  formatShieldStrength,
+  nearestEnemyShip,
+} from "../lib/types/battle";
 import { useAppContext } from "../state/app-context";
 
 const RETURN_TO_MAP_DELAY_MS = 2200;
@@ -83,6 +90,11 @@ export function BattlePage() {
   const canAct = createMemo(
     () => isMyTurn() && !requestBusy() && !animating(),
   );
+  const fireBlockedReason = createMemo(() => fireDisabledReason(activeShip()));
+  const canFire = createMemo(() => {
+    const ship = activeShip();
+    return canAct() && !!ship && canShipFire(ship);
+  });
   // HUD focuses on the acting ship; hovering another ship inspects it instead.
   const hudShip = createMemo(() => inspected() ?? activeShip());
 
@@ -154,8 +166,19 @@ export function BattlePage() {
     if (!canAct()) return;
     if (intent.type === "move") {
       void act({ type: "move", x: intent.x, y: intent.y });
-    } else {
+    } else if (canFire()) {
       void act({ type: "fire", target_id: intent.targetId });
+    }
+  }
+
+  // Fire button: shoot the nearest enemy; clicking an enemy picks a target.
+  function fireAtNearest() {
+    const current = battle();
+    const ship = activeShip();
+    if (!current || !ship || !canFire()) return;
+    const target = nearestEnemyShip(current, ship);
+    if (target) {
+      void act({ type: "fire", target_id: target.id });
     }
   }
 
@@ -276,7 +299,10 @@ export function BattlePage() {
         <section class="battle-hud-panel" aria-label="Weapons">
           <h3 class="battle-hud-title">Weapons</h3>
           <Show
-            when={weaponRows(hudShip()).length > 0}
+            when={
+              weaponRows(hudShip()).length > 0 ||
+              (hudShip()?.missiles?.length ?? 0) > 0
+            }
             fallback={<p class="battle-ship-sub">No weapons</p>}
           >
             <For each={weaponRows(hudShip())}>
@@ -289,6 +315,18 @@ export function BattlePage() {
                     {row.count} × {row.label}
                   </span>
                   <span>dmg {row.damage}</span>
+                </div>
+              )}
+            </For>
+            <For each={hudShip()?.missiles ?? []}>
+              {(rack) => (
+                <div
+                  class="battle-weapon-row battle-missile-row"
+                  classList={{
+                    "is-spent": (hudShip()?.has_fired ?? false) || rack.ammo_left <= 0,
+                  }}
+                >
+                  <span>{formatMissileRack(rack)}</span>
                 </div>
               )}
             </For>
@@ -308,6 +346,15 @@ export function BattlePage() {
             disabled={battle()?.status !== "active"}
           >
             Auto
+          </button>
+          <button
+            type="button"
+            class="secondary-button battle-button"
+            onClick={fireAtNearest}
+            disabled={!canFire()}
+            title={fireBlockedReason() || "Fire at the nearest enemy (or click an enemy ship)"}
+          >
+            Fire
           </button>
           <button type="button" class="secondary-button battle-button" disabled title="Coming soon">
             Scan
@@ -351,9 +398,13 @@ export function BattlePage() {
                 {hudShip()!.status.max_armor_hp}
               </dd>
               <dt>Shield</dt>
-              <dd title="Damage blocked from each beam hit">
+              <dd title="Damage blocked from each beam or missile hit">
                 {formatShieldStrength(hudShip()!)}
               </dd>
+              <Show when={(hudShip()!.missiles?.length ?? 0) > 0 || (hudShip()!.missile_evasion ?? 0) !== 0}>
+                <dt>Missile evasion</dt>
+                <dd>{hudShip()!.missile_evasion ?? 0}</dd>
+              </Show>
               <dt>Computer</dt>
               <dd>+{hudShip()!.beam_attack_bonus}</dd>
               <dt>Defense</dt>

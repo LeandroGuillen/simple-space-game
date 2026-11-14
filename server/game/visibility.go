@@ -202,6 +202,7 @@ func copyPlayerPrivate(p *model.Player) *model.Player {
 		FuelCells:   cloneSlice(p.Available.FuelCells),
 		Shields:     cloneSlice(p.Available.Shields),
 		Beams:       cloneSlice(p.Available.Beams),
+		Missiles:    cloneSlice(p.Available.Missiles),
 		ShipSystems: cloneSlice(p.Available.ShipSystems),
 	}
 	cp.Fleets = cloneSlice(p.Fleets)
@@ -231,6 +232,7 @@ func copyGrants(g model.Grants) model.Grants {
 			FuelCells:   cloneSlice(g.Unlocks.FuelCells),
 			Shields:     cloneSlice(g.Unlocks.Shields),
 			Beams:       cloneSlice(g.Unlocks.Beams),
+			Missiles:    cloneSlice(g.Unlocks.Missiles),
 			ShipSystems: cloneSlice(g.Unlocks.ShipSystems),
 		},
 		Modifiers: cloneSlice(g.Modifiers),

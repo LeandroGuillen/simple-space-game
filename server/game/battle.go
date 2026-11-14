@@ -82,6 +82,8 @@ type battleShip struct {
 	shipIndex int
 	original  FleetShip
 	ship      *Ship
+	// missiles is this battle's magazine, so ammo never sticks to the fleet.
+	missiles []MissileRack
 }
 
 // battleSide groups one player's ships and supporting context for combat.
@@ -112,6 +114,7 @@ func (g *Game) resolveBattle(starID uint, fleets []*Fleet) *BattleReport {
 				shipIndex: i,
 				original:  fs,
 				ship:      ship,
+				missiles:  newMissileRacks(ship.Missiles),
 			})
 			originalShipsByOwner[fleet.Owner] = append(originalShipsByOwner[fleet.Owner], fs)
 		}
@@ -186,6 +189,10 @@ func runBattle(sides []*battleSide) (int, uint, bool) {
 					break
 				}
 				FireOn(bs.ship, target.ship, battleStartRange, attackerSide.player, sideOf(sides, target.ownerID).player)
+				// Missiles ignore range; once the magazine is empty they do nothing.
+				if shipAlive(target.ship) {
+					fireMissilesOn(bs.missiles, target.ship)
+				}
 			}
 		}
 		if aliveSides := countSidesWithLiveShips(sides); aliveSides <= 1 {

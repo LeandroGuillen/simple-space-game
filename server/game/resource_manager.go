@@ -19,19 +19,22 @@ type Resources struct {
 	*NameCollection        `json:"name_collection"`
 	*ShipDesignCollection  `json:"ship_design_collection"`
 	*BeamCollection        `json:"beam_collection"`
+	*MissileCollection     `json:"missile_collection"`
 	*EnvironmentCollection `json:"environment_collection"`
 	*TechTree              `json:"tech_tree"`
 	shipDesignCatalog      atomic.Pointer[ShipDesignCollection]
 }
 
 type ShipPartsCollection struct {
-	BeamOptions []Beam     `json:"beams"`
-	HullSizes   []HullSize `json:"hull_sizes"`
-	Drives      []Drive    `json:"drives"`
-	Armors      []Armor    `json:"armors"`
-	Computers   []Computer `json:"computers"`
-	FuelCells   []FuelCell `json:"fuel_cells"`
-	Shields     []Shield   `json:"shields"`
+	BeamOptions []Beam `json:"beams"`
+	// MissileOptions lists missile racks for the editor's weapon slot.
+	MissileOptions []Missile  `json:"missiles"`
+	HullSizes      []HullSize `json:"hull_sizes"`
+	Drives         []Drive    `json:"drives"`
+	Armors         []Armor    `json:"armors"`
+	Computers      []Computer `json:"computers"`
+	FuelCells      []FuelCell `json:"fuel_cells"`
+	Shields        []Shield   `json:"shields"`
 }
 
 type ShipSystemCollection struct {
@@ -57,6 +60,10 @@ type ShipDesignCollection struct {
 
 type BeamCollection struct {
 	Beams []Beam `json:"beams"`
+}
+
+type MissileCollection struct {
+	Missiles []Missile `json:"missiles"`
 }
 
 // PlanetEnvironmentDef holds the data-driven gameplay attributes of a planet
@@ -112,6 +119,9 @@ var shipDesignsFile []byte
 
 //go:embed resources/beams.json
 var beamsFile []byte
+
+//go:embed resources/missiles.json
+var missilesFile []byte
 
 //go:embed resources/tech-tree.json
 var techTreeFile []byte
@@ -193,6 +203,13 @@ func (r *ResourceManager) loadDataFromFiles() error {
 	}
 	r.BeamCollection = &beamCollection
 	r.ShipPartsCollection.BeamOptions = slices.Clone(beamCollection.Beams)
+
+	var missileCollection MissileCollection
+	if err := json.Unmarshal(missilesFile, &missileCollection); err != nil {
+		return fmt.Errorf("cannot read missiles.json: %w", err)
+	}
+	r.MissileCollection = &missileCollection
+	r.ShipPartsCollection.MissileOptions = slices.Clone(missileCollection.Missiles)
 
 	var shipDesignCollection ShipDesignCollection
 	if err := json.Unmarshal(shipDesignsFile, &shipDesignCollection); err != nil {
@@ -467,6 +484,11 @@ func (r *ResourceManager) validateUnlocks(techName string, unlocks Unlocks) erro
 	for _, name := range unlocks.Beams {
 		if !beamExists(r.Beams, name) {
 			validationErrors = append(validationErrors, fmt.Errorf("tech %q unlocks missing beam %q", techName, name))
+		}
+	}
+	for _, name := range unlocks.Missiles {
+		if _, ok := r.missileByName(name); !ok {
+			validationErrors = append(validationErrors, fmt.Errorf("tech %q unlocks missing missile %q", techName, name))
 		}
 	}
 	for _, name := range unlocks.ShipSystems {

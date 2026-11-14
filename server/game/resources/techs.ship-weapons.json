@@ -6,15 +6,31 @@
   { "name": "Neutron Blaster", "description": "No description provided" },
   { "name": "Nuclear Bomb", "description": "No description provided" },
   { "name": "Plasma Cannon", "description": "No description provided" },
-  { "name": "Nuclear Missile", "description": "No description provided" },
-  { "name": "Zeon Missile", "description": "No description provided" },
+  {
+    "name": "Nuclear Missile",
+    "description": "Missile rack: homing warhead with 5 shots per battle.",
+    "grants": { "unlocks": { "missiles": ["Nuclear Missile"] } }
+  },
+  {
+    "name": "Zeon Missile",
+    "description": "Missile rack: homing warhead with 5 shots per battle.",
+    "grants": { "unlocks": { "missiles": ["Zeon Missile"] } }
+  },
   { "name": "Particle Beam", "description": "No description provided" },
-  { "name": "Pulson Missile", "description": "No description provided" },
+  {
+    "name": "Pulson Missile",
+    "description": "Missile rack: homing warhead with 5 shots per battle.",
+    "grants": { "unlocks": { "missiles": ["Pulson Missile"] } }
+  },
   { "name": "Plasma Torpedo", "description": "No description provided" },
   { "name": "Stasis Field", "description": "No description provided" },
   { "name": "Proton Torpedo", "description": "No description provided" },
   { "name": "Phasor", "description": "No description provided" },
-  { "name": "Merculite Missile", "description": "No description provided" },
+  {
+    "name": "Merculite Missile",
+    "description": "Missile rack: homing warhead with 5 shots per battle.",
+    "grants": { "unlocks": { "missiles": ["Merculite Missile"] } }
+  },
   { "name": "Gauss Cannon", "description": "No description provided" },
   { "name": "Graviton Beam", "description": "No description provided" },
   { "name": "Disruptor Cannon", "description": "No description provided" },

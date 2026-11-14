@@ -47,5 +47,6 @@ type AvailableTech struct {
 	FuelCells   []string `json:"fuel_cells"`
 	Shields     []string `json:"shields"`
 	Beams       []string `json:"beams"`
+	Missiles    []string `json:"missiles,omitempty"`
 	ShipSystems []string `json:"ship_systems"`
 }

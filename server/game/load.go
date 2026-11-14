@@ -66,6 +66,7 @@ func HydrateLoadedGame(g *Game, resources *ResourceManager) {
 			}
 		}
 	}
+	g.backfillMissileAvailability()
 	if g.TurnSubmissions == nil {
 		g.TurnSubmissions = make(map[uint]Commands)
 	}
@@ -140,4 +141,24 @@ func (g *Game) prunePostponedInvasions() {
 func (g *Game) ResetTurnStatusAfterRestart() {
 	g.TurnSubmissions = make(map[uint]Commands)
 	g.resetTurnStatus()
+}
+
+// backfillMissileAvailability adds missile racks granted by already
+// researched techs to saves made before missiles were weapons. Other unlock
+// lists are left exactly as saved.
+func (g *Game) backfillMissileAvailability() {
+	if g == nil || g.Resources == nil || g.Resources.TechTree == nil {
+		return
+	}
+	for _, player := range g.Players {
+		if player == nil {
+			continue
+		}
+		appendUniqueStrings(&player.Available.Missiles, player.Race.Grants.Unlocks.Missiles...)
+		for _, techName := range player.ResearchedTechs {
+			if tech, ok := g.findTechDefinition(techName); ok {
+				appendUniqueStrings(&player.Available.Missiles, tech.Grants.Unlocks.Missiles...)
+			}
+		}
+	}
 }

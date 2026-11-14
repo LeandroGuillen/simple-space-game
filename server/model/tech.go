@@ -54,6 +54,7 @@ type Unlocks struct {
 	FuelCells   []string `json:"fuel_cells,omitempty"`
 	Shields     []string `json:"shields,omitempty"`
 	Beams       []string `json:"beams,omitempty"`
+	Missiles    []string `json:"missiles,omitempty"`
 	ShipSystems []string `json:"ship_systems,omitempty"`
 }
 

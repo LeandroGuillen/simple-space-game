@@ -112,6 +112,8 @@ func newTacticalShip(id uint, fleet *Fleet, shipIndex int, fs FleetShip, ship *S
 		BeamDefense:        ship.BeamDefense,
 		ShieldName:         ship.Shield.Name,
 		ShieldReduceDamage: ship.Shield.ReduceDamage,
+		Missiles:           newMissileRacks(ship.Missiles),
+		MissileEvasion:     ship.MissileEvasion,
 		ShipStatus:         ship.ShipStatus,
 	}
 }
@@ -334,13 +336,17 @@ func (g *Game) moveTacticalShip(b *TacticalBattle, ship *TacticalShip, x, y int)
 
 // fireTacticalShip fires every beam on the ship at the target, one volley per
 // activation. Hit chance, dissipation and per-hit shield reduction reuse the
-// auto-resolve combat math.
+// auto-resolve combat math. Missile racks launch one missile each instead:
+// they hit on launch at any distance and spend one ammo per missile.
 func (g *Game) fireTacticalShip(b *TacticalBattle, ship *TacticalShip, targetID uint) error {
 	if ship.HasFired {
 		return fmt.Errorf("ship %d already fired this round", ship.ID)
 	}
-	if len(ship.Beams) == 0 {
+	if len(ship.Beams) == 0 && len(ship.Missiles) == 0 {
 		return fmt.Errorf("ship %d has no weapons", ship.ID)
+	}
+	if len(ship.Beams) == 0 && !missilesLoaded(ship.Missiles) {
+		return fmt.Errorf("ship %d is out of missiles", ship.ID)
 	}
 	target := b.ShipByID(targetID)
 	if target == nil || target.Destroyed {
@@ -357,22 +363,33 @@ func (g *Game) fireTacticalShip(b *TacticalBattle, ship *TacticalShip, targetID 
 	defense := target.BeamDefense + shipRaceDefenseBonus(defender, target.BeamDefense)
 	chance := GetChanceToHit(Computer{BeamAttackBonus: attackBonus}, defense, 0, distance)
 
-	totalDamage := int64(0)
-	hits, misses := 0, 0
-	for _, beam := range ship.Beams {
-		if randomFloat64() <= chance {
-			hits++
-			totalDamage += shieldedBeamDamage(GetDamage(beam, distance), target.ShieldReduceDamage)
-		} else {
-			misses++
-		}
-	}
 	ship.HasFired = true
-	applyTacticalDamage(target, totalDamage)
-	b.AppendEvent(BattleEvent{
-		Type: "fire", ShipID: ship.ID, TargetID: target.ID,
-		Damage: totalDamage, Hits: hits, Misses: misses,
-	})
+	if len(ship.Beams) > 0 {
+		totalDamage := int64(0)
+		hits, misses := 0, 0
+		for _, beam := range ship.Beams {
+			if randomFloat64() <= chance {
+				hits++
+				totalDamage += shieldedHitDamage(GetDamage(beam, distance), target.ShieldReduceDamage)
+			} else {
+				misses++
+			}
+		}
+		applyTacticalDamage(target, totalDamage)
+		b.AppendEvent(BattleEvent{
+			Type: "fire", ShipID: ship.ID, TargetID: target.ID,
+			Damage: totalDamage, Hits: hits, Misses: misses,
+		})
+	}
+	if target.CurrentStructureHP > 0 && missilesLoaded(ship.Missiles) {
+		volley := launchMissiles(ship.Missiles, target.MissileEvasion, target.ShieldReduceDamage)
+		applyTacticalDamage(target, volley.damage)
+		b.AppendEvent(BattleEvent{
+			Type: "fire", ShipID: ship.ID, TargetID: target.ID,
+			Damage: volley.damage, Hits: volley.hits, Misses: volley.misses,
+			WeaponKind: "missile", WeaponName: volley.name,
+		})
+	}
 	if target.CurrentStructureHP <= 0 {
 		target.Destroyed = true
 		b.AppendEvent(BattleEvent{Type: "destroyed", ShipID: target.ID})
@@ -568,12 +585,14 @@ func (g *Game) runAIUntilHumanOrEnd(b *TacticalBattle) {
 }
 
 // aiActivate plays one ship's activation: close toward the nearest enemy to
-// point-blank dissipation range, fire everything, end activation.
+// point-blank dissipation range, fire everything, end activation. Missile
+// ships fire from wherever the move left them while they have ammo; once
+// empty they only move.
 func (g *Game) aiActivate(b *TacticalBattle, ship *TacticalShip) {
 	target := nearestEnemy(b, ship)
 	if target != nil {
 		aiMoveToward(b, ship, target, g)
-		if len(ship.Beams) > 0 && !ship.HasFired {
+		if (len(ship.Beams) > 0 || missilesLoaded(ship.Missiles)) && !ship.HasFired {
 			_ = g.fireTacticalShip(b, ship, target.ID)
 		}
 	}

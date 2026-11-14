@@ -18,6 +18,7 @@ import type {
   ShipDesignTemplateRow,
 } from "../lib/types/api";
 import type { ShipDesignForm } from "../lib/types/domain";
+import { formatMissileDamage, selectedWeaponName, withWeapon } from "../lib/ship-weapons";
 import { defaultShipDesignFormFromParts } from "../lib/utils";
 import { useAppContext } from "../state/app-context";
 
@@ -39,6 +40,7 @@ function templateRowToForm(row: ShipDesignTemplateRow): ShipDesignForm {
   return {
     name: row.name,
     beam: row.beam ?? "",
+    missile: row.missile ?? "",
     drive: row.drive,
     computer: row.computer,
     shield: row.shield,
@@ -188,9 +190,14 @@ export function ShipEditorPage() {
   const [allDesigns, setAllDesigns] = createSignal<ShipDesignTemplateRow[]>([]);
   const [parts, setParts] = createSignal<ApiShipParts | null>(null);
   const beams = createMemo(() => (parts()?.beams ?? []).filter((beam) => beam.maxDamage > 0));
+  const missiles = createMemo(() => (parts()?.missiles ?? []).filter((missile) => missile.damage > 0));
   const [listFocus, setListFocus] = createSignal<string | null>(null);
   const [isDraft, setIsDraft] = createSignal(false);
   const [form, setForm] = createSignal<ShipDesignForm>(defaultShipDesignFormFromParts(null));
+  const weaponName = createMemo(() => selectedWeaponName(form()));
+  const selectedBeam = createMemo(() => parts()?.beams?.find((b) => b.name === form().beam) ?? null);
+  const selectedMissile = createMemo(() => missiles().find((m) => m.name === form().missile) ?? null);
+  const setWeapon = (name: string) => setForm(withWeapon(form(), name, missiles()));
   const [saveError, setSaveError] = createSignal("");
   const [saveMessage, setSaveMessage] = createSignal("");
   const [confirmDelete, setConfirmDelete] = createSignal("");
@@ -259,6 +266,8 @@ export function ShipEditorPage() {
     if (parts() && !parts()?.drives.some((d) => d.name === f.drive && d.interstellar_speed > 0)) e.push("Choose an interstellar drive.");
     if (parts() && !parts()?.fuel_cells.some((cell) => cell.name === f.fuelCell && cell.autonomy > 0)) e.push("Choose a fuel cell with range.");
     if (f.beam && !parts()?.beams?.some((b) => b.name === f.beam)) e.push("Choose a supported weapon.");
+    if (f.missile && !missiles().some((m) => m.name === f.missile)) e.push("Choose a supported weapon.");
+    if (f.beam && f.missile) e.push("Only one weapon slot is supported.");
     return e;
   });
 
@@ -730,26 +739,45 @@ export function ShipEditorPage() {
                             </tr>
                           </thead>
                           <tbody>
-                            <Show when={form().beam}>
+                            <Show when={weaponName()}>
                               <tr>
                                 <td>
                                   <select
                                     aria-label="Weapon"
-                                    value={form().beam}
+                                    value={weaponName()}
                                     disabled={readOnly()}
-                                    onChange={(e) => updateForm({ beam: e.currentTarget.value })}
+                                    onChange={(e) => setWeapon(e.currentTarget.value)}
                                   >
-                                    <For each={beams()}>
-                                      {(b) => <option value={b.name}>{b.name}</option>}
-                                    </For>
+                                    <Show when={beams().length > 0}>
+                                      <optgroup label="Beams">
+                                        <For each={beams()}>
+                                          {(b) => <option value={b.name}>{b.name}</option>}
+                                        </For>
+                                      </optgroup>
+                                    </Show>
+                                    <Show when={missiles().length > 0}>
+                                      <optgroup label="Missiles">
+                                        <For each={missiles()}>
+                                          {(m) => <option value={m.name}>{m.name}</option>}
+                                        </For>
+                                      </optgroup>
+                                    </Show>
                                   </select>
                                 </td>
                                 <td>
-                                  {parts()?.beams?.find((b) => b.name === form().beam)?.minDamage}
-                                  –{parts()?.beams?.find((b) => b.name === form().beam)?.maxDamage}
+                                  <Show
+                                    when={selectedMissile()}
+                                    fallback={
+                                      <>
+                                        {selectedBeam()?.minDamage}–{selectedBeam()?.maxDamage}
+                                      </>
+                                    }
+                                  >
+                                    {(m) => formatMissileDamage(m())}
+                                  </Show>
                                 </td>
                                 <td>
-                                  <button type="button" disabled={readOnly()} onClick={() => updateForm({ beam: "" })}>
+                                  <button type="button" disabled={readOnly()} onClick={() => setWeapon("")}>
                                     Remove weapon
                                   </button>
                                 </td>
@@ -761,13 +789,13 @@ export function ShipEditorPage() {
                       <button
                         type="button"
                         class="ship-editor-bay-add-hint"
-                        disabled={readOnly() || !!form().beam || !beams().length}
-                        onClick={() => updateForm({ beam: beams()[0]?.name ?? "" })}
+                        disabled={readOnly() || !!weaponName() || (!beams().length && !missiles().length)}
+                        onClick={() => setWeapon(beams()[0]?.name ?? missiles()[0]?.name ?? "")}
                       >
                         + Add weapon
                       </button>
                       <p>
-                        {form().beam
+                        {weaponName()
                           ? "Armed design. Requires researched weapon technology to build."
                           : "Weaponless utility design — cannot fight. Add a weapon to create a combat ship."}
                       </p>
